@@ -19,7 +19,12 @@ abstract final class MyListService {
   /// touched, so entries reappear the moment the switch is turned back on.
   static List<MyListItem> get visibleItems {
     if (ContentSettings.adultEnabled.value) return items.value;
-    return items.value.where((i) => !isAdultContent(i)).toList();
+    // Collect adult session ids once: testing each entry via isAdultContent
+    // would re-scan the session list per entry (O(N*M)).
+    final adultIds = _adultSessionIds();
+    return items.value
+        .where((i) => !isAdultContent(i, adultSessionIds: adultIds))
+        .toList();
   }
 
   /// Whether [item] is known to come from adult content.
@@ -28,19 +33,26 @@ abstract final class MyListService {
   /// classified when the app already knows the media is adult: an adult-flagged
   /// Continue Watching session for the same id, or an adult anime in the anime
   /// library with the same title. Anything else stays visible — this adds no
-  /// persistence and performs no network lookups.
-  static bool isAdultContent(MyListItem item) {
+  /// persistence and performs no network lookups. Pass [adultSessionIds] when
+  /// classifying a batch so the session list is scanned once, not per item.
+  static bool isAdultContent(MyListItem item, {Set<String>? adultSessionIds}) {
     final imdbId = item.imdbId;
     final tmdbId = item.tmdbId;
-    final playedFromAdultSource = ContinueWatchingService.activeItems.value.any(
-      (session) =>
-          session.isAdult &&
-          ((imdbId != null && imdbId.isNotEmpty && session.id == imdbId) ||
-              (tmdbId != null && session.id == 'tmdb:$tmdbId')),
-    );
+    final adultIds = adultSessionIds ?? _adultSessionIds();
+    final playedFromAdultSource =
+        (imdbId != null && imdbId.isNotEmpty && adultIds.contains(imdbId)) ||
+            (tmdbId != null && adultIds.contains('tmdb:$tmdbId'));
     if (playedFromAdultSource) return true;
 
     return AnimeLibraryService.instance.isKnownAdultTitle(item.title);
+  }
+
+  static Set<String> _adultSessionIds() {
+    final ids = <String>{};
+    for (final session in ContinueWatchingService.activeItems.value) {
+      if (session.isAdult) ids.add(session.id);
+    }
+    return ids;
   }
 
   static Future<void> initialize() async {

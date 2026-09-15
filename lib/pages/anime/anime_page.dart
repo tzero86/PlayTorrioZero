@@ -8,6 +8,7 @@ import '../../models/anime/anime_media.dart';
 import '../../services/anime/anilist_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
+import '../../services/content/content_settings.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/dock_settings.dart';
 import '../../services/theme/glass_settings.dart';
@@ -61,11 +62,13 @@ class _AnimePageState extends State<AnimePage> {
     super.initState();
     _libraryService.addListener(_onLibraryChanged);
     _libraryService.init();
+    ContentSettings.adultEnabled.addListener(_onAdultContentChanged);
     _loadAnimeData();
   }
 
   @override
   void dispose() {
+    ContentSettings.adultEnabled.removeListener(_onAdultContentChanged);
     _libraryService.removeListener(_onLibraryChanged);
     _scrollController.dispose();
     super.dispose();
@@ -73,6 +76,13 @@ class _AnimePageState extends State<AnimePage> {
 
   void _onLibraryChanged() {
     if (mounted) setState(() {});
+  }
+
+  /// AniList queries embed the 18+ switch, so refetch the rows through the
+  /// existing load path when it flips.
+  void _onAdultContentChanged() {
+    if (!mounted) return;
+    _loadAnimeData();
   }
 
   Future<void> _loadAnimeData() async {

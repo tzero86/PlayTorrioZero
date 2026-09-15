@@ -67,6 +67,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    ContentSettings.adultEnabled.addListener(_onAdultContentChanged);
 
     if (_isLegacyMode) {
       _fetchLegacyData();
@@ -77,10 +78,24 @@ class _DiscoverPageState extends State<DiscoverPage> {
 
   @override
   void dispose() {
+    ContentSettings.adultEnabled.removeListener(_onAdultContentChanged);
     _scrollController.dispose();
     _filtersScrollController.dispose();
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// The catalog list is adult-filtered at query time, so rebuild it under the
+  /// new switch value and reload. The previous type/entry is preserved when it
+  /// still exists (see [_initDiscoverCatalogs]).
+  void _onAdultContentChanged() {
+    if (!mounted) return;
+    MetadataService.clearCatalogCache();
+    if (_isLegacyMode) {
+      _fetchLegacyData();
+      return;
+    }
+    _initDiscoverCatalogs();
   }
 
   // ── Legacy Search / Genre Mode ──
@@ -142,13 +157,37 @@ class _DiscoverPageState extends State<DiscoverPage> {
       sortedTypes.add(_adultType);
     }
 
-    String initialType = widget.initialCatalog?.type ?? (sortedTypes.isNotEmpty ? sortedTypes.first : 'movie');
-    if (!sortedTypes.contains(initialType) && sortedTypes.isNotEmpty) {
-      initialType = sortedTypes.first;
+    // Preserve the user's current type/entry across re-inits (e.g. the 18+
+    // switch flipping the available catalog list). Falls back to the initial
+    // catalog when the prior selection no longer exists.
+    final hasPriorSelection =
+        _availableTypes.isNotEmpty || _selectedCatalogEntry != null;
+    final priorType = _selectedType;
+    final priorEntry = _selectedCatalogEntry;
+
+    String initialType;
+    if (hasPriorSelection && sortedTypes.contains(priorType)) {
+      initialType = priorType;
+    } else {
+      initialType =
+          widget.initialCatalog?.type ??
+          (sortedTypes.isNotEmpty ? sortedTypes.first : 'movie');
+      if (!sortedTypes.contains(initialType) && sortedTypes.isNotEmpty) {
+        initialType = sortedTypes.first;
+      }
     }
 
     ({InstalledAddon addon, AddonCatalog catalog})? initialEntry;
-    if (widget.initialCatalog != null) {
+    if (priorEntry != null) {
+      for (final entry in catalogs) {
+        if (entry.catalog.id == priorEntry.catalog.id &&
+            entry.addon.manifest.id == priorEntry.addon.manifest.id) {
+          initialEntry = entry;
+          break;
+        }
+      }
+    }
+    if (initialEntry == null && widget.initialCatalog != null) {
       for (final entry in catalogs) {
         if (entry.catalog.id == widget.initialCatalog!.id &&
             (widget.initialAddon == null || entry.addon.manifest.id == widget.initialAddon!.manifest.id)) {

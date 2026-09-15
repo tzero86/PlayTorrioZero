@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -14,8 +15,10 @@ import 'package:path_provider/path_provider.dart';
 ///   [maxFileBytes] with tail-rotation. Nothing here can grow unboundedly.
 /// * Throttled: file flushes happen at most every [flushInterval]; explicit
 ///   [memory] samples at most every [memorySampleInterval]. Sampling only
-///   happens on discrete events (route / stream / lifecycle) — never
-///   per-frame. The RSS read itself ([ProcessInfo.currentRss]) is a cheap
+///   happens on discrete events (route / stream / lifecycle) plus an opt-in
+///   frame-jank callback that aggregates counters in memory (never per-frame
+///   I/O) and emits at most one breadcrumb per [jankReportInterval].
+///   The RSS read itself ([ProcessInfo.currentRss]) is a cheap
 ///   synchronous getter, safe to attach to every breadcrumb.
 /// * Release-safe: every file/syscall is wrapped in try/catch; diagnostics
 ///   must never throw into app code. Before [initialize] resolves the
@@ -28,6 +31,8 @@ class CrashBreadcrumbs {
   static const int _rotatedKeepLines = 100;
   static const Duration flushInterval = Duration(seconds: 5);
   static const Duration memorySampleInterval = Duration(seconds: 15);
+  static const Duration jankReportInterval = Duration(seconds: 10);
+  static const Duration jankFrameBudget = Duration(milliseconds: 34);
   static const String fileName = 'crash_breadcrumbs.log';
 
   static final ListQueue<Breadcrumb> _entries = ListQueue<Breadcrumb>();
@@ -35,6 +40,11 @@ class CrashBreadcrumbs {
   static bool _initializing = false;
   static DateTime? _lastFlush;
   static DateTime? _lastMemorySample;
+  static DateTime? _lastJankReport;
+  static bool _jankSampling = false;
+  static int _jankFrames = 0;
+  static int _jankCount = 0;
+  static int _jankRasterTotalUs = 0;
   static int _seq = 0;
   static int _persistedSeq = 0;
 
@@ -43,6 +53,7 @@ class CrashBreadcrumbs {
   /// Resolves the log directory. Fire-and-forget from `main()` via
   /// `unawaited(...)` so it never adds startup latency.
   static Future<void> initialize() async {
+    startJankSampling();
     if (_dir != null || _initializing) return;
     _initializing = true;
     try {
@@ -85,18 +96,105 @@ class CrashBreadcrumbs {
           'context': _truncate(context),
       }, forceFlush: true);
 
+  /// Opt-in frame-jank sampler for slow-browse diagnosis.
+  ///
+  /// Registers a [SchedulerBinding.addTimingsCallback] that only bumps
+  /// in-memory counters per report (never I/O) and emits at most one
+  /// `jank` breadcrumb per [jankReportInterval], only when at least one
+  /// frame exceeded [jankFrameBudget] in build+raster time. Safe to call
+  /// repeatedly; safe without a bound [SchedulerBinding].
+  static void startJankSampling() {
+    if (_jankSampling) return;
+    try {
+      SchedulerBinding.instance.addTimingsCallback(_onTimings);
+    } catch (_) {
+      return;
+    }
+    _jankSampling = true;
+  }
+
+  /// Stops the frame-jank sampler. Pending counters are discarded.
+  static void stopJankSampling() {
+    if (!_jankSampling) return;
+    _jankSampling = false;
+    _jankFrames = 0;
+    _jankCount = 0;
+    _jankRasterTotalUs = 0;
+    try {
+      SchedulerBinding.instance.removeTimingsCallback(_onTimings);
+    } catch (_) {
+      // Diagnostics must never break the app.
+    }
+  }
+
+  /// Aggregates one engine timings report into in-memory counters and, at
+  /// most once per [jankReportInterval], emits a single `jank` breadcrumb
+  /// carrying frames/jank counts plus average raster time.
+  static void _onTimings(List<FrameTiming> timings) {
+    try {
+      for (final timing in timings) {
+        _jankFrames++;
+        final cost = timing.buildDuration + timing.rasterDuration;
+        if (cost > jankFrameBudget) {
+          _jankCount++;
+          _jankRasterTotalUs += timing.rasterDuration.inMicroseconds;
+        }
+      }
+      final now = DateTime.now();
+      if (_jankCount == 0) return;
+      if (_lastJankReport != null &&
+          now.difference(_lastJankReport!) < jankReportInterval) {
+        return;
+      }
+      _lastJankReport = now;
+      final frames = _jankFrames;
+      final jank = _jankCount;
+      final avgRasterMs = _jankRasterTotalUs / jank / 1000;
+      _jankFrames = 0;
+      _jankCount = 0;
+      _jankRasterTotalUs = 0;
+      _add('jank', 'jank.frames=$frames jank=$jank', <String, String>{
+        'frames': '$frames',
+        'jank': '$jank',
+        'avgRasterMs': avgRasterMs.toStringAsFixed(1),
+        'rssMode': 'process',
+      });
+    } catch (_) {
+      // Diagnostics must never break the app.
+    }
+  }
+
   static List<Breadcrumb> get entries => List.unmodifiable(_entries);
 
   static String dumpText() => _entries.map((e) => e.toString()).join('\n');
 
   @visibleForTesting
   static void clearForTest() {
+    try {
+      if (_jankSampling) {
+        SchedulerBinding.instance.removeTimingsCallback(_onTimings);
+      }
+    } catch (_) {
+      // No binding in some unit-test setups; just reset the flag.
+    }
+    _jankSampling = false;
     _entries.clear();
     _lastFlush = null;
     _lastMemorySample = null;
+    _lastJankReport = null;
+    _jankFrames = 0;
+    _jankCount = 0;
+    _jankRasterTotalUs = 0;
     _seq = 0;
     _persistedSeq = 0;
   }
+
+  @visibleForTesting
+  static void recordTimingsForTest(List<FrameTiming> timings) =>
+      _onTimings(timings);
+
+  @visibleForTesting
+  static bool get jankSamplingForTest => _jankSampling;
 
   static void _add(
     String category,
@@ -126,6 +224,8 @@ class CrashBreadcrumbs {
 
   static double? _currentRssMb() {
     try {
+      // ProcessInfo.currentRss is in bytes on the VM (calibrated with a
+      // Dart harness: base ~187M, +20 MiB live allocation raises it ~20M).
       return (ProcessInfo.currentRss / 1048576 * 10).round() / 10;
     } catch (_) {
       return null;
@@ -246,8 +346,16 @@ class BreadcrumbObserver extends NavigatorObserver {
   }
 
   static String _label(Route<dynamic>? route) {
-    final name = route?.settings.name;
+    final settings = route?.settings;
+    final name = settings?.name;
     if (name != null && name.isNotEmpty) return name;
+    final args = settings?.arguments;
+    // Most app pushes use anonymous PageRouteBuilder subclasses with the page
+    // as `arguments` (see route_transitions.dart), so fall back to that.
+    final argLabel = args?.runtimeType.toString();
+    if (argLabel != null && argLabel != 'Null' && argLabel != 'Object') {
+      return '${route?.runtimeType}($argLabel)';
+    }
     return route?.runtimeType.toString() ?? '?';
   }
 }

@@ -399,12 +399,14 @@ class AddonManager {
       for (final catalog in catalogsToFetch) {
         sectionFutures.add(() async {
           try {
+            // Bound each catalog so one slow (e.g. adult) source can't
+            // head-of-line-block later sections past the timeout. Yield
+            // order is unchanged, so UI stability is preserved.
             final movies = await MetadataService.fetchCatalog(
               baseUrl: addon.baseUrl,
               type: catalog.type,
               catalogId: catalog.id,
-            );
-
+            ).timeout(const Duration(seconds: 10));
             if (movies.isEmpty) return null;
 
             return MovieSection(
@@ -437,11 +439,13 @@ class AddonManager {
 
     final futures = catalogsToFetch.map((catalog) async {
       try {
+        // Same bound as the streamed path: one slow source can't stall the
+        // whole home list past the timeout.
         final movies = await MetadataService.fetchCatalog(
           baseUrl: addon.baseUrl,
           type: catalog.type,
           catalogId: catalog.id,
-        );
+        ).timeout(const Duration(seconds: 10));
 
         return MovieSection(
           title: _catalogDisplayName(catalog),

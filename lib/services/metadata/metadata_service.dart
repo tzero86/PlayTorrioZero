@@ -21,6 +21,13 @@ class MetadataService {
     _metaCache.clear();
   }
 
+  /// Clear catalog/search entries only (e.g. when the adult switch changes
+  /// which addons contribute content). Per-title details in [_metaCache]
+  /// are kept: they are not adult-sensitive.
+  static void clearCatalogCache() {
+    _catalogCache.clear();
+  }
+
   // ── Manifest ──────────────────────────────────────────────────────────
 
   /// Fetch and parse a manifest from any Stremio addon.

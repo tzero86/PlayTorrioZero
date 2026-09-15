@@ -219,15 +219,22 @@ class ContinueWatchingService {
     required String type,
     String? addonName,
     List<String> genres = const [],
+    Set<String>? nsfwAddonKeys,
   }) {
     final name = (addonName ?? '').trim().toLowerCase();
     if (name == 'watchhentai' || name == 'hentaini') return true;
 
-    for (final addon in AddonManager.instance.addons) {
-      if (!addon.isNsfwOnly) continue;
-      if (name == addon.manifest.name.toLowerCase() ||
-          name == addon.manifest.id.toLowerCase()) {
-        return true;
+    // Batch callers pass a hoisted set so the addon list is scanned once per
+    // batch; single calls keep the original direct scan (no set allocation).
+    if (nsfwAddonKeys != null) {
+      if (nsfwAddonKeys.contains(name)) return true;
+    } else {
+      for (final addon in AddonManager.instance.addons) {
+        if (!addon.isNsfwOnly) continue;
+        if (name == addon.manifest.name.toLowerCase() ||
+            name == addon.manifest.id.toLowerCase()) {
+          return true;
+        }
       }
     }
 
@@ -245,6 +252,18 @@ class ContinueWatchingService {
   static bool _isAdultGenre(String genre) {
     final value = genre.toLowerCase();
     return value.contains('hentai') || value.contains('erotica');
+  }
+
+  /// Lowercased names/ids of NSFW-only addons (+ hardcoded hentai sources),
+  /// built once so batch callers don't re-scan the addon list per item.
+  static Set<String> buildNsfwAddonKeys() {
+    final keys = <String>{'watchhentai', 'hentaini'};
+    for (final addon in AddonManager.instance.addons) {
+      if (!addon.isNsfwOnly) continue;
+      keys.add(addon.manifest.name.toLowerCase());
+      keys.add(addon.manifest.id.toLowerCase());
+    }
+    return keys;
   }
 
   /// Saves or updates the playback progress for a session.

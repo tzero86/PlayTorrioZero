@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/audiobook/audiobook_settings.dart';
@@ -7,6 +9,7 @@ import '../../services/theme/glass_settings.dart';
 import '../../services/iptv/iptv_settings.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../services/music/music_settings.dart';
+import '../../services/diagnostics/renderer_backend.dart';
 import 'appearance/audiobook_settings_page.dart';
 import 'appearance/custom_background_settings_page.dart';
 import 'appearance/dock_settings_page.dart';
@@ -296,6 +299,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 },
               ),
 
+              const SizedBox(height: 14),
+
+              // Windows graphics backend (Skia default, restart to apply).
+              if (Platform.isWindows) _buildRendererBackendCard(),
+
               const SizedBox(height: 28),
 
               // Visual Overview Notes
@@ -326,6 +334,196 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 icon: Icons.home_rounded,
                 title: 'Home Page & Discovery',
                 description: 'Adapts to your chosen theme accent colors, smart BestSimilar recommendation slider, and chosen poster density.',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRendererBackendCard() {
+    return ValueListenableBuilder<RendererBackend>(
+      valueListenable: RendererBackendSettings.current,
+      builder: (context, backend, _) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF12151E),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.08),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.speed_rounded,
+                      color: Color(0xFF00E5FF),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Graphics Backend',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(
+                                  0xFF00E5FF,
+                                ).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                backend.label,
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF00E5FF),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Skia is recommended on Windows here — '
+                          'Impeller coincided with an NVIDIA driver crash.',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.45),
+                            height: 1.25,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              _buildBackendOption(
+                backend: RendererBackend.skia,
+                selected: backend == RendererBackend.skia,
+              ),
+              const SizedBox(height: 8),
+              _buildBackendOption(
+                backend: RendererBackend.impeller,
+                selected: backend == RendererBackend.impeller,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(
+                    Icons.restart_alt_rounded,
+                    size: 14,
+                    color: Colors.white.withValues(alpha: 0.4),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Restart the app to apply — the backend is fixed when the engine starts.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: Colors.white.withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBackendOption({
+    required RendererBackend backend,
+    required bool selected,
+  }) {
+    final color = backend == RendererBackend.skia
+        ? const Color(0xFF00E5FF)
+        : const Color(0xFF7C5CFF);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => RendererBackendSettings.setBackend(backend),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? color.withValues(alpha: 0.10)
+                : Colors.white.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected
+                  ? color.withValues(alpha: 0.35)
+                  : Colors.white.withValues(alpha: 0.07),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                selected
+                    ? Icons.radio_button_checked_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                size: 18,
+                color: selected ? color : Colors.white38,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      backend == RendererBackend.skia
+                          ? 'Skia (Recommended)'
+                          : 'Impeller',
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      backend.description,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: Colors.white.withValues(alpha: 0.45),
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

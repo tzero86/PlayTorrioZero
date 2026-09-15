@@ -1,18 +1,33 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
+import '../../services/diagnostics/perf_monitor.dart';
 
 /// Standard Material-style push transition helper.
 Route<T> materialRoute<T>({required WidgetBuilder builder, RouteSettings? settings}) =>
     PageRouteBuilder<T>(
       pageBuilder: (context, animation, secondaryAnimation) => builder(context),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
-          FadeTransition(opacity: animation, child: child),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return _TransitionTimer(
+          animation: animation,
+          routeName: settings?.name ?? 'material',
+          child: FadeTransition(
+            opacity: animation,
+            child: RepaintBoundary(child: child),
+          ),
+        );
+      },
       settings: settings,
     );
 
-/// A premium, liquid-like circular reveal transition. 
-/// The new screen expands like a drop of liquid from the exact point the user tapped,
-/// while the old screen scales back slightly into the distance.
+/// A premium, liquid-like circular reveal transition.
+/// The new screen expands like a drop of liquid from the exact point the user tapped.
+///
+/// Cost notes: the reveal mask ([ClipPath]) is the signature feel and stays,
+/// but the old Opacity+Scale stacking on top of the clip is gone — a single
+/// cheap [Transform.scale] swell remains. The page itself sits in a
+/// [RepaintBoundary] so the per-frame clip does not repaint page content.
 class LiquidRevealRoute extends PageRouteBuilder {
   final Widget page;
   final Offset? tapPosition;
@@ -22,8 +37,8 @@ class LiquidRevealRoute extends PageRouteBuilder {
     this.tapPosition,
   }) : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
-          transitionDuration: const Duration(milliseconds: 750), // Slower for that fluid, majestic feel
-          reverseTransitionDuration: const Duration(milliseconds: 650),
+          transitionDuration: const Duration(milliseconds: 380),
+          reverseTransitionDuration: const Duration(milliseconds: 300),
           opaque: true, // During transition it will still show the previous route, but stops rendering it when finished!
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             // A highly organic, fluid curve (starts fast, very long smooth tail)
@@ -33,34 +48,35 @@ class LiquidRevealRoute extends PageRouteBuilder {
               reverseCurve: Curves.easeInCirc,
             );
 
-            return AnimatedBuilder(
-              animation: curve,
-              builder: (context, childWidget) {
-                // Determine the center of the reveal (default to bottom center if null)
-                final center = tapPosition ?? 
-                    Offset(
-                      MediaQuery.sizeOf(context).width / 2,
-                      MediaQuery.sizeOf(context).height - 50,
-                    );
-
-                return ClipPath(
-                  clipper: _LiquidRevealClipper(
-                    fraction: curve.value,
-                    center: center,
-                  ),
-                  // We add a subtle scale to the new page so it "swells" into existence
-                  // alongside the circular mask, enhancing the liquid feel.
-                  child: Transform.scale(
-                    scale: 0.95 + (0.05 * curve.value),
-                    child: Opacity(
-                      // Quick fade in at the very beginning to avoid harsh edges
-                      opacity: curve.value < 0.05 ? curve.value / 0.05 : 1.0,
-                      child: childWidget,
-                    ),
-                  ),
+            // Hoisted out of the per-frame builder: screen size cannot change
+            // mid-transition, so never re-query MediaQuery per frame.
+            final center = tapPosition ??
+                Offset(
+                  MediaQuery.sizeOf(context).width / 2,
+                  MediaQuery.sizeOf(context).height - 50,
                 );
-              },
-              child: child,
+
+            return _TransitionTimer(
+              animation: animation,
+              routeName: page.runtimeType.toString(),
+              child: AnimatedBuilder(
+                animation: curve,
+                builder: (context, childWidget) {
+                  return ClipPath(
+                    clipper: _LiquidRevealClipper(
+                      fraction: curve.value,
+                      center: center,
+                    ),
+                    // Subtle scale so the new page "swells" into existence
+                    // alongside the circular mask. Transform-only: no saveLayer.
+                    child: Transform.scale(
+                      scale: 0.95 + (0.05 * curve.value),
+                      child: RepaintBoundary(child: childWidget),
+                    ),
+                  );
+                },
+                child: child,
+              ),
             );
           },
         );
@@ -77,11 +93,17 @@ class _LiquidRevealClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
+    // Fast paths: avoid the max-radius math + giant oval at the extremes.
+    // At fraction >= 1 the reveal covers everything, so a rect is identical
+    // and cheaper than an oval spanning the whole screen.
+    if (fraction <= 0.0) return Path();
+    if (fraction >= 1.0) return Path()..addRect(Offset.zero & size);
+
     final path = Path();
-    
+
     // Maximum distance from the tap point to the furthest corner of the screen
     final maxRadius = _calcMaxRadius(size, center);
-    
+
     // Current radius based on animation fraction
     final radius = maxRadius * fraction;
 
@@ -97,17 +119,19 @@ class _LiquidRevealClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(_LiquidRevealClipper oldClipper) {
-    return oldClipper.fraction != fraction || oldClipper.center != center;
+    // Epsilon guard: sub-pixel float noise between frames must not reclip.
+    // The center is fixed per transition, so only meaningful fraction steps
+    // (or an actual center change) trigger a re-clip.
+    if (oldClipper.center != center) return true;
+    return (oldClipper.fraction - fraction).abs() > 0.001;
   }
 }
 
 /// A cinematic content-slide transition for the Watch Screen.
 ///
-/// The outgoing page's content slides to the left and fades out,
-/// while the incoming page's content slides in from the right and fades in.
-/// Both pages share the same dark background and backdrop image,
-/// creating the illusion of persistent scenery with only the overlaid
-/// UI elements moving.
+/// The incoming page's content slides in from the right and fades in.
+/// Slide (transform-only) + a single fade: no clip, no scale stacking.
+/// The page sits in a [RepaintBoundary] so the slide does not repaint content.
 class CinematicSlideRoute extends PageRouteBuilder {
   final Widget page;
 
@@ -115,8 +139,8 @@ class CinematicSlideRoute extends PageRouteBuilder {
     required this.page,
   }) : super(
           pageBuilder: (context, animation, secondaryAnimation) => page,
-          transitionDuration: const Duration(milliseconds: 600),
-          reverseTransitionDuration: const Duration(milliseconds: 500),
+          transitionDuration: const Duration(milliseconds: 350),
+          reverseTransitionDuration: const Duration(milliseconds: 280),
           opaque: true,
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             // Incoming page: slide from right + fade in
@@ -139,13 +163,78 @@ class CinematicSlideRoute extends PageRouteBuilder {
               curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
             ));
 
-            return SlideTransition(
-              position: slideIn,
-              child: FadeTransition(
-                opacity: fadeIn,
-                child: child,
+            return _TransitionTimer(
+              animation: animation,
+              routeName: page.runtimeType.toString(),
+              child: SlideTransition(
+                position: slideIn,
+                child: FadeTransition(
+                  opacity: fadeIn,
+                  child: RepaintBoundary(child: child),
+                ),
               ),
             );
           },
         );
+}
+
+/// Times one push (forward → completed) and one pop (reverse → dismissed)
+/// per route and reports both to [PerfMonitor].
+///
+/// Zero render cost: [build] returns [child] untouched; the only work is a
+/// single status listener plus a [Stopwatch].
+class _TransitionTimer extends StatefulWidget {
+  final Animation<double> animation;
+  final String routeName;
+  final Widget child;
+
+  const _TransitionTimer({
+    required this.animation,
+    required this.routeName,
+    required this.child,
+  });
+
+  @override
+  State<_TransitionTimer> createState() => _TransitionTimerState();
+}
+
+class _TransitionTimerState extends State<_TransitionTimer> {
+  late final Stopwatch _sw;
+
+  @override
+  void initState() {
+    super.initState();
+    _sw = Stopwatch()..start();
+    widget.animation.addStatusListener(_onStatus);
+  }
+
+  void _onStatus(AnimationStatus status) {
+    if (status == AnimationStatus.completed) {
+      final ms = _sw.elapsedMilliseconds;
+      _sw.stop();
+      try {
+        PerfMonitor.recordRoute('push', widget.routeName, durationMs: ms);
+      } catch (_) {}
+    } else if (status == AnimationStatus.reverse) {
+      // Pop begins: restart the clock so the pop duration is measured alone.
+      _sw
+        ..reset()
+        ..start();
+    } else if (status == AnimationStatus.dismissed) {
+      final ms = _sw.elapsedMilliseconds;
+      _sw.stop();
+      try {
+        PerfMonitor.recordRoute('pop', widget.routeName, durationMs: ms);
+      } catch (_) {}
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.animation.removeStatusListener(_onStatus);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

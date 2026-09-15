@@ -121,6 +121,15 @@ abstract final class HomePageSettings {
   static MovieSection? _cachedSimklSection;
   static String? lastListSourceTitle;
 
+  /// Drop cached recommendation sections (e.g. when the adult switch flips:
+  /// the cached seed was picked under the old switch value).
+  static void clearRecommendationCache() {
+    _cachedSimilarSection = null;
+    _cachedWatchingSimilarSection = null;
+    _cachedTraktSection = null;
+    _cachedSimklSection = null;
+  }
+
   static Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
     enableSpotlight.value = prefs.getBool(_keyEnableSpotlight) ?? true;
@@ -402,10 +411,12 @@ abstract final class HomePageSettings {
       return _cachedSimilarSection;
     }
 
-    // Try candidates from My List (latest added first, with fallback to others)
+    // Try candidates from My List (latest added first, with fallback to others).
+    // Each attempt fires up to two network lookups, so only try the latest
+    // few entries instead of the whole list.
     final candidates = List<MyListItem>.from(myList.reversed);
 
-    for (final sourceItem in candidates) {
+    for (final sourceItem in candidates.take(3)) {
       final section = await _buildBestSimilarSection(
         sourceTitle: sourceItem.title,
         year: sourceItem.year,
@@ -450,6 +461,8 @@ abstract final class HomePageSettings {
     // cannot become a section header ("Because you're watching …") or the seed
     // for its recommendations.
     if (!ContentSettings.adultEnabled.value) {
+      // One addon scan for the whole batch, shared across per-item checks.
+      final nsfwKeys = ContinueWatchingService.buildNsfwAddonKeys();
       final filtered = active
           .where(
             (item) =>
@@ -458,6 +471,7 @@ abstract final class HomePageSettings {
                   id: item.id,
                   type: item.type,
                   addonName: item.addonName,
+                  nsfwAddonKeys: nsfwKeys,
                 ),
           )
           .toList();
@@ -477,12 +491,14 @@ abstract final class HomePageSettings {
     final excluded = (excludeTitle ?? lastListSourceTitle ?? '')
         .trim()
         .toLowerCase();
-
+    var attempts = 0;
     for (final item in candidates) {
       if (excluded.isNotEmpty && item.title.trim().toLowerCase() == excluded) {
         continue;
       }
-
+      // Each attempt below fires up to two network lookups; bound the burst.
+      if (attempts >= 3) break;
+      attempts++;
       final yearInt = item.year != null ? int.tryParse(item.year!) : null;
       final section = await _buildBestSimilarSection(
         sourceTitle: item.title,

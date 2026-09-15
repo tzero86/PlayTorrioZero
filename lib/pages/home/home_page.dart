@@ -80,6 +80,15 @@ class _HomePageState extends State<HomePage> {
   bool _animeLoading = false;
   bool _animeLoaded = false;
 
+  /// Debounces [_refreshSimilarSections]: my-list / continue-watching /
+  /// palette ticks fire on every change, and each refresh is 4 network
+  /// fetches. Rapid ticks coalesce into one trailing refresh.
+  Timer? _similarDebounce;
+  bool _similarRefreshInFlight = false;
+
+  /// Coalesces rapid 18+ switch flips into one trailing [_loadHome], mirroring
+  /// [_similarDebounce] so a toggle never fans out into overlapping home loads.
+  Timer? _adultReloadDebounce;
   List<MovieSection> get _visibleSections => _sections
       .map(_filterSection)
       .where((section) => section.movies.isNotEmpty)
@@ -224,10 +233,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// The anime rows were fetched under the old switch value, so drop the cache
-  /// and refetch when the global 18+ switch changes.
+  /// The anime rows and the catalog/recommendation caches were built under the
+  /// old switch value, so evict the adult-sensitive caches, clear the rows
+  /// immediately, and reload the main sections on a trailing debounce.
   void _onAdultContentChanged() {
     if (!mounted) return;
+    MetadataService.clearCatalogCache();
+    HomePageSettings.clearRecommendationCache();
+    _adultReloadDebounce?.cancel();
     setState(() {
       _animeRows.clear();
       _animeLoaded = false;
@@ -236,6 +249,10 @@ class _HomePageState extends State<HomePage> {
         _selectedFilter == _HomeFilter.all) {
       _ensureAnimeRows();
     }
+    _adultReloadDebounce = Timer(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      _loadHome();
+    });
   }
 
   static bool _hasShownIntro = false;
@@ -315,6 +332,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    _similarDebounce?.cancel();
+    _adultReloadDebounce?.cancel();
     HomePageSettings.changeNotifier.removeListener(_onSettingsChanged);
     AppThemeService.currentPalette.removeListener(_onSettingsChanged);
     MyListService.items.removeListener(_onSettingsChanged);
@@ -326,7 +345,13 @@ class _HomePageState extends State<HomePage> {
 
   void _onSettingsChanged() {
     if (!mounted) return;
-    _refreshSimilarSections();
+    // Coalesce rapid my-list / continue-watching / palette ticks into one
+    // trailing refresh; the immediate setState below keeps visuals instant.
+    _similarDebounce?.cancel();
+    _similarDebounce = Timer(const Duration(milliseconds: 800), () {
+      if (!mounted || _similarRefreshInFlight) return;
+      _refreshSimilarSections();
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() {});
     });
@@ -378,31 +403,38 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _refreshSimilarSections() async {
-    final listFuture = HomePageSettings.fetchBestSimilarSection(
-      forceRefresh: true,
-    );
-    final watchingFuture = HomePageSettings.fetchContinueWatchingSimilarSection(
-      forceRefresh: true,
-    );
-    final traktFuture = HomePageSettings.fetchTraktRecommendationsSection(
-      forceRefresh: true,
-    );
-    final simklFuture = HomePageSettings.fetchSimklRecommendationsSection(
-      forceRefresh: true,
-    );
+    if (_similarRefreshInFlight) return;
+    _similarRefreshInFlight = true;
+    try {
+      final listFuture = HomePageSettings.fetchBestSimilarSection(
+        forceRefresh: true,
+      );
+      final watchingFuture =
+          HomePageSettings.fetchContinueWatchingSimilarSection(
+        forceRefresh: true,
+      );
+      final traktFuture = HomePageSettings.fetchTraktRecommendationsSection(
+        forceRefresh: true,
+      );
+      final simklFuture = HomePageSettings.fetchSimklRecommendationsSection(
+        forceRefresh: true,
+      );
 
-    final results = await Future.wait([
-      listFuture,
-      watchingFuture,
-      traktFuture,
-      simklFuture,
-    ]);
-    _injectSimilarSections(
-      listSection: results[0],
-      watchingSection: results[1],
-      traktSection: results[2],
-      simklSection: results[3],
-    );
+      final results = await Future.wait([
+        listFuture,
+        watchingFuture,
+        traktFuture,
+        simklFuture,
+      ]);
+      _injectSimilarSections(
+        listSection: results[0],
+        watchingSection: results[1],
+        traktSection: results[2],
+        simklSection: results[3],
+      );
+    } finally {
+      _similarRefreshInFlight = false;
+    }
   }
 
   Future<void> _playIntro() async {

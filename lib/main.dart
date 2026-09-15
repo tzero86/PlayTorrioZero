@@ -35,6 +35,10 @@ import './services/window/window_service.dart';
 import './services/p2p/p2p_settings_service.dart';
 import './services/discord/discord_rpc_service.dart';
 import './services/diagnostics/crash_breadcrumbs.dart';
+import 'package:flutter/foundation.dart';
+import './services/diagnostics/perf_monitor.dart';
+import './services/diagnostics/renderer_backend.dart';
+import './widgets/debug/perf_hud.dart';
 import './widgets/updater/update_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -67,9 +71,10 @@ void main() async {
     GlassSettings.initialize(),
     DockSettings.initialize(),
     ContentSettings.initialize(),
+    RendererBackendSettings.initialize(),
   ]);
-
   runApp(const PlayTorrioApp());
+  if (kDebugMode) PerfMonitor.start();
   unawaited(CrashBreadcrumbs.initialize());
   CrashBreadcrumbs.lifecycle('start');
   unawaited(_initializeDeferredServices().then((_) => CrashBreadcrumbs.memory('startup.warm')));
@@ -194,6 +199,12 @@ class _PlayTorrioAppState extends State<PlayTorrioApp>
             overscroll: false,
           ),
           home: const HomePage(),
+          builder: (context, child) {
+            if (!kDebugMode) return child ?? const SizedBox.shrink();
+            return Stack(
+              children: [if (child != null) child, const PerfHud()],
+            );
+          },
         );
       },
     );
