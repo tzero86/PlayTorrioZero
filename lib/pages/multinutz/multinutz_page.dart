@@ -5,6 +5,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/dock_settings.dart';
@@ -17,6 +18,7 @@ import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/iptv/multinutz_channel_sheet.dart';
 import '../../services/iptv/hardcoded_channels.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class MultiStreamCell {
   int index;
@@ -72,6 +74,7 @@ class MultiNutzPage extends StatefulWidget {
 class _MultiNutzPageState extends State<MultiNutzPage>
     with WidgetsBindingObserver {
   final List<MultiStreamCell> _cells = [];
+  final List<StreamSubscription> _playingSubs = [];
   MultiNutzLayout _currentLayout = MultiNutzLayout.vertical3; // Default to 3 vertical
   int _activeCells = 3;
   int? _fullscreenIndex;
@@ -120,13 +123,13 @@ class _MultiNutzPageState extends State<MultiNutzPage>
       _cells.add(cell);
 
       // Setup listening states
-      player.stream.playing.listen((playing) {
+      _playingSubs.add(player.stream.playing.listen((playing) {
         if (mounted) {
           setState(() {
             cell.isPlaying = playing;
           });
         }
-      });
+      }));
     }
   }
 
@@ -529,7 +532,8 @@ if (i < quickChannels.length) {
                 ),
                 child: ListTile(
                   leading: qc.iconUrl != null
-                      ? Image.network(qc.iconUrl!, width: 32, height: 32, errorBuilder: (_, __, ___) => const Icon(Icons.tv, color: Colors.white70))
+                      ? CachedNetworkImage(imageUrl: qc.iconUrl!, cacheManager: AppImageCache.manager,
+ memCacheWidth: 96, width: 32, height: 32, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white70))
                       : const Icon(Icons.tv, color: Colors.white70),
                   title: Text(qc.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                   subtitle: Text(qc.category, style: TextStyle(color: palette.accentColor.withValues(alpha: 0.6), fontSize: 11)),
@@ -550,7 +554,8 @@ if (i < quickChannels.length) {
               ),
               child: ListTile(
                 leading: ch.iconUrl != null
-                    ? Image.network(ch.iconUrl!, width: 32, height: 32, errorBuilder: (_, __, ___) => const Icon(Icons.tv, color: Colors.white70))
+                    ? CachedNetworkImage(imageUrl: ch.iconUrl!, cacheManager: AppImageCache.manager,
+ memCacheWidth: 96, width: 32, height: 32, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white70))
                     : const Icon(Icons.tv, color: Colors.white70),
                 title: Text(ch.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                 subtitle: Text(ch.category, style: TextStyle(color: palette.accentColor.withValues(alpha: 0.6), fontSize: 11)),
@@ -799,7 +804,11 @@ if (i < quickChannels.length) {
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable();
     _saveSession();
+    for (final s in _playingSubs) {
+      s.cancel();
+    }
     for (final cell in _cells) {
+      // No VideoController.dispose in pinned media_kit_video (video_controller.dart:56-172); Player.dispose owns the texture.
       cell.player.dispose();
     }
 

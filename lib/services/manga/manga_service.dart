@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/manga/manga.dart';
 import '../../models/manga/manga_chapter.dart';
+import '../content/content_settings.dart';
 
 const String _baseUrl = 'https://weebcentral.com';
 const String _coverCdn = 'https://temp.compsci88.com/cover';
@@ -49,10 +50,11 @@ class MangaService {
 
   // ── Browse / Search ─────────────────────────────────────────────────
 
-  Future<List<Manga>> getManga({int page = 1, String? tag, bool allowAdult = false}) async {
+  Future<List<Manga>> getManga({int page = 1, String? tag, bool? allowAdult}) async {
     try {
       final offset = (page - 1) * _pageSize;
-      final adult = allowAdult ? 'Any' : 'False';
+      final adult =
+          (allowAdult ?? ContentSettings.adultEnabled.value) ? 'Any' : 'False';
       var url =
           '$_baseUrl/search/data?text=&display_mode=Full+Display&sort=Popularity&order=Descending&official=Any&adult=$adult&offset=$offset';
       if (tag != null) {
@@ -67,10 +69,11 @@ class MangaService {
     }
   }
 
-  Future<List<Manga>> searchManga(String query, {int page = 1, bool allowAdult = false}) async {
+  Future<List<Manga>> searchManga(String query, {int page = 1, bool? allowAdult}) async {
     try {
       final offset = (page - 1) * _pageSize;
-      final adult = allowAdult ? 'Any' : 'False';
+      final adult =
+          (allowAdult ?? ContentSettings.adultEnabled.value) ? 'Any' : 'False';
       final encodedQuery = Uri.encodeComponent(query);
       final url =
           '$_baseUrl/search/data?text=$encodedQuery&display_mode=Full+Display&sort=Best+Match&order=Descending&official=Any&adult=$adult&offset=$offset';

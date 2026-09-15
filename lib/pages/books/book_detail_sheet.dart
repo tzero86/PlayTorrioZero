@@ -7,6 +7,7 @@ import '../../services/books/continue_reading_service.dart';
 import '../audiobooks/generate_audiobook_screen.dart';
 import 'epub_reader_page.dart';
 import 'pdf_reader_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class BookDetailSheet extends StatefulWidget {
   final BookResult book;
@@ -199,6 +200,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             child: book.coverUrl.isNotEmpty
                                 ? CachedNetworkImage(
                                     imageUrl: book.coverUrl,
+                                    cacheManager: AppImageCache.manager,
                                     fit: BoxFit.cover,
                                     placeholder: (_, __) => Container(
                                       color: const Color(0xFF22232E),
@@ -211,8 +213,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                                       child: const Center(
                                         child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
                                       ),
-                                    ),
-                                  )
+                                    ))
                                 : Container(
                                     color: const Color(0xFF22232E),
                                     child: const Center(

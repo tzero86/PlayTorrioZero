@@ -9,6 +9,7 @@ import '../../models/movie/movie.dart';
 import '../../models/movie/movie_section.dart';
 import '../../models/my_list/my_list_item.dart';
 import '../continue_watching/continue_watching_service.dart';
+import '../content/content_settings.dart';
 import '../metadata/bestsimilar_scraper.dart';
 import '../my_list/my_list_service.dart';
 import '../simkl/simkl_list_source.dart';
@@ -74,34 +75,42 @@ abstract final class HomePageSettings {
   static const _keyAmbientSpeed = 'home_ambient_speed';
   static const _keyEnableCalendar = 'app_enable_calendar';
   static const _keyEnableAiQuiz = 'app_enable_ai_quiz';
-  static const _keyEnableSupportDev = 'home_enable_support_dev';
 
   static final ValueNotifier<bool> enableSpotlight = ValueNotifier<bool>(true);
   static final ValueNotifier<bool> enableSimilar = ValueNotifier<bool>(true);
-  static final ValueNotifier<bool> enableWatchingSimilar = ValueNotifier<bool>(true);
-  static final ValueNotifier<bool> enableTraktRecommendations = ValueNotifier<bool>(true);
-  static final ValueNotifier<bool> enableSimklRecommendations = ValueNotifier<bool>(true);
+  static final ValueNotifier<bool> enableWatchingSimilar = ValueNotifier<bool>(
+    true,
+  );
+  static final ValueNotifier<bool> enableTraktRecommendations =
+      ValueNotifier<bool>(true);
+  static final ValueNotifier<bool> enableSimklRecommendations =
+      ValueNotifier<bool>(true);
   static final ValueNotifier<bool> enableCalendar = ValueNotifier<bool>(true);
   static final ValueNotifier<bool> enableAiQuiz = ValueNotifier<bool>(true);
-  static final ValueNotifier<bool> enableSupportDev = ValueNotifier<bool>(true);
   static final ValueNotifier<SimilarSectionPosition> similarPosition =
       ValueNotifier<SimilarSectionPosition>(SimilarSectionPosition.top);
-  static final ValueNotifier<HeroStyle> heroStyle =
-      ValueNotifier<HeroStyle>(HeroStyle.immersive);
+  static final ValueNotifier<HeroStyle> heroStyle = ValueNotifier<HeroStyle>(
+    HeroStyle.immersive,
+  );
   static final ValueNotifier<bool> heroAutoRotate = ValueNotifier<bool>(true);
   static final ValueNotifier<int> heroRotateSeconds = ValueNotifier<int>(6);
   static final ValueNotifier<CardDensity> cardDensity =
       ValueNotifier<CardDensity>(CardDensity.standard);
   static final ValueNotifier<bool> showRating = ValueNotifier<bool>(true);
   static final ValueNotifier<bool> ambientGlow = ValueNotifier<bool>(true);
-  static final ValueNotifier<double> cardHoverZoom = ValueNotifier<double>(1.08);
-  static final ValueNotifier<bool> enableAmbientLights = ValueNotifier<bool>(true);
+  static final ValueNotifier<double> cardHoverZoom = ValueNotifier<double>(
+    1.08,
+  );
+  static final ValueNotifier<bool> enableAmbientLights = ValueNotifier<bool>(
+    true,
+  );
   static final ValueNotifier<AmbientLightPattern> ambientLightPattern =
       ValueNotifier<AmbientLightPattern>(AmbientLightPattern.dualOrbs);
   static final ValueNotifier<double> ambientLightIntensity =
       ValueNotifier<double>(0.22);
-  static final ValueNotifier<double> ambientLightSpeed =
-      ValueNotifier<double>(1.0);
+  static final ValueNotifier<double> ambientLightSpeed = ValueNotifier<double>(
+    1.0,
+  );
 
   static final ValueNotifier<int> changeNotifier = ValueNotifier<int>(0);
 
@@ -116,12 +125,14 @@ abstract final class HomePageSettings {
     final prefs = await SharedPreferences.getInstance();
     enableSpotlight.value = prefs.getBool(_keyEnableSpotlight) ?? true;
     enableSimilar.value = prefs.getBool(_keyEnableSimilar) ?? true;
-    enableWatchingSimilar.value = prefs.getBool(_keyEnableWatchingSimilar) ?? true;
-    enableTraktRecommendations.value = prefs.getBool(_keyEnableTraktRec) ?? true;
-    enableSimklRecommendations.value = prefs.getBool(_keyEnableSimklRec) ?? true;
+    enableWatchingSimilar.value =
+        prefs.getBool(_keyEnableWatchingSimilar) ?? true;
+    enableTraktRecommendations.value =
+        prefs.getBool(_keyEnableTraktRec) ?? true;
+    enableSimklRecommendations.value =
+        prefs.getBool(_keyEnableSimklRec) ?? true;
     enableCalendar.value = prefs.getBool(_keyEnableCalendar) ?? true;
     enableAiQuiz.value = prefs.getBool(_keyEnableAiQuiz) ?? true;
-    enableSupportDev.value = prefs.getBool(_keyEnableSupportDev) ?? true;
 
     final posStr = prefs.getString(_keySimilarPosition);
     similarPosition.value = SimilarSectionPosition.values.firstWhere(
@@ -165,7 +176,9 @@ abstract final class HomePageSettings {
     changeNotifier.value++;
   }
 
-  static Future<void> setAmbientLightPattern(AmbientLightPattern pattern) async {
+  static Future<void> setAmbientLightPattern(
+    AmbientLightPattern pattern,
+  ) async {
     ambientLightPattern.value = pattern;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyAmbientPattern, pattern.name);
@@ -232,13 +245,6 @@ abstract final class HomePageSettings {
     enableAiQuiz.value = val;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyEnableAiQuiz, val);
-    changeNotifier.value++;
-  }
-
-  static Future<void> setEnableSupportDev(bool val) async {
-    enableSupportDev.value = val;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keyEnableSupportDev, val);
     changeNotifier.value++;
   }
 
@@ -324,29 +330,37 @@ abstract final class HomePageSettings {
       if (details == null || details.similar.isEmpty) return null;
 
       // Safety Guard: If source title is live-action, don't allow anime details
-      final isAnimeSource = type == 'anime' || sourceTitle.toLowerCase().contains('anime');
-      final isAnimeMatched = (details.genre?.toLowerCase().contains('animation') == true ||
+      final isAnimeSource =
+          type == 'anime' || sourceTitle.toLowerCase().contains('anime');
+      final isAnimeMatched =
+          (details.genre?.toLowerCase().contains('animation') == true ||
               details.genre?.toLowerCase().contains('anime') == true) &&
-          details.plotTags.any((t) =>
-              t.toLowerCase() == 'anime' ||
-              t.toLowerCase() == 'japanese animation' ||
-              t.toLowerCase() == 'manga adaptation');
+          details.plotTags.any(
+            (t) =>
+                t.toLowerCase() == 'anime' ||
+                t.toLowerCase() == 'japanese animation' ||
+                t.toLowerCase() == 'manga adaptation',
+          );
 
       if (!isAnimeSource && isAnimeMatched) {
-        debugPrint('[HomePageSettings] Skipping anime match for live-action: $sourceTitle');
+        debugPrint(
+          '[HomePageSettings] Skipping anime match for live-action: $sourceTitle',
+        );
         return null;
       }
 
       final movies = <Movie>[];
       for (final sim in details.similar.take(24)) {
-        movies.add(Movie(
-          id: 'bestsimilar_${sim.id}',
-          type: sim.isTv ? 'series' : 'movie',
-          name: sim.title,
-          poster: sim.thumbUrl,
-          year: sim.year?.toString(),
-          addonBaseUrl: 'https://v3-cinemeta.strem.io',
-        ));
+        movies.add(
+          Movie(
+            id: 'bestsimilar_${sim.id}',
+            type: sim.isTv ? 'series' : 'movie',
+            name: sim.title,
+            poster: sim.thumbUrl,
+            year: sim.year?.toString(),
+            addonBaseUrl: 'https://v3-cinemeta.strem.io',
+          ),
+        );
       }
 
       if (movies.isEmpty) return null;
@@ -367,16 +381,21 @@ abstract final class HomePageSettings {
         movies: movies,
       );
     } catch (e) {
-      debugPrint('[HomePageSettings] Failed to build similar section for "$sourceTitle": $e');
+      debugPrint(
+        '[HomePageSettings] Failed to build similar section for "$sourceTitle": $e',
+      );
       return null;
     }
   }
 
   /// Fetches a dynamic "Because you have [Title] on your list" section using BestSimilar
-  static Future<MovieSection?> fetchBestSimilarSection({bool forceRefresh = false}) async {
+  static Future<MovieSection?> fetchBestSimilarSection({
+    bool forceRefresh = false,
+  }) async {
     if (!enableSimilar.value) return null;
 
-    final myList = MyListService.items.value;
+    // visibleItems already drops adult entries while the 18+ switch is off.
+    final myList = MyListService.visibleItems;
     if (myList.isEmpty) return null;
 
     if (!forceRefresh && _cachedSimilarSection != null) {
@@ -427,6 +446,25 @@ abstract final class HomePageSettings {
       } catch (_) {}
     }
 
+    // Hoist an adult title out of the poll while the 18+ switch is off, so it
+    // cannot become a section header ("Because you're watching …") or the seed
+    // for its recommendations.
+    if (!ContentSettings.adultEnabled.value) {
+      final filtered = active
+          .where(
+            (item) =>
+                !item.isAdult &&
+                !ContinueWatchingService.isAdultSession(
+                  id: item.id,
+                  type: item.type,
+                  addonName: item.addonName,
+                ),
+          )
+          .toList();
+      if (filtered.isEmpty) return null;
+      active = filtered;
+    }
+
     if (active.isEmpty) return null;
 
     if (!forceRefresh && _cachedWatchingSimilarSection != null) {
@@ -434,8 +472,11 @@ abstract final class HomePageSettings {
     }
 
     // Pick a random item from Continue Watching
-    final candidates = List<ContinueWatchingItem>.from(active)..shuffle(Random());
-    final excluded = (excludeTitle ?? lastListSourceTitle ?? '').trim().toLowerCase();
+    final candidates = List<ContinueWatchingItem>.from(active)
+      ..shuffle(Random());
+    final excluded = (excludeTitle ?? lastListSourceTitle ?? '')
+        .trim()
+        .toLowerCase();
 
     for (final item in candidates) {
       if (excluded.isNotEmpty && item.title.trim().toLowerCase() == excluded) {
@@ -461,7 +502,9 @@ abstract final class HomePageSettings {
   }
 
   /// Fetches Trakt personalized recommendations if Trakt is authenticated and enabled
-  static Future<MovieSection?> fetchTraktRecommendationsSection({bool forceRefresh = false}) async {
+  static Future<MovieSection?> fetchTraktRecommendationsSection({
+    bool forceRefresh = false,
+  }) async {
     if (!enableTraktRecommendations.value) return null;
     if (!await TraktService.instance.isAuthenticated()) return null;
 
@@ -478,14 +521,16 @@ abstract final class HomePageSettings {
 
       final movies = <Movie>[];
       for (final item in res.items.take(24)) {
-        movies.add(Movie(
-          id: item.id,
-          type: item.type,
-          name: item.name,
-          poster: item.poster,
-          year: item.year,
-          addonBaseUrl: 'https://v3-cinemeta.strem.io',
-        ));
+        movies.add(
+          Movie(
+            id: item.id,
+            type: item.type,
+            name: item.name,
+            poster: item.poster,
+            year: item.year,
+            addonBaseUrl: 'https://v3-cinemeta.strem.io',
+          ),
+        );
       }
 
       if (movies.isEmpty) return null;
@@ -515,7 +560,9 @@ abstract final class HomePageSettings {
   }
 
   /// Fetches Simkl recommendations if Simkl is authenticated and enabled
-  static Future<MovieSection?> fetchSimklRecommendationsSection({bool forceRefresh = false}) async {
+  static Future<MovieSection?> fetchSimklRecommendationsSection({
+    bool forceRefresh = false,
+  }) async {
     if (!enableSimklRecommendations.value) return null;
     if (!await SimklService.instance.isAuthenticated()) return null;
 
@@ -524,20 +571,24 @@ abstract final class HomePageSettings {
     }
 
     try {
-      final res = await SimklListSource.instance.loadList(SimklSeeAllList.topRated);
+      final res = await SimklListSource.instance.loadList(
+        SimklSeeAllList.topRated,
+      );
 
       if (res.items.isEmpty) return null;
 
       final movies = <Movie>[];
       for (final item in res.items.take(24)) {
-        movies.add(Movie(
-          id: item.id,
-          type: item.type,
-          name: item.name,
-          poster: item.poster,
-          year: item.year,
-          addonBaseUrl: 'https://v3-cinemeta.strem.io',
-        ));
+        movies.add(
+          Movie(
+            id: item.id,
+            type: item.type,
+            name: item.name,
+            poster: item.poster,
+            year: item.year,
+            addonBaseUrl: 'https://v3-cinemeta.strem.io',
+          ),
+        );
       }
 
       if (movies.isEmpty) return null;

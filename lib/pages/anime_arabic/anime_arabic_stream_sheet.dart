@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/stream/stream_model.dart';
 import '../../services/anime_arabic/anime_arabic_extractor.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../player/player_screen.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AnimeArabicStreamSheet extends StatefulWidget {
   final ArabicAnimeDetails details;
@@ -165,18 +167,20 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  widget.details.displayCover,
+                child: CachedNetworkImage(
+                  imageUrl: widget.details.displayCover,
+                  cacheManager: AppImageCache.manager,
+
+                  memCacheWidth: 132,
                   width: 44,
                   height: 60,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorWidget: (_, __, ___) => Container(
                     width: 44,
                     height: 60,
                     color: Colors.white10,
                     child: const Icon(Icons.movie_rounded, color: Colors.white38),
-                  ),
-                ),
+                  )),
               ),
               const SizedBox(width: 14),
               Expanded(

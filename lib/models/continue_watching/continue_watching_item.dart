@@ -33,6 +33,10 @@ class ContinueWatchingItem {
   final String? quality;
   final Map<String, String>? headers;
 
+  /// Whether this session originates from adult content. Persisted so the
+  /// global Adult Content switch can hide the card without re-classifying.
+  final bool isAdult;
+
   const ContinueWatchingItem({
     required this.id,
     required this.title,
@@ -58,6 +62,7 @@ class ContinueWatchingItem {
     this.streamDescription,
     this.quality,
     this.headers,
+    this.isAdult = false,
   });
 
   /// Fraction of content watched (0.0 to 1.0)
@@ -122,6 +127,7 @@ class ContinueWatchingItem {
       'streamDescription': streamDescription,
       'quality': quality,
       'headers': headers,
+      'isAdult': isAdult,
     };
   }
 
@@ -151,6 +157,7 @@ class ContinueWatchingItem {
       streamDescription: json['streamDescription']?.toString(),
       quality: json['quality']?.toString(),
       headers: json['headers'] is Map ? Map<String, String>.from(json['headers']) : null,
+      isAdult: json['isAdult'] == true,
     );
   }
 
@@ -162,6 +169,7 @@ class ContinueWatchingItem {
     String? rawUrl,
     int? fileIdx,
     String? streamDescription,
+    bool? isAdult,
   }) {
     return ContinueWatchingItem(
       id: id,
@@ -188,6 +196,7 @@ class ContinueWatchingItem {
       streamDescription: streamDescription ?? this.streamDescription,
       quality: quality,
       headers: headers,
+      isAdult: isAdult ?? this.isAdult,
     );
   }
 }

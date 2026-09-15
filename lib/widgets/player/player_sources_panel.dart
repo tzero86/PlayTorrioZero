@@ -59,6 +59,18 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
     }
   }
 
+  @override
+  void didUpdateWidget(PlayerSourcesPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.episode.id != widget.episode.id ||
+        oldWidget.episode.season != widget.episode.season ||
+        oldWidget.episode.episode != widget.episode.episode ||
+        oldWidget.currentAddonName != widget.currentAddonName ||
+        oldWidget.detail?.id != widget.detail?.id) {
+      _startScraping();
+    }
+  }
+
   void _startScraping() {
     setState(() {
       _sources.clear();

@@ -261,46 +261,18 @@ abstract final class PlayerSettings {
         await shadersDir.create(recursive: true);
       }
 
+      // Mirrors the Anime4K entries bundled in pubspec.yaml — the union of the
+      // shader files the presets above reference.
       final shaderFiles = [
         'Anime4K_AutoDownscalePre_x2.glsl',
         'Anime4K_AutoDownscalePre_x4.glsl',
         'Anime4K_Clamp_Highlights.glsl',
-        'Anime4K_Darken_Fast.glsl',
-        'Anime4K_Darken_HQ.glsl',
-        'Anime4K_Darken_VeryFast.glsl',
-        'Anime4K_Deblur_DoG.glsl',
-        'Anime4K_Deblur_Original.glsl',
-        'Anime4K_Denoise_Bilateral_Mean.glsl',
-        'Anime4K_Denoise_Bilateral_Median.glsl',
-        'Anime4K_Denoise_Bilateral_Mode.glsl',
-        'Anime4K_Restore_CNN_L.glsl',
         'Anime4K_Restore_CNN_M.glsl',
-        'Anime4K_Restore_CNN_S.glsl',
-        'Anime4K_Restore_CNN_Soft_L.glsl',
         'Anime4K_Restore_CNN_Soft_M.glsl',
-        'Anime4K_Restore_CNN_Soft_S.glsl',
-        'Anime4K_Restore_CNN_Soft_UL.glsl',
-        'Anime4K_Restore_CNN_Soft_VL.glsl',
-        'Anime4K_Restore_CNN_UL.glsl',
         'Anime4K_Restore_CNN_VL.glsl',
-        'Anime4K_Thin_Fast.glsl',
-        'Anime4K_Thin_HQ.glsl',
-        'Anime4K_Thin_VeryFast.glsl',
-        'Anime4K_Upscale_CNN_x2_L.glsl',
         'Anime4K_Upscale_CNN_x2_M.glsl',
-        'Anime4K_Upscale_CNN_x2_S.glsl',
-        'Anime4K_Upscale_CNN_x2_UL.glsl',
         'Anime4K_Upscale_CNN_x2_VL.glsl',
-        'Anime4K_Upscale_Deblur_DoG_x2.glsl',
-        'Anime4K_Upscale_Deblur_Original_x2.glsl',
-        'Anime4K_Upscale_Denoise_CNN_x2_L.glsl',
         'Anime4K_Upscale_Denoise_CNN_x2_M.glsl',
-        'Anime4K_Upscale_Denoise_CNN_x2_S.glsl',
-        'Anime4K_Upscale_Denoise_CNN_x2_UL.glsl',
-        'Anime4K_Upscale_Denoise_CNN_x2_VL.glsl',
-        'Anime4K_Upscale_DoG_x2.glsl',
-        'Anime4K_Upscale_DTD_x2.glsl',
-        'Anime4K_Upscale_Original_x2.glsl',
       ];
 
       for (final filename in shaderFiles) {
@@ -348,7 +320,6 @@ abstract final class PlayerSettings {
           'assets/fonts/Poppins-SemiBold.ttf',
           'assets/fonts/Poppins-Regular.ttf',
           'assets/fonts/subfont.ttf',
-          'assets/subfont.ttf',
         ];
         for (final candidate in candidateAssets) {
           try {

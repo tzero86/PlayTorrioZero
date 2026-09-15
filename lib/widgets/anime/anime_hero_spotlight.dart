@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../models/anime/anime_media.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AnimeHeroSpotlight extends StatefulWidget {
   final List<AnimeMedia> featuredAnime;
@@ -84,10 +85,12 @@ class _AnimeHeroSpotlightState extends State<AnimeHeroSpotlight> {
                 final anime = widget.featuredAnime[index];
                 return Stack(
                   children: [
-                    // Backdrop Image
+                    // Backdrop Image (fullscreen banner; bound, blur scrims need no more)
                     Positioned.fill(
                       child: CachedNetworkImage(
                         imageUrl: anime.backdropUrl,
+                        cacheManager: AppImageCache.manager,
+                        memCacheWidth: 1280,
                         fit: BoxFit.cover,
                         alignment: const Alignment(0, -0.15),
                         placeholder: (_, __) => Container(
@@ -100,8 +103,7 @@ class _AnimeHeroSpotlightState extends State<AnimeHeroSpotlight> {
                             color: Colors.white24,
                             size: 64,
                           ),
-                        ),
-                      ),
+                        )),
                     ),
 
                     // Multi-stop Vignette Gradient

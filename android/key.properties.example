@@ -1,0 +1,14 @@
+# Copy to android/key.properties and fill in to sign release builds with a real keystore.
+# android/key.properties is git-ignored — NEVER commit the real file or the .jks/.keystore.
+#
+# Generate a keystore once (keep the file and both passwords safe: losing them means
+# existing installs can never be upgraded in place):
+#
+#   keytool -genkey -v -keystore android/upload-keystore.jks \
+#     -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# storeFile is resolved relative to android/app/.
+storeFile=../upload-keystore.jks
+storePassword=your-store-password
+keyAlias=upload
+keyPassword=your-key-password

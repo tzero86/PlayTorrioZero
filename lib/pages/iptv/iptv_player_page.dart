@@ -13,6 +13,7 @@ import '../../services/player/player_settings.dart';
 import '../../services/window/window_service.dart';
 import '../../services/discord/discord_rpc_service.dart';
 import '../../widgets/player/player_aspect_menu.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class IptvPlayerPage extends StatefulWidget {
   final HardcodedChannel channel;
@@ -150,6 +151,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
     _sourcesScrollController.dispose();
     _positionNotifier.dispose();
     _bufferedNotifier.dispose();
+    // No VideoController.dispose in pinned media_kit_video (video_controller.dart:56-172); Player.dispose owns the texture.
     _player.dispose();
     if (!_wasFullscreenBeforeEntering &&
         (Platform.isWindows || Platform.isLinux || Platform.isMacOS) &&
@@ -1121,14 +1123,14 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                                     borderRadius: BorderRadius.circular(3),
                                                     child: CachedNetworkImage(
                                                       imageUrl: hit.stream.icon,
+                                                      cacheManager: AppImageCache.manager,
                                                       fit: BoxFit.contain,
                                                       memCacheWidth: 64,
                                                       errorWidget: (_, _, _) => Icon(
                                                         isLive ? Icons.live_tv_rounded : Icons.movie_rounded,
                                                         color: Colors.white38,
                                                         size: 16,
-                                                      ),
-                                                    ),
+                                                      )),
                                                   )
                                                 : Icon(
                                                     isLive ? Icons.live_tv_rounded : Icons.movie_rounded,

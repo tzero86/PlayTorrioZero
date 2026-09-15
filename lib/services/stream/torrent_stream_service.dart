@@ -375,7 +375,7 @@ class TorrentStreamService {
       } catch (_) {}
     }
     _activeTorrents.removeWhere((h) => !downloadingHashes.contains(h.toLowerCase()));
-    _log('TorrentStreamService cleanup completed.');
+    _latestUpdates.removeWhere((k, _) => !downloadingHashes.contains(k.toLowerCase()));
   }
 
   /// Completely stops the TorrServer engine process.

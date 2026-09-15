@@ -7,6 +7,7 @@ import '../../services/theme/app_theme_service.dart';
 import '../../services/audiobook/audiobook_scraper_service.dart';
 import 'audiobook_player_screen.dart';
 import 'audiobook_route_transitions.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AudiobookDetailPage extends StatefulWidget {
   final Audiobook audiobook;
@@ -105,14 +106,14 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
                 opacity: 0.25,
                 child: CachedNetworkImage(
                   imageUrl: book.coverImage.trim(),
+                  cacheManager: AppImageCache.manager,
                   httpHeaders: const {
                     'User-Agent':
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                   },
                   fit: BoxFit.cover,
                   placeholder: (_, __) => const SizedBox.shrink(),
-                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                ),
+                  errorWidget: (_, __, ___) => const SizedBox.shrink()),
               ),
             ),
           Positioned.fill(
@@ -283,13 +284,13 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
         child: book.coverImage.isNotEmpty
             ? CachedNetworkImage(
                 imageUrl: book.coverImage,
+                cacheManager: AppImageCache.manager,
                 fit: BoxFit.cover,
                 placeholder: (_, __) => Container(color: const Color(0xFF161A26)),
                 errorWidget: (_, __, ___) => Container(
                   color: const Color(0xFF161A26),
                   child: const Icon(Icons.headphones_rounded, size: 64, color: Colors.white38),
-                ),
-              )
+                ))
             : Container(
                 color: const Color(0xFF161A26),
                 child: const Icon(Icons.headphones_rounded, size: 64, color: Colors.white38),

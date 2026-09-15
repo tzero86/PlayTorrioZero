@@ -9,6 +9,7 @@ import '../../services/ai/wewatch_service.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../details/details_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class WeWatchQuizPage extends StatefulWidget {
   const WeWatchQuizPage({super.key});
@@ -677,10 +678,11 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                               child: item.posterUrl != null
                                   ? CachedNetworkImage(
                                       imageUrl: item.posterUrl!,
+                                      cacheManager: AppImageCache.manager,
+                                      memCacheWidth: 96,
                                       width: 28,
                                       height: 42,
-                                      fit: BoxFit.cover,
-                                    )
+                                      fit: BoxFit.cover)
                                   : Container(width: 28, height: 42, color: Colors.white10),
                             ),
                             title: Text(
@@ -760,10 +762,11 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                                       borderRadius: BorderRadius.circular(6),
                                       child: CachedNetworkImage(
                                         imageUrl: starter.posterUrl,
+                                        cacheManager: AppImageCache.manager,
+                                        memCacheWidth: 192,
                                         width: 64,
                                         height: 86,
-                                        fit: BoxFit.cover,
-                                      ),
+                                        fit: BoxFit.cover),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -792,10 +795,11 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                           borderRadius: BorderRadius.circular(10),
                           child: CachedNetworkImage(
                             imageUrl: pick.posterUrl!,
+                            cacheManager: AppImageCache.manager,
+                            memCacheWidth: 192,
                             width: 64,
                             height: 96,
-                            fit: BoxFit.cover,
-                          ),
+                            fit: BoxFit.cover),
                         ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -1052,10 +1056,10 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                           child: rec.posterUrl != null
                               ? CachedNetworkImage(
                                   imageUrl: rec.posterUrl!,
+                                  cacheManager: AppImageCache.manager,
                                   width: isMobile ? 80 : 96,
                                   height: isMobile ? 120 : 144,
-                                  fit: BoxFit.cover,
-                                )
+                                  fit: BoxFit.cover)
                               : Container(
                                   width: isMobile ? 80 : 96,
                                   height: isMobile ? 120 : 144,

@@ -13,6 +13,7 @@ import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/slider_arrow.dart';
 import 'anime_stream_sheet.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class _Space {
   static const xs = 8.0;
@@ -386,6 +387,8 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
           children: [
             CachedNetworkImage(
               imageUrl: bgUrl,
+              cacheManager: AppImageCache.manager,
+              memCacheWidth: 1280,
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
               errorWidget: (_, __, ___) => ColoredBox(color: _Palette.surface),
@@ -462,6 +465,8 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                       aspectRatio: 2 / 3,
                       child: CachedNetworkImage(
                         imageUrl: posterUrl,
+                        cacheManager: AppImageCache.manager,
+                        memCacheWidth: 512,
                         fit: BoxFit.cover,
                         errorWidget: (_, __, ___) =>
                             ColoredBox(color: _Palette.surface),
@@ -528,6 +533,8 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                   borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
                     imageUrl: posterUrl,
+                    cacheManager: AppImageCache.manager,
+                    memCacheWidth: 330,
                     width: 110,
                     fit: BoxFit.cover,
                   ),
@@ -913,6 +920,8 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                               borderRadius: BorderRadius.circular(12),
                               child: CachedNetworkImage(
                                 imageUrl: char.imageLarge,
+                                cacheManager: AppImageCache.manager,
+                                memCacheWidth: 300,
                                 width: 100,
                                 height: 110,
                                 fit: BoxFit.cover,
@@ -1317,6 +1326,8 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                   aspectRatio: 2 / 3,
                                   child: CachedNetworkImage(
                                     imageUrl: rel.coverUrl,
+                                    cacheManager: AppImageCache.manager,
+                                    memCacheWidth: 330,
                                     fit: BoxFit.cover,
                                     errorWidget: (_, __, ___) => Container(
                                       color: _Palette.surface,
@@ -1467,6 +1478,8 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                     aspectRatio: 2 / 3,
                                     child: CachedNetworkImage(
                                       imageUrl: rec.coverUrl,
+                                      cacheManager: AppImageCache.manager,
+                                      memCacheWidth: 330,
                                       fit: BoxFit.cover,
                                       errorWidget: (_, __, ___) => Container(
                                         color: _Palette.surface,

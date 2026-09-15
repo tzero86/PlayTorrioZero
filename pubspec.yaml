@@ -37,6 +37,7 @@ dependencies:
   http: ^1.2.2
   html: ^0.15.5
   cached_network_image: ^3.4.1
+  flutter_cache_manager: ^3.4.2
   shared_preferences: ^2.3.3
   url_launcher: ^6.3.2
   torrserver_flutter: ^0.0.6
@@ -149,10 +150,22 @@ flutter:
     enable-swift-package-manager: false
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/icon.png
-    - assets/subfont.ttf
+    # Launcher art is generated from assets/icon.png by flutter_launcher_icons,
+    # which reads it at build time; only the small variant ships in the bundle.
+    - assets/icon_small.png
     - assets/fonts/
-    - assets/shaders/anime4k/
+    # Anime4K ships as a 39-file upstream set, but the presets in
+    # PlayerSettings reference only these; the other 30 files were extracted on
+    # every install without ever reaching libmpv's glsl-shaders chain.
+    - assets/shaders/anime4k/Anime4K_AutoDownscalePre_x2.glsl
+    - assets/shaders/anime4k/Anime4K_AutoDownscalePre_x4.glsl
+    - assets/shaders/anime4k/Anime4K_Clamp_Highlights.glsl
+    - assets/shaders/anime4k/Anime4K_Restore_CNN_M.glsl
+    - assets/shaders/anime4k/Anime4K_Restore_CNN_Soft_M.glsl
+    - assets/shaders/anime4k/Anime4K_Restore_CNN_VL.glsl
+    - assets/shaders/anime4k/Anime4K_Upscale_CNN_x2_M.glsl
+    - assets/shaders/anime4k/Anime4K_Upscale_CNN_x2_VL.glsl
+    - assets/shaders/anime4k/Anime4K_Upscale_Denoise_CNN_x2_M.glsl
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

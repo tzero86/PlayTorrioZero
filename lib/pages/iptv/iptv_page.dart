@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/dock_settings.dart';
@@ -22,6 +23,7 @@ import 'iptv_channel_sheet.dart';
 import 'iptv_player_page.dart';
 import 'iptv_portals_modal.dart';
 import 'iptv_search_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class IptvPage extends StatefulWidget {
   const IptvPage({super.key});
@@ -796,11 +798,11 @@ class _QuickChannelCardState extends State<_QuickChannelCard> {
                   Expanded(
                     child: Center(
                       child: widget.channel.iconUrl != null
-                          ? Image.network(
-                              widget.channel.iconUrl!,
+                          ? CachedNetworkImage(
+                              imageUrl: widget.channel.iconUrl!,
+                              cacheManager: AppImageCache.manager,
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) => _QuickChannelIcon(widget.channel.short),
-                            )
+                              errorWidget: (_, __, ___) => _QuickChannelIcon(widget.channel.short))
                           : _QuickChannelIcon(widget.channel.short),
                     ),
                   ),

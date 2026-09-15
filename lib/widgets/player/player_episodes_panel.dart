@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/movie/video.dart';
 import 'player_glass.dart';
+import '../../services/storage/app_image_cache.dart';
 
 /// Ultra-responsive, glassmorphic Episodes Side Panel with season tabs,
 /// auto-scroll to current episode, animated card expansion, and high FPS rendering.
@@ -613,11 +615,11 @@ class _PlayerEpisodesPanelState extends State<PlayerEpisodesPanel> {
                           fit: StackFit.expand,
                           children: [
                             if (video.thumbnail != null && video.thumbnail!.isNotEmpty)
-                              Image.network(
-                                video.thumbnail!,
+                              CachedNetworkImage(
+                                imageUrl: video.thumbnail!,
+                                cacheManager: AppImageCache.manager,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => _buildThumbPlaceholder(epNum),
-                              )
+                                errorWidget: (_, __, ___) => _buildThumbPlaceholder(epNum))
                             else
                               _buildThumbPlaceholder(epNum),
 

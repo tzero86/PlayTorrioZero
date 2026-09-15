@@ -4,6 +4,7 @@ import '../../models/anime/anime_media.dart';
 import '../../models/movie/movie_detail.dart';
 import '../../models/movie/video.dart';
 import '../../models/stream/stream_model.dart';
+import '../content/content_settings.dart';
 import 'extractors/anidb_extractor.dart';
 import 'extractors/megaplay_extractor.dart';
 import 'extractors/recloud_extractor.dart';
@@ -529,7 +530,7 @@ class AnimeScraperService {
           g.toLowerCase().contains('erotica') ||
           g.toLowerCase().contains('ecchi'));
 
-      if (isAdult && titleCandidates.isNotEmpty) {
+      if (ContentSettings.adultEnabled.value && isAdult && titleCandidates.isNotEmpty) {
         tasks.add(
           _watchHentai.extract(
             titleCandidates: titleCandidates,
@@ -1065,7 +1066,7 @@ class AnimeScraperService {
       }
 
       // 12. Fallback Hentai extractors
-      if (titleCandidates.isNotEmpty) {
+      if (ContentSettings.adultEnabled.value && titleCandidates.isNotEmpty) {
         tasks.add(
           _watchHentai.extract(
             titleCandidates: titleCandidates,

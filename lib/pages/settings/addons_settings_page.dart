@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../models/addon/addon.dart';
 import '../../services/addon/addon_manager.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AddonsSettingsPage extends StatefulWidget {
   const AddonsSettingsPage({super.key});
@@ -339,6 +340,13 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                           await _manager.toggleAddon(addon.manifest.id, enabled);
                           setState(() {});
                         },
+                        onRatingChanged: (rating) async {
+                          await _manager.setAddonAdultRating(
+                            addon.manifest.id,
+                            rating,
+                          );
+                          setState(() {});
+                        },
                         onUpdateFeature: ({
                           enableCatalogs,
                           enableSearch,
@@ -378,6 +386,7 @@ class _AddonCard extends StatelessWidget {
   final VoidCallback? onMoveUp;
   final VoidCallback? onMoveDown;
   final ValueChanged<bool> onToggle;
+  final ValueChanged<AddonAdultRating> onRatingChanged;
   final void Function({
     bool? enableCatalogs,
     bool? enableSearch,
@@ -393,6 +402,7 @@ class _AddonCard extends StatelessWidget {
     this.onMoveUp,
     this.onMoveDown,
     required this.onToggle,
+    required this.onRatingChanged,
     required this.onUpdateFeature,
     required this.onRemove,
   });
@@ -487,7 +497,7 @@ class _AddonCard extends StatelessWidget {
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(6),
                         child: Image.asset(
-                          'assets/icon.png',
+                          'assets/icon_small.png',
                           width: 28,
                           height: 28,
                           fit: BoxFit.contain,
@@ -498,6 +508,8 @@ class _AddonCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(6),
                             child: CachedNetworkImage(
                               imageUrl: m.logo!,
+                              cacheManager: AppImageCache.manager,
+                              memCacheWidth: 96,
                               width: 28,
                               height: 28,
                               fit: BoxFit.contain,
@@ -505,8 +517,7 @@ class _AddonCard extends StatelessWidget {
                                 Icons.extension_rounded,
                                 color: providerColor,
                                 size: 20,
-                              ),
-                            ),
+                              )),
                           )
                         : Icon(
                             Icons.extension_rounded,
@@ -706,6 +717,37 @@ class _AddonCard extends StatelessWidget {
             ),
           ],
 
+          // Adult rating (gates this addon behind the global Adult Content switch)
+          if (!isBuiltIn) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final rating in AddonAdultRating.values)
+                  _ratingChip(rating),
+              ],
+            ),
+            const SizedBox(height: 7),
+            Text(
+              m.isAdult
+                  ? 'This addon declares itself 18+ in its manifest, so it is '
+                        'treated as 18+ only whatever is selected above'
+                  : switch (addon.adultRating) {
+                      AddonAdultRating.sfw => 'No adult content from this addon',
+                      AddonAdultRating.hybrid =>
+                        'Shows with Adult Content off; its catalogs appear under 18+ in Discover',
+                      AddonAdultRating.nsfw =>
+                        'Hidden unless Adult Content is on',
+                    },
+              style: TextStyle(
+                fontSize: 11.5,
+                color: Colors.white.withValues(alpha: 0.4),
+                height: 1.3,
+              ),
+            ),
+          ],
+
           const SizedBox(height: 12),
 
           // Type badges + Remove
@@ -755,6 +797,41 @@ class _AddonCard extends StatelessWidget {
       ),
     );
   }
+
+  /// One selectable adult rating. The selected state is the enabled one; tapping
+  /// it again is a no-op, so the rating can never end up unset.
+  Widget _ratingChip(AddonAdultRating rating) {
+    final selected = addon.adultRating == rating;
+    final (label, icon, color) = switch (rating) {
+      AddonAdultRating.sfw => const (
+        'SFW only',
+        Icons.shield_outlined,
+        Color(0xFF34D399),
+      ),
+      AddonAdultRating.hybrid => const (
+        'Hybrid',
+        Icons.balance_rounded,
+        Color(0xFFF59E0B),
+      ),
+      AddonAdultRating.nsfw => const (
+        '18+ only',
+        Icons.eighteen_up_rating_rounded,
+        Color(0xFFEF4444),
+      ),
+    };
+
+    return _FeatureToggleChip(
+      icon: icon,
+      label: label,
+      isEnabled: selected,
+      showStateIcon: selected,
+      activeColor: color,
+      onTap: () {
+        if (selected) return;
+        onRatingChanged(rating);
+      },
+    );
+  }
 }
 
 class _FeatureToggleChip extends StatefulWidget {
@@ -762,6 +839,8 @@ class _FeatureToggleChip extends StatefulWidget {
   final String label;
   final int? count;
   final bool isEnabled;
+  final Color activeColor;
+  final bool showStateIcon;
   final VoidCallback onTap;
 
   const _FeatureToggleChip({
@@ -769,6 +848,8 @@ class _FeatureToggleChip extends StatefulWidget {
     required this.label,
     this.count,
     required this.isEnabled,
+    this.activeColor = const Color(0xFF7C5CFF),
+    this.showStateIcon = true,
     required this.onTap,
   });
 
@@ -781,7 +862,7 @@ class _FeatureToggleChipState extends State<_FeatureToggleChip> {
 
   @override
   Widget build(BuildContext context) {
-    const activeColor = Color(0xFF7C5CFF);
+    final activeColor = widget.activeColor;
     final isEnabled = widget.isEnabled;
 
     return MouseRegion(
@@ -841,16 +922,18 @@ class _FeatureToggleChipState extends State<_FeatureToggleChip> {
                       : Colors.white.withValues(alpha: 0.45),
                 ),
               ),
-              const SizedBox(width: 6),
-              Icon(
-                isEnabled
-                    ? Icons.check_circle_rounded
-                    : Icons.cancel_outlined,
-                size: 13,
-                color: isEnabled
-                    ? const Color(0xFF34D399)
-                    : Colors.white.withValues(alpha: 0.25),
-              ),
+              if (widget.showStateIcon) ...[
+                const SizedBox(width: 6),
+                Icon(
+                  isEnabled
+                      ? Icons.check_circle_rounded
+                      : Icons.cancel_outlined,
+                  size: 13,
+                  color: isEnabled
+                      ? const Color(0xFF34D399)
+                      : Colors.white.withValues(alpha: 0.25),
+                ),
+              ],
             ],
           ),
         ),

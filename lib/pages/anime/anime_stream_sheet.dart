@@ -58,6 +58,7 @@ class _AnimeStreamSheetState extends State<AnimeStreamSheet> {
       _error = null;
     });
 
+    _streamSub?.cancel();
     _streamSub = _scraper
         .scrapeStreamsStream(
       anime: widget.anime,

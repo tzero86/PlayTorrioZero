@@ -6,6 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 import '../../models/movie/movie.dart';
+import '../../models/anime/anime_media.dart';
+import '../../services/anime/anilist_service.dart';
+import '../../services/content/content_settings.dart';
+import '../../widgets/anime/anime_slider_section.dart';
+import '../anime/anime_details_page.dart';
 
 import '../../models/movie/movie_detail.dart';
 import '../../models/movie/movie_section.dart';
@@ -22,7 +27,6 @@ import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/error_view.dart';
 import '../../widgets/home/continue_watching_slider.dart';
 import '../../widgets/movie/movie_slider_section.dart';
-import '../../widgets/home/support_dev_cards.dart';
 import '../search/search_page.dart';
 import '../ai/wewatch_quiz_page.dart';
 import '../calendar/tv_calendar_page.dart';
@@ -36,6 +40,22 @@ import '../../services/p2p/p2p_settings_service.dart';
 import '../../widgets/p2p/p2p_warning_dialog.dart';
 import 'package:flutter/services.dart';
 import '../../services/window/window_service.dart';
+import '../../services/storage/app_image_cache.dart';
+
+enum _HomeFilter { all, movies, series, anime }
+
+/// A lazily fetched anime discovery row for the Anime home tab.
+class _AnimeRow {
+  final String title;
+  final String subtitle;
+  final List<AnimeMedia> items;
+
+  const _AnimeRow({
+    required this.title,
+    required this.subtitle,
+    required this.items,
+  });
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -53,6 +73,170 @@ class _HomePageState extends State<HomePage> {
   String? _error;
 
   List<Movie> _featuredMovies = [];
+  _HomeFilter _selectedFilter = _HomeFilter.all;
+
+  /// Anime discovery rows for the Anime tab, loaded on first use.
+  final List<_AnimeRow> _animeRows = [];
+  bool _animeLoading = false;
+  bool _animeLoaded = false;
+
+  List<MovieSection> get _visibleSections => _sections
+      .map(_filterSection)
+      .where((section) => section.movies.isNotEmpty)
+      .toList();
+
+  MovieSection _filterSection(MovieSection section, {_HomeFilter? filter}) {
+    final activeFilter = filter ?? _selectedFilter;
+    final movies = section.movies
+        .where((movie) => _matchesFilter(movie, activeFilter))
+        .toList();
+    return MovieSection(
+      title: section.title,
+      subtitle: section.subtitle,
+      contentType: section.contentType,
+      addonBaseUrl: section.addonBaseUrl,
+      catalog: section.catalog,
+      movies: movies,
+    );
+  }
+
+  /// [movies], [series] and [anime] partition [all]: every non-movie type —
+  /// tv, anime, and whatever type a future addon invents — stays visible under
+  /// Series, so no catalog entry can fall through both tabs. Anime is split out
+  /// of Series so the dedicated tab can surface it the way the Anime page does.
+  bool _matchesFilter(Movie movie, _HomeFilter filter) {
+    final isAnime = _isAnime(movie);
+    switch (filter) {
+      case _HomeFilter.all:
+        return true;
+      case _HomeFilter.movies:
+        return !isAnime && movie.type.trim().toLowerCase() == 'movie';
+      case _HomeFilter.series:
+        return !isAnime && movie.type.trim().toLowerCase() != 'movie';
+      case _HomeFilter.anime:
+        return isAnime;
+    }
+  }
+
+  /// Mirrors the `anime` filter in [ContinueWatchingSlider] so both agree on
+  /// what counts as anime.
+  static bool _isAnime(Movie movie) {
+    final id = movie.id;
+    return movie.type.trim().toLowerCase() == 'anime' ||
+        id.startsWith('anilist:') ||
+        id.startsWith('arabic_anime:');
+  }
+
+  List<Movie> get _visibleFeaturedMovies => _pickFeatured(_visibleSections);
+
+  void _setFilter(_HomeFilter filter) {
+    if (_selectedFilter == filter) return;
+    setState(() => _selectedFilter = filter);
+    if (_scrollController.hasClients) _scrollController.jumpTo(0);
+    if (filter == _HomeFilter.anime || filter == _HomeFilter.all) {
+      _ensureAnimeRows();
+    }
+  }
+
+  /// Pulls the same AniList rows the dedicated Anime page shows. Runs once per
+  /// session, only when the Anime tab is opened, so regular home loads are
+  /// untouched. A failed load leaves the tab empty and retries on next open.
+  Future<void> _ensureAnimeRows() async {
+    if (_animeLoaded || _animeLoading) return;
+    setState(() => _animeLoading = true);
+
+    final anilist = AnilistService.instance;
+    try {
+      final results = await Future.wait([
+        anilist.fetchTrendingAnime(perPage: 18),
+        anilist.fetchPopularThisSeason(perPage: 18),
+        anilist.fetchTopRated(perPage: 18),
+        anilist.fetchUpcomingNextSeason(perPage: 18),
+        anilist.fetchByGenre('Action', perPage: 18),
+        anilist.fetchByGenre('Romance', perPage: 18),
+        anilist.fetchByGenre('Fantasy', perPage: 18),
+        anilist.fetchByGenre('Sci-Fi', perPage: 18),
+      ]);
+
+      if (!mounted) return;
+      final rows = <_AnimeRow>[
+        _AnimeRow(
+          title: '🔥 Trending Anime',
+          subtitle: 'Top popular and trending series',
+          items: results[0],
+        ),
+        _AnimeRow(
+          title:
+              '🌟 Popular This Season (${AnilistService.currentSeason()})',
+          subtitle: 'Currently airing hits',
+          items: results[1],
+        ),
+        _AnimeRow(
+          title: '⭐ All-Time Masterpieces',
+          subtitle: 'Critically acclaimed top rated anime',
+          items: results[2],
+        ),
+        _AnimeRow(
+          title: '🚀 Anticipated Next Season',
+          subtitle: 'Upcoming anime you cannot miss',
+          items: results[3],
+        ),
+        _AnimeRow(
+          title: '⚔️ Action & Adventure',
+          subtitle: 'High octane battles and epic journeys',
+          items: results[4],
+        ),
+        _AnimeRow(
+          title: '💖 Romance & Drama',
+          subtitle: 'Heartfelt emotional stories',
+          items: results[5],
+        ),
+        _AnimeRow(
+          title: '🔮 Fantasy & Isekai',
+          subtitle: 'Magical realms and alternate worlds',
+          items: results[6],
+        ),
+        _AnimeRow(
+          title: '🤖 Sci-Fi & Cyberpunk',
+          subtitle: 'Futuristic technologies and dystopian worlds',
+          items: results[7],
+        ),
+      ].where((row) => row.items.isNotEmpty).toList();
+
+      setState(() {
+        _animeRows
+          ..clear()
+          ..addAll(rows);
+        _animeLoading = false;
+        _animeLoaded = true;
+      });
+    } catch (e) {
+      debugPrint('[HomePage] Anime rows failed: $e');
+      if (!mounted) return;
+      setState(() => _animeLoading = false);
+    }
+  }
+
+  void _openAnimeDetails(AnimeMedia anime) {
+    Navigator.push(
+      context,
+      CinematicSlideRoute(page: AnimeDetailsPage(anime: anime)),
+    );
+  }
+
+  /// The anime rows were fetched under the old switch value, so drop the cache
+  /// and refetch when the global 18+ switch changes.
+  void _onAdultContentChanged() {
+    if (!mounted) return;
+    setState(() {
+      _animeRows.clear();
+      _animeLoaded = false;
+    });
+    if (_selectedFilter == _HomeFilter.anime ||
+        _selectedFilter == _HomeFilter.all) {
+      _ensureAnimeRows();
+    }
+  }
 
   static bool _hasShownIntro = false;
   late bool _showIntro;
@@ -67,6 +251,7 @@ class _HomePageState extends State<HomePage> {
     AppThemeService.currentPalette.addListener(_onSettingsChanged);
     MyListService.items.addListener(_onSettingsChanged);
     ContinueWatchingService.activeItems.addListener(_onSettingsChanged);
+    ContentSettings.adultEnabled.addListener(_onAdultContentChanged);
 
     if (_showIntro) {
       _playIntro();
@@ -134,6 +319,7 @@ class _HomePageState extends State<HomePage> {
     AppThemeService.currentPalette.removeListener(_onSettingsChanged);
     MyListService.items.removeListener(_onSettingsChanged);
     ContinueWatchingService.activeItems.removeListener(_onSettingsChanged);
+    ContentSettings.adultEnabled.removeListener(_onAdultContentChanged);
     _scrollController.dispose();
     super.dispose();
   }
@@ -154,14 +340,15 @@ class _HomePageState extends State<HomePage> {
   }) {
     if (!mounted) return;
     setState(() {
-      // Remove any existing recommendation sections by title or catalog ID so they NEVER duplicate
-      _sections.removeWhere((s) =>
-          s.title.toLowerCase().startsWith('because you') ||
-          s.catalog.id == 'bestsimilar' ||
-          s.catalog.id == 'bestsimilar_list' ||
-          s.catalog.id == 'bestsimilar_watching' ||
-          s.catalog.id == 'trakt_recommendations' ||
-          s.catalog.id == 'simkl_recommendations');
+      _sections.removeWhere(
+        (s) =>
+            s.title.toLowerCase().startsWith('because you') ||
+            s.catalog.id == 'bestsimilar' ||
+            s.catalog.id == 'bestsimilar_list' ||
+            s.catalog.id == 'bestsimilar_watching' ||
+            s.catalog.id == 'trakt_recommendations' ||
+            s.catalog.id == 'simkl_recommendations',
+      );
 
       final toInsert = <MovieSection>[];
       if (watchingSection != null) toInsert.add(watchingSection);
@@ -191,14 +378,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _refreshSimilarSections() async {
-    if (!mounted) return;
-    final listFuture = HomePageSettings.fetchBestSimilarSection(forceRefresh: true);
-    final watchingFuture = HomePageSettings.fetchContinueWatchingSimilarSection(forceRefresh: true);
-    final traktFuture = HomePageSettings.fetchTraktRecommendationsSection(forceRefresh: true);
-    final simklFuture = HomePageSettings.fetchSimklRecommendationsSection(forceRefresh: true);
+    final listFuture = HomePageSettings.fetchBestSimilarSection(
+      forceRefresh: true,
+    );
+    final watchingFuture = HomePageSettings.fetchContinueWatchingSimilarSection(
+      forceRefresh: true,
+    );
+    final traktFuture = HomePageSettings.fetchTraktRecommendationsSection(
+      forceRefresh: true,
+    );
+    final simklFuture = HomePageSettings.fetchSimklRecommendationsSection(
+      forceRefresh: true,
+    );
 
-    final results = await Future.wait([listFuture, watchingFuture, traktFuture, simklFuture]);
-    if (!mounted) return;
+    final results = await Future.wait([
+      listFuture,
+      watchingFuture,
+      traktFuture,
+      simklFuture,
+    ]);
     _injectSimilarSections(
       listSection: results[0],
       watchingSection: results[1],
@@ -235,7 +433,8 @@ class _HomePageState extends State<HomePage> {
 
     try {
       final listFuture = HomePageSettings.fetchBestSimilarSection();
-      final watchingFuture = HomePageSettings.fetchContinueWatchingSimilarSection();
+      final watchingFuture =
+          HomePageSettings.fetchContinueWatchingSimilarSection();
       final traktFuture = HomePageSettings.fetchTraktRecommendationsSection();
       final simklFuture = HomePageSettings.fetchSimklRecommendationsSection();
 
@@ -245,10 +444,10 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _sections.add(section);
 
-          // Re-pick featured movies with the new section
+          // Re-pick featured movies with the new section.
           _featuredMovies = _pickFeatured(_sections);
 
-          // Stop full-page loading as soon as we have enough to show the hero
+          // Stop full-page loading as soon as we have enough to show the hero.
           if (_loading && _featuredMovies.isNotEmpty) {
             _loading = false;
           }
@@ -256,7 +455,12 @@ class _HomePageState extends State<HomePage> {
       }
 
       // Inject recommendation sections (List, Continue Watching, Trakt, Simkl)
-      final results = await Future.wait([listFuture, watchingFuture, traktFuture, simklFuture]);
+      final results = await Future.wait([
+        listFuture,
+        watchingFuture,
+        traktFuture,
+        simklFuture,
+      ]);
       if (mounted) {
         _injectSimilarSections(
           listSection: results[0],
@@ -269,6 +473,12 @@ class _HomePageState extends State<HomePage> {
       // If we got through the whole stream and still loading (e.g., no addons worked)
       if (mounted && _loading) {
         setState(() => _loading = false);
+      }
+
+      // Anime discovery rows are part of All, but they are fetched in the
+      // background so they never delay the usual home content.
+      if (mounted && _selectedFilter == _HomeFilter.all) {
+        unawaited(_ensureAnimeRows());
       }
     } catch (e) {
       if (!mounted) return;
@@ -326,10 +536,115 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// Height of the floating glass app bar below `MediaQuery` top padding
+  /// (10 top pad + 34 logo + 14 bottom pad).
+  static const double _appBarHeight = 58;
+
+  /// Above this width the filter tabs live in the app bar; below it they sit
+  /// inline above the hero, where the bar has no room to spare.
+  static const double _appBarFilterBreakpoint = 700;
+
+  static bool _filtersInAppBar(BuildContext context) =>
+      MediaQuery.sizeOf(context).width >= _appBarFilterBreakpoint;
+
+  Widget _buildFilterTabs() => _HomeFilterTabs(
+    selected: _selectedFilter,
+    onSelected: _setFilter,
+  );
+
+  /// ListView slot 0: spacing when the tabs moved into the app bar, the tabs
+  /// themselves otherwise.
+  Widget _buildFilterSlot(BuildContext context, double topPadding) {
+    if (_filtersInAppBar(context)) {
+      return SizedBox(height: topPadding + _appBarHeight + 8);
+    }
+    return Padding(
+      padding: EdgeInsets.fromLTRB(20, topPadding + _appBarHeight + 12, 20, 4),
+      child: Align(alignment: Alignment.centerLeft, child: _buildFilterTabs()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
     final palette = AppThemeService.currentPalette.value;
+    final visibleSections = _visibleSections;
+
+    final isAnimeTab = _selectedFilter == _HomeFilter.anime;
+    final isAllTab = _selectedFilter == _HomeFilter.all;
+    // The Anime tab leads with anime rows; All appends them so its usual
+    // order stays put. Movies/Series never show them.
+    final animeRows = (isAnimeTab || isAllTab)
+        ? _animeRows
+        : const <_AnimeRow>[];
+    final featured = _visibleFeaturedMovies;
+    final hasContent =
+        visibleSections.isNotEmpty || animeRows.isNotEmpty || _animeLoading;
+
+    final animeRowWidgets = <Widget>[
+      for (final row in animeRows)
+        AnimeSliderSection(
+          title: row.title,
+          subtitle: row.subtitle,
+          animeList: row.items,
+          onAnimeTap: _openAnimeDetails,
+        ),
+    ];
+
+    final slots = <Widget>[
+      _buildFilterSlot(context, topPadding),
+      if (!HomePageSettings.enableSpotlight.value)
+        SizedBox(height: topPadding + 76)
+      else if (isAnimeTab && featured.isEmpty)
+        // Nothing to feature yet on the Anime tab: let the rows below start
+        // right under the app bar instead of reserving an empty hero band.
+        const SizedBox.shrink()
+      else
+        _HeroCarousel(movies: featured),
+      // All keeps unfiltered recents so the row really is everything watched;
+      // Movies/Series drop anime recents, the Anime tab keeps only those.
+      ContinueWatchingSlider(
+        typeFilter: switch (_selectedFilter) {
+          _HomeFilter.anime => 'anime',
+          _HomeFilter.all => null,
+          _ => 'main',
+        },
+        title: 'Continue Watching',
+      ),
+      if (isAnimeTab && _animeLoading)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      if (isAnimeTab) ...animeRowWidgets,
+      if (!hasContent)
+        Padding(
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 48),
+          child: Center(
+            child: Text(
+              isAnimeTab
+                  ? 'No anime available right now.'
+                  : 'No titles match this filter.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.70)),
+            ),
+          ),
+        ),
+      for (var i = 0; i < visibleSections.length; i++)
+        ValueListenableBuilder<bool>(
+          valueListenable: HomePageSettings.enableCalendar,
+          builder: (context, calEnabled, _) {
+            return MovieSliderSection(
+              section: visibleSections[i],
+              showCalendarButton:
+                  calEnabled && i >= (visibleSections.length - 2),
+            );
+          },
+        ),
+      // All is a superset: anime discovery content trails the usual rows.
+      if (!isAnimeTab) ...animeRowWidgets,
+      SizedBox(height: 110.0 + MediaQuery.paddingOf(context).bottom),
+    ];
 
     final backgroundContent = AnimatedAmbientBackground(
       child: Stack(
@@ -353,33 +668,8 @@ class _HomePageState extends State<HomePage> {
                 physics: const BouncingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
-                itemCount: _sections.length + 3,
-                itemBuilder: (context, index) {
-                  if (index == 0) {
-                    if (!HomePageSettings.enableSpotlight.value) {
-                      return SizedBox(height: topPadding + 76);
-                    }
-                    return _HeroCarousel(movies: _featuredMovies);
-                  }
-                  if (index == 1) {
-                    return const ContinueWatchingSlider(typeFilter: 'main');
-                  }
-                  if (index == _sections.length + 2) {
-                    return SizedBox(height: 110.0 + MediaQuery.paddingOf(context).bottom);
-                  }
-                  final sectionIdx = index - 2;
-                  final isLastTwo = sectionIdx >= (_sections.length - 2);
-                  return ValueListenableBuilder<bool>(
-                    valueListenable: HomePageSettings.enableCalendar,
-                    builder: (context, calEnabled, _) {
-                      return MovieSliderSection(
-                        section: _sections[sectionIdx],
-                        showCalendarButton: calEnabled && isLastTwo,
-                        injectSupportCard: sectionIdx == 0,
-                      );
-                    },
-                  );
-                },
+                itemCount: slots.length,
+                itemBuilder: (context, index) => slots[index],
               ),
             ),
         ],
@@ -406,7 +696,8 @@ class _HomePageState extends State<HomePage> {
                 return KeyEventResult.handled;
               }
             } else if (event.logicalKey == LogicalKeyboardKey.escape) {
-              if (WindowService.instance.isDesktop && WindowService.instance.isFullscreen) {
+              if (WindowService.instance.isDesktop &&
+                  WindowService.instance.isFullscreen) {
                 WindowService.instance.exitFullscreen();
                 return KeyEventResult.handled;
               }
@@ -437,6 +728,7 @@ class _HomePageState extends State<HomePage> {
           topPadding: topPadding,
           onSearchTap: _navigateToSearch,
           onSettingsTap: _navigateToSettings,
+          filterTabs: _filtersInAppBar(context) ? _buildFilterTabs() : null,
         ),
       ),
 
@@ -514,7 +806,7 @@ class _HomePageState extends State<HomePage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/icon.png',
+                  'assets/icon_small.png',
                   width: iconSize * 1.5,
                   height: iconSize * 1.5,
                   fit: BoxFit.contain,
@@ -551,6 +843,109 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// All / Movies / Series filter tabs — flat text with an underline indicator,
+// sized to sit inside the glass app bar without competing with the hero.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _HomeFilterTabs extends StatelessWidget {
+  final _HomeFilter selected;
+  final ValueChanged<_HomeFilter> onSelected;
+
+  const _HomeFilterTabs({required this.selected, required this.onSelected});
+
+  static const _filters = <(_HomeFilter, String)>[
+    (_HomeFilter.all, 'All'),
+    (_HomeFilter.movies, 'Movies'),
+    (_HomeFilter.series, 'Series'),
+    (_HomeFilter.anime, 'Anime'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = AppThemeService.currentPalette.value.primaryColor;
+    return Semantics(
+      container: true,
+      label: 'Home content filter',
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final (filter, label) in _filters)
+            _HomeFilterTab(
+              label: label,
+              selected: selected == filter,
+              accent: accent,
+              onTap: () => onSelected(filter),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HomeFilterTab extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const _HomeFilterTab({
+    required this.label,
+    required this.selected,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          hoverColor: Colors.white.withValues(alpha: 0.06),
+          focusColor: Colors.white.withValues(alpha: 0.10),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 160),
+                  style: TextStyle(
+                    fontSize: 13,
+                    letterSpacing: 0.2,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.55),
+                  ),
+                  child: Text(label),
+                ),
+                const SizedBox(height: 3),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  curve: Curves.easeOutCubic,
+                  height: 2,
+                  width: selected ? 18 : 0,
+                  decoration: BoxDecoration(
+                    color: accent,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Frosted Glass App Bar
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -558,11 +953,13 @@ class _GlassAppBar extends StatelessWidget {
   final double topPadding;
   final void Function(Offset?) onSearchTap;
   final void Function(Offset?) onSettingsTap;
+  final Widget? filterTabs;
 
   const _GlassAppBar({
     required this.topPadding,
     required this.onSearchTap,
     required this.onSettingsTap,
+    this.filterTabs,
   });
 
   @override
@@ -589,7 +986,7 @@ class _GlassAppBar extends StatelessWidget {
           children: [
             // Logo
             Image.asset(
-              'assets/icon.png',
+              'assets/icon_small.png',
               width: 34,
               height: 34,
               fit: BoxFit.contain,
@@ -605,6 +1002,16 @@ class _GlassAppBar extends StatelessWidget {
               ),
             ),
             const Spacer(),
+            // All / Movies / Series tabs (wide layouts only)
+            if (filterTabs != null) ...[
+              filterTabs!,
+              Container(
+                width: 1,
+                height: 18,
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                color: Colors.white.withValues(alpha: 0.10),
+              ),
+            ],
             // AI Taste Profile Quiz
             ValueListenableBuilder<bool>(
               valueListenable: HomePageSettings.enableAiQuiz,
@@ -621,7 +1028,9 @@ class _GlassAppBar extends StatelessWidget {
                   onPressed: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const WeWatchQuizPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const WeWatchQuizPage(),
+                      ),
                     );
                   },
                 );
@@ -674,7 +1083,9 @@ class _GlassAppBar extends StatelessWidget {
                   ),
                   onPressed: () {
                     final box = context.findRenderObject() as RenderBox?;
-                    final offset = box?.localToGlobal(box.size.center(Offset.zero));
+                    final offset = box?.localToGlobal(
+                      box.size.center(Offset.zero),
+                    );
                     onSearchTap(offset);
                   },
                 );
@@ -692,7 +1103,9 @@ class _GlassAppBar extends StatelessWidget {
                   tooltip: 'Settings',
                   onPressed: () {
                     final box = context.findRenderObject() as RenderBox?;
-                    final offset = box?.localToGlobal(box.size.center(Offset.zero));
+                    final offset = box?.localToGlobal(
+                      box.size.center(Offset.zero),
+                    );
                     onSettingsTap(offset);
                   },
                 );
@@ -705,13 +1118,17 @@ class _GlassAppBar extends StatelessWidget {
                 builder: (context, isFullscreen, _) {
                   return IconButton(
                     icon: Icon(
-                      isFullscreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                      isFullscreen
+                          ? Icons.fullscreen_exit_rounded
+                          : Icons.fullscreen_rounded,
                       color: isFullscreen
                           ? const Color(0xFFFFB300)
                           : Colors.white.withValues(alpha: 0.75),
                       size: 24,
                     ),
-                    tooltip: isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen (F)',
+                    tooltip: isFullscreen
+                        ? 'Exit Fullscreen (F)'
+                        : 'Fullscreen (F)',
                     onPressed: () => WindowService.instance.toggleFullscreen(),
                   );
                 },
@@ -786,21 +1203,15 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     super.dispose();
   }
 
-  bool get _showSupportSlide => HomePageSettings.enableSupportDev.value;
-  int get _supportSlideIndex => widget.movies.isNotEmpty ? 1 : 0;
-  int get _totalSlideCount => widget.movies.length + (_showSupportSlide ? 1 : 0);
-
-  int? _movieIndexForSlide(int slideIndex) {
-    if (!_showSupportSlide) return slideIndex;
-    if (slideIndex == _supportSlideIndex) return null;
-    return slideIndex > _supportSlideIndex ? slideIndex - 1 : slideIndex;
-  }
+  int get _totalSlideCount => widget.movies.length;
 
   void _startTimer() {
     _timer?.cancel();
     if (!HomePageSettings.heroAutoRotate.value) return;
     if (_totalSlideCount < 2) return;
-    final interval = Duration(seconds: HomePageSettings.heroRotateSeconds.value);
+    final interval = Duration(
+      seconds: HomePageSettings.heroRotateSeconds.value,
+    );
     _timer = Timer.periodic(interval, (_) {
       if (!mounted || !_pageController.hasClients) return;
       final next = (_index + 1) % _totalSlideCount;
@@ -842,14 +1253,12 @@ class _HeroCarouselState extends State<_HeroCarousel> {
 
   void _onPageChanged(int index) {
     setState(() => _index = index);
-    final curMovieIdx = _movieIndexForSlide(index);
-    if (curMovieIdx != null && curMovieIdx < widget.movies.length) {
-      _fetchDetail(widget.movies[curMovieIdx]);
+    if (index < widget.movies.length) {
+      _fetchDetail(widget.movies[index]);
     }
     final nextSlide = (index + 1) % _totalSlideCount;
-    final nextMovieIdx = _movieIndexForSlide(nextSlide);
-    if (nextMovieIdx != null && nextMovieIdx < widget.movies.length) {
-      _fetchDetail(widget.movies[nextMovieIdx]);
+    if (nextSlide < widget.movies.length) {
+      _fetchDetail(widget.movies[nextSlide]);
     }
   }
 
@@ -892,8 +1301,6 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     final heroHeight = _heroHeight(screenWidth, screenHeight);
     final primaryColor = AppThemeService.currentPalette.value.primaryColor;
     final totalSlides = _totalSlideCount;
-    final showSupport = _showSupportSlide;
-    final supportIdx = _supportSlideIndex;
 
     if (totalSlides == 0) {
       return SizedBox(height: heroHeight);
@@ -919,11 +1326,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
               itemCount: totalSlides,
               onPageChanged: _onPageChanged,
               itemBuilder: (context, i) {
-                if (showSupport && i == supportIdx) {
-                  return SupportHeroSlide(screenWidth: screenWidth);
-                }
-                final movieIdx = _movieIndexForSlide(i)!;
-                final movie = widget.movies[movieIdx];
+                final movie = widget.movies[i];
                 final detail = _detailsCache[movie.id];
                 return _HeroSlide(
                   movie: movie,
@@ -943,9 +1346,8 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(totalSlides, (i) {
                     final active = i == _index;
-                    final isSupportDot = showSupport && i == supportIdx;
                     final dotColor = active
-                        ? (isSupportDot ? const Color(0xFFFFD700) : primaryColor)
+                        ? primaryColor
                         : Colors.white.withValues(alpha: 0.30);
                     return GestureDetector(
                       onTap: () => _goTo(i),
@@ -961,10 +1363,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                           boxShadow: active
                               ? [
                                   BoxShadow(
-                                    color: (isSupportDot
-                                            ? const Color(0xFFFFD700)
-                                            : primaryColor)
-                                        .withValues(alpha: 0.55),
+                                    color: primaryColor.withValues(alpha: 0.55),
                                     blurRadius: 8,
                                   ),
                                 ]
@@ -977,9 +1376,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
               ),
 
             // Arrows
-            if (totalSlides > 1 &&
-                _isHovering &&
-                screenWidth > 600) ...[
+            if (totalSlides > 1 && _isHovering && screenWidth > 600) ...[
               if (_index > 0)
                 Positioned(
                   left: 24,
@@ -1092,7 +1489,8 @@ class _HeroSlide extends StatelessWidget {
     final palette = AppThemeService.currentPalette.value;
     final heroStyle = HomePageSettings.heroStyle.value;
 
-    final hasBackdrop = detail?.background != null && detail!.background!.trim().isNotEmpty;
+    final hasBackdrop =
+        detail?.background != null && detail!.background!.trim().isNotEmpty;
     final backdropUrl = hasBackdrop ? detail!.background! : null;
     final posterUrl = movie.poster;
     final imageUrl = backdropUrl ?? posterUrl;
@@ -1101,6 +1499,30 @@ class _HeroSlide extends StatelessWidget {
     final description = detail?.description;
     final genres = detail?.genres ?? const <String>[];
     final logo = detail?.logo;
+    // Layer 1 blur + foreground Layer 2 + portrait card decode each URL once:
+    // same URL + same memCacheWidth hits the shared ResizeImage cache entry.
+    final heroCacheWidth = hasBackdrop ? 1280 : 512;
+    Widget heroArtwork({
+      required String url,
+      required BoxFit fit,
+      required Alignment alignment,
+      FilterQuality filterQuality = FilterQuality.medium,
+      Duration fadeIn = const Duration(milliseconds: 300),
+      Widget Function(BuildContext, String)? placeholder,
+      Widget Function(BuildContext, String, Object)? errorWidget,
+    }) {
+      return CachedNetworkImage(
+        imageUrl: url,
+        cacheManager: AppImageCache.manager,
+        memCacheWidth: heroCacheWidth,
+        fit: fit,
+        alignment: alignment,
+        filterQuality: filterQuality,
+        fadeInDuration: fadeIn,
+        placeholder: placeholder ?? (_, __) => const SizedBox.shrink(),
+        errorWidget: errorWidget ?? (_, __, ___) => const SizedBox.shrink(),
+      );
+    }
 
     return Stack(
       fit: StackFit.expand,
@@ -1129,23 +1551,22 @@ class _HeroSlide extends StatelessWidget {
                             ),
                             child: Transform.scale(
                               scale: 1.15,
-                              child: CachedNetworkImage(
-                                imageUrl: imageUrl,
+                              child: heroArtwork(
+                                url: imageUrl,
                                 fit: BoxFit.cover,
                                 alignment: Alignment.center,
                                 filterQuality: FilterQuality.low,
-                                fadeInDuration:
-                                    const Duration(milliseconds: 300),
-                                placeholder: (_, __) => const ColoredBox(
-                                    color: Color(0xFF151822)),
-                                errorWidget: (_, __, ___) => const ColoredBox(
-                                    color: Color(0xFF151822)),
+                                placeholder: (_, __) =>
+                                    const ColoredBox(color: Color(0xFF151822)),
+                                errorWidget: (_, __, ___) =>
+                                    const ColoredBox(color: Color(0xFF151822)),
                               ),
                             ),
                           ),
                           ColoredBox(
-                            color: palette.scaffoldBackgroundColor
-                                .withValues(alpha: 0.50),
+                            color: palette.scaffoldBackgroundColor.withValues(
+                              alpha: 0.50,
+                            ),
                           ),
                         ],
                       ),
@@ -1156,15 +1577,10 @@ class _HeroSlide extends StatelessWidget {
                       // Landscape 16:9 backdrop available
                       if (containerAspect <= 1.78)
                         Positioned.fill(
-                          child: CachedNetworkImage(
-                            imageUrl: backdropUrl!,
+                          child: heroArtwork(
+                            url: backdropUrl!,
                             fit: BoxFit.cover,
                             alignment: const Alignment(0, -0.15),
-                            filterQuality: FilterQuality.medium,
-                            fadeInDuration: const Duration(milliseconds: 300),
-                            placeholder: (_, __) => const SizedBox.shrink(),
-                            errorWidget: (_, __, ___) =>
-                                const SizedBox.shrink(),
                           ),
                         )
                       else
@@ -1172,8 +1588,10 @@ class _HeroSlide extends StatelessWidget {
                           top: 0,
                           bottom: 0,
                           right: 0,
-                          width: (containerHeight * (16 / 9))
-                              .clamp(0.0, containerWidth),
+                          width: (containerHeight * (16 / 9)).clamp(
+                            0.0,
+                            containerWidth,
+                          ),
                           child: ShaderMask(
                             shaderCallback: (bounds) {
                               return const LinearGradient(
@@ -1184,15 +1602,11 @@ class _HeroSlide extends StatelessWidget {
                               ).createShader(bounds);
                             },
                             blendMode: BlendMode.dstIn,
-                            child: CachedNetworkImage(
-                              imageUrl: backdropUrl!,
+                            child: heroArtwork(
+                              url: backdropUrl!,
                               fit: BoxFit.cover,
                               alignment: Alignment.topCenter,
                               filterQuality: FilterQuality.high,
-                              fadeInDuration: const Duration(milliseconds: 300),
-                              placeholder: (_, __) => const SizedBox.shrink(),
-                              errorWidget: (_, __, ___) =>
-                                  const SizedBox.shrink(),
                             ),
                           ),
                         ),
@@ -1200,15 +1614,10 @@ class _HeroSlide extends StatelessWidget {
                       // Portrait poster fallback (when no 16:9 backdrop is available)
                       if (containerAspect <= 1.2)
                         Positioned.fill(
-                          child: CachedNetworkImage(
-                            imageUrl: imageUrl,
+                          child: heroArtwork(
+                            url: imageUrl,
                             fit: BoxFit.cover,
                             alignment: Alignment.topCenter,
-                            filterQuality: FilterQuality.medium,
-                            fadeInDuration: const Duration(milliseconds: 300),
-                            placeholder: (_, __) => const SizedBox.shrink(),
-                            errorWidget: (_, __, ___) =>
-                                const SizedBox.shrink(),
                           ),
                         )
                       else
@@ -1232,16 +1641,11 @@ class _HeroSlide extends StatelessWidget {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
-                                child: CachedNetworkImage(
-                                  imageUrl: imageUrl,
+                                child: heroArtwork(
+                                  url: imageUrl,
                                   fit: BoxFit.cover,
+                                  alignment: Alignment.center,
                                   filterQuality: FilterQuality.high,
-                                  fadeInDuration:
-                                      const Duration(milliseconds: 300),
-                                  placeholder: (_, __) =>
-                                      const SizedBox.shrink(),
-                                  errorWidget: (_, __, ___) =>
-                                      const SizedBox.shrink(),
                                 ),
                               ),
                             ),
@@ -1335,10 +1739,14 @@ class _HeroSlide extends StatelessWidget {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFD700).withValues(alpha: 0.14),
+                            color: const Color(
+                              0xFFFFD700,
+                            ).withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(9),
                             border: Border.all(
-                              color: const Color(0xFFFFD700).withValues(alpha: 0.28),
+                              color: const Color(
+                                0xFFFFD700,
+                              ).withValues(alpha: 0.28),
                             ),
                           ),
                           child: Row(
@@ -1413,7 +1821,9 @@ class _HeroSlide extends StatelessWidget {
                       ),
                       child: Text(
                         description,
-                        maxLines: heroStyle == HeroStyle.compact ? 1 : (isCompact ? 2 : 3),
+                        maxLines: heroStyle == HeroStyle.compact
+                            ? 1
+                            : (isCompact ? 2 : 3),
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: isCompact ? 14.0 : 15.0,
@@ -1425,7 +1835,8 @@ class _HeroSlide extends StatelessWidget {
                   ],
 
                   // Genre chips (Immersive only)
-                  if (heroStyle == HeroStyle.immersive && genres.isNotEmpty) ...[
+                  if (heroStyle == HeroStyle.immersive &&
+                      genres.isNotEmpty) ...[
                     const SizedBox(height: 14),
                     Wrap(
                       spacing: 8,
@@ -1457,14 +1868,21 @@ class _HeroSlide extends StatelessWidget {
                   ],
 
                   // Action buttons
-                  SizedBox(height: heroStyle == HeroStyle.minimalist ? 12 : (isCompact ? 18 : 24)),
+                  SizedBox(
+                    height: heroStyle == HeroStyle.minimalist
+                        ? 12
+                        : (isCompact ? 18 : 24),
+                  ),
                   Row(
                     children: [
                       Builder(
                         builder: (context) {
                           return ElevatedButton.icon(
                             onPressed: () => _openDetails(context),
-                            icon: const Icon(Icons.play_arrow_rounded, size: 22),
+                            icon: const Icon(
+                              Icons.play_arrow_rounded,
+                              size: 22,
+                            ),
                             label: const Text(
                               'Watch Now',
                               style: TextStyle(
@@ -1579,13 +1997,14 @@ class _HeroTitle extends StatelessWidget {
         alignment: Alignment.bottomLeft,
         child: CachedNetworkImage(
           imageUrl: logoUrl!,
+          cacheManager: AppImageCache.manager,
+          memCacheWidth: 512,
           fit: BoxFit.contain,
           alignment: Alignment.bottomLeft,
           filterQuality: FilterQuality.medium,
           fadeInDuration: const Duration(milliseconds: 250),
           placeholder: (_, __) => titleText,
-          errorWidget: (_, __, ___) => titleText,
-        ),
+          errorWidget: (_, __, ___) => titleText),
       ),
     );
   }
@@ -1716,11 +2135,18 @@ class _CustomScrollTrackState extends State<_CustomScrollTrack> {
                           child: Container(
                             height: _thumbHeight,
                             decoration: BoxDecoration(
-                              color: AppThemeService.currentPalette.value.primaryColor,
+                              color: AppThemeService
+                                  .currentPalette
+                                  .value
+                                  .primaryColor,
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppThemeService.currentPalette.value.primaryColor.withOpacity(0.6),
+                                  color: AppThemeService
+                                      .currentPalette
+                                      .value
+                                      .primaryColor
+                                      .withOpacity(0.6),
                                   blurRadius: 12,
                                   spreadRadius: 2,
                                 ),

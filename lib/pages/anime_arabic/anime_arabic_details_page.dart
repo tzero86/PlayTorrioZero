@@ -8,6 +8,7 @@ import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/slider_arrow.dart';
 import 'anime_arabic_stream_sheet.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class _Space {
   static const md = 16.0;
@@ -214,6 +215,8 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                 if (backdropUrl.isNotEmpty)
                   CachedNetworkImage(
                     imageUrl: backdropUrl,
+                    cacheManager: AppImageCache.manager,
+                    memCacheWidth: 1280,
                     fit: BoxFit.cover,
                     alignment: Alignment.topCenter,
                   ),
@@ -437,6 +440,8 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
         child: coverUrl.isNotEmpty
             ? CachedNetworkImage(
                 imageUrl: coverUrl,
+                cacheManager: AppImageCache.manager,
+                memCacheWidth: 512,
                 fit: BoxFit.cover,
                 errorWidget: (_, __, ___) => Container(
                   color: _Palette.surface,
@@ -795,6 +800,8 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
               if (thumb.isNotEmpty)
                 CachedNetworkImage(
                   imageUrl: thumb,
+                  cacheManager: AppImageCache.manager,
+                  memCacheWidth: 330,
                   fit: BoxFit.cover,
                   errorWidget: (_, __, ___) => Container(color: _Palette.surface),
                 ),
@@ -930,6 +937,8 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                                   child: (item.cover != null && item.cover!.isNotEmpty)
                                       ? CachedNetworkImage(
                                           imageUrl: item.cover!,
+                                          cacheManager: AppImageCache.manager,
+                                          memCacheWidth: 330,
                                           fit: BoxFit.cover,
                                           errorWidget: (_, __, ___) =>
                                               const Icon(Icons.movie_rounded, color: Colors.white24),

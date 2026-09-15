@@ -12,6 +12,7 @@ import '../../services/iptv/iptv_storage.dart';
 import '../../services/discord/discord_rpc_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import 'iptv_player_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class IptvPortalBrowserPage extends StatefulWidget {
   final VerifiedPortal? portal;
@@ -1792,10 +1793,10 @@ class _LiveChannelListRowState extends State<_LiveChannelListRow> {
                             borderRadius: BorderRadius.circular(5),
                             child: CachedNetworkImage(
                               imageUrl: s.icon,
+                              cacheManager: AppImageCache.manager,
                               fit: BoxFit.contain,
                               memCacheWidth: 128,
-                              errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 20),
-                            ),
+                              errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 20)),
                           )
                         : const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 20),
                   ),
@@ -2002,10 +2003,10 @@ class _LiveChannelGridCardState extends State<_LiveChannelGridCard> {
                           borderRadius: BorderRadius.circular(4),
                           child: CachedNetworkImage(
                             imageUrl: s.icon,
+                            cacheManager: AppImageCache.manager,
                             fit: BoxFit.contain,
                             memCacheWidth: 100,
-                            errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 16),
-                          ),
+                            errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 16)),
                         ),
                       )
                     else
@@ -2172,10 +2173,10 @@ class _LiveChannelCompactListRowState extends State<_LiveChannelCompactListRow> 
                       borderRadius: BorderRadius.circular(4),
                       child: CachedNetworkImage(
                         imageUrl: s.icon,
+                        cacheManager: AppImageCache.manager,
                         fit: BoxFit.contain,
                         memCacheWidth: 64,
-                        errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white24, size: 14),
-                      ),
+                        errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white24, size: 14)),
                     ),
                   ),
                 ],
@@ -2289,12 +2290,12 @@ class _VodSeriesCardState extends State<_VodSeriesCard> {
                           s.icon.isNotEmpty
                               ? CachedNetworkImage(
                                   imageUrl: s.icon,
+                                  cacheManager: AppImageCache.manager,
                                   fit: BoxFit.cover,
                                   memCacheWidth: 256,
                                   errorWidget: (_, _, _) => const Center(
                                     child: Icon(Icons.movie_rounded, color: Colors.white38, size: 32),
-                                  ),
-                                )
+                                  ))
                               : const Center(
                                   child: Icon(Icons.movie_rounded, color: Colors.white38, size: 32),
                                 ),

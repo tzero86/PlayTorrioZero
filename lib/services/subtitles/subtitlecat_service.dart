@@ -47,7 +47,10 @@ class SubtitleCatService {
     ..connectionTimeout = const Duration(seconds: 15)
     ..badCertificateCallback = ((cert, host, port) => true);
 
-  // ── In-memory caches ──────────────────────────────────────────────────────
+  // ── In-memory caches (bounded FIFO so repeated browsing can't grow RAM) ───
+  static const int _maxSearchEntries = 80;
+  static const int _maxDetailEntries = 30;
+  static const int _maxTranslationEntries = 20;
   final Map<String, List<_SearchHit>> _searchCache = {};
   final Map<String, _DetailPage> _detailCache = {};
   final Map<String, String> _translationCache = {}; // key = origUrl|lang
@@ -166,6 +169,9 @@ class SubtitleCatService {
     try {
       final res = await fut;
       _translationCache[key] = res;
+      if (_translationCache.length > _maxTranslationEntries) {
+        _translationCache.remove(_translationCache.keys.first);
+      }
       return res;
     } finally {
       _translationInflight.remove(key);
@@ -190,6 +196,9 @@ class SubtitleCatService {
     final html = await res.transform(utf8.decoder).join();
     final hits = _parseSearchResults(html);
     _searchCache[query] = hits;
+    if (_searchCache.length > _maxSearchEntries) {
+      _searchCache.remove(_searchCache.keys.first);
+    }
     return hits;
   }
 
@@ -226,6 +235,9 @@ class SubtitleCatService {
     final html = await res.transform(utf8.decoder).join();
     final parsed = _parseDetailPage(html);
     _detailCache[detailUrl] = parsed;
+    if (_detailCache.length > _maxDetailEntries) {
+      _detailCache.remove(_detailCache.keys.first);
+    }
     return parsed;
   }
 

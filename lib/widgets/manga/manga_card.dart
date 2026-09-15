@@ -7,6 +7,7 @@ import '../../services/theme/app_theme_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../common/poster_skeleton.dart';
+import '../../services/storage/app_image_cache.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Card sizing — responsive breakpoints that scale with MangaCardDensity.
@@ -254,14 +255,23 @@ class _PosterFrame extends StatelessWidget {
               color: Color(0xFF171A23),
             ),
 
-            // Poster image (cached)
+            // Poster image (cached, decode bounded to ~3x display width)
             if (hasPoster)
-              CachedNetworkImage(
-                imageUrl: posterUrl!,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.medium,
-                placeholder: (context, url) => const PosterSkeleton(),
-                errorWidget: (context, url, error) => const MissingPoster(),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final posterWidth = constraints.maxWidth;
+                  final cacheWidth = posterWidth.isFinite && posterWidth > 0
+                      ? (posterWidth * 3).round().clamp(96, 1280).toInt()
+                      : 615;
+                  return CachedNetworkImage(
+                    imageUrl: posterUrl!,
+                    cacheManager: AppImageCache.manager,
+                    memCacheWidth: cacheWidth,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.medium,
+                    placeholder: (context, url) => const PosterSkeleton(),
+                    errorWidget: (context, url, error) => const MissingPoster());
+                },
               )
             else
               const MissingPoster(),

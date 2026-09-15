@@ -14,6 +14,7 @@ import '../../models/movie/video.dart';
 import '../../models/movie/movie_detail.dart';
 
 import '../../models/stream/stream_model.dart';
+import '../../services/diagnostics/crash_breadcrumbs.dart';
 import './player_screen.dart';
 import '../../services/addon/addon_manager.dart';
 import '../../services/stream/stream_service.dart';
@@ -23,6 +24,7 @@ import '../../widgets/common/performance_liquid_lens.dart';
 import '../settings/settings_page.dart';
 import '../details/details_page.dart';
 import '../../utils/navigation/route_transitions.dart';
+import '../../services/storage/app_image_cache.dart';
 
 // ---------------------------------------------------------------------------
 // Design tokens
@@ -437,9 +439,9 @@ class _WatchScreenState extends State<WatchScreen>
         children: [
           CachedNetworkImage(
             imageUrl: url,
+            cacheManager: AppImageCache.manager,
             fit: BoxFit.cover,
-            errorWidget: (_, __, ___) => const ColoredBox(color: _C.bg),
-          ),
+            errorWidget: (_, __, ___) => const ColoredBox(color: _C.bg)),
           // Left-to-right dimming: dark on left (text side), lighter on right
           DecoratedBox(
             decoration: BoxDecoration(
@@ -795,10 +797,10 @@ class _WatchScreenState extends State<WatchScreen>
         ),
         child: CachedNetworkImage(
           imageUrl: meta.logo!,
+          cacheManager: AppImageCache.manager,
           alignment: Alignment.bottomLeft,
           fit: BoxFit.contain,
-          errorWidget: (_, __, ___) => _buildTextTitle(meta.name, isDesktop),
-        ),
+          errorWidget: (_, __, ___) => _buildTextTitle(meta.name, isDesktop)),
       );
     }
     return _buildTextTitle(meta.name, isDesktop);
@@ -1216,14 +1218,7 @@ class _WatchScreenState extends State<WatchScreen>
 
         // Source list
         if (isDesktop)
-          Flexible(
-            flex: 1,
-            child: SingleChildScrollView(
-              controller: _sourcesScrollController,
-              physics: const BouncingScrollPhysics(),
-              child: _buildSourcesList(filtered, isDesktop),
-            ),
-          )
+          Expanded(child: _buildSourcesList(filtered, isDesktop))
         else
           _buildSourcesList(filtered, isDesktop),
       ],
@@ -2924,6 +2919,11 @@ class _SourceCardState extends State<_SourceCard> {
                   ? widget.episode!.title
                   : s.displayTitle;
 
+              CrashBreadcrumbs.stream(
+                'open',
+                title: s.displayTitle,
+                addon: s.addonName,
+              );
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -3099,7 +3099,7 @@ class _AddonSourceIcon extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(6),
           child: Image.asset(
-            'assets/icon.png',
+            'assets/icon_small.png',
             width: 30,
             height: 30,
             fit: BoxFit.contain,
@@ -3147,6 +3147,8 @@ class _AddonSourceIcon extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           child: CachedNetworkImage(
             imageUrl: logoUrl,
+            cacheManager: AppImageCache.manager,
+            memCacheWidth: 96,
             width: 32,
             height: 32,
             fit: BoxFit.contain,
@@ -3163,8 +3165,7 @@ class _AddonSourceIcon extends StatelessWidget {
                 ),
               ),
             ),
-            errorWidget: (context, url, error) => _buildFallbackIcon(),
-          ),
+            errorWidget: (context, url, error) => _buildFallbackIcon()),
         ),
       );
     }

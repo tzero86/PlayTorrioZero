@@ -17,6 +17,8 @@ import '../../services/anime_arabic/anime_arabic_service.dart';
 import '../../services/anime_arabic/anime_arabic_extractor.dart';
 import '../../services/stream/stream_service.dart';
 import '../../utils/navigation/route_transitions.dart';
+import '../addon/addon_manager.dart';
+import '../anime/anime_library_service.dart';
 import '../trakt/trakt_service.dart';
 import '../trakt/trakt_continue_watching_service.dart';
 import '../simkl/simkl_service.dart';
@@ -187,7 +189,10 @@ class ContinueWatchingService {
           if (cloudItem.episodeIndex > local.episodeIndex ||
               (cloudItem.episodeIndex == local.episodeIndex &&
                   cloudItem.lastWatchedAt.isAfter(local.lastWatchedAt))) {
-            existingMap[cloudItem.sessionKey] = cloudItem;
+            // Cloud services carry no maturity metadata, so keep whatever the
+            // local session already knew about the content.
+            existingMap[cloudItem.sessionKey] =
+                cloudItem.copyWith(isAdult: cloudItem.isAdult || local.isAdult);
           }
         }
       }
@@ -201,6 +206,45 @@ class ContinueWatchingService {
     } catch (e) {
       debugPrint('[ContinueWatchingService] Cloud sync error: $e');
     }
+  }
+
+  /// Whether a session is known to originate from adult content.
+  ///
+  /// Reads in-memory state only — installed addons, the extractors that serve
+  /// NSFW anime, and the AniList adult flag the anime library persisted — so it
+  /// can also classify sessions saved before [ContinueWatchingItem.isAdult]
+  /// existed. Anything it cannot classify counts as non-adult.
+  static bool isAdultSession({
+    required String id,
+    required String type,
+    String? addonName,
+    List<String> genres = const [],
+  }) {
+    final name = (addonName ?? '').trim().toLowerCase();
+    if (name == 'watchhentai' || name == 'hentaini') return true;
+
+    for (final addon in AddonManager.instance.addons) {
+      if (!addon.isNsfwOnly) continue;
+      if (name == addon.manifest.name.toLowerCase() ||
+          name == addon.manifest.id.toLowerCase()) {
+        return true;
+      }
+    }
+
+    if (type != 'anime' && !id.startsWith('anilist:')) return false;
+    if (genres.any(_isAdultGenre)) return true;
+
+    final anilistId = int.tryParse(id.replaceFirst('anilist:', ''));
+    if (anilistId == null) return false;
+    return AnimeLibraryService.instance.getProgress(anilistId)?.anime.isAdult == true ||
+        AnimeLibraryService.instance.getWatchlistItem(anilistId)?.anime.isAdult == true;
+  }
+
+  /// AniList's adult genres — the same signal the scraper uses to route a title
+  /// to the hentai extractors.
+  static bool _isAdultGenre(String genre) {
+    final value = genre.toLowerCase();
+    return value.contains('hentai') || value.contains('erotica');
   }
 
   /// Saves or updates the playback progress for a session.
@@ -263,6 +307,12 @@ class ContinueWatchingService {
       positionSeconds: positionSeconds,
       totalDurationSeconds: totalDurationSeconds,
       lastWatchedAt: DateTime.now(),
+      isAdult: isAdultSession(
+        id: detail.id,
+        type: detail.type,
+        addonName: source.addonName,
+        genres: detail.genres,
+      ),
     );
 
     // Read current list

@@ -11,6 +11,7 @@ import '../../services/manga/manga_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../services/discord/discord_rpc_service.dart';
 import '../../widgets/common/custom_scroll_track.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class MangaReaderPage extends StatefulWidget {
   final Manga manga;
@@ -157,8 +158,33 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
         }
       });
 
+      // Keep the chapter warm without decoding every page full-res: the deck
+      // needs all thumbs anyway, so precache those (memCacheWidth 140 like the
+      // deck). The display widgets below bound pages to 2x screen width, so
+      // precache current + adjacent with that same bound — same ResizeImage
+      // key, no second decode.
+      final pageCacheWidth =
+          (MediaQuery.sizeOf(context).width * 2).round().clamp(96, 2048).toInt();
       for (final url in urls) {
-        precacheImage(CachedNetworkImageProvider(url), context);
+        precacheImage(
+          ResizeImage.resizeIfNeeded(
+            140,
+            null,
+            CachedNetworkImageProvider(url, cacheManager: AppImageCache.manager),
+          ),
+          context,
+        );
+      }
+      for (var i = _currentPageIndex - 1; i <= _currentPageIndex + 1; i++) {
+        if (i < 0 || i >= urls.length) continue;
+        precacheImage(
+          ResizeImage.resizeIfNeeded(
+            pageCacheWidth,
+            null,
+            CachedNetworkImageProvider(urls[i], cacheManager: AppImageCache.manager),
+          ),
+          context,
+        );
       }
 
       if (_pageController?.hasClients ?? false) {
@@ -613,14 +639,17 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
             constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
             child: CachedNetworkImage(
               imageUrl: _pageUrls[index],
+              cacheManager: AppImageCache.manager,
+              // Page view keeps one full-res page; 2x screen width stays crisp
+              // under the 5x zoom InteractiveViewer while bounding the decode.
+              memCacheWidth: (MediaQuery.sizeOf(context).width * 2).round().clamp(96, 2048).toInt(),
               fit: BoxFit.contain,
               placeholder: (context, url) => const Center(
                 child: CircularProgressIndicator(color: Colors.white24),
               ),
               errorWidget: (context, url, error) => const Center(
                 child: Icon(Icons.broken_image_rounded, color: Colors.white38, size: 48),
-              ),
-            ),
+              )),
           ),
         );
       },
@@ -656,6 +685,9 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
               margin: EdgeInsets.only(bottom: pageGap),
               child: CachedNetworkImage(
                 imageUrl: _pageUrls[index],
+                cacheManager: AppImageCache.manager,
+                // Webtoon strip keeps full-res (2x screen, <=2048) for 5x zoom.
+                memCacheWidth: (MediaQuery.sizeOf(context).width * 2).round().clamp(96, 2048).toInt(),
                 fit: BoxFit.fitWidth,
                 placeholder: (context, url) => const SizedBox(
                   height: 350,
@@ -668,8 +700,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                   child: Center(
                     child: Icon(Icons.broken_image_rounded, color: Colors.white38, size: 48),
                   ),
-                ),
-              ),
+                )),
             );
           },
         ),
@@ -854,13 +885,13 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                         children: [
                           CachedNetworkImage(
                             imageUrl: _pageUrls[index],
+                            cacheManager: AppImageCache.manager,
                             fit: BoxFit.cover,
                             memCacheWidth: 140,
                             placeholder: (_, __) => Container(color: const Color(0xFF161A24)),
                             errorWidget: (_, __, ___) => const Center(
                               child: Icon(Icons.broken_image_rounded, color: Colors.white24, size: 18),
-                            ),
-                          ),
+                            )),
                           // Bottom gradient overlay
                           Positioned(
                             left: 0,

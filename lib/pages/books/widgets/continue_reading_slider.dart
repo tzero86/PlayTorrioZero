@@ -7,6 +7,7 @@ import '../../../models/book/reading_progress.dart';
 import '../../../services/books/continue_reading_service.dart';
 import '../epub_reader_page.dart';
 import '../pdf_reader_page.dart';
+import '../../../services/storage/app_image_cache.dart';
 
 class ContinueReadingSlider extends StatefulWidget {
   final String title;
@@ -323,6 +324,9 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
                       child: item.coverUrl.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: item.coverUrl,
+                              cacheManager: AppImageCache.manager,
+                              // Cover box is fixed 140 wide; bound to ~3x.
+                              memCacheWidth: 420,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(
                                 color: const Color(0xFF20212C),
@@ -335,8 +339,7 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
                                 child: const Center(
                                   child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
                                 ),
-                              ),
-                            )
+                              ))
                           : Container(
                               color: const Color(0xFF20212C),
                               child: const Center(

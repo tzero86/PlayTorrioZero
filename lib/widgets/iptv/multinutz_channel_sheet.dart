@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../services/iptv/iptv_controller.dart';
 import '../../services/iptv/iptv_network.dart';
@@ -7,6 +8,7 @@ import '../../services/theme/app_theme_service.dart';
 import '../../services/iptv/iptv_settings.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../pages/iptv/iptv_portal_browser_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 enum ChannelSheetTab { xtreme, m3u }
 
@@ -1169,7 +1171,8 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         leading: hit.stream.icon.isNotEmpty
             ? ClipRRect(
                 borderRadius: BorderRadius.circular(4),
-                child: Image.network(hit.stream.icon, width: 24, height: 24, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.tv, color: Colors.white30)),
+                child: CachedNetworkImage(imageUrl: hit.stream.icon, cacheManager: AppImageCache.manager,
+ memCacheWidth: 96, width: 24, height: 24, fit: BoxFit.cover, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white30)),
               )
             : const Icon(Icons.tv, color: Colors.white30, size: 24),
         title: Text(
@@ -1598,7 +1601,8 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                             if (ch.logo.isNotEmpty)
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
-                                child: Image.network(ch.logo, width: 24, height: 24, fit: BoxFit.cover, errorBuilder: (_, __, ___) => const Icon(Icons.tv, color: Colors.white30)),
+                                child: CachedNetworkImage(imageUrl: ch.logo, cacheManager: AppImageCache.manager,
+ memCacheWidth: 96, width: 24, height: 24, fit: BoxFit.cover, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white30)),
                               )
                             else
                               const Icon(Icons.tv, color: Colors.white30, size: 24),

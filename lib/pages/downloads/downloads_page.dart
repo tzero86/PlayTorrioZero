@@ -10,6 +10,7 @@ import '../../services/download/download_service.dart';
 import '../../utils/platform/open_file_location_helper.dart';
 import '../../utils/download/download_path_helper.dart';
 import '../player/player_screen.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -281,9 +282,9 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                   child: task.posterUrl != null && task.posterUrl!.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: task.posterUrl!,
+                          cacheManager: AppImageCache.manager,
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => const Icon(Icons.movie_rounded, color: Colors.white24),
-                        )
+                          errorWidget: (_, __, ___) => const Icon(Icons.movie_rounded, color: Colors.white24))
                       : const Icon(Icons.movie_rounded, color: Colors.white24),
                 ),
               ),
@@ -495,11 +496,11 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                     child: task.posterUrl != null && task.posterUrl!.isNotEmpty
                         ? CachedNetworkImage(
                             imageUrl: task.posterUrl!,
+                            cacheManager: AppImageCache.manager,
                             fit: BoxFit.cover,
                             errorWidget: (_, __, ___) => const Center(
                               child: Icon(Icons.movie_rounded, color: Colors.white24, size: 36),
-                            ),
-                          )
+                            ))
                         : const Center(
                             child: Icon(Icons.movie_rounded, color: Colors.white24, size: 36),
                           ),

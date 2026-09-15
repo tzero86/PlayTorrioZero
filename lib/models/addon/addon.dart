@@ -11,6 +11,10 @@ class AddonManifest {
   final List<String> idPrefixes;
   final List<AddonCatalog> catalogs;
 
+  /// Declared by the addon itself (`behaviorHints.adult`, legacy `adult`).
+  /// Addons that serve NSFW catalogs are expected to set this.
+  final bool isAdult;
+
   AddonManifest({
     required this.id,
     required this.name,
@@ -21,6 +25,7 @@ class AddonManifest {
     required this.types,
     required this.idPrefixes,
     required this.catalogs,
+    this.isAdult = false,
   });
 
   bool get supportsMeta => resources.contains('meta');
@@ -56,6 +61,7 @@ class AddonManifest {
               ?.map((e) => AddonCatalog.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      isAdult: _parseAdultFlag(json),
     );
   }
 
@@ -69,6 +75,7 @@ class AddonManifest {
         'types': types,
         'idPrefixes': idPrefixes,
         'catalogs': catalogs.map((c) => c.toJson()).toList(),
+        if (isAdult) 'behaviorHints': {'adult': true},
       };
 }
 
@@ -284,6 +291,31 @@ class AddonCatalog {
       };
 }
 
+/// How much adult material an addon serves.
+///
+/// [sfw] — nothing adult; always active.
+/// [hybrid] — serves both; always active, and its catalogs are discoverable
+/// under the `18+` view. Item-level adult entries are dropped from it while the
+/// global switch is off, wherever the source exposes a maturity flag (anime,
+/// manga); live-action catalogs carry no such flag, so they pass through.
+/// [nsfw] — adult only; inactive unless the global switch is on.
+enum AddonAdultRating {
+  sfw('sfw'),
+  hybrid('hybrid'),
+  nsfw('nsfw');
+
+  final String key;
+  const AddonAdultRating(this.key);
+
+  static AddonAdultRating fromKey(Object? value) {
+    final raw = value?.toString().toLowerCase();
+    return AddonAdultRating.values.firstWhere(
+      (r) => r.key == raw,
+      orElse: () => AddonAdultRating.sfw,
+    );
+  }
+}
+
 /// An addon that has been installed by the user.
 class InstalledAddon {
   final String baseUrl;
@@ -294,6 +326,11 @@ class InstalledAddon {
   bool enableSubtitles;
   bool enableStreams;
 
+  /// User-declared adult rating. Defaults to [AddonAdultRating.sfw]; addons
+  /// that declare `behaviorHints.adult` are treated as [AddonAdultRating.nsfw]
+  /// regardless.
+  AddonAdultRating adultRating;
+
   InstalledAddon({
     required this.baseUrl,
     required this.manifest,
@@ -302,7 +339,18 @@ class InstalledAddon {
     this.enableSearch = true,
     this.enableSubtitles = true,
     this.enableStreams = true,
+    this.adultRating = AddonAdultRating.sfw,
   });
+
+  /// True when every bit of this addon's content is adult, so it must stay
+  /// hidden unless the global Adult Content switch is on.
+  bool get isNsfwOnly =>
+      adultRating == AddonAdultRating.nsfw || manifest.isAdult;
+
+  /// True when the addon may serve adult content, so its catalogs belong in the
+  /// Discover `18+` view. Hybrid addons stay visible with the switch off.
+  bool get isAdultCapable =>
+      adultRating != AddonAdultRating.sfw || manifest.isAdult;
 
   bool get isCatalogsActive =>
       enabled && enableCatalogs && (manifest.supportsCatalog || manifest.catalogs.isNotEmpty);
@@ -326,6 +374,12 @@ class InstalledAddon {
       enableSearch: json['enableSearch'] as bool? ?? true,
       enableSubtitles: json['enableSubtitles'] as bool? ?? true,
       enableStreams: json['enableStreams'] as bool? ?? true,
+      // Legacy boolean maps to a full NSFW mark.
+      adultRating: json['adultRating'] != null
+          ? AddonAdultRating.fromKey(json['adultRating'])
+          : (json['adultMarked'] == true
+                ? AddonAdultRating.nsfw
+                : AddonAdultRating.sfw),
     );
   }
 
@@ -337,6 +391,7 @@ class InstalledAddon {
         'enableSearch': enableSearch,
         'enableSubtitles': enableSubtitles,
         'enableStreams': enableStreams,
+        'adultRating': adultRating.key,
       };
 }
 
@@ -347,6 +402,14 @@ List<String> _parseStringList(dynamic value) {
     return value.map((e) => e.toString()).toList();
   }
   return [];
+}
+
+/// Reads the Stremio adult declaration: `behaviorHints.adult`, or the legacy
+/// top-level `adult` flag some addons still send.
+bool _parseAdultFlag(Map<String, dynamic> json) {
+  final hints = json['behaviorHints'];
+  if (hints is Map && hints['adult'] == true) return true;
+  return json['adult'] == true;
 }
 
 /// Parses the Stremio manifest `resources` field which can be either:

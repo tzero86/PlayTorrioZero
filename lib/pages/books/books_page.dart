@@ -11,6 +11,7 @@ import '../../widgets/common/custom_scroll_track.dart';
 import 'book_detail_sheet.dart';
 import 'widgets/continue_reading_slider.dart';
 import 'widgets/reader_design_tokens.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class BooksPage extends StatefulWidget {
   const BooksPage({super.key});
@@ -520,6 +521,7 @@ class _BookCardState extends State<_BookCard> {
                           child: book.coverUrl.isNotEmpty
                               ? CachedNetworkImage(
                                   imageUrl: book.coverUrl,
+                                  cacheManager: AppImageCache.manager,
                                   fit: BoxFit.cover,
                                   placeholder: (_, __) => Container(
                                     color: const Color(0xFF1E202B),
@@ -532,8 +534,7 @@ class _BookCardState extends State<_BookCard> {
                                     child: const Center(
                                       child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
                                     ),
-                                  ),
-                                )
+                                  ))
                               : Container(
                                   color: const Color(0xFF1E202B),
                                   child: const Center(

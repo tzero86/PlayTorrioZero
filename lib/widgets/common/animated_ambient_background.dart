@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/custom_background_service.dart';
 import '../../services/home/home_page_settings.dart';
+import '../../services/storage/app_image_cache.dart';
 
 /// GPU-accelerated animated ambient background with moving soft-faded
 /// light orbs, aurora waves, gradient meshes, and custom user wallpaper blending.
@@ -66,12 +67,12 @@ class _AnimatedAmbientBackgroundState extends State<AnimatedAmbientBackground>
     } else if (customBg.imageUrl != null && customBg.imageUrl!.isNotEmpty) {
       imageWidget = CachedNetworkImage(
         imageUrl: customBg.imageUrl!,
+        cacheManager: AppImageCache.manager,
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
         placeholder: (_, __) => const SizedBox.shrink(),
-        errorWidget: (_, __, ___) => const SizedBox.shrink(),
-      );
+        errorWidget: (_, __, ___) => const SizedBox.shrink());
     } else {
       return const SizedBox.shrink();
     }
@@ -130,31 +131,43 @@ class _AnimatedAmbientBackgroundState extends State<AnimatedAmbientBackground>
                     // 3. Moving Ambient Lights & Glows (GPU Canvas)
                     if (lightsEnabled && (!hasWallpaper || customBg.blendThemeLights))
                       Positioned.fill(
-                        child: AnimatedBuilder(
-                          animation: _controller,
-                          builder: (context, _) {
-                            final speed = HomePageSettings.ambientLightSpeed.value;
-                            final intensity = HomePageSettings.ambientLightIntensity.value;
-                            final pattern = HomePageSettings.ambientLightPattern.value;
-                            final t = (_controller.value * speed) % 1.0;
+                        // This painter animates for as long as the page is alive.
+                        // Without a boundary it shares a layer with everything in
+                        // the Stack below, so every one of its ~60 fps frames
+                        // invalidated the whole page subtree — lists, cards and
+                        // glass panels re-rasterized continuously. Isolating it
+                        // keeps the animation on its own layer.
+                        child: RepaintBoundary(
+                          child: AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, _) {
+                              final speed = HomePageSettings.ambientLightSpeed.value;
+                              final intensity = HomePageSettings.ambientLightIntensity.value;
+                              final pattern = HomePageSettings.ambientLightPattern.value;
+                              final t = (_controller.value * speed) % 1.0;
 
-                            return CustomPaint(
-                              painter: _AmbientBackgroundPainter(
-                                t: t,
-                                palette: palette,
-                                pattern: pattern,
-                                intensity: intensity,
-                                isOverlay: hasWallpaper,
-                              ),
-                            );
-                          },
+                              return CustomPaint(
+                                isComplex: true,
+                                willChange: true,
+                                painter: _AmbientBackgroundPainter(
+                                  t: t,
+                                  palette: palette,
+                                  pattern: pattern,
+                                  intensity: intensity,
+                                  isOverlay: hasWallpaper,
+                                ),
+                              );
+                            },
+                          ),
                         ),
                       ),
 
                     // 4. Foreground Content
                     if (widget.child != null)
                       Positioned.fill(
-                        child: widget.child!,
+                        // Keeps scrolling/paging inside the page from re-rasterizing
+                        // the animated layers above it, and vice versa.
+                        child: RepaintBoundary(child: widget.child!),
                       ),
                   ],
                 );

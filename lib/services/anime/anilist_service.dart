@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/anime/anime_media.dart';
+import '../content/content_settings.dart';
 
 class AnilistService {
   static final AnilistService instance = AnilistService._internal();
@@ -109,6 +110,7 @@ class AnilistService {
     favourites
     season
     seasonYear
+    isAdult
     description(asHtml: false)
     studios(isMain: true) {
       nodes {
@@ -132,10 +134,10 @@ class AnilistService {
     int page = 1,
     int perPage = 20,
   }) async {
-    const query = '''
+    final query = '''
       query (\$page: Int, \$perPage: Int) {
         Page(page: \$page, perPage: \$perPage) {
-          media(type: ANIME, sort: TRENDING_DESC, isAdult: false) {
+          media(type: ANIME, sort: TRENDING_DESC, isAdult: ${ContentSettings.adultEnabled.value}) {
             $_mediaFields
           }
         }
@@ -151,10 +153,10 @@ class AnilistService {
     int page = 1,
     int perPage = 20,
   }) async {
-    const query = '''
+    final query = '''
       query (\$page: Int, \$perPage: Int, \$season: MediaSeason, \$seasonYear: Int) {
         Page(page: \$page, perPage: \$perPage) {
-          media(type: ANIME, season: \$season, seasonYear: \$seasonYear, sort: POPULARITY_DESC, isAdult: false) {
+          media(type: ANIME, season: \$season, seasonYear: \$seasonYear, sort: POPULARITY_DESC, isAdult: ${ContentSettings.adultEnabled.value}) {
             $_mediaFields
           }
         }
@@ -175,10 +177,10 @@ class AnilistService {
     int page = 1,
     int perPage = 20,
   }) async {
-    const query = '''
+    final query = '''
       query (\$page: Int, \$perPage: Int, \$season: MediaSeason, \$seasonYear: Int) {
         Page(page: \$page, perPage: \$perPage) {
-          media(type: ANIME, season: \$season, seasonYear: \$seasonYear, sort: POPULARITY_DESC, isAdult: false) {
+          media(type: ANIME, season: \$season, seasonYear: \$seasonYear, sort: POPULARITY_DESC, isAdult: ${ContentSettings.adultEnabled.value}) {
             $_mediaFields
           }
         }
@@ -199,10 +201,10 @@ class AnilistService {
     int page = 1,
     int perPage = 20,
   }) async {
-    const query = '''
+    final query = '''
       query (\$page: Int, \$perPage: Int) {
         Page(page: \$page, perPage: \$perPage) {
-          media(type: ANIME, sort: SCORE_DESC, isAdult: false) {
+          media(type: ANIME, sort: SCORE_DESC, isAdult: ${ContentSettings.adultEnabled.value}) {
             $_mediaFields
           }
         }
@@ -219,10 +221,10 @@ class AnilistService {
     int page = 1,
     int perPage = 20,
   }) async {
-    const query = '''
+    final query = '''
       query (\$page: Int, \$perPage: Int, \$genre: String) {
         Page(page: \$page, perPage: \$perPage) {
-          media(type: ANIME, genre: \$genre, sort: POPULARITY_DESC, isAdult: false) {
+          media(type: ANIME, genre: \$genre, sort: POPULARITY_DESC, isAdult: ${ContentSettings.adultEnabled.value}) {
             $_mediaFields
           }
         }
@@ -252,7 +254,8 @@ class AnilistService {
   }) async {
     final hasSearch = search.trim().isNotEmpty;
     final sortClause = hasSearch ? '[SEARCH_MATCH, POPULARITY_DESC]' : '[$sort]';
-    final isAdultFinal = isAdult || (genre != null && genre.toLowerCase() == 'hentai');
+    final isAdultFinal = ContentSettings.adultEnabled.value &&
+        (isAdult || (genre != null && genre.toLowerCase() == 'hentai'));
 
     final query = '''
       query (\$page: Int, \$perPage: Int, \$search: String, \$genre: String, \$year: Int, \$season: MediaSeason, \$format: MediaFormat, \$status: MediaStatus, \$isAdult: Boolean) {

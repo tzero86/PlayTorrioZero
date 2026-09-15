@@ -32,6 +32,10 @@ class AnimeMedia {
   final String? slug;
   final bool isArabic;
 
+  /// AniList's `isAdult` flag. Only populated when the query asks for it; it is
+  /// the reliable maturity signal for anime, including saved/library entries.
+  final bool isAdult;
+
   const AnimeMedia({
     required this.id,
     this.idMal,
@@ -65,6 +69,7 @@ class AnimeMedia {
     this.recommendations = const [],
     this.slug,
     this.isArabic = false,
+    this.isAdult = false,
   });
 
   String get displayTitle {
@@ -236,6 +241,7 @@ class AnimeMedia {
       characters: characterList,
       relations: relationList,
       recommendations: recList,
+      isAdult: json['isAdult'] == true,
     );
   }
 
@@ -264,6 +270,7 @@ class AnimeMedia {
         'seasonYear': seasonYear,
         'description': description,
         'studioName': studioName,
+        'isAdult': isAdult,
       };
 
   factory AnimeMedia.fromJson(Map<String, dynamic> json) => AnimeMedia(
@@ -293,6 +300,7 @@ class AnimeMedia {
         seasonYear: json['seasonYear'] as int? ?? 0,
         description: json['description']?.toString() ?? '',
         studioName: json['studioName']?.toString() ?? '',
+        isAdult: json['isAdult'] == true,
       );
 }
 

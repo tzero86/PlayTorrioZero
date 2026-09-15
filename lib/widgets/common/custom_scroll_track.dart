@@ -22,7 +22,9 @@ class CustomScrollTrack extends StatefulWidget {
 }
 
 class _CustomScrollTrackState extends State<CustomScrollTrack> {
-  double _thumbFraction = 0.0;
+  // Drives the thumb through a listenable so scrolling does not `setState` the
+  // whole track: rebuilding it re-ran the full-length BackdropFilter below.
+  final ValueNotifier<double> _thumbFraction = ValueNotifier<double>(0.0);
   bool _isHovering = false;
   bool _isDragging = false;
   final double _thumbSize = 60.0;
@@ -36,6 +38,7 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
   @override
   void dispose() {
     widget.controller.removeListener(_updateThumbFromScroll);
+    _thumbFraction.dispose();
     super.dispose();
   }
 
@@ -44,9 +47,8 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
     final max = widget.controller.position.maxScrollExtent;
     if (max <= 0) return;
 
-    setState(() {
-      _thumbFraction = (widget.controller.position.pixels / max).clamp(0.0, 1.0);
-    });
+    _thumbFraction.value =
+        (widget.controller.position.pixels / max).clamp(0.0, 1.0);
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
@@ -56,13 +58,11 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
 
     final usableTrack = widget.length - _thumbSize;
     final delta = widget.axis == Axis.vertical ? details.delta.dy : details.delta.dx;
-    
-    setState(() {
-      _thumbFraction += delta / usableTrack;
-      _thumbFraction = _thumbFraction.clamp(0.0, 1.0);
-    });
 
-    widget.controller.jumpTo(_thumbFraction * max);
+    _thumbFraction.value =
+        (_thumbFraction.value + delta / usableTrack).clamp(0.0, 1.0);
+
+    widget.controller.jumpTo(_thumbFraction.value * max);
   }
 
   void _scroll(double direction) {
@@ -82,7 +82,6 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
 
   @override
   Widget build(BuildContext context) {
-    final thumbPosition = _thumbFraction * (widget.length - _thumbSize);
     final isVert = widget.axis == Axis.vertical;
 
     return MouseRegion(
@@ -105,7 +104,15 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
               ),
-              child: isVert ? _buildVerticalLayout(thumbPosition) : _buildHorizontalLayout(thumbPosition),
+              child: ValueListenableBuilder<double>(
+                valueListenable: _thumbFraction,
+                builder: (context, fraction, _) {
+                  final thumbPosition = fraction * (widget.length - _thumbSize);
+                  return isVert
+                      ? _buildVerticalLayout(thumbPosition)
+                      : _buildHorizontalLayout(thumbPosition);
+                },
+              ),
             ),
           ),
         ),

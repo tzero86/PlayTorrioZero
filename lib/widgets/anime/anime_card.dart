@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../models/anime/anime_media.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../common/poster_skeleton.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AnimeCard extends StatefulWidget {
   final AnimeMedia anime;
@@ -166,14 +167,23 @@ class _AnimePosterFrame extends StatelessWidget {
           children: [
             const ColoredBox(color: Color(0xFF171A23)),
 
-            // Poster Image
+            // Poster Image (decode bounded to ~3x display width)
             if (hasPoster)
-              CachedNetworkImage(
-                imageUrl: posterUrl,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.medium,
-                placeholder: (context, url) => const PosterSkeleton(),
-                errorWidget: (context, url, error) => const MissingPoster(),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final posterWidth = constraints.maxWidth;
+                  final cacheWidth = posterWidth.isFinite && posterWidth > 0
+                      ? (posterWidth * 3).round().clamp(96, 1280).toInt()
+                      : 615;
+                  return CachedNetworkImage(
+                    imageUrl: posterUrl,
+                    cacheManager: AppImageCache.manager,
+                    memCacheWidth: cacheWidth,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.medium,
+                    placeholder: (context, url) => const PosterSkeleton(),
+                    errorWidget: (context, url, error) => const MissingPoster());
+                },
               )
             else
               const MissingPoster(),

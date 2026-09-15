@@ -23,6 +23,7 @@ import 'anime_stream_sheet.dart';
 import 'anime_search_page.dart';
 import '../anime_arabic/anime_arabic_details_page.dart';
 import '../anime_arabic/anime_arabic_stream_sheet.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AnimePage extends StatefulWidget {
   const AnimePage({super.key});
@@ -615,7 +616,7 @@ class _AnimeGlassAppBar extends StatelessWidget {
 
               // Logo
               Image.asset(
-                'assets/icon.png',
+                'assets/icon_small.png',
                 width: 32,
                 height: 32,
                 fit: BoxFit.contain,
@@ -960,6 +961,29 @@ class _AnimeHeroSlide extends StatelessWidget {
     final bannerUrl = hasBanner ? anime.bannerImage : null;
     final posterUrl = anime.coverUrl.trim().isNotEmpty ? anime.coverUrl : null;
     final effectiveUrl = bannerUrl ?? posterUrl;
+    // Layer 1 blur + foreground Layer 2 decode each URL once: same URL +
+    // same memCacheWidth hits the shared ResizeImage cache entry.
+    final heroCacheWidth = hasBanner ? 1280 : 512;
+    Widget heroArtwork({
+      required String url,
+      required BoxFit fit,
+      required Alignment alignment,
+      FilterQuality filterQuality = FilterQuality.medium,
+      Widget Function(BuildContext, String)? placeholder,
+      Widget Function(BuildContext, String, Object)? errorWidget,
+    }) {
+      return CachedNetworkImage(
+        imageUrl: url,
+        cacheManager: AppImageCache.manager,
+        memCacheWidth: heroCacheWidth,
+        fit: fit,
+        alignment: alignment,
+        filterQuality: filterQuality,
+        fadeInDuration: const Duration(milliseconds: 300),
+        placeholder: placeholder ?? (_, __) => const SizedBox.shrink(),
+        errorWidget: errorWidget ?? (_, __, ___) => const SizedBox.shrink(),
+      );
+    }
 
     return Stack(
       fit: StackFit.expand,
@@ -988,13 +1012,11 @@ class _AnimeHeroSlide extends StatelessWidget {
                             ),
                             child: Transform.scale(
                               scale: 1.15,
-                              child: CachedNetworkImage(
-                                imageUrl: effectiveUrl,
+                              child: heroArtwork(
+                                url: effectiveUrl,
                                 fit: BoxFit.cover,
                                 alignment: Alignment.center,
                                 filterQuality: FilterQuality.low,
-                                fadeInDuration:
-                                    const Duration(milliseconds: 300),
                                 placeholder: (_, __) => const ColoredBox(
                                     color: Color(0xFF080A0F)),
                                 errorWidget: (_, __, ___) => const ColoredBox(
@@ -1015,15 +1037,10 @@ class _AnimeHeroSlide extends StatelessWidget {
                       // Landscape 16:9 banner available
                       if (containerAspect <= 1.78)
                         Positioned.fill(
-                          child: CachedNetworkImage(
-                            imageUrl: bannerUrl!,
+                          child: heroArtwork(
+                            url: bannerUrl!,
                             fit: BoxFit.cover,
                             alignment: const Alignment(0, -0.15),
-                            filterQuality: FilterQuality.medium,
-                            fadeInDuration: const Duration(milliseconds: 300),
-                            placeholder: (_, __) => const SizedBox.shrink(),
-                            errorWidget: (_, __, ___) =>
-                                const SizedBox.shrink(),
                           ),
                         )
                       else
@@ -1043,15 +1060,11 @@ class _AnimeHeroSlide extends StatelessWidget {
                               ).createShader(bounds);
                             },
                             blendMode: BlendMode.dstIn,
-                            child: CachedNetworkImage(
-                              imageUrl: bannerUrl!,
+                            child: heroArtwork(
+                              url: bannerUrl!,
                               fit: BoxFit.cover,
                               alignment: Alignment.topCenter,
                               filterQuality: FilterQuality.high,
-                              fadeInDuration: const Duration(milliseconds: 300),
-                              placeholder: (_, __) => const SizedBox.shrink(),
-                              errorWidget: (_, __, ___) =>
-                                  const SizedBox.shrink(),
                             ),
                           ),
                         ),
@@ -1059,15 +1072,10 @@ class _AnimeHeroSlide extends StatelessWidget {
                       // Portrait poster fallback (when no 16:9 banner is available)
                       if (containerAspect <= 1.2)
                         Positioned.fill(
-                          child: CachedNetworkImage(
-                            imageUrl: effectiveUrl,
+                          child: heroArtwork(
+                            url: effectiveUrl,
                             fit: BoxFit.cover,
                             alignment: Alignment.topCenter,
-                            filterQuality: FilterQuality.medium,
-                            fadeInDuration: const Duration(milliseconds: 300),
-                            placeholder: (_, __) => const SizedBox.shrink(),
-                            errorWidget: (_, __, ___) =>
-                                const SizedBox.shrink(),
                           ),
                         )
                       else
@@ -1091,16 +1099,11 @@ class _AnimeHeroSlide extends StatelessWidget {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
-                                child: CachedNetworkImage(
-                                  imageUrl: effectiveUrl,
+                                child: heroArtwork(
+                                  url: effectiveUrl,
                                   fit: BoxFit.cover,
+                                  alignment: Alignment.center,
                                   filterQuality: FilterQuality.high,
-                                  fadeInDuration:
-                                      const Duration(milliseconds: 300),
-                                  placeholder: (_, __) =>
-                                      const SizedBox.shrink(),
-                                  errorWidget: (_, __, ___) =>
-                                      const SizedBox.shrink(),
                                 ),
                               ),
                             ),

@@ -1,12 +1,14 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../models/manga/manga.dart';
 import '../../models/manga/manga_chapter.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/manga/manga_service.dart';
 import 'manga_reader_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class MangaDetailsPage extends StatefulWidget {
   final Manga manga;
@@ -131,12 +133,12 @@ class _MangaDetailsPageState extends State<MangaDetailsPage> {
           Positioned.fill(
             child: Hero(
               tag: 'manga_cover_${displayManga.id}',
-              child: Image.network(
-                coverUrl,
+              child: CachedNetworkImage(
+                imageUrl: coverUrl,
+                cacheManager: AppImageCache.manager,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
-                errorBuilder: (_, __, ___) => const ColoredBox(color: Color(0xFF0F111A)),
-              ),
+                errorWidget: (_, __, ___) => const ColoredBox(color: Color(0xFF0F111A))),
             ),
           ),
 
@@ -550,18 +552,20 @@ class _MangaDetailsPageState extends State<MangaDetailsPage> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(18),
-            child: Image.network(
-              coverUrl,
+            child: CachedNetworkImage(
+              imageUrl: coverUrl,
+              cacheManager: AppImageCache.manager,
+
+              memCacheWidth: 600,
               width: 200,
               height: 290,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
+              errorWidget: (_, __, ___) => Container(
                 width: 200,
                 height: 290,
                 color: const Color(0xFF1E2230),
                 child: const Icon(Icons.book_rounded, color: Colors.white38, size: 48),
-              ),
-            ),
+              )),
           ),
         ),
         const SizedBox(width: 32),
@@ -659,18 +663,20 @@ class _MangaDetailsPageState extends State<MangaDetailsPage> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.network(
-                coverUrl,
+              child: CachedNetworkImage(
+                imageUrl: coverUrl,
+                cacheManager: AppImageCache.manager,
+
+                memCacheWidth: 495,
                 width: 165,
                 height: 240,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
+                errorWidget: (_, __, ___) => Container(
                   width: 165,
                   height: 240,
                   color: const Color(0xFF1E2230),
                   child: const Icon(Icons.book_rounded, color: Colors.white38, size: 40),
-                ),
-              ),
+                )),
             ),
           ),
         ),

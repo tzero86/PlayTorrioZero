@@ -9,10 +9,12 @@ import '../../pages/details/details_page.dart';
 import '../../pages/anime/anime_details_page.dart';
 import '../../pages/anime_arabic/anime_arabic_details_page.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
+import '../../services/content/content_settings.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
 import '../common/slider_arrow.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class ContinueWatchingSlider extends StatefulWidget {
   final String? typeFilter; // 'main', 'anime', or null for all
@@ -87,8 +89,26 @@ class _ContinueWatchingSliderState extends State<ContinueWatchingSlider> {
         defaultTargetPlatform == TargetPlatform.linux;
   }
 
+  /// Sessions saved before [ContinueWatchingItem.isAdult] existed are
+  /// re-classified from their stored source fingerprint, so nothing adult
+  /// survives a switch that is off.
+  bool _isAdult(ContinueWatchingItem item) =>
+      item.isAdult ||
+      ContinueWatchingService.isAdultSession(
+        id: item.id,
+        type: item.type,
+        addonName: item.addonName,
+      );
+
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: ContentSettings.adultEnabled,
+      builder: (context, adultEnabled, _) => _buildSlider(context, adultEnabled),
+    );
+  }
+
+  Widget _buildSlider(BuildContext context, bool adultEnabled) {
     final palette = AppThemeService.currentPalette.value;
     final isDesktop = _isDesktop();
 
@@ -96,6 +116,7 @@ class _ContinueWatchingSliderState extends State<ContinueWatchingSlider> {
       valueListenable: ContinueWatchingService.activeItems,
       builder: (context, allItems, _) {
         final items = allItems.where((i) {
+          if (!adultEnabled && _isAdult(i)) return false;
           if (widget.typeFilter == 'main') {
             return i.type != 'anime' && !i.id.startsWith('anilist:') && !i.id.startsWith('arabic_anime:');
           } else if (widget.typeFilter == 'anime') {
@@ -392,9 +413,11 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                       child: imageUrl != null && imageUrl.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: imageUrl,
+                              cacheManager: AppImageCache.manager,
+                              // Thumb is widget.width (200-280px) 16:9; bound to ~3x.
+                              memCacheWidth: (widget.width * 3).round().clamp(96, 1280).toInt(),
                               fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => _buildPlaceholder(),
-                            )
+                              errorWidget: (_, __, ___) => _buildPlaceholder())
                           : _buildPlaceholder(),
                     ),
 

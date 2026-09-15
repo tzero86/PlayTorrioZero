@@ -12,6 +12,7 @@ import '../../services/my_list/my_list_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../discover/discover_page.dart';
 import '../player/watch_screen.dart';
+import '../../services/storage/app_image_cache.dart';
 // ---------------------------------------------------------------------------
 // Design tokens
 // ---------------------------------------------------------------------------
@@ -617,7 +618,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
         child: Stack(
           fit: StackFit.expand,
           children: [
-            CachedNetworkImage(imageUrl: bgUrl, fit: BoxFit.cover, alignment: Alignment.topCenter),
+            CachedNetworkImage(imageUrl: bgUrl,
+                               cacheManager: AppImageCache.manager,
+                               memCacheWidth: 1280,
+                               fit: BoxFit.cover, alignment: Alignment.topCenter),
             // horizontal wash — darkens where the title/synopsis sit, leaves
             // the rest of the image breathing room instead of blacking it all out
             const DecoratedBox(
@@ -694,9 +698,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                       aspectRatio: 2 / 3,
                       child: CachedNetworkImage(
                         imageUrl: posterUrl,
+                        cacheManager: AppImageCache.manager,
+                        memCacheWidth: 512,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => const ColoredBox(color: _Palette.surface),
-                      ),
+                        errorWidget: (_, __, ___) => const ColoredBox(color: _Palette.surface)),
                     ),
                   ),
                 ),
@@ -748,7 +753,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(imageUrl: posterUrl, width: 110, fit: BoxFit.cover),
+                  child: CachedNetworkImage(imageUrl: posterUrl,
+                                            cacheManager: AppImageCache.manager,
+                                            memCacheWidth: 330,
+                                            width: 110, fit: BoxFit.cover),
                 ),
               ),
             const SizedBox(width: _Space.md),
@@ -786,10 +794,11 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
         constraints: BoxConstraints(maxWidth: isDesktop ? 380 : 220, maxHeight: isDesktop ? 130 : 80),
         child: CachedNetworkImage(
           imageUrl: meta.logo!,
+          cacheManager: AppImageCache.manager,
+          memCacheWidth: 512,
           alignment: Alignment.bottomLeft,
           fit: BoxFit.contain,
-          errorWidget: (_, __, ___) => _buildTextTitle(meta.name, isDesktop),
-        ),
+          errorWidget: (_, __, ___) => _buildTextTitle(meta.name, isDesktop)),
       );
     }
     return _buildTextTitle(meta.name, isDesktop);
@@ -1422,7 +1431,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                             child: AspectRatio(
                               aspectRatio: 2 / 3,
                               child: item.poster != null
-                                  ? CachedNetworkImage(imageUrl: item.poster!, fit: BoxFit.cover)
+                                  ? CachedNetworkImage(imageUrl: item.poster!,
+                                                       cacheManager: AppImageCache.manager,
+                                                       memCacheWidth: 330,
+                                                       fit: BoxFit.cover)
                                   : const ColoredBox(color: _Palette.surface),
                             ),
                           ),
@@ -1563,14 +1575,15 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                       child: item.thumbUrl.isNotEmpty
                                           ? CachedNetworkImage(
                                               imageUrl: item.thumbUrl,
+                                              cacheManager: AppImageCache.manager,
+                                              memCacheWidth: 330,
                                               fit: BoxFit.cover,
                                               errorWidget: (_, __, ___) => Container(
                                                 color: _Palette.surface,
                                                 child: const Center(
                                                   child: Icon(Icons.movie_rounded, color: Colors.white24, size: 36),
                                                 ),
-                                              ),
-                                            )
+                                              ))
                                           : Container(
                                               color: _Palette.surface,
                                               child: const Center(
@@ -1817,9 +1830,10 @@ class _EpisodeCardState extends State<_EpisodeCard> {
                         if (imgUrl != null)
                           CachedNetworkImage(
                             imageUrl: imgUrl,
+                            cacheManager: AppImageCache.manager,
+                            memCacheWidth: 330,
                             fit: BoxFit.cover,
-                            errorWidget: (context, url, error) => const ColoredBox(color: Color(0xFF1B1E27)),
-                          )
+                            errorWidget: (context, url, error) => const ColoredBox(color: Color(0xFF1B1E27)))
                         else
                           const ColoredBox(color: Color(0xFF1B1E27)),
                         DecoratedBox(

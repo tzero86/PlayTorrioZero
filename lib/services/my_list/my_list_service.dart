@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/my_list/my_list_item.dart';
+import '../anime/anime_library_service.dart';
+import '../content/content_settings.dart';
+import '../continue_watching/continue_watching_service.dart';
 import '../trakt/trakt_service.dart';
 import '../simkl/simkl_service.dart';
 
@@ -11,6 +14,34 @@ abstract final class MyListService {
 
   static final ValueNotifier<List<MyListItem>> items = ValueNotifier<List<MyListItem>>([]);
   static final ValueNotifier<bool> isSyncing = ValueNotifier<bool>(false);
+
+  /// Items the global Adult Content switch allows to render. Storage is never
+  /// touched, so entries reappear the moment the switch is turned back on.
+  static List<MyListItem> get visibleItems {
+    if (ContentSettings.adultEnabled.value) return items.value;
+    return items.value.where((i) => !isAdultContent(i)).toList();
+  }
+
+  /// Whether [item] is known to come from adult content.
+  ///
+  /// My List stores no addon provenance or maturity flag, so an entry is only
+  /// classified when the app already knows the media is adult: an adult-flagged
+  /// Continue Watching session for the same id, or an adult anime in the anime
+  /// library with the same title. Anything else stays visible — this adds no
+  /// persistence and performs no network lookups.
+  static bool isAdultContent(MyListItem item) {
+    final imdbId = item.imdbId;
+    final tmdbId = item.tmdbId;
+    final playedFromAdultSource = ContinueWatchingService.activeItems.value.any(
+      (session) =>
+          session.isAdult &&
+          ((imdbId != null && imdbId.isNotEmpty && session.id == imdbId) ||
+              (tmdbId != null && session.id == 'tmdb:$tmdbId')),
+    );
+    if (playedFromAdultSource) return true;
+
+    return AnimeLibraryService.instance.isKnownAdultTitle(item.title);
+  }
 
   static Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();

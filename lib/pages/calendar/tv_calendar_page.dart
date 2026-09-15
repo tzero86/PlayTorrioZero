@@ -7,6 +7,7 @@ import '../../services/calendar/tv_calendar_service.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../details/details_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class TvCalendarPage extends StatefulWidget {
   const TvCalendarPage({super.key});
@@ -913,6 +914,7 @@ class _EpisodeCalendarCardState extends State<_EpisodeCalendarCard> {
                   child: posterUrl.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: posterUrl,
+                          cacheManager: AppImageCache.manager,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => Container(
                             color: Colors.white.withValues(alpha: 0.05),
@@ -925,8 +927,7 @@ class _EpisodeCalendarCardState extends State<_EpisodeCalendarCard> {
                             child: const Center(
                               child: Icon(Icons.tv_rounded, color: Colors.white24, size: 28),
                             ),
-                          ),
-                        )
+                          ))
                       : Container(
                           color: Colors.white.withValues(alpha: 0.05),
                           child: const Center(

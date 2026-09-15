@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../models/manga/manga.dart';
 import '../../models/manga/manga_chapter.dart';
@@ -17,6 +18,7 @@ import '../../widgets/manga/manga_card.dart';
 import '../../widgets/manga/manga_category_dropdown.dart';
 import '../settings/appearance/manga_settings_page.dart';
 import 'manga_reader_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class MangaPage extends StatefulWidget {
   const MangaPage({super.key});
@@ -944,11 +946,11 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
               children: [
                 // Background Image
                 if (coverUrl.isNotEmpty)
-                  Image.network(
-                    coverUrl,
+                  CachedNetworkImage(
+                    imageUrl: coverUrl,
+                    cacheManager: AppImageCache.manager,
                     fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  ),
+                    alignment: Alignment.topCenter),
                 // Gradient Overlay
                 Container(
                   decoration: const BoxDecoration(

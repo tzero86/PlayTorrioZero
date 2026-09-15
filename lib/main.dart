@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,11 +28,13 @@ import './services/music/qobuz_music_service.dart';
 import './services/my_list/my_list_service.dart';
 import './services/stream/torrent_stream_service.dart';
 import './services/player/player_settings.dart';
+import './services/content/content_settings.dart';
 import './services/download/download_service.dart';
 import './services/config/env_service.dart';
 import './services/window/window_service.dart';
 import './services/p2p/p2p_settings_service.dart';
 import './services/discord/discord_rpc_service.dart';
+import './services/diagnostics/crash_breadcrumbs.dart';
 import './widgets/updater/update_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -44,32 +47,63 @@ void main() async {
     await WindowService.instance.initialize();
   }
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+
+  // Only what the first frame reads synchronously is awaited here: the theme
+  // decides the MaterialApp palette at build time, and EnvService supplies the
+  // API keys the home feed requests stamp on their very first request.
+  // Everything else below is read through listenables/futures that already
+  // tolerate an empty first value, so gating runApp on it only adds startup
+  // latency (the pre-split version blocked on ~22 services including a torrent
+  // engine boot).
   await EnvService.initialize();
   await PlayerSettings.initialize();
   await Future.wait([
-    AddonManager.instance.initialize(),
     AppThemeService.initialize(),
-    AudiobookSettings.initialize(),
-    ContinueWatchingService.initialize(),
-    ContinueReadingService.initialize(),
-    ReaderSettings.initialize(),
-    CustomBackgroundService.initialize(),
-    DockSettings.initialize(),
-    GlassSettings.initialize(),
+    // The first frame mounts HomePage, which immediately listens to these.
     HomePageSettings.initialize(),
-    IptvController.instance.init(),
-    IptvSettings.initialize(),
-    MangaSettings.initialize(),
-    MusicSettings.initialize(),
-    MusicDownloadService.instance.init(),
-    QobuzMusicService.instance.initialize(),
     MyListService.initialize(),
-    P2pSettingsService.initialize(),
-    DownloadService.instance.initialize(),
-    TorrentStreamService().start(),
-    DiscordRpcService.instance.initialize(),
+    ContinueWatchingService.initialize(),
+    CustomBackgroundService.initialize(),
+    GlassSettings.initialize(),
+    DockSettings.initialize(),
+    ContentSettings.initialize(),
   ]);
+
   runApp(const PlayTorrioApp());
+  unawaited(CrashBreadcrumbs.initialize());
+  CrashBreadcrumbs.lifecycle('start');
+  unawaited(_initializeDeferredServices().then((_) => CrashBreadcrumbs.memory('startup.warm')));
+}
+
+/// Service warm-up that the UI can render without: catalogs, downloads, the
+/// torrent engine and integrations the user has to navigate to first. Failures
+/// are logged and swallowed — a broken optional integration must not stop the
+/// app from launching.
+Future<void> _initializeDeferredServices() async {
+  Future<void> guard(String label, Future<void> Function() init) async {
+    try {
+      await init();
+    } catch (e) {
+      debugPrint('[Startup] $label failed to initialize: $e');
+    }
+  }
+
+  await Future.wait([
+    guard('AddonManager', AddonManager.instance.initialize),
+    guard('AudiobookSettings', AudiobookSettings.initialize),
+    guard('ContinueReadingService', ContinueReadingService.initialize),
+    guard('ReaderSettings', ReaderSettings.initialize),
+    guard('IptvController', IptvController.instance.init),
+    guard('IptvSettings', IptvSettings.initialize),
+    guard('MangaSettings', MangaSettings.initialize),
+    guard('MusicSettings', MusicSettings.initialize),
+    guard('MusicDownloadService', MusicDownloadService.instance.init),
+    guard('QobuzMusicService', QobuzMusicService.instance.initialize),
+    guard('P2pSettingsService', P2pSettingsService.initialize),
+    guard('DownloadService', DownloadService.instance.initialize),
+    guard('TorrentStreamService', TorrentStreamService().start),
+    guard('DiscordRpcService', DiscordRpcService.instance.initialize),
+  ]);
 }
 
 class PlayTorrioApp extends StatefulWidget {
@@ -96,6 +130,19 @@ class _PlayTorrioAppState extends State<PlayTorrioApp>
         });
       }
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    CrashBreadcrumbs.lifecycle(state.name);
+    if (state == AppLifecycleState.detached) {
+      CrashBreadcrumbs.memory('app.detached');
+    }
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    CrashBreadcrumbs.memory('os.memoryPressure');
   }
 
   @override
@@ -139,6 +186,7 @@ class _PlayTorrioAppState extends State<PlayTorrioApp>
       builder: (context, palette, _) {
         return MaterialApp(
           navigatorKey: navigatorKey,
+          navigatorObservers: [BreadcrumbObserver()],
           title: 'PlayTorrio',
           debugShowCheckedModeBanner: false,
           theme: AppThemeService.createThemeData(palette),

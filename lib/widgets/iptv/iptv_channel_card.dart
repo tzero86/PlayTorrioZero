@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_settings.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class IptvChannelCard extends StatefulWidget {
   final HardcodedChannel channel;
@@ -117,6 +118,9 @@ class _IptvChannelCardState extends State<IptvChannelCard> {
                                   child: ch.iconUrl != null && ch.iconUrl!.isNotEmpty
                                       ? CachedNetworkImage(
                                           imageUrl: ch.iconUrl!,
+                                          cacheManager: AppImageCache.manager,
+                                          // Logo box is 130x100; bound to ~3x.
+                                          memCacheWidth: 390,
                                           fit: BoxFit.contain,
                                           placeholder: (_, _) => Center(
                                             child: SizedBox(
@@ -128,8 +132,7 @@ class _IptvChannelCardState extends State<IptvChannelCard> {
                                               ),
                                             ),
                                           ),
-                                          errorWidget: (_, _, _) => _buildShortBadge(ch),
-                                        )
+                                          errorWidget: (_, _, _) => _buildShortBadge(ch))
                                       : _buildShortBadge(ch),
                                 ),
                               ),

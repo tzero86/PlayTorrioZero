@@ -17,6 +17,7 @@ import 'audiobook_detail_page.dart';
 import 'audiobook_player_screen.dart';
 import 'audiobook_route_transitions.dart';
 import 'generate_audiobook_screen.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AudiobooksPage extends StatefulWidget {
   const AudiobooksPage({super.key});
@@ -727,6 +728,7 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
             if (book.coverImage.trim().isNotEmpty)
               CachedNetworkImage(
                 imageUrl: book.coverImage.trim(),
+                cacheManager: AppImageCache.manager,
                 httpHeaders: const {
                   'User-Agent':
                       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -734,8 +736,7 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
                 placeholder: (_, __) => const SizedBox.shrink(),
-                errorWidget: (_, __, ___) => const SizedBox.shrink(),
-              ),
+                errorWidget: (_, __, ___) => const SizedBox.shrink()),
             // Vignette Gradient Fade
             Container(
               decoration: const BoxDecoration(
@@ -765,6 +766,7 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
                         child: book.coverImage.trim().isNotEmpty
                             ? CachedNetworkImage(
                                 imageUrl: book.coverImage.trim(),
+                                cacheManager: AppImageCache.manager,
                                 httpHeaders: const {
                                   'User-Agent':
                                       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -774,8 +776,7 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
                                 errorWidget: (_, __, ___) => Container(
                                   color: const Color(0xFF161A24),
                                   child: const Icon(Icons.headphones_rounded, color: Colors.white38),
-                                ),
-                              )
+                                ))
                             : Container(color: const Color(0xFF161A24)),
                       ),
                     ),
@@ -1366,13 +1367,13 @@ class _ContinueListeningCardState extends State<_ContinueListeningCard> {
                             child: hasCover
                                 ? CachedNetworkImage(
                                     imageUrl: book.coverImage,
+                                    cacheManager: AppImageCache.manager,
                                     fit: BoxFit.cover,
                                     placeholder: (_, __) => Container(color: const Color(0xFF1A1F2C)),
                                     errorWidget: (_, __, ___) => Container(
                                       color: const Color(0xFF1A1F2C),
                                       child: const Icon(Icons.headphones_rounded, color: Colors.white38),
-                                    ),
-                                  )
+                                    ))
                                 : Container(
                                     color: const Color(0xFF1A1F2C),
                                     child: const Icon(Icons.headphones_rounded, color: Colors.white38),
@@ -1640,14 +1641,14 @@ class _AudiobookCardState extends State<_AudiobookCard> {
                       child: hasCover
                           ? CachedNetworkImage(
                               imageUrl: book.coverImage,
+                              cacheManager: AppImageCache.manager,
                               width: double.infinity,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(color: const Color(0xFF1A1F2C)),
                               errorWidget: (_, __, ___) => Container(
                                 color: const Color(0xFF1A1F2C),
                                 child: const Icon(Icons.headphones_rounded, size: 40, color: Colors.white38),
-                              ),
-                            )
+                              ))
                           : Container(
                               color: const Color(0xFF1A1F2C),
                               child: const Center(

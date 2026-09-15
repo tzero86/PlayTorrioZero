@@ -5,6 +5,7 @@ import '../../models/addon/addon.dart';
 import '../../models/movie/movie.dart';
 import '../../models/movie/movie_section.dart';
 import '../../services/addon/addon_manager.dart';
+import '../../services/content/content_settings.dart';
 import '../../services/metadata/metadata_service.dart';
 import '../../services/theme/dock_settings.dart';
 import '../../widgets/common/app_liquid_dock.dart';
@@ -42,6 +43,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
   List<({InstalledAddon addon, AddonCatalog catalog})> _allCatalogs = [];
   List<String> _availableTypes = [];
   String _selectedType = 'movie';
+
+  /// Pseudo-type that narrows the catalog list to adult addons. Only offered
+  /// while the global Adult Content switch is on and such an addon exists.
+  static const String _adultType = '18+';
 
   ({InstalledAddon addon, AddonCatalog catalog})? _selectedCatalogEntry;
   final Map<String, String> _selectedExtras = {};
@@ -128,6 +133,15 @@ class _DiscoverPageState extends State<DiscoverPage> {
       return a.compareTo(b);
     });
 
+    // The 18+ entry is a view of the app's adult sources, so it is offered
+    // whenever the global switch is on — even before any adult addon exists,
+    // otherwise the filter silently looks missing. The empty view explains how
+    // to add one.
+    if (ContentSettings.adultEnabled.value &&
+        !sortedTypes.contains(_adultType)) {
+      sortedTypes.add(_adultType);
+    }
+
     String initialType = widget.initialCatalog?.type ?? (sortedTypes.isNotEmpty ? sortedTypes.first : 'movie');
     if (!sortedTypes.contains(initialType) && sortedTypes.isNotEmpty) {
       initialType = sortedTypes.first;
@@ -157,6 +171,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
   }
 
   List<({InstalledAddon addon, AddonCatalog catalog})> get _currentTypeCatalogs {
+    if (_selectedType == _adultType) {
+      return _allCatalogs.where((c) => c.addon.isAdultCapable).toList();
+    }
     return _allCatalogs.where((c) => c.catalog.type == _selectedType).toList();
   }
 
@@ -181,7 +198,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
     if (_selectedType == type) return;
     setState(() {
       _selectedType = type;
-      _selectedCatalogEntry = _allCatalogs.where((c) => c.catalog.type == type).firstOrNull;
+      // The 18+ entry is a cross-addon filter, so resolve the first catalog
+      // through the same getter the chip row uses.
+      _selectedCatalogEntry = _currentTypeCatalogs.firstOrNull;
       _selectedExtras.clear();
       _searchQuery = '';
       _isSearching = false;
@@ -448,7 +467,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
               Icon(Icons.category_outlined, size: 48, color: Colors.white.withValues(alpha: 0.3)),
               const SizedBox(height: 12),
               Text(
-                'No catalogs available for "$_selectedType"',
+                _selectedType == _adultType
+                    ? 'No 18+ sources yet.\nMark an addon as 18+ in Settings → Addons, or install one.'
+                    : 'No catalogs available for "$_selectedType"',
                 style: const TextStyle(color: Colors.white54, fontSize: 16),
                 textAlign: TextAlign.center,
               ),
@@ -906,7 +927,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
                         child: Row(
                           children: _currentTypeCatalogs.map((entry) {
                             final isSelected = _selectedCatalogEntry == entry;
-                            final name = AddonManager.instance.catalogDisplayName(entry.catalog);
+                            // The 18+ view mixes addons, so name the source.
+                            final name =
+                                '${AddonManager.instance.catalogDisplayName(entry.catalog)}'
+                                '${_selectedType == _adultType ? ' · ${entry.addon.manifest.name}' : ''}';
                             final hasReq = entry.catalog.hasRequiredExtra;
 
                             return Padding(

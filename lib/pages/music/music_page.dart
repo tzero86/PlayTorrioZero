@@ -23,6 +23,7 @@ import '../settings/appearance/music_player_studio_page.dart';
 import '../settings/appearance/music_settings_page.dart';
 import '../settings/settings_page.dart';
 import '../../utils/navigation/route_transitions.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class MusicPage extends StatefulWidget {
   const MusicPage({super.key});
@@ -320,10 +321,11 @@ class _MusicPageState extends State<MusicPage> {
                     borderRadius: BorderRadius.circular(8),
                     child: CachedNetworkImage(
                       imageUrl: initialTrack.coverUrl,
+                      cacheManager: AppImageCache.manager,
+                      memCacheWidth: 120,
                       width: 40,
                       height: 40,
-                      fit: BoxFit.cover,
-                    ),
+                      fit: BoxFit.cover),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -452,10 +454,11 @@ class _MusicPageState extends State<MusicPage> {
                       borderRadius: BorderRadius.circular(12),
                       child: CachedNetworkImage(
                         imageUrl: track.coverUrl,
+                        cacheManager: AppImageCache.manager,
+                        memCacheWidth: 156,
                         width: 52,
                         height: 52,
-                        fit: BoxFit.cover,
-                      ),
+                        fit: BoxFit.cover),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -1190,10 +1193,11 @@ class _MusicPageState extends State<MusicPage> {
                           ClipOval(
                             child: CachedNetworkImage(
                               imageUrl: artist.pictureUrl,
+                              cacheManager: AppImageCache.manager,
+                              memCacheWidth: 240,
                               width: 80,
                               height: 80,
-                              fit: BoxFit.cover,
-                            ),
+                              fit: BoxFit.cover),
                           ),
                           const SizedBox(height: 8),
                           SizedBox(
@@ -2873,8 +2877,8 @@ class _MusicHeroBillboard extends StatelessWidget {
             Positioned.fill(
               child: CachedNetworkImage(
                 imageUrl: track.coverUrl,
-                fit: BoxFit.cover,
-              ),
+                cacheManager: AppImageCache.manager,
+                fit: BoxFit.cover),
             ),
             Positioned.fill(
               child: DecoratedBox(
@@ -3031,10 +3035,11 @@ class _MusicTrendingArtists extends StatelessWidget {
                   child: ClipOval(
                     child: CachedNetworkImage(
                       imageUrl: artist.pictureUrl,
+                      cacheManager: AppImageCache.manager,
+                      memCacheWidth: 234,
                       width: 78,
                       height: 78,
-                      fit: BoxFit.cover,
-                    ),
+                      fit: BoxFit.cover),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -3171,10 +3176,11 @@ class _MusicTrackCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     child: CachedNetworkImage(
                       imageUrl: track.coverUrl,
+                      cacheManager: AppImageCache.manager,
+                      memCacheWidth: 435,
                       width: 145,
                       height: 145,
-                      fit: BoxFit.cover,
-                    ),
+                      fit: BoxFit.cover),
                   ),
                   Positioned(
                     bottom: 8,
@@ -3247,10 +3253,11 @@ class _MusicAlbumCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: CachedNetworkImage(
                   imageUrl: album.coverUrl,
+                  cacheManager: AppImageCache.manager,
+                  memCacheWidth: 435,
                   width: 145,
                   height: 145,
-                  fit: BoxFit.cover,
-                ),
+                  fit: BoxFit.cover),
               ),
               const SizedBox(height: 8),
               Text(
@@ -3305,10 +3312,11 @@ class _MusicPlaylistCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: CachedNetworkImage(
                   imageUrl: playlist.coverUrl,
+                  cacheManager: AppImageCache.manager,
+                  memCacheWidth: 435,
                   width: 145,
                   height: 145,
-                  fit: BoxFit.cover,
-                ),
+                  fit: BoxFit.cover),
               ),
               const SizedBox(height: 8),
               Text(
@@ -3371,10 +3379,11 @@ class _MusicTrackRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: CachedNetworkImage(
                 imageUrl: track.coverUrl,
+                cacheManager: AppImageCache.manager,
+                memCacheWidth: 144,
                 width: 48,
                 height: 48,
-                fit: BoxFit.cover,
-              ),
+                fit: BoxFit.cover),
             ),
             if (isCurrent)
               Container(
@@ -3724,6 +3733,7 @@ class _MusicBottomPlayerBar extends StatelessWidget {
       borderRadius: BorderRadius.circular(radius),
       child: CachedNetworkImage(
         imageUrl: track.coverUrl,
+        cacheManager: AppImageCache.manager,
         width: size,
         height: size,
         fit: BoxFit.cover,
@@ -3732,8 +3742,7 @@ class _MusicBottomPlayerBar extends StatelessWidget {
           height: size,
           color: const Color(0xFF1A1D2E),
           child: const Icon(Icons.music_note_rounded, color: Colors.white54, size: 20),
-        ),
-      ),
+        )),
     );
   }
 
@@ -4121,10 +4130,11 @@ class _MusicQueueDrawer extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         child: CachedNetworkImage(
                           imageUrl: track.coverUrl,
+                          cacheManager: AppImageCache.manager,
+                          memCacheWidth: 108,
                           width: 36,
                           height: 36,
-                          fit: BoxFit.cover,
-                        ),
+                          fit: BoxFit.cover),
                       ),
                       title: Text(
                         track.title,
@@ -4201,8 +4211,8 @@ class _MusicArtistDetailModal extends StatelessWidget {
                       width: double.infinity,
                       child: CachedNetworkImage(
                         imageUrl: artist.pictureUrl,
-                        fit: BoxFit.cover,
-                      ),
+                        cacheManager: AppImageCache.manager,
+                        fit: BoxFit.cover),
                     ),
                     const Positioned.fill(
                       child: DecoratedBox(
@@ -4369,10 +4379,10 @@ class _MusicAlbumDetailModal extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       child: CachedNetworkImage(
                         imageUrl: album.coverUrl,
+                        cacheManager: AppImageCache.manager,
                         width: isMobile ? 80 : 120,
                         height: isMobile ? 80 : 120,
-                        fit: BoxFit.cover,
-                      ),
+                        fit: BoxFit.cover),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -4523,10 +4533,10 @@ class _MusicCuratedPlaylistDetailModal extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                       child: CachedNetworkImage(
                         imageUrl: playlist.coverUrl,
+                        cacheManager: AppImageCache.manager,
                         width: isMobile ? 80 : 120,
                         height: isMobile ? 80 : 120,
-                        fit: BoxFit.cover,
-                      ),
+                        fit: BoxFit.cover),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -4767,10 +4777,11 @@ class _MusicUserPlaylistDetailModal extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(8),
                                 child: CachedNetworkImage(
                                   imageUrl: track.coverUrl,
+                                  cacheManager: AppImageCache.manager,
+                                  memCacheWidth: 132,
                                   width: 44,
                                   height: 44,
-                                  fit: BoxFit.cover,
-                                ),
+                                  fit: BoxFit.cover),
                               ),
                               title: Text(
                                 track.title,
@@ -5009,9 +5020,9 @@ class _MusicExpandedPlayerState extends State<_MusicExpandedPlayer> with SingleT
                           opacity: 0.25,
                           child: CachedNetworkImage(
                             imageUrl: track.coverUrl,
+                            cacheManager: AppImageCache.manager,
                             fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                          ),
+                            errorWidget: (_, __, ___) => const SizedBox.shrink()),
                         ),
                       ),
                       Positioned.fill(
@@ -5047,9 +5058,9 @@ class _MusicExpandedPlayerState extends State<_MusicExpandedPlayer> with SingleT
               opacity: 0.28,
               child: CachedNetworkImage(
                 imageUrl: track.coverUrl,
+                cacheManager: AppImageCache.manager,
                 fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => const SizedBox.shrink(),
-              ),
+                errorWidget: (_, __, ___) => const SizedBox.shrink()),
             ),
           ),
           Positioned.fill(
@@ -5407,10 +5418,10 @@ class _MusicExpandedPlayerState extends State<_MusicExpandedPlayer> with SingleT
             borderRadius: BorderRadius.circular(size * 0.22),
             child: CachedNetworkImage(
               imageUrl: track.coverUrl,
+              cacheManager: AppImageCache.manager,
               width: size * 0.44,
               height: size * 0.44,
-              fit: BoxFit.cover,
-            ),
+              fit: BoxFit.cover),
           ),
         ),
       ),
@@ -5435,8 +5446,8 @@ class _MusicExpandedPlayerState extends State<_MusicExpandedPlayer> with SingleT
         borderRadius: BorderRadius.circular(22),
         child: CachedNetworkImage(
           imageUrl: track.coverUrl,
-          fit: BoxFit.cover,
-        ),
+          cacheManager: AppImageCache.manager,
+          fit: BoxFit.cover),
       ),
     );
   }
@@ -5463,8 +5474,8 @@ class _MusicExpandedPlayerState extends State<_MusicExpandedPlayer> with SingleT
           borderRadius: BorderRadius.circular(22),
           child: CachedNetworkImage(
             imageUrl: track.coverUrl,
-            fit: BoxFit.cover,
-          ),
+            cacheManager: AppImageCache.manager,
+            fit: BoxFit.cover),
         ),
       ),
     );
@@ -5475,10 +5486,10 @@ class _MusicExpandedPlayerState extends State<_MusicExpandedPlayer> with SingleT
       borderRadius: BorderRadius.circular(24),
       child: CachedNetworkImage(
         imageUrl: track.coverUrl,
+        cacheManager: AppImageCache.manager,
         width: size,
         height: size,
-        fit: BoxFit.cover,
-      ),
+        fit: BoxFit.cover),
     );
   }
 
@@ -5506,8 +5517,8 @@ class _MusicExpandedPlayerState extends State<_MusicExpandedPlayer> with SingleT
           borderRadius: BorderRadius.circular(size / 2),
           child: CachedNetworkImage(
             imageUrl: track.coverUrl,
-            fit: BoxFit.cover,
-          ),
+            cacheManager: AppImageCache.manager,
+            fit: BoxFit.cover),
         ),
       );
     }
@@ -5938,6 +5949,8 @@ class _MusicDownloadedTracksModalState extends State<_MusicDownloadedTracksModal
     if (track.coverUrl.isNotEmpty) {
       return CachedNetworkImage(
         imageUrl: track.coverUrl,
+        cacheManager: AppImageCache.manager,
+        memCacheWidth: 138,
         width: 46,
         height: 46,
         fit: BoxFit.cover,
@@ -5946,8 +5959,7 @@ class _MusicDownloadedTracksModalState extends State<_MusicDownloadedTracksModal
           height: 46,
           color: const Color(0xFF1B1E2B),
           child: const Icon(Icons.music_note_rounded, color: Colors.white38, size: 24),
-        ),
-      );
+        ));
     }
     return Container(
       width: 46,

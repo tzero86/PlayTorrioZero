@@ -2,7 +2,7 @@
 #  PlayTorrioV3 — Multi-Platform CI/CD Release Builder
 #  Builds:
 #    - Windows: Installer (Inno Setup) & Portable ZIP (x64)
-#    - Android: Split-per-ABI APKs (arm64-v8a, armeabi-v7a, x86_64) & Universal APK
+#    - Android: Split-per-ABI APKs (arm64-v8a, armeabi-v7a) — ARM devices only
 #    - Linux: AppImage & Tar.gz (x86_64)
 #    - macOS: Apple Silicon (ARM64) & Intel (x64) DMG & ZIP
 #    - iOS: Sideloadable IPA (no-codesign)
@@ -52,7 +52,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Windows App
-        run: flutter build windows --release --dart-define-from-file=.env
+        run: flutter build windows --release --dart-define-from-file=.env --split-debug-info=build/symbols
 
       - name: Install Inno Setup
         shell: pwsh
@@ -114,7 +114,79 @@ jobs:
             PlayTorrio-Windows-Setup.exe
             PlayTorrio-Windows-x64-Portable.zip
 
-  # ─── Linux x64 Build (AppImage & Tar.gz) ──────────────────────────────────
+      - name: Upload Windows Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayTorrioV3-Windows-symbols
+          if-no-files-found: ignore
+          path: build/symbols/**
+
+  # ── Android Build (split-per-ABI APKs) ───────────────────────────────────
+  android:
+    name: Android (APK per ABI)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: 'stable'
+          cache: true
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup .env from GitHub Secrets
+        shell: bash
+        run: |
+          if [ -n "${{ secrets.ENV_FILE }}" ]; then
+            echo "${{ secrets.ENV_FILE }}" > .env
+          elif [ -n "${{ secrets.DOTENV }}" ]; then
+            echo "${{ secrets.DOTENV }}" > .env
+          else
+            touch .env
+          fi
+
+      - name: Configure release signing
+        shell: bash
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/upload-keystore.jks
+            printf 'storeFile=../upload-keystore.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+              "${{ secrets.ANDROID_STORE_PASSWORD }}" \
+              "${{ secrets.ANDROID_KEY_ALIAS }}" \
+              "${{ secrets.ANDROID_KEY_PASSWORD }}" > android/key.properties
+            echo "Release APKs will be signed with the provided keystore."
+          else
+            echo "ANDROID_KEYSTORE_BASE64 not set — release APKs will be debug-signed."
+          fi
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android APKs
+        run: flutter build apk --release --split-per-abi --target-platform android-arm,android-arm64 --dart-define-from-file=.env --split-debug-info=build/symbols
+
+      - name: Upload Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayTorrioV3-Android
+          path: build/app/outputs/flutter-apk/app-*-release.apk
+
+      - name: Upload Android Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayTorrioV3-Android-symbols
+          if-no-files-found: ignore
+          path: build/symbols/**
+
+  # ─── Linux x64 Build (AppImage & Tar.gz) ───────────────────────────────────
   linux-x64:
     name: Linux x64 (AppImage & Tar)
     runs-on: ubuntu-latest
@@ -163,7 +235,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Linux Release
-        run: flutter build linux --release --dart-define-from-file=.env
+        run: flutter build linux --release --dart-define-from-file=.env --split-debug-info=build/symbols
 
       - name: Package as AppImage & Tar
         run: |
@@ -206,6 +278,13 @@ jobs:
             PlayTorrio-Linux-x86_64.AppImage
             PlayTorrio-Linux-x86_64.tar.gz
 
+      - name: Upload Linux Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayTorrioV3-Linux-symbols
+          if-no-files-found: ignore
+          path: build/symbols/**
+
   # ─── macOS ARM64 Build (Apple Silicon) ───────────────────────────────────
   macos-arm64:
     name: macOS (Apple Silicon ARM64)
@@ -242,7 +321,7 @@ jobs:
         run: flutter pub get
 
       - name: Build macOS Release
-        run: flutter build macos --release --dart-define-from-file=.env
+        run: flutter build macos --release --dart-define-from-file=.env --split-debug-info=build/symbols
 
       - name: Package as DMG & ZIP
         run: |
@@ -270,6 +349,13 @@ jobs:
           path: |
             PlayTorrio-macOS-arm64.dmg
             PlayTorrio-macOS-arm64.zip
+
+      - name: Upload macOS ARM64 Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayTorrioV3-macOS-arm64-symbols
+          if-no-files-found: ignore
+          path: build/symbols/**
 
   # ─── macOS Intel Build (x86_64) ──────────────────────────────────────────
   macos-intel:
@@ -305,7 +391,7 @@ jobs:
         run: arch -x86_64 flutter pub get
 
       - name: Build macOS Intel Release
-        run: arch -x86_64 flutter build macos --release --dart-define-from-file=.env
+        run: arch -x86_64 flutter build macos --release --dart-define-from-file=.env --split-debug-info=build/symbols
 
       - name: Package as DMG & ZIP
         run: |
@@ -333,6 +419,13 @@ jobs:
           path: |
             PlayTorrio-macOS-intel.dmg
             PlayTorrio-macOS-intel.zip
+
+      - name: Upload macOS Intel Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayTorrioV3-macOS-intel-symbols
+          if-no-files-found: ignore
+          path: build/symbols/**
 
   # ─── iOS Build (Sideloadable IPA — no-codesign) ───────────────────────────
   ios:
@@ -364,7 +457,7 @@ jobs:
         run: flutter pub get
 
       - name: Build iOS Release (No Codesign)
-        run: flutter build ios --release --no-codesign --dart-define-from-file=.env
+        run: flutter build ios --release --no-codesign --dart-define-from-file=.env --split-debug-info=build/symbols
 
       - name: Package as IPA
         run: |
@@ -379,10 +472,17 @@ jobs:
           name: PlayTorrioV3-iOS
           path: PlayTorrio-iOS.ipa
 
+      - name: Upload iOS Symbols
+        uses: actions/upload-artifact@v4
+        with:
+          name: PlayTorrioV3-iOS-symbols
+          if-no-files-found: ignore
+          path: build/symbols/**
+
   # ─── Create / Publish GitHub Release ─────────────────────────────────────
   release:
     name: Publish GitHub Release
-    needs: [windows, linux-x64, macos-arm64, macos-intel, ios]
+    needs: [windows, android, linux-x64, macos-arm64, macos-intel, ios]
     if: always() && startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:

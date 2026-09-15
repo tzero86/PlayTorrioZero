@@ -2,10 +2,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/my_list/my_list_item.dart';
+import '../../services/content/content_settings.dart';
 import '../../services/my_list/my_list_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../details/details_page.dart';
 import '../../models/movie/movie.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class MyListPage extends StatefulWidget {
   const MyListPage({super.key});
@@ -171,9 +173,13 @@ class _MyListPageState extends State<MyListPage> {
 
           // ── Main Content ──
           SafeArea(
-            child: ValueListenableBuilder<List<MyListItem>>(
-              valueListenable: MyListService.items,
-              builder: (context, allItems, _) {
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                MyListService.items,
+                ContentSettings.adultEnabled,
+              ]),
+              builder: (context, _) {
+                final allItems = MyListService.visibleItems;
                 final movieCount = allItems.where((i) => i.type == 'movie').length;
                 final seriesCount = allItems.where((i) => i.type == 'series' || i.type == 'anime').length;
                 final displayedItems = _getFilteredAndSortedItems(allItems);
@@ -600,9 +606,9 @@ class _MyListCardState extends State<_MyListCard> {
                   if (item.poster != null && item.poster!.isNotEmpty)
                     CachedNetworkImage(
                       imageUrl: item.poster!,
+                      cacheManager: AppImageCache.manager,
                       fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => _buildFallbackPoster(),
-                    )
+                      errorWidget: (context, url, error) => _buildFallbackPoster())
                   else
                     _buildFallbackPoster(),
 

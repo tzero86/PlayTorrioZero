@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/anime/anime_media.dart';
+import '../content/content_settings.dart';
 
 class AnimeLibraryService extends ChangeNotifier {
   static final AnimeLibraryService instance = AnimeLibraryService._internal();
-  AnimeLibraryService._internal();
+  AnimeLibraryService._internal() {
+    ContentSettings.adultEnabled.addListener(notifyListeners);
+  }
 
   static const String _watchlistKey = 'playtorrio_anime_watchlist_v1';
   static const String _historyKey = 'playtorrio_anime_history_v1';
@@ -15,20 +18,41 @@ class AnimeLibraryService extends ChangeNotifier {
 
   bool _isInitialized = false;
 
-  List<AnimeWatchlistItem> get watchlist => List.unmodifiable(_watchlist);
+  /// While the global Adult Content switch is off, adult entries are hidden from
+  /// every list the library exposes. Nothing is removed from storage, so they
+  /// come back as soon as the switch is turned on.
+  bool _isVisible(AnimeWatchlistItem item) =>
+      ContentSettings.adultEnabled.value || !item.anime.isAdult;
+
+  List<AnimeWatchlistItem> get watchlist =>
+      List.unmodifiable(_watchlist.where(_isVisible));
   List<AnimeWatchlistItem> get watchingList => _watchlist
-      .where((item) => item.status == AnimeWatchStatus.watching)
+      .where((item) => item.status == AnimeWatchStatus.watching && _isVisible(item))
       .toList();
   List<AnimeWatchlistItem> get planToWatchList => _watchlist
-      .where((item) => item.status == AnimeWatchStatus.planToWatch)
+      .where((item) => item.status == AnimeWatchStatus.planToWatch && _isVisible(item))
       .toList();
   List<AnimeWatchlistItem> get completedList => _watchlist
-      .where((item) => item.status == AnimeWatchStatus.completed)
+      .where((item) => item.status == AnimeWatchStatus.completed && _isVisible(item))
       .toList();
   List<AnimeWatchlistItem> get recentHistory => List.unmodifiable(
-        _progressMap.values.toList()
+        _progressMap.values.where(_isVisible).toList()
           ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt)),
       );
+
+  /// Whether the library holds [title] as adult content, regardless of the
+  /// switch state. Lets entries saved elsewhere (My List), which carry no
+  /// maturity flag of their own, be classified without new persistence.
+  bool isKnownAdultTitle(String title) {
+    final key = _normalizedTitle(title);
+    if (key.isEmpty) return false;
+    bool isAdult(AnimeWatchlistItem entry) =>
+        entry.anime.isAdult && _normalizedTitle(entry.anime.displayTitle) == key;
+    return _watchlist.any(isAdult) || _progressMap.values.any(isAdult);
+  }
+
+  static String _normalizedTitle(String value) =>
+      value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
   Future<void> init() async {
     if (_isInitialized) return;

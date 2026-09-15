@@ -6,6 +6,7 @@ import '../../services/theme/app_theme_service.dart';
 import '../../services/home/home_page_settings.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_settings.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class IptvHeroCarousel extends StatefulWidget {
   final List<HardcodedChannel> channels;
@@ -261,11 +262,11 @@ class _IptvHeroSlide extends StatelessWidget {
           Positioned.fill(
             child: CachedNetworkImage(
               imageUrl: channel.backdropUrl!,
+              cacheManager: AppImageCache.manager,
               fit: BoxFit.cover,
               alignment: Alignment.center,
               memCacheWidth: 1920,
-              errorWidget: (_, __, ___) => const SizedBox.shrink(),
-            ),
+              errorWidget: (_, __, ___) => const SizedBox.shrink()),
           ),
 
         // Dark top/bottom gradient overlay for readability
@@ -379,6 +380,7 @@ class _IptvHeroSlide extends StatelessWidget {
                   ),
                   child: CachedNetworkImage(
                     imageUrl: channel.iconUrl!,
+                    cacheManager: AppImageCache.manager,
                     alignment: Alignment.centerLeft,
                     fit: BoxFit.contain,
                     memCacheWidth: 512,
@@ -391,8 +393,7 @@ class _IptvHeroSlide extends StatelessWidget {
                         letterSpacing: -0.5,
                         height: 1.1,
                       ),
-                    ),
-                  ),
+                    )),
                 )
               else
                 Text(

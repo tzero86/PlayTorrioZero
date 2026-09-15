@@ -8,6 +8,7 @@ import '../../models/movie/movie_section.dart';
 import '../../utils/search/relevance_scorer.dart';
 import '../metadata/metadata_service.dart';
 import '../p2p/p2p_settings_service.dart';
+import '../content/content_settings.dart';
 
 /// Manages installed Stremio metadata addons.
 ///
@@ -43,29 +44,40 @@ class AddonManager {
     return List.unmodifiable(_addons);
   }
 
+  /// NSFW-only addons (declared adult, or rated that way by the user) only
+  /// contribute content while the global Adult Content switch is on. Hybrid and
+  /// SFW addons stay active either way.
+  bool _adultAllowed(InstalledAddon addon) =>
+      ContentSettings.adultEnabled.value || !addon.isNsfwOnly;
+
   List<InstalledAddon> get activeAddons {
     _ensureBuiltInsExist();
-    return _addons.where((a) => a.enabled).toList();
+    return _addons.where((a) => a.enabled && _adultAllowed(a)).toList();
   }
 
   List<InstalledAddon> get activeCatalogAddons {
     _ensureBuiltInsExist();
-    return _addons.where((a) => a.isCatalogsActive).toList();
+    return _addons.where((a) => a.isCatalogsActive && _adultAllowed(a)).toList();
   }
 
   List<InstalledAddon> get activeSearchAddons {
     _ensureBuiltInsExist();
-    return _addons.where((a) => a.isSearchActive).toList();
+    return _addons.where((a) => a.isSearchActive && _adultAllowed(a)).toList();
   }
 
   List<InstalledAddon> get activeSubtitleAddons {
     _ensureBuiltInsExist();
-    return _addons.where((a) => a.isSubtitlesActive).toList();
+    return _addons.where((a) => a.isSubtitlesActive && _adultAllowed(a)).toList();
   }
 
   List<InstalledAddon> get activeStreamAddons {
     _ensureBuiltInsExist();
-    return _addons.where((a) => a.isStreamsActive && !a.baseUrl.startsWith('builtin:')).toList();
+    return _addons
+        .where((a) =>
+            a.isStreamsActive &&
+            !a.baseUrl.startsWith('builtin:') &&
+            _adultAllowed(a))
+        .toList();
   }
 
   bool get isPlayTorrioActive {
@@ -93,7 +105,7 @@ class AddonManager {
     if (nameLower == 'playtorrio' ||
         nameLower == 'playtorriohttp' ||
         nameLower.startsWith('builtin')) {
-      return 'asset:assets/icon.png';
+      return 'asset:assets/icon_small.png';
     }
     for (final addon in _addons) {
       if (addon.manifest.name.toLowerCase() == nameLower ||
@@ -163,10 +175,19 @@ class AddonManager {
       }
     }
 
-    // First launch → install Cinemeta
+    // First launch → install Cinemeta. It is seeded as a hybrid source: its
+    // catalogs mix mainstream and adult titles, so it must keep working with
+    // the Adult Content switch off while still being discoverable under `18+`.
     if (_addons.isEmpty) {
       try {
         await addAddon('https://v3-cinemeta.strem.io');
+        for (final addon in _addons) {
+          if (addon.manifest.id == 'com.linvo.cinemeta' ||
+              addon.baseUrl.contains('cinemeta')) {
+            addon.adultRating = AddonAdultRating.hybrid;
+          }
+        }
+        await _save();
       } catch (_) {
         // Offline — will retry next time
       }
@@ -292,6 +313,25 @@ class AddonManager {
     }
     if (addonId == 'builtin.playtorrio') {
       await P2pSettingsService.setP2pEnabled(enabled);
+    }
+    MetadataService.clearCache();
+    await _save();
+  }
+
+  /// Sets how much adult material an addon serves.
+  ///
+  /// [AddonAdultRating.nsfw] addons are excluded from every active-addon getter
+  /// while the global Adult Content switch is off; hybrid addons stay active and
+  /// additionally show up in the Discover 18+ view.
+  Future<void> setAddonAdultRating(
+    String addonId,
+    AddonAdultRating rating,
+  ) async {
+    for (final addon in _addons) {
+      if (addon.manifest.id == addonId) {
+        addon.adultRating = rating;
+        break;
+      }
     }
     MetadataService.clearCache();
     await _save();

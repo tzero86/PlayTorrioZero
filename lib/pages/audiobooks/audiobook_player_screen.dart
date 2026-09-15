@@ -18,6 +18,7 @@ import '../../services/player/player_settings.dart';
 import '../../widgets/audiobook/audiobook_interactive_physics_button.dart';
 import '../../widgets/audiobook/audiobook_waveform_seekbar.dart';
 import '../settings/appearance/audiobook_player_studio_page.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AudiobookPlayerScreen extends StatefulWidget {
   final Audiobook audiobook;
@@ -561,14 +562,14 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
                               opacity: 0.22,
                               child: CachedNetworkImage(
                                 imageUrl: widget.audiobook.coverImage.trim(),
+                                cacheManager: AppImageCache.manager,
                                 httpHeaders: const {
                                   'User-Agent':
                                       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                                 },
                                 fit: BoxFit.cover,
                                 placeholder: (_, __) => const SizedBox.shrink(),
-                                errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                              ),
+                                errorWidget: (_, __, ___) => const SizedBox.shrink()),
                             ),
                           ),
                         Positioned.fill(
@@ -618,14 +619,14 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
                 opacity: 0.22,
                 child: CachedNetworkImage(
                   imageUrl: widget.audiobook.coverImage.trim(),
+                  cacheManager: AppImageCache.manager,
                   httpHeaders: const {
                     'User-Agent':
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                   },
                   fit: BoxFit.cover,
                   placeholder: (_, __) => const SizedBox.shrink(),
-                  errorWidget: (_, __, ___) => const SizedBox.shrink(),
-                ),
+                  errorWidget: (_, __, ___) => const SizedBox.shrink()),
               ),
             ),
           Positioned.fill(
@@ -996,7 +997,10 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
                     ClipRRect(
                       borderRadius: BorderRadius.circular(12),
                       child: hasCover
-                          ? CachedNetworkImage(imageUrl: widget.audiobook.coverImage, width: 48, height: 48, fit: BoxFit.cover)
+                          ? CachedNetworkImage(imageUrl: widget.audiobook.coverImage,
+                                               cacheManager: AppImageCache.manager,
+                                               memCacheWidth: 144,
+                                               width: 48, height: 48, fit: BoxFit.cover)
                           : Container(width: 48, height: 48, color: Colors.white12),
                     ),
                     const SizedBox(width: 14),
@@ -1194,13 +1198,13 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
         child: hasCover
             ? CachedNetworkImage(
                 imageUrl: widget.audiobook.coverImage,
+                cacheManager: AppImageCache.manager,
                 fit: BoxFit.cover,
                 placeholder: (_, __) => Container(color: const Color(0xFF161A26)),
                 errorWidget: (_, __, ___) => Container(
                   color: const Color(0xFF161A26),
                   child: const Icon(Icons.headphones_rounded, size: 64, color: Colors.white54),
-                ),
-              )
+                ))
             : Container(
                 color: const Color(0xFF161A26),
                 child: const Icon(Icons.headphones_rounded, size: 64, color: Colors.white54),
@@ -1240,14 +1244,14 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
               if (hasCover)
                 CachedNetworkImage(
                   imageUrl: widget.audiobook.coverImage,
+                  cacheManager: AppImageCache.manager,
                   width: size,
                   height: size,
                   fit: BoxFit.cover,
                   errorWidget: (_, __, ___) => Container(
                     color: const Color(0xFF161A26),
                     child: const Icon(Icons.headphones_rounded, size: 64, color: Colors.white54),
-                  ),
-                )
+                  ))
               else
                 Container(
                   color: const Color(0xFF161A26),

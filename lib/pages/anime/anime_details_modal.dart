@@ -9,6 +9,7 @@ import '../../services/anime/anilist_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/anime/extractors/anidb_extractor.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
+import '../../services/storage/app_image_cache.dart';
 
 class AnimeDetailsModal extends StatefulWidget {
   final AnimeMedia initialAnime;
@@ -191,12 +192,12 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                               width: double.infinity,
                               child: CachedNetworkImage(
                                 imageUrl: _anime.backdropUrl,
+                                cacheManager: AppImageCache.manager,
                                 fit: BoxFit.cover,
                                 alignment: Alignment.topCenter,
                                 errorWidget: (_, __, ___) => Container(
                                   color: const Color(0xFF141724),
-                                ),
-                              ),
+                                )),
                             ),
                             Positioned.fill(
                               child: DecoratedBox(
@@ -748,14 +749,15 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                                 borderRadius: BorderRadius.circular(12),
                                                 child: CachedNetworkImage(
                                                   imageUrl: char.imageLarge,
+                                                  cacheManager: AppImageCache.manager,
+                                                  memCacheWidth: 255,
                                                   width: 85,
                                                   height: 85,
                                                   fit: BoxFit.cover,
                                                   errorWidget: (_, __, ___) => Container(
                                                     color: const Color(0xFF1A1D2B),
                                                     child: const Icon(Icons.person_rounded, color: Colors.white24),
-                                                  ),
-                                                ),
+                                                  )),
                                               ),
                                               const SizedBox(height: 6),
                                               Text(
@@ -822,14 +824,15 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                                 borderRadius: BorderRadius.circular(10),
                                                 child: CachedNetworkImage(
                                                   imageUrl: rel.coverUrl,
+                                                  cacheManager: AppImageCache.manager,
+                                                  memCacheWidth: 315,
                                                   width: 105,
                                                   height: 125,
                                                   fit: BoxFit.cover,
                                                   errorWidget: (_, __, ___) => Container(
                                                     color: const Color(0xFF1A1D2B),
                                                     child: const Icon(Icons.movie_creation_outlined, color: Colors.white24),
-                                                  ),
-                                                ),
+                                                  )),
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
@@ -893,14 +896,15 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                                 borderRadius: BorderRadius.circular(12),
                                                 child: CachedNetworkImage(
                                                   imageUrl: rec.coverUrl,
+                                                  cacheManager: AppImageCache.manager,
+                                                  memCacheWidth: 345,
                                                   width: 115,
                                                   height: 140,
                                                   fit: BoxFit.cover,
                                                   errorWidget: (_, __, ___) => Container(
                                                     color: const Color(0xFF1A1D2B),
                                                     child: const Icon(Icons.movie_creation_outlined, color: Colors.white24),
-                                                  ),
-                                                ),
+                                                  )),
                                               ),
                                               const SizedBox(height: 6),
                                               Text(

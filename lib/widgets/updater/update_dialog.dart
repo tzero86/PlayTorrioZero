@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -22,6 +23,7 @@ class UpdateDialog extends StatefulWidget {
 class _UpdateDialogState extends State<UpdateDialog> {
   bool _isDownloading = false;
   double _downloadProgress = 0.0;
+  StreamSubscription? _otaSub;
 
   static const Color _surfaceColor = Color(0xFF12151E);
   static const Color _backgroundColor = Color(0xFF080A0F);
@@ -29,6 +31,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
   @override
   void dispose() {
+    _otaSub?.cancel();
     WakelockPlus.disable();
     super.dispose();
   }
@@ -409,7 +412,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
     });
 
     try {
-      OtaUpdate()
+      _otaSub = OtaUpdate()
           .execute(
             widget.updateInfo.downloadUrl,
             destinationFilename:

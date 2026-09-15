@@ -1,3 +1,4 @@
+import 'dart:io';
 
 import 'package:playtorrio/models/subtitle/subtitle_model.dart';
 import './providers/subdl_provider.dart';
@@ -72,5 +73,15 @@ class SubtitleService {
       }
     }
     return provider.download(variant);
+  }
+
+  /// Best-effort delete of a downloaded subtitle temp file (including synced
+  /// copies). Called by the player slice on switch/dispose; never throws.
+  Future<void> deleteSubtitleFile(String? path) async {
+    if (path == null || path.isEmpty) return;
+    try {
+      final file = File(path);
+      if (await file.exists()) await file.delete();
+    } catch (_) {}
   }
 }
