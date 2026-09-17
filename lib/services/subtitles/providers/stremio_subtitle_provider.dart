@@ -226,9 +226,18 @@ class StremioSubtitleProvider extends SubtitleProvider {
 
   @override
   Future<String?> download(SubtitleVariant variant) async {
+    final reqHeaders = <String, String>{
+      'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': '*/*',
+    };
+    if (variant.extraData['headers'] is Map) {
+      reqHeaders.addAll((variant.extraData['headers'] as Map)
+          .map((k, v) => MapEntry(k.toString(), v.toString())));
+    }
     return SubtitleExtractor.downloadAndExtract(
       variant.downloadUrl,
-      headers: _headers,
+      headers: reqHeaders,
       providerName: variant.providerName,
     );
   }

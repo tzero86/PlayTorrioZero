@@ -362,14 +362,12 @@ class _SettingsPageState extends State<SettingsPage> {
     final provider = await _debrid.getSelectedService();
     final traktAuth = await TraktService.instance.isAuthenticated();
     final simklAuth = await SimklService.instance.isAuthenticated();
-    final pkg = await PackageInfo.fromPlatform().catchError(
-      (_) => PackageInfo(
-        appName: 'PlayTorrio',
-        packageName: 'com.playtorrio',
-        version: '1.1.5',
-        buildNumber: '16',
-      ),
-    );
+    final pkg = await PackageInfo.fromPlatform().catchError((_) => PackageInfo(
+          appName: 'PlayTorrio',
+          packageName: 'com.playtorrio',
+          version: '1.1.6',
+          buildNumber: '17',
+        ));
 
     if (mounted) {
       setState(() {

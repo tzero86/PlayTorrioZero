@@ -49,6 +49,7 @@ class ScraperManager {
   static final ScraperManager instance = ScraperManager._internal();
 
   final List<StreamScraper> _scrapers = [];
+  final List<StreamSubscription> _activeSubscriptions = [];
   bool get hasScrapers => _scrapers.isNotEmpty;
 
   void registerScraper(StreamScraper scraper) {
@@ -59,6 +60,18 @@ class ScraperManager {
 
   void unregisterTorrentScrapers() {
     _scrapers.removeWhere((s) => s.name == 'PlayTorrio');
+  }
+
+  /// Cancels all ongoing scraper executions immediately.
+  void cancelActiveScrapes() {
+    if (_activeSubscriptions.isNotEmpty) {
+      debugPrint('[ScraperManager] Cancelling ${_activeSubscriptions.length} active scrapers...');
+      final subs = List<StreamSubscription>.from(_activeSubscriptions);
+      _activeSubscriptions.clear();
+      for (final sub in subs) {
+        sub.cancel();
+      }
+    }
   }
 
   Stream<StreamSource> scrapeAll({
@@ -83,6 +96,13 @@ class ScraperManager {
         }
         return true;
       }).toList();
+
+      final hasRegisteredHttp = _scrapers.any((s) => s.name == 'PlayTorrioHTTP');
+      final httpScrapersInFiltered = filtered.where((s) => s.name == 'PlayTorrioHTTP').toList();
+      if (hasRegisteredHttp && httpScrapersInFiltered.isEmpty) {
+        debugPrint('[ScraperManager] WARNING: Custom mode has 0 PlayTorrioHTTP scrapers enabled. Falling back to default enabled HTTP scrapers to prevent scraping outage.');
+        filtered.addAll(_scrapers.where((s) => s.name == 'PlayTorrioHTTP'));
+      }
 
       filtered.sort((a, b) {
         if (a.name == 'PlayTorrioHTTP' && b.name == 'PlayTorrioHTTP') {
@@ -112,6 +132,7 @@ class ScraperManager {
     int pendingScrapers = activeScrapers.length;
     final seenHashes = <String>{};
     final seenUrls = <String>{};
+    final List<StreamSubscription> currentRunSubs = [];
 
     void checkClose() {
       if (pendingScrapers <= 0 && !controller.isClosed) {
@@ -119,8 +140,16 @@ class ScraperManager {
       }
     }
 
+    controller.onCancel = () {
+      for (final s in currentRunSubs) {
+        s.cancel();
+      }
+      _activeSubscriptions.removeWhere((s) => currentRunSubs.contains(s));
+      currentRunSubs.clear();
+    };
+
     for (final scraper in activeScrapers) {
-      scraper
+      final sub = scraper
           .scrapeStream(
         type: type,
         title: title,
@@ -172,6 +201,8 @@ class ScraperManager {
           checkClose();
         },
       );
+      currentRunSubs.add(sub);
+      _activeSubscriptions.add(sub);
     }
 
     return controller.stream;

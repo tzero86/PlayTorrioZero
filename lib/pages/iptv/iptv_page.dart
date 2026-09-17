@@ -18,6 +18,7 @@ import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
 import '../../widgets/iptv/iptv_hero_carousel.dart';
 import '../../widgets/iptv/iptv_slider_section.dart';
+import '../multinutz/multinutz_page.dart';
 import '../settings/settings_page.dart';
 import 'iptv_channel_sheet.dart';
 import 'iptv_player_page.dart';
@@ -184,6 +185,13 @@ class _IptvPageState extends State<IptvPage> {
     );
   }
 
+  void _navigateToMultiStreams(Offset? tapPosition) {
+    Navigator.push(
+      context,
+      LiquidRevealRoute(page: const MultiNutzPage(), tapPosition: tapPosition),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
@@ -325,6 +333,7 @@ class _IptvPageState extends State<IptvPage> {
           topPadding: topPadding,
           onSearchTap: _navigateToSearch,
           onSettingsTap: _navigateToSettings,
+          onMultiStreamsTap: _navigateToMultiStreams,
           onSourcesTap: () => IptvPortalsModal.show(context),
         ),
       ),
@@ -389,19 +398,35 @@ class _IptvGlassAppBar extends StatelessWidget {
   final double topPadding;
   final Function(Offset? tapPosition) onSearchTap;
   final Function(Offset? tapPosition) onSettingsTap;
+  final Function(Offset? tapPosition) onMultiStreamsTap;
   final VoidCallback onSourcesTap;
 
   const _IptvGlassAppBar({
     required this.topPadding,
     required this.onSearchTap,
     required this.onSettingsTap,
+    required this.onMultiStreamsTap,
     required this.onSourcesTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isExpanded = screenWidth >= 760;
+    final isCompact = screenWidth < 540;
+    final isSmall = screenWidth < 420;
+
+    final horizontalPadding = isSmall ? 14.0 : (isCompact ? 18.0 : 28.0);
+    final buttonSize = isSmall ? 36.0 : 40.0;
+    final buttonSpacing = isSmall ? 6.0 : 10.0;
+
     return Container(
-      padding: EdgeInsets.fromLTRB(28, topPadding + 14, 28, 14),
+      padding: EdgeInsets.fromLTRB(
+        horizontalPadding,
+        topPadding + (isSmall ? 8 : 14),
+        horizontalPadding,
+        isSmall ? 8 : 14,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -421,7 +446,7 @@ class _IptvGlassAppBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: EdgeInsets.symmetric(horizontal: isSmall ? 8 : 10, vertical: isSmall ? 4 : 5),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF7C5CFF), Color(0xFF00D2EF)],
@@ -434,16 +459,16 @@ class _IptvGlassAppBar extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.live_tv_rounded, color: Colors.white, size: 18),
-                    SizedBox(width: 6),
+                    Icon(Icons.live_tv_rounded, color: Colors.white, size: isSmall ? 15 : 18),
+                    const SizedBox(width: 5),
                     Text(
                       'LIVE TV',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
+                        fontSize: isSmall ? 11.5 : 13,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 0.8,
                       ),
@@ -451,48 +476,62 @@ class _IptvGlassAppBar extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Text(
-                  '60+ CHANNELS',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5,
+              if (!isCompact) ...[
+                const SizedBox(width: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: const Text(
+                    '60+ CHANNELS',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
 
           const Spacer(),
 
+          // Multi Streams Button
+          _MultiStreamsAppBarButton(
+            isExpanded: isExpanded,
+            size: buttonSize,
+            onTapWithPosition: onMultiStreamsTap,
+          ),
+
+          SizedBox(width: buttonSpacing),
+
           // Sources / Xtream Panels button
           _GlassActionButton(
+            size: buttonSize,
             icon: Icons.settings_input_antenna_rounded,
             tooltip: 'Manage Portals & Playlists',
             onTap: onSourcesTap,
           ),
 
-          const SizedBox(width: 10),
+          SizedBox(width: buttonSpacing),
 
           // Search button
           _GlassActionButton(
+            size: buttonSize,
             icon: Icons.search_rounded,
             tooltip: 'Search Channels',
             onTapWithPosition: onSearchTap,
           ),
 
-          const SizedBox(width: 10),
+          SizedBox(width: buttonSpacing),
 
           // Settings button
           _GlassActionButton(
+            size: buttonSize,
             icon: Icons.settings_rounded,
             tooltip: 'Settings',
             onTapWithPosition: onSettingsTap,
@@ -503,15 +542,140 @@ class _IptvGlassAppBar extends StatelessWidget {
   }
 }
 
+class _MultiStreamsAppBarButton extends StatefulWidget {
+  final bool isExpanded;
+  final double size;
+  final Function(Offset? position)? onTapWithPosition;
+
+  const _MultiStreamsAppBarButton({
+    required this.isExpanded,
+    this.size = 40.0,
+    this.onTapWithPosition,
+  });
+
+  @override
+  State<_MultiStreamsAppBarButton> createState() => _MultiStreamsAppBarButtonState();
+}
+
+class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final iconSize = (widget.size * 0.48).clamp(16.0, 19.0);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: Tooltip(
+        message: 'Multi Streams (Multi-View Window)',
+        child: GestureDetector(
+          onTapDown: (details) {
+            widget.onTapWithPosition?.call(details.globalPosition);
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            height: widget.size,
+            padding: EdgeInsets.symmetric(horizontal: widget.isExpanded ? 11 : 0),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _hovered
+                    ? [
+                        const Color(0xFF7C5CFF).withValues(alpha: 0.38),
+                        const Color(0xFF00D2EF).withValues(alpha: 0.28),
+                      ]
+                    : [
+                        const Color(0xFF7C5CFF).withValues(alpha: 0.18),
+                        const Color(0xFF00D2EF).withValues(alpha: 0.10),
+                      ],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _hovered
+                    ? const Color(0xFF00D2EF).withValues(alpha: 0.85)
+                    : const Color(0xFF7C5CFF).withValues(alpha: 0.45),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: _hovered
+                      ? const Color(0xFF00D2EF).withValues(alpha: 0.35)
+                      : const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                  blurRadius: _hovered ? 12 : 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: widget.isExpanded
+                ? Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.dashboard_rounded,
+                        color: const Color(0xFF00D2EF),
+                        size: iconSize,
+                      ),
+                      const SizedBox(width: 7),
+                      const Text(
+                        'Multi Streams',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF7C5CFF), Color(0xFF00D2EF)],
+                          ),
+                          borderRadius: BorderRadius.circular(5),
+                        ),
+                        child: const Text(
+                          'MULTI',
+                          style: TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : SizedBox(
+                    width: widget.size,
+                    height: widget.size,
+                    child: Center(
+                      child: Icon(
+                        Icons.dashboard_rounded,
+                        color: _hovered ? const Color(0xFF00D2EF) : Colors.white,
+                        size: iconSize,
+                      ),
+                    ),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GlassActionButton extends StatefulWidget {
   final IconData icon;
   final String tooltip;
+  final double size;
   final VoidCallback? onTap;
   final Function(Offset? position)? onTapWithPosition;
 
   const _GlassActionButton({
     required this.icon,
     required this.tooltip,
+    this.size = 40.0,
     this.onTap,
     this.onTapWithPosition,
   });
@@ -541,8 +705,8 @@ class _GlassActionButtonState extends State<_GlassActionButton> {
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
-            width: 40,
-            height: 40,
+            width: widget.size,
+            height: widget.size,
             decoration: BoxDecoration(
               color: _hovered
                   ? Colors.white.withValues(alpha: 0.16)
@@ -565,7 +729,7 @@ class _GlassActionButtonState extends State<_GlassActionButton> {
             child: Icon(
               widget.icon,
               color: _hovered ? Colors.white : Colors.white70,
-              size: 20,
+              size: (widget.size * 0.5).clamp(16.0, 20.0),
             ),
           ),
         ),

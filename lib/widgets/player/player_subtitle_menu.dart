@@ -77,15 +77,16 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
       _selectedLanguage = '__embedded__';
     } else if (widget.selectedVariant != null) {
       _selectedLanguage = widget.selectedVariant!.language;
+    } else if (_dynamicGroups.isNotEmpty) {
+      final hasEn = _dynamicGroups.where((g) => g.language.toLowerCase() == 'english' || g.language.toLowerCase() == 'en').firstOrNull;
+      _selectedLanguage = hasEn?.language ?? _dynamicGroups.first.language;
     } else if (widget.embeddedSubtitles.isNotEmpty) {
       _selectedLanguage = '__embedded__';
-    } else if (_dynamicGroups.isNotEmpty) {
-      _selectedLanguage = _dynamicGroups.first.language;
     } else {
       _selectedLanguage = '__all__';
     }
 
-    if (_dynamicGroups.isEmpty) {
+    if (_dynamicGroups.isEmpty && widget.embeddedSubtitles.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _searchOnline();
       });
@@ -97,10 +98,33 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
     super.didUpdateWidget(oldWidget);
     if (widget.groups.isNotEmpty && widget.groups != oldWidget.groups) {
       setState(() {
-        _dynamicGroups = List.from(widget.groups);
-        _selectedLanguage ??= _dynamicGroups.first.language;
+        _dynamicGroups = _mergeGroups(_dynamicGroups, widget.groups);
+        if (_selectedLanguage == null || _selectedLanguage == '__all__' || (_selectedLanguage == '__embedded__' && widget.selectedEmbeddedIndex == null)) {
+          final hasEn = _dynamicGroups.where((g) => g.language.toLowerCase() == 'english' || g.language.toLowerCase() == 'en').firstOrNull;
+          _selectedLanguage = hasEn?.language ?? _dynamicGroups.first.language;
+        }
       });
     }
+  }
+
+  static List<SubtitleLanguageGroup> _mergeGroups(
+    List<SubtitleLanguageGroup> base,
+    List<SubtitleLanguageGroup> additional,
+  ) {
+    final Map<String, List<SubtitleVariant>> map = {};
+    for (final g in base) {
+      map.putIfAbsent(g.language, () => []).addAll(g.variants);
+    }
+    for (final g in additional) {
+      final list = map.putIfAbsent(g.language, () => []);
+      for (final v in g.variants) {
+        if (!list.any((existing) => existing.downloadUrl == v.downloadUrl)) {
+          list.add(v);
+        }
+      }
+    }
+    final sortedKeys = map.keys.toList()..sort((a, b) => a.compareTo(b));
+    return sortedKeys.map((lang) => SubtitleLanguageGroup(language: lang, variants: map[lang]!)).toList();
   }
 
   Future<void> _searchOnline() async {
@@ -128,7 +152,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
       debugPrint('[PlayerSubtitleMenu] Found ${results.length} subtitle language groups');
       if (mounted) {
         setState(() {
-          _dynamicGroups = results;
+          _dynamicGroups = _mergeGroups(widget.groups, results);
           if (_dynamicGroups.isNotEmpty && _selectedLanguage == null) {
             _selectedLanguage = _dynamicGroups.first.language;
           }
@@ -992,7 +1016,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildVariantList(List<SubtitleVariant> filteredVariants, {required bool compact}) {
-    if (_isLoadingSearch) {
+    if (_isLoadingSearch && filteredVariants.isEmpty) {
       return const Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1051,12 +1075,42 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
       );
     }
 
+    final hasLoadingBanner = _isLoadingSearch;
+    final totalItemCount = filteredVariants.length + (hasLoadingBanner ? 1 : 0);
+
     return ListView.builder(
       padding: const EdgeInsets.all(7),
       physics: const BouncingScrollPhysics(),
-      itemCount: filteredVariants.length,
+      itemCount: totalItemCount,
       itemBuilder: (context, i) {
-        final variant = filteredVariants[i];
+        if (hasLoadingBanner && i == 0) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: PlayerTheme.accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: PlayerTheme.accent.withValues(alpha: 0.3)),
+            ),
+            child: const Row(
+              children: [
+                SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: PlayerTheme.accent),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  'Searching additional subtitles online...',
+                  style: TextStyle(color: PlayerTheme.accent, fontSize: 11, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final variantIndex = hasLoadingBanner ? i - 1 : i;
+        final variant = filteredVariants[variantIndex];
         final isSelected = widget.isSubtitleEnabled && widget.selectedVariant?.downloadUrl == variant.downloadUrl;
 
         final isHI = variant.title.contains('[CC]') || variant.title.contains('SDH') || variant.title.contains('HI');

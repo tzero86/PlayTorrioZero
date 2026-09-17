@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../models/addon/addon.dart';
+import '../../models/movie/movie.dart';
 import '../../models/movie/movie_section.dart';
 import '../../models/stream/stream_model.dart';
 import '../../services/addon/addon_manager.dart';
+import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/home/home_page_settings.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../widgets/movie/movie_slider_section.dart';
@@ -228,21 +231,111 @@ class _SearchPageState extends State<SearchPage> {
       _isLoading = true;
       _lastQuery = trimmed;
       _isMagnetMode = false;
+      _results = [];
     });
 
-    try {
-      final results = await AddonManager.instance.searchAll(trimmed);
-      if (!mounted) return;
-      
+    final currentQuery = trimmed;
+
+    void addSection(MovieSection section, {bool isCloudStream = false}) {
+      if (!mounted || _lastQuery != currentQuery) return;
+      if (section.movies.isEmpty) return;
+
+      // Prevent duplicate sections
+      final exists = _results.any((s) =>
+          s.title == section.title &&
+          s.subtitle == section.subtitle &&
+          s.addonBaseUrl == section.addonBaseUrl);
+      if (exists) return;
+
       setState(() {
-        _results = results;
-        _isLoading = false;
+        if (!isCloudStream &&
+            (section.addonBaseUrl.contains('cinemeta') ||
+                section.subtitle.toLowerCase().contains('cinemeta'))) {
+          // Prioritize Cinemeta at the top
+          _results.insert(0, section);
+        } else {
+          _results.add(section);
+        }
       });
-    } catch (_) {
-      if (!mounted) return;
+    }
+
+    try {
+      // 1. Search Stremio Addons with dynamic streaming
+      final addonSearch = AddonManager.instance.searchAll(
+        currentQuery,
+        onSectionResult: (section) {
+          addSection(section, isCloudStream: false);
+        },
+      ).catchError((e) {
+        debugPrint('[SearchPage] Addon search error: $e');
+        return <MovieSection>[];
+      });
+
+      // 2. Search CloudStream Extensions with dynamic streaming
+      final csSearch = (CloudStreamManager.instance.activeExtensions.isNotEmpty
+          ? CloudStreamManager.instance.searchAcrossExtensions(
+              currentQuery,
+              onProviderResult: (providerName, items) {
+                if (!mounted || _lastQuery != currentQuery) return;
+                if (items.isEmpty) return;
+
+                final movies = <Movie>[];
+                for (final item in items) {
+                  final title = item['title']?.toString() ?? item['name']?.toString() ?? 'Unknown';
+                  final rawUrl = item['url']?.toString() ?? '';
+                  final sourceId = item['_sourceId']?.toString() ??
+                      'cs_${providerName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')}';
+                  final cover = item['cover']?.toString() ??
+                      item['poster']?.toString() ??
+                      item['image']?.toString();
+                  final isSeries = item['type'] == 1 ||
+                      item['type']?.toString().toLowerCase().contains('series') == true ||
+                      item['type']?.toString().toLowerCase().contains('tv') == true ||
+                      (item['extraData'] is Map &&
+                          (item['extraData'] as Map)['type']?.toString().toLowerCase().contains('series') == true);
+
+                  movies.add(
+                    Movie(
+                      id: 'cloudstream:$sourceId:${Uri.encodeComponent(rawUrl)}',
+                      name: title,
+                      poster: cover,
+                      year: item['year']?.toString() ??
+                          (item['extraData'] is Map ? (item['extraData'] as Map)['year']?.toString() : null),
+                      type: isSeries ? 'series' : 'movie',
+                      addonBaseUrl: 'cloudstream',
+                    ),
+                  );
+                }
+
+                if (movies.isNotEmpty) {
+                  final section = MovieSection(
+                    title: 'CloudStream • $providerName',
+                    subtitle: 'CloudStream Extension',
+                    contentType: 'movie',
+                    addonBaseUrl: 'cloudstream',
+                    catalog: AddonCatalog(
+                      type: 'movie',
+                      id: 'cs_$providerName',
+                      name: providerName,
+                    ),
+                    movies: movies,
+                  );
+                  addSection(section, isCloudStream: true);
+                }
+              },
+            )
+          : Future.value(<String, List<Map<String, dynamic>>>{})
+      ).catchError((e) {
+        debugPrint('[SearchPage] CloudStream search error: $e');
+        return <String, List<Map<String, dynamic>>>{};
+      });
+
+      await Future.wait([addonSearch, csSearch]);
+    } catch (_) {}
+
+    if (mounted && _lastQuery == currentQuery) {
       setState(() {
         _isLoading = false;
-        _results = [];
       });
     }
   }
@@ -399,11 +492,11 @@ class _SearchPageState extends State<SearchPage> {
               key: ValueKey(_magnetQuery),
               magnet: _magnetQuery,
             )
-          else if (_isLoading)
+          else if (_isLoading && _results.isEmpty)
             const Center(
               child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
             )
-          else if (_lastQuery.isNotEmpty && _results.isEmpty)
+          else if (!_isLoading && _lastQuery.isNotEmpty && _results.isEmpty)
             Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -433,13 +526,60 @@ class _SearchPageState extends State<SearchPage> {
                 bottom: 40 + MediaQuery.paddingOf(context).bottom,
               ),
               physics: const BouncingScrollPhysics(),
-              itemCount: _results.length,
+              itemCount: _results.length + (_isLoading ? 1 : 0),
               itemBuilder: (context, index) {
-                return MovieSliderSection(section: _results[index]);
+                if (index < _results.length) {
+                  final sec = _results[index];
+                  return MovieSliderSection(
+                    key: ValueKey('${sec.addonBaseUrl}_${sec.catalog.id}_${sec.subtitle}'),
+                    section: sec,
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  child: Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Color(0xFF7C5CFF),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Searching more sources...',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
             )
           else
             _buildDiscoveryEmptyState(topPadding),
+
+          if (_isLoading && _results.isNotEmpty)
+            Positioned(
+              top: topPadding + kToolbarHeight + 10,
+              left: 0,
+              right: 0,
+              child: const SizedBox(
+                height: 2,
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C5CFF)),
+                ),
+              ),
+            ),
         ],
       ),
     );

@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img height="20" src="https://img.shields.io/badge/v1.1.4-7C5CFF?style=flat" alt="Version"/>
+  <img height="20" src="https://img.shields.io/badge/v1.1.6-7C5CFF?style=flat" alt="Version"/>
   <img height="20" src="https://img.shields.io/badge/GPL--3.0-4169A1?style=flat" alt="License"/>
   <img height="20" src="https://img.shields.io/badge/Flutter-3.x-02569B?style=flat&logo=flutter&logoColor=white" alt="Flutter"/>
 </p>

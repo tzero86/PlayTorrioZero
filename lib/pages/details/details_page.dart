@@ -9,6 +9,7 @@ import '../../models/my_list/my_list_item.dart';
 import '../../services/metadata/bestsimilar_scraper.dart';
 import '../../services/metadata/metadata_service.dart';
 import '../../services/my_list/my_list_service.dart';
+import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../discover/discover_page.dart';
 import '../player/watch_screen.dart';
@@ -251,6 +252,53 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
     String effectiveBaseUrl = widget.movie.addonBaseUrl;
     String effectiveType = widget.movie.type;
     String effectiveId = widget.movie.id;
+
+    // Handle direct CloudStream detail resolution
+    if (effectiveId.startsWith('cloudstream:') || effectiveBaseUrl == 'cloudstream') {
+      final parts = effectiveId.split(':');
+      if (parts.length >= 3) {
+        final sourceId = parts[1];
+        final mediaUrl = Uri.decodeComponent(parts.sublist(2).join(':'));
+        final csDetail = await CloudStreamManager.instance.fetchCloudStreamDetail(
+          sourceId: sourceId,
+          mediaUrl: mediaUrl,
+          fallbackTitle: widget.movie.name,
+          fallbackPoster: widget.movie.poster,
+        );
+        if (csDetail != null) {
+          if (mounted) {
+            setState(() {
+              _detail = csDetail;
+              _resolvedType = csDetail.type;
+              _isLoading = false;
+
+              if (csDetail.videos.isNotEmpty) {
+                final seasons = csDetail.videos.map((v) => v.season).where((s) => s != null).toSet().toList();
+                seasons.sort();
+                if (seasons.isNotEmpty) {
+                  _selectedSeason = seasons.first;
+                  _updateEpisodesForSeason();
+                } else {
+                  _currentSeasonEpisodes = List.from(csDetail.videos);
+                }
+              }
+            });
+            _animController.forward();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                _updateSeasonScrollButtons();
+                _updateCastScrollButtons();
+                _updateRelatedScrollButtons();
+              }
+            });
+
+            _fetchSimilarContent();
+          }
+          return;
+        }
+      }
+    }
 
     if (effectiveId.startsWith('bestsimilar_') || effectiveBaseUrl.contains('bestsimilar')) {
       final yearNum = widget.movie.year != null ? int.tryParse(widget.movie.year!.replaceAll(RegExp(r'[^0-9]'), '')) : null;

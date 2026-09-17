@@ -109,6 +109,35 @@ enum Anime4KPreset {
   );
 }
 
+/// Hardware acceleration mode for video decoding in media_kit / libmpv.
+enum HardwareAccelerationMode {
+  autoSafe(
+    'Auto-Safe (Hardware Accelerated)',
+    'auto-safe',
+    'GPU hardware decoding with safe driver fallbacks (recommended)',
+  ),
+  software(
+    'Software Decoding (Crash-Proof)',
+    'no',
+    'Pure CPU decoding using FFmpeg libavcodec. Guarantees frame rendering and eliminates black screens.',
+  ),
+  forceHardware(
+    'Direct Hardware',
+    'auto',
+    'Direct GPU hardware decoding (Direct3D 11 / MediaCodec / VAAPI).',
+  );
+
+  final String label;
+  final String mpvValue;
+  final String description;
+
+  const HardwareAccelerationMode(
+    this.label,
+    this.mpvValue,
+    this.description,
+  );
+}
+
 /// Central service managing video engine properties, Anime4K upscaling, and subtitle customization
 /// using media_kit / libmpv.
 ///
@@ -118,6 +147,8 @@ enum Anime4KPreset {
 abstract final class PlayerSettings {
   // Video & Anime4K Upscaling Keys
   static const _keyAnime4kPreset = 'player_anime4k_preset';
+  static const _keyHwdecMode = 'player_hwdec_mode';
+  static const _keyAutoRecoverBlackScreen = 'player_auto_recover_black_screen';
 
   // Subtitle Customization Keys
   static const _keySubStylePreset = 'player_sub_style_preset';
@@ -138,6 +169,7 @@ abstract final class PlayerSettings {
   static const _keySubAssOverride = 'player_sub_ass_override';
   static const _keyUseLibass = 'player_use_libass';
   static const _keyEnableSurfaceProducer = 'player_enable_surface_producer';
+  static const _keyPlayerVolume = 'player_saved_volume';
 
   // Hardcoded engine defaults — not user-configurable
   // autoResyncOnStall and hardwareAudioClock are kept as ValueNotifiers for
@@ -145,8 +177,18 @@ abstract final class PlayerSettings {
   static final ValueNotifier<bool> autoResyncOnStall = ValueNotifier<bool>(true);
   static final ValueNotifier<bool> hardwareAudioClock = ValueNotifier<bool>(true);
 
+  /// Persisted player volume across sessions (0.0 to 2.50). Default: 1.0 (100%).
+  static final ValueNotifier<double> savedVolume = ValueNotifier<double>(1.0);
+
   /// Android Direct Surface (SurfaceProducer / SurfaceView) toggle. Default: false (off).
   static final ValueNotifier<bool> enableSurfaceProducer = ValueNotifier<bool>(false);
+
+  /// Hardware acceleration mode for video decoding. Default: autoSafe.
+  static final ValueNotifier<HardwareAccelerationMode> hwdecMode =
+      ValueNotifier<HardwareAccelerationMode>(HardwareAccelerationMode.autoSafe);
+
+  /// Automatically fall back to software decoding if hardware decoder produces black screen / stalls. Default: true.
+  static final ValueNotifier<bool> autoRecoverBlackScreen = ValueNotifier<bool>(true);
 
   // Anime4K Video Upscaling ValueNotifier
   static final ValueNotifier<Anime4KPreset> anime4kPreset =
@@ -204,6 +246,9 @@ abstract final class PlayerSettings {
   static Future<void> initialize() async {
     final prefs = await SharedPreferences.getInstance();
 
+    // Load Persisted Player Volume
+    savedVolume.value = prefs.getDouble(_keyPlayerVolume) ?? 1.0;
+
     // Load Anime4K Upscaling Preference
     final anime4kPresetStr = prefs.getString(_keyAnime4kPreset);
     if (anime4kPresetStr != null) {
@@ -238,6 +283,16 @@ abstract final class PlayerSettings {
     subAssOverride.value = prefs.getString(_keySubAssOverride) ?? 'no';
     useLibass.value = prefs.getBool(_keyUseLibass) ?? false;
     enableSurfaceProducer.value = prefs.getBool(_keyEnableSurfaceProducer) ?? false;
+
+    // Load Hardware Decoding Preference
+    final hwdecModeStr = prefs.getString(_keyHwdecMode);
+    if (hwdecModeStr != null) {
+      hwdecMode.value = HardwareAccelerationMode.values.firstWhere(
+        (m) => m.name == hwdecModeStr,
+        orElse: () => HardwareAccelerationMode.autoSafe,
+      );
+    }
+    autoRecoverBlackScreen.value = prefs.getBool(_keyAutoRecoverBlackScreen) ?? true;
 
     // Extract bundled font for libass fallback
     await _extractLibassFontFallback();
@@ -347,12 +402,14 @@ abstract final class PlayerSettings {
   }
 
   /// Returns a configured [VideoControllerConfiguration] for media_kit [VideoController].
-  /// Uses 'auto-safe' — MPV picks the best hardware decoder natively with automatic software fallback.
+  /// Uses user-selected [hwdecMode] with 'auto-safe' default.
+  /// androidAttachSurfaceAfterVideoParameters is set to false so surfaces attach immediately,
+  /// eliminating MediaCodec initialization deadlocks and black screens.
   static VideoControllerConfiguration getVideoControllerConfiguration() {
     return VideoControllerConfiguration(
-      hwdec: 'auto-safe',
+      hwdec: hwdecMode.value.mpvValue,
       enableHardwareAcceleration: true,
-      androidAttachSurfaceAfterVideoParameters: true,
+      androidAttachSurfaceAfterVideoParameters: false,
       enableAndroidSurfaceProducer: enableSurfaceProducer.value,
     );
   }
@@ -400,8 +457,11 @@ abstract final class PlayerSettings {
       await platform.setProperty('af', 'scaletempo2=max-speed=8');
       await platform.setProperty('volume-max', '200');
 
-      // 2. Hardware Decoder — let MPV pick natively
-      await platform.setProperty('hwdec', 'auto-safe');
+      // 2. Hardware Decoder — configured from user preferences or auto-safe default
+      await platform.setProperty('hwdec', hwdecMode.value.mpvValue);
+      await platform.setProperty('framedrop', 'vo');
+      await platform.setProperty('tone-mapping', 'auto');
+      await platform.setProperty('target-colorspace-hint', 'yes');
 
       // 3. Libass Engine & Font directory pre-configuration
       if (useLibass.value) {
@@ -468,10 +528,10 @@ abstract final class PlayerSettings {
       // Network Stream Continuity (Live IPTV vs VOD separation)
       await applyStreamContinuity(player, isLive: isLive);
 
-      // Native HLS & image-disguised (.jpg/.png) stream probing
+      // Fast probing to avoid stream startup freezes and demuxer timeouts
       await platform.setProperty('hls-bitrate', 'max');
-      await platform.setProperty('demuxer-lavf-probesize', '32768000');
-      await platform.setProperty('demuxer-lavf-analyzeduration', '20');
+      await platform.setProperty('demuxer-lavf-probesize', isLive ? '4194304' : '8388608');
+      await platform.setProperty('demuxer-lavf-analyzeduration', isLive ? '3' : '5');
       await platform.setProperty('demuxer-lavf-o', 'strict=experimental');
     } catch (e) {
       debugPrint('[PlayerSettings] applyPreOpenProperties warning: $e');
@@ -566,6 +626,50 @@ abstract final class PlayerSettings {
     }
 
     return false;
+  }
+
+  /// Checks if an error emitted by MPV indicates a hardware decoding or video pipeline failure.
+  static bool isHardwareDecoderError(dynamic err) {
+    if (err == null) return false;
+    final lower = err.toString().toLowerCase();
+    return lower.contains('hardware decoder') ||
+        lower.contains('hwdec') ||
+        lower.contains('error while decoding') ||
+        lower.contains('cannot load nvcuda') ||
+        lower.contains('d3d11va') ||
+        lower.contains('vaapi') ||
+        lower.contains('mediacodec: failed') ||
+        lower.contains('could not open codec') ||
+        lower.contains('failed to configure mediacodec') ||
+        lower.contains('shader compilation failed') ||
+        lower.contains('glsl') ||
+        lower.contains('egl_bad_attribute') ||
+        lower.contains('unsupported pixel format');
+  }
+
+  /// Dynamically forces software decoding on an active player (e.g. when watchdog detects black screen).
+  /// Re-syncs the decoder and re-evaluates the video track smoothly without crashing.
+  static Future<bool> fallbackToSoftware(Player player) async {
+    try {
+      final dynamic platform = player.platform;
+      if (platform == null) return false;
+
+      debugPrint('[PlayerSettings] Triggering dynamic fallback to Software Decoding (hwdec: no)...');
+      // 1. Clear any active GLSL shaders that might have failed compilation or overloaded GPU
+      await platform.setProperty('glsl-shaders', '');
+      // 2. Set hardware decoding to 'no' (pure CPU software decoding with FFmpeg libavcodec)
+      await platform.setProperty('hwdec', 'no');
+      // 3. Ensure video track is enabled and auto-selected
+      await platform.setProperty('vid', 'auto');
+      // 4. Force decoder re-init and keyframe refresh at current position
+      final currentPos = player.state.position;
+      await player.seek(currentPos);
+      debugPrint('[PlayerSettings] Dynamic fallback to Software Decoding applied successfully.');
+      return true;
+    } catch (e) {
+      debugPrint('[PlayerSettings] Error during software fallback: $e');
+      return false;
+    }
   }
 
   /// Automatically resolves all required Referer, Origin, and User-Agent headers for known streaming CDNs.
@@ -1068,12 +1172,39 @@ abstract final class PlayerSettings {
     _notify();
   }
 
+  static Future<void> setHwdecMode(HardwareAccelerationMode mode) async {
+    hwdecMode.value = mode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyHwdecMode, mode.name);
+    _notify();
+  }
+
+  static Future<void> setAutoRecoverBlackScreen(bool val) async {
+    autoRecoverBlackScreen.value = val;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyAutoRecoverBlackScreen, val);
+    _notify();
+  }
+
+  static Future<void> setSavedVolume(double val) async {
+    final clamped = val.clamp(0.0, 2.50);
+    savedVolume.value = clamped;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyPlayerVolume, clamped);
+  }
+
   static Future<void> resetToDefaults() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_keyAnime4kPreset);
     await prefs.remove(_keyEnableSurfaceProducer);
+    await prefs.remove(_keyHwdecMode);
+    await prefs.remove(_keyAutoRecoverBlackScreen);
+    await prefs.remove(_keyPlayerVolume);
     anime4kPreset.value = Anime4KPreset.off;
     enableSurfaceProducer.value = false;
+    hwdecMode.value = HardwareAccelerationMode.autoSafe;
+    autoRecoverBlackScreen.value = true;
+    savedVolume.value = 1.0;
     await resetSubtitleDefaults();
   }
 

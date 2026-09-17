@@ -64,7 +64,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
   bool _showAspectHud = false;
   String _aspectHudText = '';
   Timer? _aspectHudTimer;
-  double _volume = 1.0;
+  late double _volume = PlayerSettings.savedVolume.value;
   bool _isMuted = false;
   bool _showVolumeHud = false;
   Timer? _volumeHudTimer;
@@ -73,6 +73,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
   Duration _lastPosition = Duration.zero;
   DateTime _lastPositionChange = DateTime.now();
   int _retryCount = 0;
+  bool _hasFallenBackToSoftware = false;
 
   bool get _isLiveStream {
     if (widget.isLive != null) return widget.isLive!;
@@ -99,6 +100,8 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
   @override
   void initState() {
     super.initState();
+    _volume = PlayerSettings.savedVolume.value;
+    _isMuted = _volume == 0;
     _wasFullscreenBeforeEntering = WindowService.instance.isFullscreen;
     WakelockPlus.enable();
     _activeHitIndex = widget.initialHitIndex.clamp(0, widget.hits.length - 1);
@@ -128,6 +131,13 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
       }),
       _player.stream.error.listen((error) {
         debugPrint('[IPTV Player Error] $error');
+        if (PlayerSettings.isHardwareDecoderError(error) &&
+            !_hasFallenBackToSoftware &&
+            PlayerSettings.autoRecoverBlackScreen.value) {
+          _hasFallenBackToSoftware = true;
+          debugPrint('[IPTV Player Error] Hardware decoder failed. Falling back to software decoding...');
+          PlayerSettings.fallbackToSoftware(_player);
+        }
       }),
     ]);
 
@@ -183,6 +193,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
 
     final currentHit = widget.hits[_activeHitIndex];
     final streamUrl = currentHit.streamUrl;
+    _hasFallenBackToSoftware = false;
 
     setState(() {
       _isLoading = true;
@@ -273,6 +284,17 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
       if (isPlaying && currentPos != _lastPosition) {
         _lastPosition = currentPos;
         _lastPositionChange = DateTime.now();
+      }
+
+      // Black screen detection: Audio playing, position advancing past 2.5s, but video width is null/0
+      if (isPlaying &&
+          currentPos > const Duration(milliseconds: 2500) &&
+          (_player.state.width == null || _player.state.width == 0) &&
+          !_hasFallenBackToSoftware &&
+          PlayerSettings.autoRecoverBlackScreen.value) {
+        _hasFallenBackToSoftware = true;
+        debugPrint('[IPTV Watchdog] Black screen detected on channel stream! Falling back to software decoding...');
+        PlayerSettings.fallbackToSoftware(_player);
       }
 
       // If live and position frozen for > 10 seconds, trigger reconnect
@@ -375,6 +397,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
       _player.setVolume(_isMuted ? 0.0 : _volume * 100.0);
       _showVolumeHud = true;
     });
+    PlayerSettings.setSavedVolume(_volume);
     _volumeHudTimer?.cancel();
     _volumeHudTimer = Timer(const Duration(milliseconds: 1600), () {
       if (mounted) setState(() => _showVolumeHud = false);
@@ -485,30 +508,22 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                // Video Surface
-                if (!_isLoading)
-                  Center(
-                    child: SizedBox.expand(
-                      child: ValueListenableBuilder<int>(
-                        valueListenable: PlayerSettings.changeNotifier,
-                        builder: (context, _, __) {
-                          return Video(
-                            controller: _videoController,
-                            fit: _videoFit,
-                            controls: NoVideoControls,
-                            subtitleViewConfiguration: PlayerSettings.getSubtitleViewConfiguration(),
-                          );
-                        },
-                      ),
-                    ),
-                  )
-                else
-                  Center(
-                    child: Text(
-                      _statusMessage,
-                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                // Video Surface is ALWAYS mounted to prevent texture/surface detachment and black screens
+                Center(
+                  child: SizedBox.expand(
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: PlayerSettings.changeNotifier,
+                      builder: (context, _, __) {
+                        return Video(
+                          controller: _videoController,
+                          fit: _videoFit,
+                          controls: NoVideoControls,
+                          subtitleViewConfiguration: PlayerSettings.getSubtitleViewConfiguration(),
+                        );
+                      },
                     ),
                   ),
+                ),
 
                 // Loading / Buffering Banner
                 if (_isLoading)
@@ -885,7 +900,10 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                                 });
                                                 _hideControlsTimer?.cancel();
                                               },
-                                              onChangeEnd: (_) => _startHideControlsTimer(),
+                                              onChangeEnd: (val) {
+                                                PlayerSettings.setSavedVolume(val);
+                                                _startHideControlsTimer();
+                                              },
                                             ),
                                           ),
                                         ),

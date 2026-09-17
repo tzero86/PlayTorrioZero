@@ -8,7 +8,6 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../services/theme/app_theme_service.dart';
-import '../../services/theme/dock_settings.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/iptv/iptv_controller.dart';
 import '../../models/iptv/iptv_models.dart';
@@ -740,8 +739,11 @@ if (i < quickChannels.length) {
       _cells[newIndex] = oldCell;
       oldCell.index = newIndex;
       newCell.index = oldIndex;
-      if (_fullscreenIndex == oldIndex) _fullscreenIndex = newIndex;
-      else if (_fullscreenIndex == newIndex) _fullscreenIndex = oldIndex;
+      if (_fullscreenIndex == oldIndex) {
+        _fullscreenIndex = newIndex;
+      } else if (_fullscreenIndex == newIndex) {
+        _fullscreenIndex = oldIndex;
+      }
     });
     _saveSession();
 }
@@ -896,7 +898,7 @@ final gridContent = _fullscreenIndex != null
         bottom: 24,
         left: 0,
         right: 0,
-        child: Center(child: AppLiquidDock(currentDestination: DockItemKey.multiNutz)),
+        child: Center(child: AppLiquidDock(currentDestination: null)),
       ),
     ];
 
@@ -1151,6 +1153,15 @@ final gridContent = _fullscreenIndex != null
             children: [
               // Left: title + layout label
               Row(mainAxisSize: MainAxisSize.min, children: [
+                if (Navigator.canPop(context)) ...[
+                  _buildGlassButton(
+                    icon: Icons.arrow_back_rounded,
+                    isSelected: false,
+                    tooltip: 'Back to Live TV',
+                    onTap: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
@@ -1161,7 +1172,7 @@ final gridContent = _fullscreenIndex != null
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(Icons.dashboard_rounded, color: Colors.white, size: 18),
                     SizedBox(width: 6),
-                    Text('MULTINUTZ', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
+                    Text('MULTI STREAMS', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
                   ]),
                 ),
                 const SizedBox(width: 10),

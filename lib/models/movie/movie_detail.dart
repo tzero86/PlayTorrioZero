@@ -45,6 +45,44 @@ class MovieDetail {
       id.startsWith('ctmdb.') ||
       name.toLowerCase().endsWith('collection');
 
+  MovieDetail copyWith({
+    String? id,
+    String? type,
+    String? name,
+    String? poster,
+    String? background,
+    String? logo,
+    String? description,
+    String? year,
+    String? imdbRating,
+    List<String>? genres,
+    List<String>? cast,
+    List<String>? director,
+    String? runtime,
+    List<Link>? links,
+    List<Video>? videos,
+    String? tmdbId,
+  }) {
+    return MovieDetail(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      name: name ?? this.name,
+      poster: poster ?? this.poster,
+      background: background ?? this.background,
+      logo: logo ?? this.logo,
+      description: description ?? this.description,
+      year: year ?? this.year,
+      imdbRating: imdbRating ?? this.imdbRating,
+      genres: genres ?? this.genres,
+      cast: cast ?? this.cast,
+      director: director ?? this.director,
+      runtime: runtime ?? this.runtime,
+      links: links ?? this.links,
+      videos: videos ?? this.videos,
+      tmdbId: tmdbId ?? this.tmdbId,
+    );
+  }
+
   factory MovieDetail.fromJson(Map<String, dynamic> json) {
     return MovieDetail(
       id: json['id']?.toString() ?? '',

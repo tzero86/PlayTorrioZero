@@ -222,6 +222,178 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 ),
               ),
 
+              // ── Section: Hardware Acceleration & Decoding Engine ──
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Text(
+                    'HARDWARE ACCELERATION & DECODING',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                      color: palette.primaryColor,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: palette.primaryColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      'All Platforms',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: palette.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              ValueListenableBuilder<HardwareAccelerationMode>(
+                valueListenable: PlayerSettings.hwdecMode,
+                builder: (context, currentMode, _) {
+                  return Column(
+                    children: [
+                      _buildHwdecCard(
+                        mode: HardwareAccelerationMode.autoSafe,
+                        title: 'Auto-Safe (Recommended)',
+                        subtitle: 'GPU hardware decoding with safe driver fallbacks. Best efficiency for most PCs and devices.',
+                        badgeText: 'Default',
+                        badgeColor: palette.primaryColor,
+                        icon: Icons.speed_rounded,
+                        currentMode: currentMode,
+                        palette: palette,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildHwdecCard(
+                        mode: HardwareAccelerationMode.software,
+                        title: 'Software Decoding (Crash-Proof)',
+                        subtitle: 'Pure CPU decoding via FFmpeg libavcodec. Eliminates black screens and driver lockups on older GPUs or virtual machines.',
+                        badgeText: '100% Reliable',
+                        badgeColor: const Color(0xFF10B981),
+                        icon: Icons.memory_rounded,
+                        currentMode: currentMode,
+                        palette: palette,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildHwdecCard(
+                        mode: HardwareAccelerationMode.forceHardware,
+                        title: 'Direct Hardware',
+                        subtitle: 'Direct GPU decoding (Direct3D 11 / MediaCodec / VAAPI). Fastest on modern high-end graphics.',
+                        badgeText: 'Max GPU',
+                        badgeColor: Colors.amber,
+                        icon: Icons.bolt_rounded,
+                        currentMode: currentMode,
+                        palette: palette,
+                      ),
+                    ],
+                  );
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              // Auto-Recover Black Screens Toggle Card
+              ValueListenableBuilder<bool>(
+                valueListenable: PlayerSettings.autoRecoverBlackScreen,
+                builder: (context, autoRecover, _) {
+                  return Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: autoRecover
+                          ? palette.primaryColor.withValues(alpha: 0.08)
+                          : const Color(0xFF0E121B),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: autoRecover
+                            ? palette.primaryColor.withValues(alpha: 0.4)
+                            : Colors.white.withValues(alpha: 0.08),
+                        width: autoRecover ? 1.5 : 1.0,
+                      ),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: autoRecover
+                                ? palette.primaryColor.withValues(alpha: 0.20)
+                                : Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.shield_rounded,
+                            color: autoRecover ? palette.primaryColor : Colors.white70,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Auto-Recover Black Screens',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Text(
+                                      'Active Watchdog',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                'Monitors stream startup. If audio plays for 2.5s without video frames (or if GPU decoder errors occur), the player automatically falls back to software decoding in real time.',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  color: Colors.white.withValues(alpha: 0.55),
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Switch.adaptive(
+                          value: autoRecover,
+                          activeColor: palette.primaryColor,
+                          onChanged: (val) {
+                            PlayerSettings.setAutoRecoverBlackScreen(val);
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+
               // ── Section: Android Rendering Engine ──
               const SizedBox(height: 28),
               Row(
@@ -459,6 +631,133 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHwdecCard({
+    required HardwareAccelerationMode mode,
+    required String title,
+    required String subtitle,
+    required String badgeText,
+    required Color badgeColor,
+    required IconData icon,
+    required HardwareAccelerationMode currentMode,
+    required dynamic palette,
+  }) {
+    final isSelected = mode == currentMode;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => PlayerSettings.setHwdecMode(mode),
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? palette.primaryColor.withValues(alpha: 0.10)
+                : const Color(0xFF0E121B),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected
+                  ? palette.primaryColor
+                  : Colors.white.withValues(alpha: 0.08),
+              width: isSelected ? 1.5 : 1.0,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? palette.primaryColor.withValues(alpha: 0.22)
+                      : Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  color: isSelected ? palette.primaryColor : Colors.white70,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.85),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: badgeColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: badgeColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: Colors.white.withValues(alpha: 0.55),
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 20,
+                height: 20,
+                margin: const EdgeInsets.only(top: 2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected ? palette.primaryColor : Colors.white30,
+                    width: 2,
+                  ),
+                ),
+                child: isSelected
+                    ? Center(
+                        child: Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: palette.primaryColor,
+                          ),
+                        ),
+                      )
+                    : null,
+              ),
+            ],
+          ),
         ),
       ),
     );

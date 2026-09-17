@@ -18,6 +18,7 @@ import 'extractors/one_two_three_anime_extractor.dart';
 import 'extractors/anihq_extractor.dart';
 import 'extractors/anipm_extractor.dart';
 import 'extractors/vidnest_extractor.dart';
+import '../cloudstream/cloudstream_manager.dart';
 
 class AnimeScraperService {
   static final AnimeScraperService instance = AnimeScraperService._internal();
@@ -584,6 +585,39 @@ class AnimeScraperService {
         );
       }
 
+      // 13. CloudStream Extensions (HiAnime, AnimePahe, etc.)
+      if (CloudStreamManager.isSupported && CloudStreamManager.instance.activeExtensions.isNotEmpty) {
+        final mainTitle = anime.titleEnglish.isNotEmpty ? anime.titleEnglish : anime.displayTitle;
+        final altTitles = titleCandidates.where((t) => t != mainTitle).toList();
+
+        tasks.add(
+          () async {
+            try {
+              await for (final src in CloudStreamManager.instance.scrapeStreams(
+                type: 'anime',
+                title: mainTitle,
+                episode: episodeNumber,
+                genres: anime.genres,
+                alternativeTitles: altTitles,
+              )) {
+                if (categoryFilter != null) {
+                  final isDub = (src.description?.toLowerCase().contains('dub') ?? false) ||
+                      (src.name?.toLowerCase().contains('dub') ?? false);
+                  if (categoryFilter.toLowerCase() == 'sub' && isDub) continue;
+                  if (categoryFilter.toLowerCase() == 'dub' && !isDub) continue;
+                }
+
+                if (src.url != null && seenUrls.add(src.url!) && !controller.isClosed) {
+                  controller.add(src);
+                }
+              }
+            } catch (e) {
+              if (kDebugMode) debugPrint('[AnimeScraper] CloudStream anime scrape error: $e');
+            }
+          }(),
+        );
+      }
+
       await Future.wait(tasks);
       if (!controller.isClosed) {
         controller.close();
@@ -1117,6 +1151,39 @@ class AnimeScraperService {
               );
             }
           }).catchError((_) {}),
+        );
+      }
+
+      // 13. CloudStream Extensions (HiAnime, AnimePahe, etc.)
+      if (CloudStreamManager.isSupported && CloudStreamManager.instance.activeExtensions.isNotEmpty) {
+        final mainTitle = titleCandidates.first;
+        final altTitles = titleCandidates.skip(1).toList();
+
+        tasks.add(
+          () async {
+            try {
+              await for (final src in CloudStreamManager.instance.scrapeStreams(
+                type: 'anime',
+                title: mainTitle,
+                episode: episodeNumber,
+                genres: const ['Animation', 'Anime'],
+                alternativeTitles: altTitles,
+              )) {
+                if (categoryFilter != null) {
+                  final isDub = (src.description?.toLowerCase().contains('dub') ?? false) ||
+                      (src.name?.toLowerCase().contains('dub') ?? false);
+                  if (categoryFilter.toLowerCase() == 'sub' && isDub) continue;
+                  if (categoryFilter.toLowerCase() == 'dub' && !isDub) continue;
+                }
+
+                if (src.url != null && seenUrls.add(src.url!) && !controller.isClosed) {
+                  controller.add(src);
+                }
+              }
+            } catch (e) {
+              if (kDebugMode) debugPrint('[AnimeScraper] CloudStream in-player error: $e');
+            }
+          }(),
         );
       }
 

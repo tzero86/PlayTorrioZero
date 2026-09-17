@@ -208,6 +208,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
       year: year,
       season: ep.season,
       episode: ep.episode,
+      genres: detail?.genres,
     ).listen(
       (source) {
         if (!mounted) return;

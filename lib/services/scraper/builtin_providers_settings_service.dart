@@ -116,6 +116,15 @@ class BuiltinProvidersSettingsService extends ChangeNotifier {
       final savedDisabled = prefs.getStringList(_prefDisabledKey);
       if (savedDisabled != null) {
         _disabledIds = savedDisabled.toSet();
+        // If all or virtually all providers are disabled, it was almost certainly an accidental "Disable All"
+        // or broken preference state that shuts down PlayTorrioHTTP entirely. Restore all enabled.
+        if (_disabledIds.length >= defaultProviders.length - 1) {
+          debugPrint('[BuiltinProvidersSettingsService] Detected all or almost all providers disabled in custom mode (${_disabledIds.length}/${defaultProviders.length}). Resetting to enabled to prevent scraping outage.');
+          _disabledIds.clear();
+          _mode = BuiltinProvidersMode.defaultMode;
+          await prefs.setString(_prefModeKey, 'default');
+          await prefs.setStringList(_prefDisabledKey, []);
+        }
       } else {
         _disabledIds = {};
       }

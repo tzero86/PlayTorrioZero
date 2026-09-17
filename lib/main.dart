@@ -9,6 +9,7 @@ import 'package:window_manager/window_manager.dart';
 
 import './pages/home/home_page.dart';
 import './services/addon/addon_manager.dart';
+import './services/cloudstream/cloudstream_manager.dart';
 import './services/theme/app_theme_service.dart';
 import './services/updater/app_updater_service.dart';
 import './services/books/continue_reading_service.dart';
@@ -39,6 +40,7 @@ import 'package:flutter/foundation.dart';
 import './services/diagnostics/perf_monitor.dart';
 import './services/diagnostics/renderer_backend.dart';
 import './widgets/debug/perf_hud.dart';
+import './services/scraper/builtin_providers_settings_service.dart';
 import './widgets/updater/update_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -95,6 +97,11 @@ Future<void> _initializeDeferredServices() async {
 
   await Future.wait([
     guard('AddonManager', AddonManager.instance.initialize),
+    guard('CloudStreamManager', CloudStreamManager.instance.initialize),
+    guard(
+      'BuiltinProvidersSettingsService',
+      BuiltinProvidersSettingsService.instance.init,
+    ),
     guard('AudiobookSettings', AudiobookSettings.initialize),
     guard('ContinueReadingService', ContinueReadingService.initialize),
     guard('ReaderSettings', ReaderSettings.initialize),

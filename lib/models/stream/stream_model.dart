@@ -1,3 +1,5 @@
+import '../subtitle/subtitle_model.dart';
+
 /// Models for Stremio stream sources.
 
 class StreamSource {
@@ -14,6 +16,7 @@ class StreamSource {
   final Map<String, String>? headers;
   final String? providerId;
   final String? providerName;
+  final List<SubtitleVariant>? subtitles;
 
   StreamSource({
     this.name,
@@ -29,6 +32,7 @@ class StreamSource {
     this.headers,
     this.providerId,
     this.providerName,
+    this.subtitles,
   });
 
   StreamSource copyWith({
@@ -45,6 +49,7 @@ class StreamSource {
     Map<String, String>? headers,
     String? providerId,
     String? providerName,
+    List<SubtitleVariant>? subtitles,
   }) {
     return StreamSource(
       name: name ?? this.name,
@@ -60,6 +65,7 @@ class StreamSource {
       headers: headers ?? this.headers,
       providerId: providerId ?? this.providerId,
       providerName: providerName ?? this.providerName,
+      subtitles: subtitles ?? this.subtitles,
     );
   }
 
@@ -94,6 +100,29 @@ class StreamSource {
       }
     }
 
+    List<SubtitleVariant>? subs;
+    final rawSubs = json['subtitles'] ?? hints?['subtitles'];
+    if (rawSubs is List) {
+      subs = [];
+      for (final s in rawSubs) {
+        if (s is Map) {
+          final file = s['url']?.toString() ?? s['file']?.toString();
+          if (file != null && file.isNotEmpty) {
+            final lang = s['lang']?.toString() ?? s['language']?.toString() ?? s['label']?.toString() ?? 'English';
+            subs.add(SubtitleVariant(
+              providerName: addonName,
+              language: lang,
+              title: s['title']?.toString() ?? '$lang ($addonName)',
+              downloadUrl: file,
+              format: (s['format']?.toString() ?? (file.contains('.vtt') ? 'vtt' : 'srt')).toLowerCase(),
+              extraData: s['headers'] is Map ? {'headers': Map<String, String>.from(s['headers'] as Map)} : const {},
+            ));
+          }
+        }
+      }
+      if (subs.isEmpty) subs = null;
+    }
+
     return StreamSource(
       name: json['name']?.toString(),
       title: json['title']?.toString(),
@@ -108,6 +137,7 @@ class StreamSource {
       headers: headersMap,
       providerId: json['providerId']?.toString(),
       providerName: json['providerName']?.toString(),
+      subtitles: subs,
     );
   }
 

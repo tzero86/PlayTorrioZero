@@ -487,7 +487,11 @@ class AddonManager {
   }
 
   /// Search across all active addons that support search.
-  Future<List<MovieSection>> searchAll(String query) async {
+  /// Optionally streams each [MovieSection] via [onSectionResult] as soon as it arrives.
+  Future<List<MovieSection>> searchAll(
+    String query, {
+    void Function(MovieSection section)? onSectionResult,
+  }) async {
     final active = activeSearchAddons;
     final futures = <Future<MovieSection?>>[];
 
@@ -516,7 +520,7 @@ class AddonManager {
               return scoreB.compareTo(scoreA);
             });
 
-            return MovieSection(
+            final section = MovieSection(
               title: _catalogDisplayName(catalog),
               subtitle: addon.manifest.name,
               contentType: catalog.type,
@@ -524,6 +528,9 @@ class AddonManager {
               catalog: catalog,
               movies: sortedMovies,
             );
+
+            onSectionResult?.call(section);
+            return section;
           } catch (_) {
             return null;
           }

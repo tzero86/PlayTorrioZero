@@ -12,9 +12,14 @@ class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.playtorrio/power"
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null
+    private var cloudStreamBridge: CloudStreamNativeBridge? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+
+        cloudStreamBridge = CloudStreamNativeBridge(applicationContext, this).apply {
+            register(flutterEngine)
+        }
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -71,6 +76,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         try {
+            cloudStreamBridge?.destroy()
             if (wifiLock?.isHeld == true) wifiLock?.release()
             if (wakeLock?.isHeld == true) wakeLock?.release()
         } catch (_: Exception) {}
