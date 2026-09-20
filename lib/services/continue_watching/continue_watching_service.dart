@@ -27,6 +27,7 @@ import '../simkl/simkl_continue_watching_service.dart';
 class ContinueWatchingService {
   static const _storageKey = 'continue_watching_sessions_v1';
 
+
   static final ValueNotifier<List<ContinueWatchingItem>> activeItems =
       ValueNotifier<List<ContinueWatchingItem>>([]);
 

@@ -175,7 +175,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
           context,
         );
       }
-      for (var i = _currentPageIndex - 1; i <= _currentPageIndex + 1; i++) {
+      for (var i = _currentPageIndex - 2; i <= _currentPageIndex + 2; i++) {
         if (i < 0 || i >= urls.length) continue;
         precacheImage(
           ResizeImage.resizeIfNeeded(

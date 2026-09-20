@@ -89,6 +89,7 @@ class _HomePageState extends State<HomePage> {
   /// Coalesces rapid 18+ switch flips into one trailing [_loadHome], mirroring
   /// [_similarDebounce] so a toggle never fans out into overlapping home loads.
   Timer? _adultReloadDebounce;
+  Timer? _animeRefreshDebounce;
   List<MovieSection> get _visibleSections => _sections
       .map(_filterSection)
       .where((section) => section.movies.isNotEmpty)
@@ -234,24 +235,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// The anime rows and the catalog/recommendation caches were built under the
-  /// old switch value, so evict the adult-sensitive caches, clear the rows
-  /// immediately, and reload the main sections on a trailing debounce.
+  /// old switch value, so invalidate the recommendation cache immediately.
+  /// Rows themselves are kept visible (stale-while-refresh); only the affected
+  /// rows are refreshed independently so the UI never goes blank.
   void _onAdultContentChanged() {
     if (!mounted) return;
     MetadataService.clearCatalogCache();
     HomePageSettings.clearRecommendationCache();
     _adultReloadDebounce?.cancel();
-    setState(() {
-      _animeRows.clear();
-      _animeLoaded = false;
-    });
-    if (_selectedFilter == _HomeFilter.anime ||
-        _selectedFilter == _HomeFilter.all) {
-      _ensureAnimeRows();
-    }
-    _adultReloadDebounce = Timer(const Duration(milliseconds: 800), () {
+    _animeRefreshDebounce?.cancel();
+    // Do NOT clear _animeRows here; keep stale rows visible. Instead, schedule a
+    // per-row refresh so each anime row updates independently on the trailing debounce.
+    _animeRefreshDebounce = Timer(const Duration(milliseconds: 800), () {
       if (!mounted) return;
-      _loadHome();
+      _ensureAnimeRows();
     });
   }
 

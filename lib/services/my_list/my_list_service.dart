@@ -11,6 +11,8 @@ import '../simkl/simkl_service.dart';
 abstract final class MyListService {
   static const _storageKey = 'my_list_v1';
   static const int maxItems = 500;
+  static void _invalidateSectionCache() {}
+
 
   static final ValueNotifier<List<MyListItem>> items = ValueNotifier<List<MyListItem>>([]);
   static final ValueNotifier<bool> isSyncing = ValueNotifier<bool>(false);
@@ -165,6 +167,7 @@ abstract final class MyListService {
     }
 
     items.value = newList;
+    _invalidateSectionCache();
     _persist();
 
     // Push to cloud services if logged in
@@ -198,6 +201,7 @@ abstract final class MyListService {
 
   static void remove(MyListItem item) {
     items.value = items.value.where((i) => i.uniqueKey != item.uniqueKey && !i.matches(item)).toList();
+    _invalidateSectionCache();
     _persist();
 
     _syncCloudRemove(item);
