@@ -13,7 +13,7 @@ class AppUpdaterService {
   /// project: the updater downloads and installs whatever it finds here, so
   /// upstream assets would overwrite this build. Upstream changes are pulled
   /// in deliberately via git, never via the in-app updater.
-  static const String githubRepo = 'tzero86/PlayTorrioZero';
+  static const String githubRepo = 'tzero86/ZPlay';
   static const String githubApiUrl =
       'https://api.github.com/repos/$githubRepo/releases/latest';
   static const String _keyDismissedVersion = 'dismissed_update_version';

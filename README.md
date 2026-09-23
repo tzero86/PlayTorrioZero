@@ -102,7 +102,7 @@ Every tagged release is built by CI for all five platforms:
 | **macOS** | `ZPlay-macOS-arm64.dmg` / `.zip` (Apple Silicon) · `ZPlay-macOS-intel.dmg` / `.zip` |
 | **iOS** | `ZPlay-iOS.ipa` (unsigned, sideload only) |
 
-Grab them from the [Releases](https://github.com/tzero86/PlayTorrioZero/releases) page.
+Grab them from the [Releases](https://github.com/tzero86/ZPlay/releases) page.
 
 ---
 
@@ -111,8 +111,8 @@ Grab them from the [Releases](https://github.com/tzero86/PlayTorrioZero/releases
 Requires Flutter 3.x (Dart 3.11+).
 
 ```bash
-git clone https://github.com/tzero86/PlayTorrioZero.git
-cd PlayTorrioZero
+git clone https://github.com/tzero86/ZPlay.git
+cd ZPlay
 flutter pub get
 flutter run -d windows      # or macos / linux
 ```

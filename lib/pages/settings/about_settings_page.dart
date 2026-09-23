@@ -172,7 +172,7 @@ class AboutSettingsPage extends StatelessWidget {
                 icon: Icons.code_rounded,
                 title: 'ZPlay',
                 subtitle: 'Independent fork maintained by tzero86',
-                url: 'https://github.com/tzero86/PlayTorrioZero',
+                url: 'https://github.com/tzero86/ZPlay',
               ),
               const SizedBox(height: 10),
               _buildLinkTile(
@@ -293,7 +293,7 @@ class AboutSettingsPage extends StatelessWidget {
         applicationName: 'ZPlay',
         applicationLegalese: 'Copyright (C) 2026 tzero86\n'
             'Based on PlayTorrio V3, Copyright (C) 2026 Ayman\n'
-            'https://github.com/tzero86/PlayTorrioZero\n'
+            'https://github.com/tzero86/ZPlay\n'
             'https://github.com/ayman708-UX/PlayTorrioV3\n\n'
             'This program is free software: you can redistribute it and/or modify '
             'it under the terms of the GNU General Public License as published by '

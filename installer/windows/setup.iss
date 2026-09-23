@@ -9,7 +9,7 @@
 #endif
 #define MyAppPublisher "tzero86"
 #define MyAppExeName   "zplay.exe"
-#define MyAppURL       "https://github.com/tzero86/PlayTorrioZero"
+#define MyAppURL       "https://github.com/tzero86/ZPlay"
 
 [Setup]
 AppId={{9B8C7D6E-5F4E-3D2C-1B0A-9F8E7D6C5B4A}
