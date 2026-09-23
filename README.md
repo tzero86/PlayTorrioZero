@@ -54,7 +54,7 @@ Everything below is either measured on a release build or verifiable in this rep
 
 | | |
 |:--|:--|
-| Android release APK | **48.5 MB** (arm64-v8a), **47.7 MB** (armeabi-v7a) — minified and resource-shrunk (`isMinifyEnabled`, `isShrinkResources`) with ProGuard rules |
+| Android release APK | **~48 MB** per ABI (arm64-v8a and armeabi-v7a) — minified and resource-shrunk (`isMinifyEnabled`, `isShrinkResources`) with ProGuard rules |
 | Windows release tree | **148 MB** total, of which only **~1.35 MB** is bundled app assets (the rest is the media engine and torrent runtime) |
 | Shader bundle | **9** Anime4K shaders ship instead of the full 39-file upstream set — the unused 30 were being extracted on every install without ever reaching libmpv's shader chain |
 | Launcher art | Only the small icon variant ships; the 1 MB master is build-time input only |
