@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:playtorrio/models/stream/stream_model.dart';
-import 'package:playtorrio/services/scraper/builtin_providers_settings_service.dart';
+import 'package:zplay/models/stream/stream_model.dart';
+import 'package:zplay/services/scraper/builtin_providers_settings_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/player/player_settings.dart';
+import 'package:zplay/services/player/player_settings.dart';
 
 void main() {
   group('PlayerSettings.isNonFatalError', () {

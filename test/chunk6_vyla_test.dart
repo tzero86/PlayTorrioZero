@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/scraper/sites/cinesrc.dart';
-import 'package:playtorrio/services/scraper/sites/cinesu.dart';
-import 'package:playtorrio/services/scraper/sites/frame.dart';
+import 'package:zplay/services/scraper/sites/cinesrc.dart';
+import 'package:zplay/services/scraper/sites/cinesu.dart';
+import 'package:zplay/services/scraper/sites/frame.dart';
 
 class _AllowAllHttpOverrides extends HttpOverrides {}
 

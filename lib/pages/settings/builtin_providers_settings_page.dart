@@ -396,7 +396,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
           const Divider(color: Colors.white10, height: 1),
           const SizedBox(height: 14),
           const Text(
-            'In Default mode, PlayTorrio uses its native multi-source streaming engine. All providers run simultaneously, and results are smartly sorted by video resolution (4K, 1080p, 720p) and file size.',
+            'In Default mode, ZPlay uses its native multi-source streaming engine. All providers run simultaneously, and results are smartly sorted by video resolution (4K, 1080p, 720p) and file size.',
             style: TextStyle(fontSize: 12.5, color: Colors.white70, height: 1.45),
           ),
           const SizedBox(height: 16),

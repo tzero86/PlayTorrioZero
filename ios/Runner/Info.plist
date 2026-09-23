@@ -10,7 +10,7 @@
 		<true/>
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>PlayTorrio streams video and audio from local network services and torrent streaming engines.</string>
+	<string>ZPlay streams video and audio from local network services and torrent streaming engines.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
@@ -22,7 +22,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Playtorrio</string>
+	<string>ZPlay</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -30,7 +30,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>playtorrio</string>
+	<string>ZPlay</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

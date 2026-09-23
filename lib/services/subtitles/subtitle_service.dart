@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:playtorrio/models/subtitle/subtitle_model.dart';
+import 'package:zplay/models/subtitle/subtitle_model.dart';
 import './providers/subdl_provider.dart';
 import './providers/subtitlecat_provider.dart';
 import './providers/wyzie_provider.dart';

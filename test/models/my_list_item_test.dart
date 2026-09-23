@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/my_list/my_list_item.dart';
+import 'package:zplay/models/my_list/my_list_item.dart';
 
 void main() {
   group('MyListItem', () {

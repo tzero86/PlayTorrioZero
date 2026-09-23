@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/player/skip_segment_model.dart';
+import 'package:zplay/models/player/skip_segment_model.dart';
 
 void main() {
   group('MediaSkipSegment & MediaSkipData Tests', () {

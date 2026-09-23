@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:playtorrio/models/movie/movie_detail.dart';
-import 'package:playtorrio/models/movie/video.dart';
+import 'package:zplay/models/movie/movie_detail.dart';
+import 'package:zplay/models/movie/video.dart';
 
 import '../../models/download/download_task_model.dart';
 import '../../services/theme/app_theme_service.dart';

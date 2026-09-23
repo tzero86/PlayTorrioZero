@@ -17,8 +17,11 @@ namespace {
 // (lib/services/diagnostics/renderer_backend.dart). The Windows
 // shared_preferences plugin stores
 // `%APPDATA%\<CompanyName>\<ProductName>\shared_preferences.json`
-// (Runner.rc: CompanyName "com.example", ProductName "playtorrio"; the
-// executable name is the fallback), with keys prefixed `flutter.`.
+// (Runner.rc: CompanyName "com.example"; ProductName is deliberately pinned to
+// the legacy `playtorrio` product name so existing user preferences stay
+// readable across the product rename; the executable name is the fallback),
+// with keys prefixed `flutter.`. The candidate paths below are pinned to that
+// same legacy product directory for the same reason.
 // Anything missing or unparseable falls back to "skia": measured A/B on
 // this machine felt faster on Skia, and the Impeller run coincided with
 // an NVIDIA driver crash notice.
@@ -137,7 +140,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   Win32Window::Point origin(origin_x, origin_y);
   Win32Window::Size size(window_width, window_height);
-  if (!window.Create(L"playtorrio", origin, size)) {
+  if (!window.Create(L"ZPlay", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

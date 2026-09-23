@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/iptv/hardcoded_channels.dart';
-import 'package:playtorrio/services/iptv/iptv_network.dart';
+import 'package:zplay/services/iptv/hardcoded_channels.dart';
+import 'package:zplay/services/iptv/iptv_network.dart';
 
 void main() {
   test('Live Extractor and Channel Matching Engine Evaluation', () async {

@@ -416,7 +416,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
           .execute(
             widget.updateInfo.downloadUrl,
             destinationFilename:
-                'PlayTorrio_${widget.updateInfo.latestVersion}.apk',
+                'ZPlay_${widget.updateInfo.latestVersion}.apk',
           )
           .listen(
             (OtaEvent event) {
@@ -440,7 +440,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Please enable "Install unknown apps" permission for PlayTorrio in Android settings.',
+                            'Please enable "Install unknown apps" permission for ZPlay in Android settings.',
                           ),
                           duration: Duration(seconds: 5),
                           backgroundColor: Colors.orange,
@@ -516,7 +516,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
       final extension = Platform.isWindows ? '.exe' : '.AppImage';
       final fileName =
-          'PlayTorrio-${widget.updateInfo.latestVersion}$extension';
+          'ZPlay-${widget.updateInfo.latestVersion}$extension';
       final filePath = path.join(dir.path, fileName);
       final file = File(filePath);
 
@@ -595,7 +595,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                 const SizedBox(height: 16),
                 Text(
                   Platform.isWindows
-                      ? 'Close PlayTorrio and run the installer to update.'
+                      ? 'Close ZPlay and run the installer to update.'
                       : 'Make the file executable and run it:\nchmod +x "$fileName"\n./$fileName',
                   style: const TextStyle(color: Colors.white70),
                 ),

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/continue_watching/continue_watching_item.dart';
-import 'package:playtorrio/models/stream/stream_model.dart';
-import 'package:playtorrio/services/continue_watching/continue_watching_service.dart';
+import 'package:zplay/models/continue_watching/continue_watching_item.dart';
+import 'package:zplay/models/stream/stream_model.dart';
+import 'package:zplay/services/continue_watching/continue_watching_service.dart';
 
 void main() {
   group('Continue Watching Source Matching Tests', () {

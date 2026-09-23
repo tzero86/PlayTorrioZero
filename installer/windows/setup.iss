@@ -1,14 +1,14 @@
 ; ──────────────────────────────────────────────────────────────────────────────
-;  PlayTorrio — Windows Installer (Inno Setup 6)
+;  ZPlay — Windows Installer (Inno Setup 6)
 ;  Built by CI from: build\windows\x64\runner\Release\
 ; ──────────────────────────────────────────────────────────────────────────────
 
-#define MyAppName      "PlayTorrio"
+#define MyAppName      "ZPlay"
 #ifndef MyAppVersion
 #define MyAppVersion   "1.1.6"
 #endif
 #define MyAppPublisher "ayman708-UX"
-#define MyAppExeName   "playtorrio.exe"
+#define MyAppExeName   "zplay.exe"
 #define MyAppURL       "https://github.com/ayman708-UX/PlayTorrioV3"
 
 [Setup]
@@ -23,7 +23,7 @@ DefaultGroupName={#MyAppName}
 UninstallDisplayIcon={app}\{#MyAppExeName}
 SetupIconFile=..\..\windows\runner\resources\app_icon.ico
 OutputDir=Output
-OutputBaseFilename=PlayTorrio-Windows-Setup
+OutputBaseFilename=ZPlay-Windows-Setup
 Compression=lzma2/ultra64
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible

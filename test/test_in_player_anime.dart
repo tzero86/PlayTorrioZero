@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/anime/anime_media.dart';
-import 'package:playtorrio/services/anime/anime_scraper_service.dart';
-import 'package:playtorrio/services/stream/stream_service.dart';
+import 'package:zplay/models/anime/anime_media.dart';
+import 'package:zplay/services/anime/anime_scraper_service.dart';
+import 'package:zplay/services/stream/stream_service.dart';
 
 void main() {
   test('AnimeScraperService generates complete episodes list for releasing anime', () {

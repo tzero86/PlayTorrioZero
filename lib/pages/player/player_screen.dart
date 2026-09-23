@@ -9,11 +9,11 @@ import 'package:media_kit_video/media_kit_video.dart' as mk;
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
-import 'package:playtorrio/models/movie/video.dart';
-import 'package:playtorrio/models/movie/movie_detail.dart';
-import 'package:playtorrio/models/subtitle/subtitle_model.dart';
-import 'package:playtorrio/services/subtitles/subtitle_service.dart';
-import 'package:playtorrio/services/subtitles/subtitle_parser.dart';
+import 'package:zplay/models/movie/video.dart';
+import 'package:zplay/models/movie/movie_detail.dart';
+import 'package:zplay/models/subtitle/subtitle_model.dart';
+import 'package:zplay/services/subtitles/subtitle_service.dart';
+import 'package:zplay/services/subtitles/subtitle_parser.dart';
 
 import '../../models/stream/stream_model.dart';
 import '../../services/continue_watching/continue_watching_service.dart';

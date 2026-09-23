@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/movie/video.dart';
-import 'package:playtorrio/models/stream/stream_model.dart';
-import 'package:playtorrio/services/stream/stream_service.dart';
+import 'package:zplay/models/movie/video.dart';
+import 'package:zplay/models/stream/stream_model.dart';
+import 'package:zplay/services/stream/stream_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

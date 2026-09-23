@@ -74,7 +74,7 @@ class SkipSegmentsService {
         uri,
         headers: {
           'Accept': 'application/json',
-          'User-Agent': 'PlayTorrio/3.0.0 (VideoPlayer SkipEngine)',
+          'User-Agent': 'ZPlay/3.0.0 (VideoPlayer SkipEngine)',
         },
       ).timeout(const Duration(seconds: 6));
 

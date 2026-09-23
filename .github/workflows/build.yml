@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────────────────────────────────────
-#  PlayTorrioV3 — Multi-Platform CI/CD Release Builder
+#  ZPlay — Multi-Platform CI/CD Release Builder
 #  Builds:
 #    - Windows: Installer (Inno Setup) & Portable ZIP (x64)
 #    - Android: Split-per-ABI APKs (arm64-v8a, armeabi-v7a) — ARM devices only
@@ -9,7 +9,7 @@
 #  Trigger: Git tag push (v*) or Manual Workflow Dispatch
 #  Environment: Injects --dart-define-from-file=.env using ${{ secrets.ENV_FILE }}
 # ──────────────────────────────────────────────────────────────────────────────
-name: Build and Release PlayTorrioV3
+name: Build and Release ZPlay
 
 on:
   push:
@@ -94,30 +94,30 @@ jobs:
             throw "Inno Setup compilation failed with exit code $LASTEXITCODE"
           }
 
-          if (Test-Path "installer\windows\Output\PlayTorrio-Windows-Setup.exe") {
-            Copy-Item "installer\windows\Output\PlayTorrio-Windows-Setup.exe" ".\PlayTorrio-Windows-Setup.exe" -Force
-            Write-Host "Verified and copied PlayTorrio-Windows-Setup.exe to root."
+          if (Test-Path "installer\windows\Output\ZPlay-Windows-Setup.exe") {
+            Copy-Item "installer\windows\Output\ZPlay-Windows-Setup.exe" ".\ZPlay-Windows-Setup.exe" -Force
+            Write-Host "Verified and copied ZPlay-Windows-Setup.exe to root."
           } else {
-            throw "PlayTorrio-Windows-Setup.exe was not found in Output directory after ISCC compile!"
+            throw "ZPlay-Windows-Setup.exe was not found in Output directory after ISCC compile!"
           }
 
       - name: Package Portable ZIP
         shell: pwsh
         run: |
-          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "PlayTorrio-Windows-x64-Portable.zip" -Force
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "ZPlay-Windows-x64-Portable.zip" -Force
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-Windows
+          name: ZPlay-Windows
           path: |
-            PlayTorrio-Windows-Setup.exe
-            PlayTorrio-Windows-x64-Portable.zip
+            ZPlay-Windows-Setup.exe
+            ZPlay-Windows-x64-Portable.zip
 
       - name: Upload Windows Symbols
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-Windows-symbols
+          name: ZPlay-Windows-symbols
           if-no-files-found: ignore
           path: build/symbols/**
 
@@ -176,13 +176,13 @@ jobs:
       - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-Android
+          name: ZPlay-Android
           path: build/app/outputs/flutter-apk/app-*-release.apk
 
       - name: Upload Android Symbols
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-Android-symbols
+          name: ZPlay-Android-symbols
           if-no-files-found: ignore
           path: build/symbols/**
 
@@ -243,45 +243,45 @@ jobs:
             -o appimagetool
           chmod +x appimagetool
 
-          APP=PlayTorrio.AppDir
+          APP=ZPlay.AppDir
           mkdir -p "$APP"
           cp -r build/linux/x64/release/bundle/* "$APP/"
 
           if [ -f "assets/icon.png" ]; then
-            cp assets/icon.png "$APP/PlayTorrio.png"
+            cp assets/icon.png "$APP/ZPlay.png"
           elif [ -f "icon.png" ]; then
-            cp icon.png "$APP/PlayTorrio.png"
+            cp icon.png "$APP/ZPlay.png"
           else
-            touch "$APP/PlayTorrio.png"
+            touch "$APP/ZPlay.png"
           fi
 
-          cat <<EOF > "$APP/PlayTorrio.desktop"
+          cat <<EOF > "$APP/ZPlay.desktop"
           [Desktop Entry]
-          Name=PlayTorrio
+          Name=ZPlay
           Exec=AppRun
-          Icon=PlayTorrio
+          Icon=ZPlay
           Type=Application
           Categories=AudioVideo;Audio;Video;Player;
           EOF
 
-          printf '#!/bin/sh\ncd "$(dirname "$0")"\nexec ./playtorrio "$@"\n' > "$APP/AppRun"
+          printf '#!/bin/sh\ncd "$(dirname "$0")"\nexec ./zplay "$@"\n' > "$APP/AppRun"
           chmod +x "$APP/AppRun"
 
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run "$APP" PlayTorrio-Linux-x86_64.AppImage
-          tar -czvf PlayTorrio-Linux-x86_64.tar.gz -C build/linux/x64/release/bundle .
+          ARCH=x86_64 ./appimagetool --appimage-extract-and-run "$APP" ZPlay-Linux-x86_64.AppImage
+          tar -czvf ZPlay-Linux-x86_64.tar.gz -C build/linux/x64/release/bundle .
 
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-Linux-x64
+          name: ZPlay-Linux-x64
           path: |
-            PlayTorrio-Linux-x86_64.AppImage
-            PlayTorrio-Linux-x86_64.tar.gz
+            ZPlay-Linux-x86_64.AppImage
+            ZPlay-Linux-x86_64.tar.gz
 
       - name: Upload Linux Symbols
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-Linux-symbols
+          name: ZPlay-Linux-symbols
           if-no-files-found: ignore
           path: build/symbols/**
 
@@ -326,34 +326,34 @@ jobs:
       - name: Package as DMG & ZIP
         run: |
           cd build/macos/Build/Products/Release
-          mv playtorrio.app PlayTorrio.app
+          mv zplay.app ZPlay.app
 
-          codesign --sign - --force --deep PlayTorrio.app
+          codesign --sign - --force --deep ZPlay.app
 
           mkdir -p dmg_temp
-          cp -R PlayTorrio.app dmg_temp/
+          cp -R ZPlay.app dmg_temp/
           ln -s /Applications dmg_temp/Applications
 
           sync
           sleep 2
 
           for i in {1..3}; do
-            hdiutil create -volname "PlayTorrio" -srcfolder dmg_temp -ov -format UDZO ../../../../../PlayTorrio-macOS-arm64.dmg && break || sleep 3
+            hdiutil create -volname "ZPlay" -srcfolder dmg_temp -ov -format UDZO ../../../../../ZPlay-macOS-arm64.dmg && break || sleep 3
           done
-          zip -ry ../../../../../PlayTorrio-macOS-arm64.zip PlayTorrio.app
+          zip -ry ../../../../../ZPlay-macOS-arm64.zip ZPlay.app
 
       - name: Upload macOS ARM64 Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-macOS-arm64
+          name: ZPlay-macOS-arm64
           path: |
-            PlayTorrio-macOS-arm64.dmg
-            PlayTorrio-macOS-arm64.zip
+            ZPlay-macOS-arm64.dmg
+            ZPlay-macOS-arm64.zip
 
       - name: Upload macOS ARM64 Symbols
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-macOS-arm64-symbols
+          name: ZPlay-macOS-arm64-symbols
           if-no-files-found: ignore
           path: build/symbols/**
 
@@ -396,34 +396,34 @@ jobs:
       - name: Package as DMG & ZIP
         run: |
           cd build/macos/Build/Products/Release
-          mv playtorrio.app PlayTorrio.app
+          mv zplay.app ZPlay.app
 
-          codesign --sign - --force --deep PlayTorrio.app
+          codesign --sign - --force --deep ZPlay.app
 
           mkdir -p dmg_temp
-          cp -R PlayTorrio.app dmg_temp/
+          cp -R ZPlay.app dmg_temp/
           ln -s /Applications dmg_temp/Applications
 
           sync
           sleep 2
 
           for i in {1..3}; do
-            hdiutil create -volname "PlayTorrio" -srcfolder dmg_temp -ov -format UDZO ../../../../../PlayTorrio-macOS-intel.dmg && break || sleep 3
+            hdiutil create -volname "ZPlay" -srcfolder dmg_temp -ov -format UDZO ../../../../../ZPlay-macOS-intel.dmg && break || sleep 3
           done
-          zip -ry ../../../../../PlayTorrio-macOS-intel.zip PlayTorrio.app
+          zip -ry ../../../../../ZPlay-macOS-intel.zip ZPlay.app
 
       - name: Upload macOS Intel Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-macOS-intel
+          name: ZPlay-macOS-intel
           path: |
-            PlayTorrio-macOS-intel.dmg
-            PlayTorrio-macOS-intel.zip
+            ZPlay-macOS-intel.dmg
+            ZPlay-macOS-intel.zip
 
       - name: Upload macOS Intel Symbols
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-macOS-intel-symbols
+          name: ZPlay-macOS-intel-symbols
           if-no-files-found: ignore
           path: build/symbols/**
 
@@ -464,18 +464,18 @@ jobs:
           cd build/ios/iphoneos
           mkdir -p Payload
           cp -R Runner.app Payload/
-          zip -ry ../../../PlayTorrio-iOS.ipa Payload
+          zip -ry ../../../ZPlay-iOS.ipa Payload
 
       - name: Upload iOS Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-iOS
-          path: PlayTorrio-iOS.ipa
+          name: ZPlay-iOS
+          path: ZPlay-iOS.ipa
 
       - name: Upload iOS Symbols
         uses: actions/upload-artifact@v4
         with:
-          name: PlayTorrioV3-iOS-symbols
+          name: ZPlay-iOS-symbols
           if-no-files-found: ignore
           path: build/symbols/**
 
@@ -496,7 +496,7 @@ jobs:
       - name: Publish Release with Assets
         uses: softprops/action-gh-release@v2
         with:
-          name: "PlayTorrio ${{ github.ref_name }}"
+          name: "ZPlay ${{ github.ref_name }}"
           draft: true
           prerelease: false
           generate_release_notes: true

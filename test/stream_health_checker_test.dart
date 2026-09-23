@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/stream/stream_model.dart';
-import 'package:playtorrio/services/stream/stream_health_checker.dart';
+import 'package:zplay/models/stream/stream_model.dart';
+import 'package:zplay/services/stream/stream_health_checker.dart';
 
 void main() {
   group('StreamHealthChecker Tests', () {

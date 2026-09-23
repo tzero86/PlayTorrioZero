@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:playtorrio/models/my_list/my_list_item.dart';
-import 'package:playtorrio/services/my_list/my_list_service.dart';
+import 'package:zplay/models/my_list/my_list_item.dart';
+import 'package:zplay/services/my_list/my_list_service.dart';
 
 /// Integration test covering the full My List lifecycle:
 /// add -> check -> remove -> toggle -> persistence

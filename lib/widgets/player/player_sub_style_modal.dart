@@ -277,7 +277,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              'PlayTorrio • Sample Subtitle Preview',
+              'ZPlay • Sample Subtitle Preview',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontFamily: fontName,
@@ -432,7 +432,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
               dropdownColor: const Color(0xFF131826),
               icon: const Icon(Icons.arrow_drop_down_rounded, color: Colors.white70),
               items: PlayerSettings.popularFonts.map((f) {
-                final label = f == 'subfont' ? 'Default (PlayTorrio Subfont)' : f;
+                final label = f == 'subfont' ? 'Default (ZPlay Subfont)' : f;
                 return DropdownMenuItem<String>(
                   value: f,
                   child: Text(

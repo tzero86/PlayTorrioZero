@@ -16,7 +16,7 @@ class AboutSettingsPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'About PlayTorrio',
+          'About ZPlay',
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
         ),
       ),
@@ -56,7 +56,7 @@ class AboutSettingsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'PlayTorrio',
+                      'ZPlay',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
@@ -108,7 +108,7 @@ class AboutSettingsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'PlayTorrio is an all-in-one entertainment client bringing together movies, TV series, anime, live IPTV, music, manga, and audiobooks into a unified, high-performance interface with custom Liquid Glass visuals.',
+                      'ZPlay is an all-in-one entertainment client bringing together movies, TV series, anime, live IPTV, music, manga, and audiobooks into a unified, high-performance interface with custom Liquid Glass visuals.',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.white.withValues(alpha: 0.5),

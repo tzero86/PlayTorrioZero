@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/diagnostics/crash_breadcrumbs.dart';
+import 'package:zplay/services/diagnostics/crash_breadcrumbs.dart';
 
 void main() {
   setUp(() => CrashBreadcrumbs.clearForTest());

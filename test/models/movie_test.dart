@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/movie/movie.dart';
+import 'package:zplay/models/movie/movie.dart';
 
 void main() {
   group('Movie', () {

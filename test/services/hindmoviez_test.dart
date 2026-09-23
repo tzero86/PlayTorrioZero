@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/scraper/sites/hindmoviez.dart';
-import 'package:playtorrio/services/scraper/builtin_providers_settings_service.dart';
-import 'package:playtorrio/services/scraper/stream_scraper.dart';
+import 'package:zplay/services/scraper/sites/hindmoviez.dart';
+import 'package:zplay/services/scraper/builtin_providers_settings_service.dart';
+import 'package:zplay/services/scraper/stream_scraper.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

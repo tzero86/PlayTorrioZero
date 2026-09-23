@@ -1,4 +1,4 @@
-package com.example.playtorrio
+package com.example.zplay
 
 import android.content.Context
 import android.net.wifi.WifiManager
@@ -9,7 +9,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.playtorrio/power"
+    private val CHANNEL = "com.example.zplay/power"
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var cloudStreamBridge: CloudStreamNativeBridge? = null
@@ -33,7 +33,7 @@ class MainActivity : FlutterActivity() {
                             } else {
                                 WifiManager.WIFI_MODE_FULL_HIGH_PERF
                             }
-                            wifiLock = wifiManager?.createWifiLock(lockMode, "playtorrio:stream_wifi")?.apply {
+                            wifiLock = wifiManager?.createWifiLock(lockMode, "zplay:stream_wifi")?.apply {
                                 setReferenceCounted(false)
                             }
                         }
@@ -44,7 +44,7 @@ class MainActivity : FlutterActivity() {
                         // 2. Partial Wake Lock (prevents CPU sleep during streaming)
                         if (wakeLock == null) {
                             val powerManager = applicationContext.getSystemService(Context.POWER_SERVICE) as? PowerManager
-                            wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "playtorrio:stream_wake")?.apply {
+                            wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "zplay:stream_wake")?.apply {
                                 setReferenceCounted(false)
                             }
                         }

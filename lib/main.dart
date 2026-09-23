@@ -75,7 +75,7 @@ void main() async {
     ContentSettings.initialize(),
     RendererBackendSettings.initialize(),
   ]);
-  runApp(const PlayTorrioApp());
+  runApp(const ZPlayApp());
   if (kDebugMode) PerfMonitor.start();
   unawaited(CrashBreadcrumbs.initialize());
   CrashBreadcrumbs.lifecycle('start');
@@ -118,14 +118,14 @@ Future<void> _initializeDeferredServices() async {
   ]);
 }
 
-class PlayTorrioApp extends StatefulWidget {
-  const PlayTorrioApp({super.key});
+class ZPlayApp extends StatefulWidget {
+  const ZPlayApp({super.key});
 
   @override
-  State<PlayTorrioApp> createState() => _PlayTorrioAppState();
+  State<ZPlayApp> createState() => _ZPlayAppState();
 }
 
-class _PlayTorrioAppState extends State<PlayTorrioApp>
+class _ZPlayAppState extends State<ZPlayApp>
     with WidgetsBindingObserver {
   static bool _hasCheckedInitialUpdate = false;
   static bool _isShowingUpdateDialog = false;
@@ -199,7 +199,7 @@ class _PlayTorrioAppState extends State<PlayTorrioApp>
         return MaterialApp(
           navigatorKey: navigatorKey,
           navigatorObservers: [BreadcrumbObserver()],
-          title: 'PlayTorrio',
+          title: 'ZPlay',
           debugShowCheckedModeBanner: false,
           theme: AppThemeService.createThemeData(palette),
           scrollBehavior: const MaterialScrollBehavior().copyWith(

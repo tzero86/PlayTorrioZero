@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/addon/addon.dart';
-import 'package:playtorrio/models/movie/movie.dart';
-import 'package:playtorrio/models/movie/movie_detail.dart';
-import 'package:playtorrio/models/movie/video.dart';
-import 'package:playtorrio/services/addon/addon_manager.dart';
-import 'package:playtorrio/services/metadata/metadata_service.dart';
+import 'package:zplay/models/addon/addon.dart';
+import 'package:zplay/models/movie/movie.dart';
+import 'package:zplay/models/movie/movie_detail.dart';
+import 'package:zplay/models/movie/video.dart';
+import 'package:zplay/services/addon/addon_manager.dart';
+import 'package:zplay/services/metadata/metadata_service.dart';
 
 void main() {
   group('Stremio Collection Addon Manifest & Catalog Parsing', () {

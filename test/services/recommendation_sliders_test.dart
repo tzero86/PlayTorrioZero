@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/continue_watching/continue_watching_item.dart';
-import 'package:playtorrio/models/my_list/my_list_item.dart';
-import 'package:playtorrio/services/continue_watching/continue_watching_service.dart';
-import 'package:playtorrio/services/home/home_page_settings.dart';
-import 'package:playtorrio/services/my_list/my_list_service.dart';
+import 'package:zplay/models/continue_watching/continue_watching_item.dart';
+import 'package:zplay/models/my_list/my_list_item.dart';
+import 'package:zplay/services/continue_watching/continue_watching_service.dart';
+import 'package:zplay/services/home/home_page_settings.dart';
+import 'package:zplay/services/my_list/my_list_service.dart';
 
 import 'dart:io';
 

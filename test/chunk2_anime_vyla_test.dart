@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/anime/extractors/luna_extractor.dart';
-import 'package:playtorrio/services/anime/extractors/anineko_extractor.dart';
+import 'package:zplay/services/anime/extractors/luna_extractor.dart';
+import 'package:zplay/services/anime/extractors/anineko_extractor.dart';
 
 class _AllowAllHttpOverrides extends HttpOverrides {}
 

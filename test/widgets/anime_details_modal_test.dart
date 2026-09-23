@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/anime/anime_media.dart';
-import 'package:playtorrio/pages/anime/anime_details_modal.dart';
+import 'package:zplay/models/anime/anime_media.dart';
+import 'package:zplay/pages/anime/anime_details_modal.dart';
 
 void main() {
   testWidgets('AnimeDetailsModal renders jump input, 50-chunk selector, and relations', (tester) async {

@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/anime/extractors/anipm_extractor.dart';
-import 'package:playtorrio/services/anime/extractors/vidnest_extractor.dart';
+import 'package:zplay/services/anime/extractors/anipm_extractor.dart';
+import 'package:zplay/services/anime/extractors/vidnest_extractor.dart';
 
 class _AllowAllHttpOverrides extends HttpOverrides {}
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens for the PlayTorrio Reader.
+/// Design tokens for the ZPlay Reader.
 /// Enforces consistent 4pt-based spacing, standard radii, custom soft shadows,
 /// named motion curves/durations, and typography scales across all reader components.
 class ReaderTokens {

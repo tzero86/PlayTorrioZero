@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/services/scraper/sites/cinejoy.dart';
+import 'package:zplay/services/scraper/sites/cinejoy.dart';
 
 void main() {
   test('Test Cinejoy Encrypted Query Directly', () async {

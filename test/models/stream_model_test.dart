@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/stream/stream_model.dart';
+import 'package:zplay/models/stream/stream_model.dart';
 
 void main() {
   group('StreamSource', () {

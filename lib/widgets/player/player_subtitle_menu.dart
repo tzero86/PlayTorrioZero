@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:playtorrio/models/subtitle/subtitle_model.dart';
-import 'package:playtorrio/services/subtitles/subtitle_service.dart';
+import 'package:zplay/models/subtitle/subtitle_model.dart';
+import 'package:zplay/services/subtitles/subtitle_service.dart';
 import 'player_glass.dart';
 
 /// Full-featured subtitle selection, search, and timing menu.

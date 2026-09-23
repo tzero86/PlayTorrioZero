@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/anime/anime_media.dart';
-import 'package:playtorrio/services/anime/anime_scraper_service.dart';
+import 'package:zplay/models/anime/anime_media.dart';
+import 'package:zplay/services/anime/anime_scraper_service.dart';
 
 void main() {
   test('AnimeScraperService scrapes streams for Solo Leveling S2 Ep 1', () async {

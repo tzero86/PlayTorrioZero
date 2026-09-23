@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:playtorrio/models/music/music_track.dart';
-import 'package:playtorrio/services/music/lyrics_service.dart';
-import 'package:playtorrio/services/music/youtube_stream_http.dart';
+import 'package:zplay/models/music/music_track.dart';
+import 'package:zplay/services/music/lyrics_service.dart';
+import 'package:zplay/services/music/youtube_stream_http.dart';
 
 void main() {
   test('Lyrics parsing correctly formats synced lines', () {

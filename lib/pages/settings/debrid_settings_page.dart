@@ -369,7 +369,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ),
                     const SizedBox(height: 14),
                     Text(
-                      'When enabled, all torrents from PlayTorrio and Stremio addons are resolved exclusively through your active Debrid provider without touching the local torrent engine.',
+                      'When enabled, all torrents from ZPlay and Stremio addons are resolved exclusively through your active Debrid provider without touching the local torrent engine.',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.45),
                         fontSize: 12,
@@ -416,7 +416,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'PlayTorrio will send requests to this provider when streaming.',
+                      'ZPlay will send requests to this provider when streaming.',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.45),
                         fontSize: 12,

@@ -26,7 +26,7 @@
     </queries>
 
     <application
-        android:label="playtorrio"
+        android:label="ZPlay"
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:extractNativeLibs="true"

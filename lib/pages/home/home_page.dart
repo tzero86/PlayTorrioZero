@@ -842,7 +842,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'PlayTorrio',
+                  'ZPlay',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: titleSize,
@@ -1022,7 +1022,7 @@ class _GlassAppBar extends StatelessWidget {
             ),
             const SizedBox(width: 10),
             const Text(
-              'PlayTorrio',
+              'ZPlay',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
