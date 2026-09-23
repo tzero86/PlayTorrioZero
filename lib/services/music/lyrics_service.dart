@@ -73,7 +73,7 @@ class LyricsService {
 
       final uri = Uri.https('lrclib.net', '/api/get', query);
       final res = await http.get(uri, headers: {
-        'User-Agent': 'ZPlay/1.0.0 (https://github.com/ayman708-UX/PlayTorrioV3)',
+        'User-Agent': 'ZPlay/1.0.0 (https://github.com/tzero86/PlayTorrioZero)',
       }).timeout(const Duration(seconds: 6));
 
       if (res.statusCode == 200) {
@@ -106,7 +106,7 @@ class LyricsService {
     try {
       final uri = Uri.https('lrclib.net', '/api/search', {'q': query});
       final res = await http.get(uri, headers: {
-        'User-Agent': 'ZPlay/1.0.0 (https://github.com/ayman708-UX/PlayTorrioV3)',
+        'User-Agent': 'ZPlay/1.0.0 (https://github.com/tzero86/PlayTorrioZero)',
       }).timeout(const Duration(seconds: 6));
 
       if (res.statusCode == 200) {
