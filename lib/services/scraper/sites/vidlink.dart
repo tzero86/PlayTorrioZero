@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidLink Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidLink Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidLink provider.
 /// Encrypts TMDB query via enc-dec.app and extracts direct streams from vidlink.pro.
 class VidLinkScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _base = 'https://vidlink.pro';
   static const _encApi = 'https://enc-dec.app/api/enc-vidlink';
@@ -82,8 +82,8 @@ class VidLinkScraper extends StreamScraper {
           final playlistUrl = stream['playlist'].toString();
           if (playlistUrl.isNotEmpty) {
             yield StreamSource(
-              name: 'PlayTorrioHTTP',
-              addonName: 'PlayTorrioHTTP',
+              name: 'ZPlayHTTP',
+              addonName: 'ZPlayHTTP',
               title: 'VidLink · Master HLS · 1080p',
               description: 'VidLink HLS Stream',
               url: playlistUrl,
@@ -104,8 +104,8 @@ class VidLinkScraper extends StreamScraper {
             if (qualities[q] is Map && qualities[q]['url'] != null) {
               final qUrl = qualities[q]['url'].toString();
               yield StreamSource(
-                name: 'PlayTorrioHTTP',
-                addonName: 'PlayTorrioHTTP',
+                name: 'ZPlayHTTP',
+                addonName: 'ZPlayHTTP',
                 title: 'VidLink · ${q}p',
                 description: 'VidLink MP4 Stream',
                 url: qUrl,

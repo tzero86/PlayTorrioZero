@@ -11,7 +11,7 @@ import 'tmdb_helper.dart';
 /// from flystream.net API.
 class FlyStreamScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _apiBase = 'https://flystream.net';
   static const _ua =
@@ -80,8 +80,8 @@ class FlyStreamScraper extends StreamScraper {
             ].join(' · ');
 
             sources.add(StreamSource(
-              name: 'PlayTorrioHTTP',
-              addonName: 'PlayTorrioHTTP',
+              name: 'ZPlayHTTP',
+              addonName: 'ZPlayHTTP',
               title: 'FlyStream $name',
               description: descDetails.isNotEmpty ? 'FlyStream $descDetails' : 'FlyStream Direct HLS Stream',
               url: url,

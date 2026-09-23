@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VixSrc Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VixSrc Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VixSrc provider.
 /// Resolves tokenized HLS playlists from vixsrc.to.
 class VixSrcScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://vixsrc.to';
   static const _ua =
@@ -123,8 +123,8 @@ class VixSrcScraper extends StreamScraper {
         };
 
         yield StreamSource(
-          name: 'PlayTorrioHTTP',
-          addonName: 'PlayTorrioHTTP',
+          name: 'ZPlayHTTP',
+          addonName: 'ZPlayHTTP',
           title: title,
           description: desc,
           url: rawMasterUrl,

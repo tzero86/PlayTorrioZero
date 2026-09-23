@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidFast Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidFast Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidFast provider.
 /// Resolves movies and TV shows via vidfast.vc and enc-dec.app decryption pipeline.
 class VidFastScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _domain = 'https://vidfast.vc';
   static const _apiBase = 'https://enc-dec.app/api';
@@ -172,8 +172,8 @@ class VidFastScraper extends StreamScraper {
           };
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: 'VidFast · $srvName · $qualityLabel',
             description: 'VidFast Multi-CDN Stream · $qualityLabel',
             url: streamTargetUrl,

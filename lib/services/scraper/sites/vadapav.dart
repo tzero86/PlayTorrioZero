@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Vadapav Stream Scraper for PlayTorrioHTTP.
+/// Vadapav Stream Scraper for ZPlayHTTP.
 ///
 /// Fetches direct HTTP streams from vadapav.mov Stremio addon:
 /// https://stremio.vadapav.mov/manifest.json
 class VadapavScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _addonBase = 'https://stremio.vadapav.mov';
 
@@ -107,7 +107,7 @@ class VadapavScraper extends StreamScraper {
                     title: rawTitle.isNotEmpty ? rawTitle : 'vadapav.mov • Direct Stream',
                     description: rawTitle,
                     url: url,
-                    addonName: 'PlayTorrioHTTP',
+                    addonName: 'ZPlayHTTP',
                     headers: _defaultHeaders,
                     behaviorHints: map['behaviorHints'] is Map
                         ? Map<String, dynamic>.from(map['behaviorHints'])

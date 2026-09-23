@@ -28,7 +28,7 @@ void main() {
       }
       expect(sources, isNotEmpty);
       expect(sources.first.url, startsWith('http'));
-      expect(sources.first.addonName, 'PlayTorrioHTTP');
+      expect(sources.first.addonName, 'ZPlayHTTP');
     }, timeout: const Timeout(Duration(seconds: 30)));
 
     test('FlaxMovies scraper fetches streams for Fight Club', () async {
@@ -46,7 +46,7 @@ void main() {
       }
       expect(sources, isNotEmpty);
       expect(sources.first.url, startsWith('http'));
-      expect(sources.first.addonName, 'PlayTorrioHTTP');
+      expect(sources.first.addonName, 'ZPlayHTTP');
     }, timeout: const Timeout(Duration(seconds: 30)));
 
     test('VidGod scraper fetches streams for Fight Club', () async {
@@ -64,7 +64,7 @@ void main() {
       }
       expect(sources, isNotEmpty);
       expect(sources.first.url, startsWith('http'));
-      expect(sources.first.addonName, 'PlayTorrioHTTP');
+      expect(sources.first.addonName, 'ZPlayHTTP');
     }, timeout: const Timeout(Duration(seconds: 30)));
 
     test('VidFast scraper fetches streams for Fight Club', () async {
@@ -82,7 +82,7 @@ void main() {
       }
       expect(sources, isNotEmpty);
       expect(sources.first.url, startsWith('http'));
-      expect(sources.first.addonName, 'PlayTorrioHTTP');
+      expect(sources.first.addonName, 'ZPlayHTTP');
     }, timeout: const Timeout(Duration(seconds: 30)));
 
     test('PeeStream scraper fetches streams for Fight Club', () async {
@@ -100,7 +100,7 @@ void main() {
       }
       expect(sources, isNotEmpty);
       expect(sources.first.url, startsWith('http'));
-      expect(sources.first.addonName, 'PlayTorrioHTTP');
+      expect(sources.first.addonName, 'ZPlayHTTP');
     }, timeout: const Timeout(Duration(seconds: 30)));
   });
 }

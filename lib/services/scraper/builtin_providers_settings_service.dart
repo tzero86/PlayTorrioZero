@@ -28,7 +28,7 @@ class BuiltinProvidersSettingsService extends ChangeNotifier {
   static const String _prefOrderKey = 'builtin_providers_custom_order';
   static const String _prefDisabledKey = 'builtin_providers_disabled_ids';
 
-  /// Master list of all 46 PlayTorrioHTTP providers in standard default order.
+  /// Master list of all 46 ZPlayHTTP providers in standard default order.
   static const List<BuiltinProviderMeta> defaultProviders = [
     BuiltinProviderMeta(id: 'a111477', name: '111477', description: 'Stremio-based multi-resolution HTTP stream scraper'),
     BuiltinProviderMeta(id: 'vadapav', name: 'Vadapav', description: 'Direct high-speed HTTP media storage scraper'),
@@ -117,7 +117,7 @@ class BuiltinProvidersSettingsService extends ChangeNotifier {
       if (savedDisabled != null) {
         _disabledIds = savedDisabled.toSet();
         // If all or virtually all providers are disabled, it was almost certainly an accidental "Disable All"
-        // or broken preference state that shuts down PlayTorrioHTTP entirely. Restore all enabled.
+        // or broken preference state that shuts down ZPlayHTTP entirely. Restore all enabled.
         if (_disabledIds.length >= defaultProviders.length - 1) {
           debugPrint('[BuiltinProvidersSettingsService] Detected all or almost all providers disabled in custom mode (${_disabledIds.length}/${defaultProviders.length}). Resetting to enabled to prevent scraping outage.');
           _disabledIds.clear();

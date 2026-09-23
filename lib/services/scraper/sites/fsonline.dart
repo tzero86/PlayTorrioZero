@@ -4,13 +4,13 @@ import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 
-/// Pure-Dart FSOnline Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart FSOnline Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla FSOnline provider.
 /// Resolves FileSuN streams from www3.fsonline.app.
 class FSOnlineScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _origin = 'https://www3.fsonline.app';
   static const _ajaxUrl = '$_origin/wp-admin/admin-ajax.php';
@@ -115,8 +115,8 @@ class FSOnlineScraper extends StreamScraper {
                   };
 
                   yield StreamSource(
-                    name: 'PlayTorrioHTTP',
-                    addonName: 'PlayTorrioHTTP',
+                    name: 'ZPlayHTTP',
+                    addonName: 'ZPlayHTTP',
                     title: 'FSOnline · FileSuN · 1080p',
                     description: 'FSOnline HLS Stream',
                     url: streamUrl,

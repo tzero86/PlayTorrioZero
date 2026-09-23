@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart Frame Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart Frame Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla Frame provider.
 /// Resolves multi-provider streams (Zephyr, Atlas, Luna, Volt, Echo, Rift, Quill) via api.peestream.in.
 class FrameScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://api.peestream.in';
   static const _ua =
@@ -117,8 +117,8 @@ class FrameScraper extends StreamScraper {
             };
 
             yield StreamSource(
-              name: 'PlayTorrioHTTP',
-              addonName: 'PlayTorrioHTTP',
+              name: 'ZPlayHTTP',
+              addonName: 'ZPlayHTTP',
               title: '$server · $quality',
               description: 'FRAME Stream · ${isHls ? 'HLS' : 'MP4'}',
               url: sUrl,

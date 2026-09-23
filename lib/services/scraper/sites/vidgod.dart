@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidGod Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidGod Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidGod provider.
 /// Leverages multi-worker clusters (Pulsar, Orion, Stellar) and cloud cache.
 class VidGodScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _redisUrl = 'https://vidnest-redis-fell-prism-rest.cloud.layerbase.dev/';
   static const _redisAuth = 'Bearer ve8z9XSKatu74M7FjLU8eQ29';
@@ -184,8 +184,8 @@ class VidGodScraper extends StreamScraper {
             };
 
             yield StreamSource(
-              name: 'PlayTorrioHTTP',
-              addonName: 'PlayTorrioHTTP',
+              name: 'ZPlayHTTP',
+              addonName: 'ZPlayHTTP',
               title: 'VidGod · $serverName · $quality',
               description: 'VidGod Cloud Stream · $quality',
               url: streamUrl,

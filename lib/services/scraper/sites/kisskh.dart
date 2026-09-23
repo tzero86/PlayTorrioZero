@@ -5,13 +5,13 @@ import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 
-/// Pure-Dart KissKH Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart KissKH Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla KissKH provider.
 /// Resolves Asian dramas and shows from kisskh.do via enc-dec.app decryption.
 class KissKhScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _encApi = 'https://enc-dec.app/api';
   static const _base = 'https://kisskh.do';
@@ -133,8 +133,8 @@ class KissKhScraper extends StreamScraper {
         };
 
         yield StreamSource(
-          name: 'PlayTorrioHTTP',
-          addonName: 'PlayTorrioHTTP',
+          name: 'ZPlayHTTP',
+          addonName: 'ZPlayHTTP',
           title: 'KissKH · Drama · 1080p',
           description: 'KissKH Stream · ${isHls ? 'HLS' : 'MP4'}',
           url: streamUrl,

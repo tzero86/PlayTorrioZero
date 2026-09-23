@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart FlaxMovies Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart FlaxMovies Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla FlaxMovies provider.
 /// Resolves multi-CDN streams (Airflix, Cinevaro, Vaplayer, Vidnest Alfa).
 class FlaxMoviesScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://flaxmovies.xyz';
   static const _ua =
@@ -168,8 +168,8 @@ class FlaxMoviesScraper extends StreamScraper {
               };
 
               yield StreamSource(
-                name: 'PlayTorrioHTTP',
-                addonName: 'PlayTorrioHTTP',
+                name: 'ZPlayHTTP',
+                addonName: 'ZPlayHTTP',
                 title: 'FlaxMovies · $provider · $resolution',
                 description: 'FlaxMovies Multi-CDN Stream · $resolution',
                 url: streamUrl,

@@ -123,10 +123,10 @@ class _WatchScreenState extends State<WatchScreen>
       map[a.manifest.name.toLowerCase()] = i;
       map[a.manifest.id.toLowerCase()] = i;
       if (a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp') {
-        map['playtorriohttp'] = i;
+        map['zplayhttp'] = i;
       }
       if (a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio') {
-        map['playtorrio'] = i;
+        map['zplay'] = i;
       }
     }
     return _cachedAddonOrder = map;
@@ -310,7 +310,7 @@ class _WatchScreenState extends State<WatchScreen>
       list = list.where((s) => !s.isTorrent || s.isDebrid).toList();
     }
     if (!AddonManager.instance.isPlayTorrioHttpActive) {
-      list = list.where((s) => s.addonName.toLowerCase() != 'playtorriohttp').toList();
+      list = list.where((s) => s.addonName.toLowerCase() != 'zplayhttp').toList();
     }
 
     // Cached dynamic addon priority lookup from user's installed addons order
@@ -318,8 +318,8 @@ class _WatchScreenState extends State<WatchScreen>
     final isCustomBuiltin = BuiltinProvidersSettingsService.instance.isCustom;
 
     list.sort((a, b) {
-      final isHttpA = a.addonName.toLowerCase() == 'playtorriohttp';
-      final isHttpB = b.addonName.toLowerCase() == 'playtorriohttp';
+      final isHttpA = a.addonName.toLowerCase() == 'zplayhttp';
+      final isHttpB = b.addonName.toLowerCase() == 'zplayhttp';
 
       // When custom Built-in providers mode is active, provider rank strictly dictates order
       if (isCustomBuiltin && isHttpA && isHttpB) {
@@ -3006,10 +3006,10 @@ class _SourceCardState extends State<_SourceCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          (s.addonName.toLowerCase() == 'playtorriohttp' &&
+                          (s.addonName.toLowerCase() == 'zplayhttp' &&
                                   s.providerName != null &&
                                   s.providerName!.isNotEmpty)
-                              ? 'PlayTorrioHTTP · ${s.providerName}'
+                              ? 'ZPlayHTTP · ${s.providerName}'
                               : (s.name != null && s.name!.isNotEmpty
                                   ? s.name!
                                   : s.addonName),
@@ -3114,8 +3114,8 @@ class _AddonSourceIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nameLower = addonName.trim().toLowerCase();
-    final isBuiltIn = nameLower == 'playtorrio' ||
-        nameLower == 'playtorriohttp' ||
+    final isBuiltIn = nameLower == 'zplay' ||
+        nameLower == 'zplayhttp' ||
         nameLower.startsWith('builtin');
 
     if (isBuiltIn) {

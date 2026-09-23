@@ -6,14 +6,14 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// 111477 Stremio Stream Scraper for PlayTorrioHTTP.
+/// 111477 Stremio Stream Scraper for ZPlayHTTP.
 ///
 /// Dynamically generates a configured manifest URL from https://st.111477.xyz/
 /// using URL-safe Base64 config encoding, optimized with a polite stream limit (3)
 /// to avoid overwhelming their server pool and prevent rate-limit "Slow down" issues.
 class A111477Scraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _serviceOrigin = 'https://st.111477.xyz';
   static const _defaultStreamHost = 'https://a.111477.xyz/';
@@ -157,7 +157,7 @@ class A111477Scraper extends StreamScraper {
                     title: rawTitle.isNotEmpty ? rawTitle : '111477 • Direct Stream',
                     description: rawTitle,
                     url: url,
-                    addonName: 'PlayTorrioHTTP',
+                    addonName: 'ZPlayHTTP',
                     headers: _defaultHeaders,
                     behaviorHints: map['behaviorHints'] is Map
                         ? Map<String, dynamic>.from(map['behaviorHints'])

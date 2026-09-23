@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../models/stream/stream_model.dart';
 import '../player/player_settings.dart';
 
-/// Production-grade HTTP/HLS/MP4 Stream Health & Liveness Checker for PlayTorrioHTTP.
+/// Production-grade HTTP/HLS/MP4 Stream Health & Liveness Checker for ZPlayHTTP.
 ///
 /// Validates stream URLs using lightweight range requests, respecting exact headers,
 /// referrers, origins, and user-agents, and rejecting dead status codes or broken payloads.

@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart Bcine Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart Bcine Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla Bcine provider.
 /// Resolves direct cryptographic master playlists and multi-server streams.
 class BcineScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _ua =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
@@ -142,8 +142,8 @@ class BcineScraper extends StreamScraper {
       };
 
       yield StreamSource(
-        name: 'PlayTorrioHTTP',
-        addonName: 'PlayTorrioHTTP',
+        name: 'ZPlayHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'Bcine · Direct Master · 1080p',
         description: 'Bcine Direct Master HLS Stream',
         url: directHls,
@@ -191,8 +191,8 @@ class BcineScraper extends StreamScraper {
                     };
 
                     yield StreamSource(
-                      name: 'PlayTorrioHTTP',
-                      addonName: 'PlayTorrioHTTP',
+                      name: 'ZPlayHTTP',
+                      addonName: 'ZPlayHTTP',
                       title: 'Bcine · $srvName · 1080p',
                       description: 'Bcine $srvName HLS Stream',
                       url: sUrl,

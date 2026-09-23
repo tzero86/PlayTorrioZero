@@ -166,7 +166,7 @@ class P2pWarningDialog extends StatelessWidget {
                                 _buildSourceInfoRow(
                                   icon: Icons.cloud_done_rounded,
                                   iconColor: const Color(0xFF10B981),
-                                  title: 'PlayTorrio HTTP (Direct Stream)',
+                                  title: 'ZPlayHTTP (Direct Stream)',
                                   subtitle: 'Safe direct HTTPS web streams. No torrenting or peer uploading.',
                                 ),
                                 Padding(
@@ -179,7 +179,7 @@ class P2pWarningDialog extends StatelessWidget {
                                 _buildSourceInfoRow(
                                   icon: Icons.hub_rounded,
                                   iconColor: _warningColor,
-                                  title: 'PlayTorrio (Torrent Engine)',
+                                  title: 'ZPlay (Torrent Engine)',
                                   subtitle: 'P2P swarms (Knaben, TorrentGalaxy). Involves peer data sharing.',
                                 ),
                               ],
@@ -208,7 +208,7 @@ class P2pWarningDialog extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    'Would you like to turn off the built-in PlayTorrio P2P torrent source and use only direct HTTP streaming?',
+                                    'Would you like to turn off the built-in ZPlay P2P torrent source and use only direct HTTP streaming?',
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -345,7 +345,7 @@ class P2pWarningDialog extends StatelessWidget {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('P2P torrent source turned off. PlayTorrioHTTP will be used.'),
+                  content: Text('P2P torrent source turned off. ZPlayHTTP will be used.'),
                   backgroundColor: Color(0xFF10B981),
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -383,7 +383,7 @@ class P2pWarningDialog extends StatelessWidget {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('P2P torrent source turned off. PlayTorrioHTTP will be used.'),
+                  content: Text('P2P torrent source turned off. ZPlayHTTP will be used.'),
                   backgroundColor: Color(0xFF10B981),
                   behavior: SnackBarBehavior.floating,
                 ),

@@ -6,14 +6,14 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// RiveStream Stream Scraper for PlayTorrioHTTP.
+/// RiveStream Stream Scraper for ZPlayHTTP.
 ///
 /// Scrapes multi-provider video streams (HLS/MP4) from RiveStream's backend
 /// microservice (https://scrapper.rivestream.app/api/provider).
 /// Excludes torrents, captions, and drive downloads.
 class RiveStreamScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _apiBase = 'https://scrapper.rivestream.app';
   static const _referer = 'https://www.rivestream.app/';
@@ -203,7 +203,7 @@ class RiveStreamScraper extends StreamScraper {
       title: title,
       description: description,
       url: url,
-      addonName: 'PlayTorrioHTTP',
+      addonName: 'ZPlayHTTP',
       headers: {
         'User-Agent': _ua,
         'Referer': _referer,

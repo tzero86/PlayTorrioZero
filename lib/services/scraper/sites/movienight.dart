@@ -11,7 +11,7 @@ import 'tmdb_helper.dart';
 /// server infrastructure (Dallas, Seattle, Austin, Helena, etc.)
 class MovieNightScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _base = 'https://movienig.ht';
   static const _ua =
@@ -117,8 +117,8 @@ class MovieNightScraper extends StreamScraper {
                     final titleQuality = quality != 'Auto' ? ' ($quality)' : '';
 
                     sources.add(StreamSource(
-                      name: 'PlayTorrioHTTP',
-                      addonName: 'PlayTorrioHTTP',
+                      name: 'ZPlayHTTP',
+                      addonName: 'ZPlayHTTP',
                       title: 'MovieNight $serverLabel$titleQuality',
                       description: 'MovieNight · $serverLabel · Quality: $quality HLS',
                       url: rawUrl,

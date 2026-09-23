@@ -5,13 +5,13 @@ import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 
-/// HindMoviez Stream Scraper for PlayTorrioHTTP.
+/// HindMoviez Stream Scraper for ZPlayHTTP.
 ///
 /// Scrapes Bollywood, Hindi Dubbed/Dual-Audio, and Hollywood movies and TV series
 /// from hindmovie.icu via mvlink.blog and hshare.ink solver pipelines.
 class HindMoviezScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   @override
   String get providerId => 'hindmoviez';
@@ -861,7 +861,7 @@ class HindMoviezScraper extends StreamScraper {
       title: fullTitle,
       description: rawFileName ?? fullTitle,
       url: url,
-      addonName: 'PlayTorrioHTTP',
+      addonName: 'ZPlayHTTP',
       providerId: 'hindmoviez',
       providerName: 'HindMoviez',
       headers: _defaultHeaders,

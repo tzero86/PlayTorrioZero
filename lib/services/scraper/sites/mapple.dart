@@ -7,13 +7,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart Mapple Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart Mapple Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla Mapple provider.
 /// Solves SHA-256 Proof-of-Work and resolves multi-server HLS streams from mapple.club.
 class MappleScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://mapple.club';
   static const _ua =
@@ -238,8 +238,8 @@ class MappleScraper extends StreamScraper {
                 };
 
                 return StreamSource(
-                  name: 'PlayTorrioHTTP',
-                  addonName: 'PlayTorrioHTTP',
+                  name: 'ZPlayHTTP',
+                  addonName: 'ZPlayHTTP',
                   title: 'Mapple · $sName · 1080p',
                   description: 'Mapple $sName HLS Stream',
                   url: fileUrl,

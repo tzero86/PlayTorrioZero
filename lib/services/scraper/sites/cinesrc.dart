@@ -5,13 +5,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart CineSrc Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart CineSrc Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla CineSrc provider.
 /// Generates direct master HLS playlists and fetches bright67 subtitles.
 class CineSrcScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _ua =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
@@ -114,8 +114,8 @@ class CineSrcScraper extends StreamScraper {
       };
 
       yield StreamSource(
-        name: 'PlayTorrioHTTP',
-        addonName: 'PlayTorrioHTTP',
+        name: 'ZPlayHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'CineSrc · Direct Master · 1080p',
         description: 'CineSrc Direct Master HLS Stream',
         url: streamUrl,

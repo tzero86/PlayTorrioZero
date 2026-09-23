@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart FshareTV Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart FshareTV Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla FshareTV provider.
 /// Resolves high-speed MP4 & HLS streams from fsharetv.cc.
 class FshareTvScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://fsharetv.cc';
   static const _ua =
@@ -142,8 +142,8 @@ class FshareTvScraper extends StreamScraper {
               ];
 
               yield StreamSource(
-                name: 'PlayTorrioHTTP',
-                addonName: 'PlayTorrioHTTP',
+                name: 'ZPlayHTTP',
+                addonName: 'ZPlayHTTP',
                 title: titleParts.join(' · '),
                 description: descParts.join(' · '),
                 url: srcUrl,

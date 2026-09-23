@@ -5,13 +5,13 @@ import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 
-/// Pure-Dart Purstream Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart Purstream Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla Purstream provider.
 /// Searches and queries api.purstream.club directly for multi-source streams.
 class PurstreamScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _domain = 'https://purstream.club';
   static const _apiBase = 'https://api.purstream.club/api/v1';
@@ -120,8 +120,8 @@ class PurstreamScraper extends StreamScraper {
           };
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: streamTitle,
             description: 'Purstream Multi-Audio HLS Stream',
             url: sUrl,

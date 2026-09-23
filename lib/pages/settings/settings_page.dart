@@ -572,7 +572,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 const SizedBox(height: 12),
 
-                // 4. Built-in Providers (PlayTorrioHTTP)
+                // 4. Built-in Providers (ZPlayHTTP)
                 ListenableBuilder(
                   listenable: BuiltinProvidersSettingsService.instance,
                   builder: (context, _) {
@@ -585,7 +585,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           : const Color(0xFF10B981),
                       title: 'Built-in Providers',
                       subtitle:
-                          'PlayTorrioHTTP streaming sources, priority order & toggles',
+                          'ZPlayHTTP streaming sources, priority order & toggles',
                       badgeText: isCustom ? 'Custom' : 'Default',
                       badgeColor: isCustom
                           ? const Color(0xFF7C5CFF)
@@ -598,7 +598,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
                 const SizedBox(height: 12),
 
-                // 4. Built-in P2P Torrent Source Toggle (PlayTorrio)
+                // 4. Built-in P2P Torrent Source Toggle (ZPlay)
                 ValueListenableBuilder<bool>(
                   valueListenable: P2pSettingsService.isP2pEnabled,
                   builder: (context, isP2p, _) {
@@ -609,8 +609,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           : Colors.white54,
                       title: 'Built-in P2P Torrent Source',
                       subtitle: isP2p
-                          ? 'PlayTorrio torrent swarms (Knaben, TorrentGalaxy) active'
-                          : 'P2P disabled. Using only direct HTTP streaming (PlayTorrioHTTP)',
+                          ? 'ZPlay torrent swarms (Knaben, TorrentGalaxy) active'
+                          : 'P2P disabled. Using only direct HTTP streaming (ZPlayHTTP)',
                       badgeText: isP2p ? 'P2P Active' : 'HTTP Only',
                       badgeColor: isP2p
                           ? const Color(0xFFF59E0B)

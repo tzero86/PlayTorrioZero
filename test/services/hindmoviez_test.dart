@@ -11,7 +11,7 @@ void main() {
   group('HindMoviezScraper Unit & Logic Tests', () {
     test('HindMoviezScraper metadata and properties', () {
       final scraper = HindMoviezScraper();
-      expect(scraper.name, equals('PlayTorrioHTTP'));
+      expect(scraper.name, equals('ZPlayHTTP'));
       expect(scraper.providerId, equals('hindmoviez'));
       expect(scraper.providerName, equals('HindMoviez'));
     });

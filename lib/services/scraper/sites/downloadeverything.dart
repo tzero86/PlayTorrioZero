@@ -5,14 +5,14 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// DownloadEverything Stream Scraper & Inside Extractor for PlayTorrioHTTP.
+/// DownloadEverything Stream Scraper & Inside Extractor for ZPlayHTTP.
 ///
 /// Connects to slave.downloadeverythingfromeverywhere.com and resolves
 /// streamable direct links from high-speed CDNs (Cloudflare R2, Pixeldrain,
 /// Moviebox/HakunaMatata, ClicknUpload, and HubCloud).
 class DownloadEverythingScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _slaveUrl = 'https://slave.downloadeverythingfromeverywhere.com/';
   static const _ua =
@@ -225,8 +225,8 @@ class DownloadEverythingScraper extends StreamScraper {
     final tagsStr = tags.isNotEmpty ? tags.join(' · ') : qualityMatch;
 
     return StreamSource(
-      name: 'PlayTorrioHTTP',
-      addonName: 'PlayTorrioHTTP',
+      name: 'ZPlayHTTP',
+      addonName: 'ZPlayHTTP',
       title: '[$provider] $rawTitle ($qualityMatch)',
       description: '$qualityMatch · $tagsStr · $provider',
       url: directStreamUrl,

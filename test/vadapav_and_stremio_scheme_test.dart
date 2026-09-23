@@ -31,7 +31,7 @@ void main() {
 
       expect(movieSources, isNotEmpty);
       expect(movieSources.first.url, startsWith('http'));
-      expect(movieSources.first.addonName, 'PlayTorrioHTTP');
+      expect(movieSources.first.addonName, 'ZPlayHTTP');
 
       print('\nTesting Vadapav for series: Breaking Bad S01E01 (tt0903747)...');
       final tvStream = scraper.scrapeStream(
@@ -52,7 +52,7 @@ void main() {
 
       expect(tvSources, isNotEmpty);
       expect(tvSources.first.url, startsWith('http'));
-      expect(tvSources.first.addonName, 'PlayTorrioHTTP');
+      expect(tvSources.first.addonName, 'ZPlayHTTP');
     });
   });
 

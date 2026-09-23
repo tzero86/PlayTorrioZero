@@ -134,7 +134,7 @@ class DownloadTask {
       name: 'Downloaded',
       title: title,
       url: targetFilePath,
-      addonName: 'PlayTorrio Offline',
+      addonName: 'ZPlay Offline',
     );
   }
 
@@ -214,6 +214,22 @@ class DownloadTask {
     };
   }
 
+  /// Pre-rebrand provider sentinels still present in records persisted before
+  /// the ZPlay rename. Map them to the current canonical values on read so
+  /// existing users keep their resume/watchlist association.
+  static String _canonicalAddonName(String? raw) {
+    switch (raw) {
+      case 'PlayTorrioHTTP':
+        return 'ZPlayHTTP';
+      case 'PlayTorrio':
+        return 'ZPlay';
+      case 'PlayTorrio Offline':
+        return 'ZPlay Offline';
+      default:
+        return raw ?? 'ZPlay';
+    }
+  }
+
   factory DownloadTask.fromJson(Map<String, dynamic> json) {
     return DownloadTask(
       id: json['id'] as String? ?? '',
@@ -231,7 +247,7 @@ class DownloadTask {
         orElse: () => DownloadSourceType.http,
       ),
       sourceName: json['sourceName'] as String? ?? 'Stream',
-      addonName: json['addonName'] as String?,
+      addonName: json['addonName'] == null ? null : _canonicalAddonName(json['addonName'] as String?),
       rawUrl: json['rawUrl'] as String?,
       magnet: json['magnet'] as String?,
       infoHash: json['infoHash'] as String?,

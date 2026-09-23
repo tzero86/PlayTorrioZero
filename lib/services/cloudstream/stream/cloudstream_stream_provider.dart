@@ -128,7 +128,7 @@ class CloudStreamStreamProvider {
     return 'English';
   }
 
-  /// Transforms a raw link Map emitted by CloudStream into PlayTorrio's StreamSource.
+  /// Transforms a raw link Map emitted by CloudStream into ZPlay's StreamSource.
   static StreamSource? toStreamSource(
     Map<String, dynamic> data, {
     required String extensionName,

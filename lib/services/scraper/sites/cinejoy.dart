@@ -8,7 +8,7 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart Cinejoy Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart Cinejoy Stream Scraper for ZPlayHTTP.
 ///
 /// Features:
 /// - 100% Pure Dart Cryptography (ECDH on P-256, HKDF-SHA256, AES-256-GCM)
@@ -17,7 +17,7 @@ import 'tmdb_helper.dart';
 /// - Queries active Cinejoy servers (Lisbon, Solara, Athens, Castle, Canaias)
 class CinejoyScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _apiBase = 'https://api.shegu.st';
   static const _origin = 'https://cinejoy.to';
@@ -391,7 +391,7 @@ class CinejoyScraper extends StreamScraper {
       title: title,
       description: description,
       url: url,
-      addonName: 'PlayTorrioHTTP',
+      addonName: 'ZPlayHTTP',
       headers: {
         'User-Agent': _ua,
         'Referer': _referer,

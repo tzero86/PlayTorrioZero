@@ -5,13 +5,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart CineSu Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart CineSu Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla CineSu provider.
 /// Resolves direct master HLS from cine.su.
 class CineSuScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseDomain = 'https://glendale-plumbing.com';
   static const _referer = 'https://cine.su/';
@@ -115,8 +115,8 @@ class CineSuScraper extends StreamScraper {
       };
 
       yield StreamSource(
-        name: 'PlayTorrioHTTP',
-        addonName: 'PlayTorrioHTTP',
+        name: 'ZPlayHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'CineSu · Direct Master · 1080p',
         description: 'CineSu Master HLS Stream',
         url: streamUrl,

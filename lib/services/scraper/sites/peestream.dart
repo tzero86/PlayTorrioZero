@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart PeeStream Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart PeeStream Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla PeeStream provider.
 /// Connects to providers.peestream.in via SSE scrape pipeline and fallback search.
 class PeeStreamScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://providers.peestream.in';
   static const _ua =
@@ -99,8 +99,8 @@ class PeeStreamScraper extends StreamScraper {
                         }
 
                         yield StreamSource(
-                          name: 'PlayTorrioHTTP',
-                          addonName: 'PlayTorrioHTTP',
+                          name: 'ZPlayHTTP',
+                          addonName: 'ZPlayHTTP',
                           title: 'PeeStream · $sourceId · $quality',
                           description: 'PeeStream Multi-Server Stream · $quality',
                           url: streamUrl,
@@ -166,8 +166,8 @@ class PeeStreamScraper extends StreamScraper {
                       final streamHeaders = {'User-Agent': _ua};
 
                       yield StreamSource(
-                        name: 'PlayTorrioHTTP',
-                        addonName: 'PlayTorrioHTTP',
+                        name: 'ZPlayHTTP',
+                        addonName: 'ZPlayHTTP',
                         title: 'PeeStream · $stName · $quality',
                         description: 'PeeStream Stream · $quality',
                         url: streamUrl,

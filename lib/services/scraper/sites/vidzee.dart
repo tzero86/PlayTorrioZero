@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidZee Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidZee Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidZee provider.
 /// Resolves cloud streams from core.vidzee.wtf across services (dcloud, ipcloud, tik).
 class VidZeeScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://core.vidzee.wtf';
   static const _playerUrl = 'https://player.vidzee.wtf';
@@ -107,8 +107,8 @@ class VidZeeScraper extends StreamScraper {
           };
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: titleParts.join(' · '),
             description: hasValidLang
                 ? 'VidZee Stream · $language · ${isHls ? 'HLS' : 'MP4'}'

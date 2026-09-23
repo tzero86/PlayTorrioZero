@@ -7,7 +7,7 @@ import 'tmdb_helper.dart';
 /// MultiEmbed / 2embed VOD Extractor ported 1:1 from Flyx (multiembed.ts).
 class MultiEmbedScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _embedBase = 'https://www.2embed.cc';
   static const _ua =
@@ -129,8 +129,8 @@ class MultiEmbedScraper extends StreamScraper {
                               (file.contains('.m3u8') || file.contains('.mp4') || file.contains('/playlist/'))) {
                             final label = src['label']?.toString() ?? 'Auto';
                             sources.add(StreamSource(
-                              name: 'PlayTorrioHTTP',
-                              addonName: 'PlayTorrioHTTP',
+                              name: 'ZPlayHTTP',
+                              addonName: 'ZPlayHTTP',
                               title: '2embed XPS · $label',
                               description: '2embed Multi-CDN Stream',
                               url: file,

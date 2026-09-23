@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart MegaSource Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart MegaSource Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla MegaSource provider.
 /// Resolves streams via megasource.wasmer.app Stremio manifest pipeline.
 class MegaSourceScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _config =
       'W3siaWQiOiJkZWZhdWx0IiwibmFtZSI6Ik1lZ2FTb3VyY2UgZGVmYXVsdCIsInVybCI6Imh0dHBzOi8vZ2l0aHViLmNvbS96b3JldS9tZWdhc291cmNlX3NjcmFwZXJzL3Jhdy9yZWZzL2hlYWRzL21haW4vZGVmYXVsdF9zY3JhcGVyLnB5IiwiZGVzY3JpcHRpb24iOiJEZWZhdWx0IHNjcmFwZXIgaG9zdGVkIG9uIEdpdEh1Yi4ifV0';
@@ -95,8 +95,8 @@ class MegaSourceScraper extends StreamScraper {
           }
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: titleLabel,
             description: 'MegaSource HLS Stream',
             url: streamUrl,

@@ -6,7 +6,7 @@ import '../../../models/stream/stream_model.dart';
 /// Scraper for All Movies Downloader (Films365) producing direct MP4 stream sources.
 class XDownloaderScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const String _baseUrl = 'https://www.films365.org';
   static const Map<String, String> _headers = {
@@ -101,8 +101,8 @@ class XDownloaderScraper extends StreamScraper {
         if (streamUrl != null && streamUrl.isNotEmpty) {
           final safeUrl = Uri.parse(streamUrl).toString();
           sources.add(StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: 'X-Downloader$langSuffix',
             description: 'X-Downloader Direct MP4 Stream$langSuffix',
             url: safeUrl,
@@ -136,8 +136,8 @@ class XDownloaderScraper extends StreamScraper {
                 if (streamUrl != null && streamUrl.isNotEmpty) {
                   final safeUrl = Uri.parse(streamUrl).toString();
                   sources.add(StreamSource(
-                    name: 'PlayTorrioHTTP',
-                    addonName: 'PlayTorrioHTTP',
+                    name: 'ZPlayHTTP',
+                    addonName: 'ZPlayHTTP',
                     title: 'X-Downloader$langSuffix',
                     description: 'X-Downloader Direct MP4 Stream (S${season}E$episode)$langSuffix',
                     url: safeUrl,

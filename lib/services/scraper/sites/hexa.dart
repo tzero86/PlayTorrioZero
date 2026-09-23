@@ -7,13 +7,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart Hexa Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart Hexa Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla Hexa provider.
 /// Resolves HLS and MP4 sources from hexa.su / flixer.su via enc-dec.app.
 class HexaScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _apiBase = 'https://enc-dec.app/api';
   static const _domains = ['hexa.su', 'flixer.su'];
@@ -134,8 +134,8 @@ class HexaScraper extends StreamScraper {
           };
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: 'Hexa · $sName · $quality',
             description: 'Hexa Stream · $quality',
             url: streamUrl,

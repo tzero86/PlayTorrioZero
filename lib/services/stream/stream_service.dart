@@ -237,7 +237,7 @@ class StreamService {
       _activeSubscriptions.add(sub);
     }
 
-    // Local PlayTorrioHTTP scrapers (if active)
+    // Local ZPlayHTTP scrapers (if active)
     if (isHttpActive) {
       final isImdb = id.startsWith('tt');
       final cleanImdbId = isImdb ? id.split(':')[0] : null;
@@ -281,8 +281,8 @@ class StreamService {
 
   /// Fetches streams specifically for a targeted provider/addon that was previously used by the user.
   ///
-  /// - If [targetAddonName] == 'PlayTorrioHTTP': Only scrapes built-in alive HTTP scrapers.
-  /// - If [targetAddonName] == 'PlayTorrio': Only scrapes built-in torrent scrapers.
+  /// - If [targetAddonName] == 'ZPlayHTTP': Only scrapes built-in alive HTTP scrapers.
+  /// - If [targetAddonName] == 'ZPlay': Only scrapes built-in torrent scrapers.
   /// - If [targetAddonName] matches a Stremio addon (e.g. 'Torrentio', 'CyberFlix'): Only calls that specific addon.
   static Stream<StreamSource> fetchStreamsForTargetAddon({
     required String targetAddonName,
@@ -369,10 +369,10 @@ class StreamService {
       );
     }
 
-    // Check if targeting built-in PlayTorrioHTTP / PlayTorrio
-    final isLocalPlayTorrio = normalizedTarget == 'playtorriohttp' ||
-        normalizedTarget == 'playtorrio' ||
-        normalizedTarget.contains('playtorrio');
+    // Check if targeting built-in ZPlayHTTP / ZPlay
+    final isLocalPlayTorrio = normalizedTarget == 'zplayhttp' ||
+        normalizedTarget == 'zplay' ||
+        normalizedTarget.contains('zplay');
 
     if (isLocalPlayTorrio) {
       _registerBuiltInScrapers();
@@ -390,13 +390,13 @@ class StreamService {
       ).listen(
         (source) {
           if (!controller.isClosed) {
-            // If target was specifically PlayTorrioHTTP, only yield HTTP streams
-            if (normalizedTarget == 'playtorriohttp' &&
+            // If target was specifically ZPlayHTTP, only yield HTTP streams
+            if (normalizedTarget == 'zplayhttp' &&
                 (source.infoHash != null && source.infoHash!.isNotEmpty)) {
               return;
             }
-            // If target was specifically PlayTorrio (torrent), only yield torrent streams
-            if (normalizedTarget == 'playtorrio' &&
+            // If target was specifically ZPlay (torrent), only yield torrent streams
+            if (normalizedTarget == 'zplay' &&
                 (source.infoHash == null || source.infoHash!.isEmpty)) {
               return;
             }

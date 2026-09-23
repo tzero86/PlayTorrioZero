@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Movy.bz Stream Scraper & Decryptor for PlayTorrioHTTP.
+/// Movy.bz Stream Scraper & Decryptor for ZPlayHTTP.
 ///
 /// Queries all 14 Movy city servers (Miami 4K, Seattle, Denver, Chicago, Dallas, etc.)
 /// and decrypts live HLS/m3u8 streaming sources using Movy's custom FNV-1a PRNG cipher.
 class MovyScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _apiBase = 'https://api.wecollege.net';
   static const _referer = 'https://www.movy.bz/';
@@ -171,7 +171,7 @@ class MovyScraper extends StreamScraper {
                         title: streamTitle,
                         description: desc,
                         url: streamUrl,
-                        addonName: 'PlayTorrioHTTP',
+                        addonName: 'ZPlayHTTP',
                         headers: {
                           'User-Agent': _ua,
                           'Referer': _referer,

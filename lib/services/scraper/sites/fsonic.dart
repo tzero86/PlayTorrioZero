@@ -5,13 +5,13 @@ import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 
-/// Pure-Dart FSonic Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart FSonic Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla FSonic provider.
 /// Resolves movies from fsonic.net and fsharetv.co.
 class FSonicScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://www.fsonic.net';
   static const _fshareBase = 'https://fsharetv.co';
@@ -132,8 +132,8 @@ class FSonicScraper extends StreamScraper {
               };
 
               yield StreamSource(
-                name: 'PlayTorrioHTTP',
-                addonName: 'PlayTorrioHTTP',
+                name: 'ZPlayHTTP',
+                addonName: 'ZPlayHTTP',
                 title: titleParts.join(' · '),
                 description: descParts.join(' · '),
                 url: srcUrl,

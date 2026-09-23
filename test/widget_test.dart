@@ -16,12 +16,12 @@ void main() {
       const MaterialApp(
         home: Scaffold(
           body: Center(
-            child: Text('PlayTorrio'),
+            child: Text('ZPlay'),
           ),
         ),
       ),
     );
 
-    expect(find.text('PlayTorrio'), findsOneWidget);
+    expect(find.text('ZPlay'), findsOneWidget);
   });
 }

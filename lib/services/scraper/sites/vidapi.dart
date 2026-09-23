@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidAPI Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidAPI Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidAPI provider.
 /// Resolves HLS and MP4 streams from streamdata.vaplayer.ru.
 class VidApiScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _apiBase = 'https://streamdata.vaplayer.ru/api.php';
   static const _embedOrigin = 'https://nextgencloudfabric.com';
@@ -100,8 +100,8 @@ class VidApiScraper extends StreamScraper {
           final format = isHls ? 'HLS' : isDash ? 'DASH' : 'MP4';
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: 'VidAPI · $format · 1080p',
             description: 'VidAPI Stream · $format',
             url: sUrl,

@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidUp Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidUp Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidUp provider.
 /// Resolves movies and TV shows via vidup.to and enc-dec.app decryption pipeline.
 class VidUpScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _domain = 'https://vidup.to';
   static const _apiBase = 'https://enc-dec.app/api';
@@ -178,8 +178,8 @@ class VidUpScraper extends StreamScraper {
           };
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: 'VidUp · $srvName · $qualityLabel',
             description: 'VidUp Multi-CDN Stream · $qualityLabel',
             url: streamTargetUrl,

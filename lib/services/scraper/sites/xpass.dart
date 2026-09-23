@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart XPass Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart XPass Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla XPass provider.
 /// Resolves multi-server streams from play.xpass.top.
 class XPassScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _base = 'https://play.xpass.top';
   static const _ua =
@@ -121,8 +121,8 @@ class XPassScraper extends StreamScraper {
                     final isHls = (target['type'] == 'hls' || streamUrl.contains('.m3u8'));
 
                     yield StreamSource(
-                      name: 'PlayTorrioHTTP',
-                      addonName: 'PlayTorrioHTTP',
+                      name: 'ZPlayHTTP',
+                      addonName: 'ZPlayHTTP',
                       title: 'XPass · $sName · 1080p',
                       description: 'XPass Stream · ${isHls ? 'HLS' : 'MP4'}',
                       url: streamUrl,

@@ -39,6 +39,35 @@ class AddonManager {
     }
   }
 
+  /// Rewrites the manifest of persisted built-in addons when it still carries
+  /// the pre-rebrand display name, preserving every user-controlled flag.
+  ///
+  /// `_ensureBuiltInsExist` only checks the id, so an install that installed the
+  /// built-ins before the rename would otherwise keep the stale name forever.
+  bool _refreshBuiltInNames() {
+    var changed = false;
+    for (final builtIn in [playTorrioBuiltin, playTorrioHttpBuiltin]) {
+      final index = _addons.indexWhere(
+        (a) => a.manifest.id == builtIn.manifest.id || a.baseUrl == builtIn.baseUrl,
+      );
+      if (index == -1) continue;
+      final stored = _addons[index];
+      if (stored.manifest.name == builtIn.manifest.name) continue;
+      _addons[index] = InstalledAddon(
+        baseUrl: builtIn.baseUrl,
+        manifest: builtIn.manifest,
+        enabled: stored.enabled,
+        enableCatalogs: stored.enableCatalogs,
+        enableSearch: stored.enableSearch,
+        enableSubtitles: stored.enableSubtitles,
+        enableStreams: stored.enableStreams,
+        adultRating: stored.adultRating,
+      );
+      changed = true;
+    }
+    return changed;
+  }
+
   List<InstalledAddon> get addons {
     _ensureBuiltInsExist();
     return List.unmodifiable(_addons);
@@ -102,8 +131,8 @@ class AddonManager {
   String? getAddonLogo(String addonName) {
     _ensureBuiltInsExist();
     final nameLower = addonName.trim().toLowerCase();
-    if (nameLower == 'playtorrio' ||
-        nameLower == 'playtorriohttp' ||
+    if (nameLower == 'zplay' ||
+        nameLower == 'zplayhttp' ||
         nameLower.startsWith('builtin')) {
       return 'asset:assets/icon_small.png';
     }
@@ -122,7 +151,7 @@ class AddonManager {
     baseUrl: 'builtin:playtorrio',
     manifest: AddonManifest(
       id: 'builtin.playtorrio',
-      name: 'PlayTorrio',
+      name: 'ZPlay',
       version: '3.0.0',
       description: 'Built-in BitTorrent P2P streaming engine (TorrServer). Plays torrents, magnets, and infohashes directly.',
       resources: ['stream'],
@@ -141,7 +170,7 @@ class AddonManager {
     baseUrl: 'builtin:playtorriohttp',
     manifest: AddonManifest(
       id: 'builtin.playtorriohttp',
-      name: 'PlayTorrioHTTP',
+      name: 'ZPlayHTTP',
       version: '3.0.0',
       description: 'Built-in fast HTTP stream scrapers (111477, Cinejoy, Vuflix, Movy, RiveStream, Vadapav, VidCore, VidSrc, etc.)',
       resources: ['stream'],
@@ -193,15 +222,22 @@ class AddonManager {
       }
     }
 
-    // Ensure PlayTorrio P2P engine is registered in the list
+    // Ensure ZPlay P2P engine is registered in the list
     if (!_addons.any((a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio')) {
       _addons.add(playTorrioBuiltin);
       await _save();
     }
 
-    // Ensure PlayTorrioHTTP is registered in the list
+    // Ensure ZPlayHTTP is registered in the list
     if (!_addons.any((a) => a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp')) {
       _addons.add(playTorrioHttpBuiltin);
+      await _save();
+    }
+
+    // Existing installs persisted the built-in addons under their pre-rebrand
+    // display name. Refresh the stored manifest so the rename reaches installs
+    // that never clear their addon list, keeping user state intact.
+    if (_refreshBuiltInNames()) {
       await _save();
     }
 

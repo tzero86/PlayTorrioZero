@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidVault Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidVault Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidVault provider.
 /// Resolves direct high-speed MP4 & MKV files from vidvault.ru.
 class VidVaultScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://vidvault.ru';
   static const _ua =
@@ -122,8 +122,8 @@ class VidVaultScraper extends StreamScraper {
               ];
 
               yield StreamSource(
-                name: 'PlayTorrioHTTP',
-                addonName: 'PlayTorrioHTTP',
+                name: 'ZPlayHTTP',
+                addonName: 'ZPlayHTTP',
                 title: titleParts.join(' · '),
                 description: descParts.join(' · '),
                 url: dUrl,
@@ -150,8 +150,8 @@ class VidVaultScraper extends StreamScraper {
             final label = size.isNotEmpty ? 'MKV · $size' : 'MKV';
 
             yield StreamSource(
-              name: 'PlayTorrioHTTP',
-              addonName: 'PlayTorrioHTTP',
+              name: 'ZPlayHTTP',
+              addonName: 'ZPlayHTTP',
               title: 'VidVault · $label',
               description: 'VidVault Direct File',
               url: fUrl,
@@ -187,8 +187,8 @@ class VidVaultScraper extends StreamScraper {
               ];
 
               yield StreamSource(
-                name: 'PlayTorrioHTTP',
-                addonName: 'PlayTorrioHTTP',
+                name: 'ZPlayHTTP',
+                addonName: 'ZPlayHTTP',
                 title: parts.join(' · '),
                 description: 'VidVault Direct MKV · $eLang $eCountry $eSize'.trim(),
                 url: eUrl,

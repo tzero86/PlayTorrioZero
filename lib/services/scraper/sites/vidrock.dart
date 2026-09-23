@@ -7,13 +7,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart VidRock Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart VidRock Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla VidRock provider.
 /// Resolves AES-GCM encrypted streams from vidrock.ru.
 class VidRockScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _gcmHexKey = '7f3e9c2a8b5d1f4e6a9c3b7d2e5f8a1c4b6d9e2f5a8c1b4d7e9f2a5c8b1d4e7f';
   static const _baseUrl = 'https://vidrock.ru/';
@@ -142,8 +142,8 @@ class VidRockScraper extends StreamScraper {
                           };
 
                           yield StreamSource(
-                            name: 'PlayTorrioHTTP',
-                            addonName: 'PlayTorrioHTTP',
+                            name: 'ZPlayHTTP',
+                            addonName: 'ZPlayHTTP',
                             title: 'VidRock · $provider · ${resVal}p',
                             description: 'VidRock Stream · ${isHls ? 'HLS' : 'MP4'}',
                             url: rawItemUrl,
@@ -171,8 +171,8 @@ class VidRockScraper extends StreamScraper {
             };
 
             yield StreamSource(
-              name: 'PlayTorrioHTTP',
-              addonName: 'PlayTorrioHTTP',
+              name: 'ZPlayHTTP',
+              addonName: 'ZPlayHTTP',
               title: 'VidRock · $provider · 1080p',
               description: 'VidRock Stream · ${isHls ? 'HLS' : 'MP4'}',
               url: streamUrl,

@@ -8,13 +8,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart ZxcStream Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart ZxcStream Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla ZxcStream provider.
 /// Resolves multi-server streams (berkas, orion, aquarius, resshin) from player.zxcstream.xyz.
 class ZxcStreamScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _baseUrl = 'https://player.zxcstream.xyz';
   static const _aesKey = '7f4c9e2a81d63b05c4f7a9e8126d3b50e1a8c7f23d9465ab0c6e9f1d4a7b832c';
@@ -209,8 +209,8 @@ class ZxcStreamScraper extends StreamScraper {
             final isHls = sUrl.contains('.m3u8');
 
             yield StreamSource(
-              name: 'PlayTorrioHTTP',
-              addonName: 'PlayTorrioHTTP',
+              name: 'ZPlayHTTP',
+              addonName: 'ZPlayHTTP',
               title: 'ZxcStream · $sName · 1080p',
               description: 'ZxcStream Stream · ${isHls ? 'HLS' : 'MP4'}',
               url: sUrl,

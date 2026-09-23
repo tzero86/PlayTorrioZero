@@ -68,7 +68,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                       title: const Text('Reset Providers Order?', style: TextStyle(fontWeight: FontWeight.bold)),
                       content: const Text(
-                        'This will restore all 45 PlayTorrioHTTP providers to their default order and re-enable any disabled providers.',
+                        'This will restore all 45 ZPlayHTTP providers to their default order and re-enable any disabled providers.',
                         style: TextStyle(fontSize: 13.5, color: Colors.white70),
                       ),
                       actions: [
@@ -384,7 +384,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'All $totalCount PlayTorrioHTTP providers are active and scraped concurrently.',
+                      'All $totalCount ZPlayHTTP providers are active and scraped concurrently.',
                       style: const TextStyle(fontSize: 12, color: Colors.white54),
                     ),
                   ],

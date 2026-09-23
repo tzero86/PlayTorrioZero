@@ -59,7 +59,7 @@ class ScraperManager {
   }
 
   void unregisterTorrentScrapers() {
-    _scrapers.removeWhere((s) => s.name == 'PlayTorrio');
+    _scrapers.removeWhere((s) => s.name == 'ZPlay');
   }
 
   /// Cancels all ongoing scraper executions immediately.
@@ -90,22 +90,22 @@ class ScraperManager {
     final List<StreamScraper> activeScrapers;
     if (isCustom) {
       final filtered = _scrapers.where((s) {
-        if (!p2pAllowed && s.name == 'PlayTorrio') return false;
-        if (s.name == 'PlayTorrioHTTP') {
+        if (!p2pAllowed && s.name == 'ZPlay') return false;
+        if (s.name == 'ZPlayHTTP') {
           return BuiltinProvidersSettingsService.instance.isProviderEnabled(s.providerId);
         }
         return true;
       }).toList();
 
-      final hasRegisteredHttp = _scrapers.any((s) => s.name == 'PlayTorrioHTTP');
-      final httpScrapersInFiltered = filtered.where((s) => s.name == 'PlayTorrioHTTP').toList();
+      final hasRegisteredHttp = _scrapers.any((s) => s.name == 'ZPlayHTTP');
+      final httpScrapersInFiltered = filtered.where((s) => s.name == 'ZPlayHTTP').toList();
       if (hasRegisteredHttp && httpScrapersInFiltered.isEmpty) {
-        debugPrint('[ScraperManager] WARNING: Custom mode has 0 PlayTorrioHTTP scrapers enabled. Falling back to default enabled HTTP scrapers to prevent scraping outage.');
-        filtered.addAll(_scrapers.where((s) => s.name == 'PlayTorrioHTTP'));
+        debugPrint('[ScraperManager] WARNING: Custom mode has 0 ZPlayHTTP scrapers enabled. Falling back to default enabled HTTP scrapers to prevent scraping outage.');
+        filtered.addAll(_scrapers.where((s) => s.name == 'ZPlayHTTP'));
       }
 
       filtered.sort((a, b) {
-        if (a.name == 'PlayTorrioHTTP' && b.name == 'PlayTorrioHTTP') {
+        if (a.name == 'ZPlayHTTP' && b.name == 'ZPlayHTTP') {
           final rankA = BuiltinProvidersSettingsService.instance.getProviderRank(a.providerId);
           final rankB = BuiltinProvidersSettingsService.instance.getProviderRank(b.providerId);
           return rankA.compareTo(rankB);
@@ -115,7 +115,7 @@ class ScraperManager {
       activeScrapers = filtered;
     } else {
       activeScrapers = _scrapers.where((s) {
-        if (!p2pAllowed && s.name == 'PlayTorrio') {
+        if (!p2pAllowed && s.name == 'ZPlay') {
           return false;
         }
         return true;
@@ -171,7 +171,7 @@ class ScraperManager {
 
           // If P2P is disabled, strictly discard any torrent source
           if (!p2pAllowed &&
-              (source.addonName == 'PlayTorrio' ||
+              (source.addonName == 'ZPlay' ||
                   (source.infoHash != null && source.infoHash!.isNotEmpty))) {
             return;
           }

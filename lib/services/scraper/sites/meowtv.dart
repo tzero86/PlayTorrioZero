@@ -6,13 +6,13 @@ import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
 import 'tmdb_helper.dart';
 
-/// Pure-Dart MeowTV Stream Scraper for PlayTorrioHTTP.
+/// Pure-Dart MeowTV Stream Scraper for ZPlayHTTP.
 ///
 /// Ported 1-to-1 from Vyla MeowTV provider.
 /// Resolves streams via api.meowtv.ru and enc-dec.app decryption.
 class MeowTvScraper extends StreamScraper {
   @override
-  String get name => 'PlayTorrioHTTP';
+  String get name => 'ZPlayHTTP';
 
   static const _apiBase = 'https://api.meowtv.ru';
   static const _referer = 'https://meowtv.ru/';
@@ -111,8 +111,8 @@ class MeowTvScraper extends StreamScraper {
           };
 
           yield StreamSource(
-            name: 'PlayTorrioHTTP',
-            addonName: 'PlayTorrioHTTP',
+            name: 'ZPlayHTTP',
+            addonName: 'ZPlayHTTP',
             title: 'MeowTV · Hindiv3 · 1080p',
             description: 'MeowTV Stream · ${isHls ? 'HLS' : 'MP4'}',
             url: u,
