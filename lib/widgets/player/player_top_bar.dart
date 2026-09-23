@@ -9,6 +9,9 @@ class PlayerTopBar extends StatelessWidget {
   final VoidCallback onBack;
   final VoidCallback? onToggleEpisodes;
   final bool isEpisodesActive;
+  /// Opens the in-player sources panel; null hides the Sources badge.
+  final VoidCallback? onShowSources;
+  final bool isSourcesActive;
   final VoidCallback? onScreenshot;
   final VoidCallback? onToggleAspect;
   final VoidCallback? onCast;
@@ -25,6 +28,8 @@ class PlayerTopBar extends StatelessWidget {
     required this.onBack,
     this.onToggleEpisodes,
     this.isEpisodesActive = false,
+    this.onShowSources,
+    this.isSourcesActive = false,
     this.onScreenshot,
     this.onToggleAspect,
     this.onCast,
@@ -201,7 +206,61 @@ class PlayerTopBar extends StatelessWidget {
                     ),
                   ),
                 ),
+              ],
+              if (onShowSources != null) ...[
                 const SizedBox(width: 10),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: onShowSources,
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isSourcesActive
+                            ? PlayerTheme.accent.withValues(alpha: 0.30)
+                            : const Color(0x33080C12),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSourcesActive
+                              ? PlayerTheme.accent.withValues(alpha: 0.85)
+                              : Colors.white.withValues(alpha: 0.15),
+                          width: 1.2,
+                        ),
+                        boxShadow: isSourcesActive
+                            ? [
+                                BoxShadow(
+                                  color: PlayerTheme.accent.withValues(alpha: 0.35),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.playlist_play_rounded,
+                            size: 18,
+                            color: isSourcesActive ? const Color(0xFF9D84FF) : Colors.white,
+                          ),
+                          const SizedBox(width: 7),
+                          Text(
+                            'Sources',
+                            style: TextStyle(
+                              color: isSourcesActive ? Colors.white : Colors.white.withValues(alpha: 0.9),
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
               if (onCopyStreamUrl != null) ...[
                 PlayerIconButton(

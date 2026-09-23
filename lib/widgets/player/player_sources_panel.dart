@@ -22,6 +22,9 @@ class PlayerSourcesPanel extends StatefulWidget {
   final Function(List<StreamSource> sources) onSourcesLoaded;
   final Function(StreamSource source, Video episode) onPlaySource;
   final VoidCallback onBackToEpisodes;
+  /// When false the panel serves a movie: no back-to-episodes button, and the
+  /// empty state talks about the title rather than an episode.
+  final bool showBackToEpisodes;
   final VoidCallback onClose;
 
   const PlayerSourcesPanel({
@@ -34,6 +37,7 @@ class PlayerSourcesPanel extends StatefulWidget {
     required this.onSourcesLoaded,
     required this.onPlaySource,
     required this.onBackToEpisodes,
+    this.showBackToEpisodes = true,
     required this.onClose,
   });
 
@@ -312,14 +316,15 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
       child: Row(
         children: [
           // Back to Episodes Button
-          PlayerIconButton(
-            size: 36,
-            iconSize: 20,
-            icon: const Icon(Icons.chevron_left_rounded),
-            tooltip: 'Back to Episodes',
-            backgroundColor: Colors.white.withValues(alpha: 0.08),
-            onPressed: widget.onBackToEpisodes,
-          ),
+          if (widget.showBackToEpisodes)
+            PlayerIconButton(
+              size: 36,
+              iconSize: 20,
+              icon: const Icon(Icons.chevron_left_rounded),
+              tooltip: 'Back to Episodes',
+              backgroundColor: Colors.white.withValues(alpha: 0.08),
+              onPressed: widget.onBackToEpisodes,
+            ),
           const SizedBox(width: 10),
 
           Expanded(
@@ -463,9 +468,9 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
           children: [
             Icon(Icons.search_off_rounded, color: Colors.white.withValues(alpha: 0.30), size: 48),
             const SizedBox(height: 12),
-            const Text(
-              'No streams found for this episode',
-              style: TextStyle(
+            Text(
+              widget.showBackToEpisodes ? 'No streams found for this episode' : 'No streams found for this title',
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,

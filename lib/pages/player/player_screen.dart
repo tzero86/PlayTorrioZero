@@ -685,15 +685,31 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
-  /// Leaves the player and opens the canonical source picker for this title.
+  /// Opens the canonical source picker for this title.
   ///
-  /// The in-player [PlayerSourcesPanel] is episode-shaped (it needs a `Video`,
-  /// offers "back to episodes", and [switchStream] builds an S1E1 title), so for
-  /// movies the app's real source-selection surface is [WatchScreen]. Without
-  /// this the user is told to pick another source with no way to do so, and the
-  /// Continue Watching tile re-resumes the same dead source forever.
+  /// Prefers the in-player [PlayerSourcesPanel] so a stalled stream can be
+  /// swapped without leaving the player - it is provider-scoped, so the
+  /// alternative sources of the same provider are right there. Movies are
+  /// served too: the panel is handed a stand-in [Video] built from the detail.
+  /// Only when no target exists (no detail and no episode) does this fall back
+  /// to leaving the player for [WatchScreen], the app's full source-selection
+  /// surface. Without this the user is told to pick another source with no way
+  /// to do so, and the Continue Watching tile re-resumes the same dead source
+  /// forever.
   void _openSourcePicker() {
     final detail = widget.detail;
+    final target = _sourcesTarget;
+    if (target != null) {
+      setState(() {
+        _isLoading = false;
+        _streamStalled = false;
+        _statusMessage = '';
+        _sourcesEpisode = target;
+        _sourcesErrorMessage = 'This stream is not responding - the source may be expired. Pick another source below.';
+        _showSourcesPanel = true;
+      });
+      return;
+    }
     if (detail == null) return;
     final position = _position > Duration.zero ? _position : _player.state.position;
     _progressSaveTimer?.cancel();
@@ -1254,6 +1270,28 @@ class _PlayerScreenState extends State<PlayerScreen>
     _startHideControlsTimer();
   }
 
+  /// The [Video] the sources panel scrapes for. Movies have no episode, so a
+  /// stand-in is built from the detail - the panel only needs its id/title.
+  Video? get _sourcesTarget {
+    if (_currentEpisode != null) return _currentEpisode;
+    final detail = widget.detail;
+    if (detail == null) return null;
+    return Video(id: detail.id, title: detail.name);
+  }
+
+  void _openSourcesPanel() {
+    final target = _sourcesTarget;
+    if (target == null) return;
+    setState(() {
+      _showSourcesPanel = true;
+      _sourcesEpisode = target;
+      _sourcesErrorMessage = null;
+      _showEpisodesPanel = false;
+      _activeMenu = null;
+      _showControls = true;
+    });
+  }
+
   void _toggleEpisodesPanel() {
     setState(() {
       _showEpisodesPanel = !_showEpisodesPanel;
@@ -1316,11 +1354,17 @@ class _PlayerScreenState extends State<PlayerScreen>
       _currentSource = newSource;
       _currentEpisode = newEpisode;
       final showName = widget.detail?.name ?? widget.title;
-      final epNum = newEpisode.episode ?? 1;
-      final sNum = newEpisode.season ?? 1;
-      _currentTitle = '$showName - S${sNum}E$epNum ${newEpisode.title}';
       _isLoading = true;
-      _statusMessage = 'Buffering S$sNum:E$epNum - ${newEpisode.title.isNotEmpty ? newEpisode.title : "Episode $epNum"}...';
+      if (newEpisode.season == null && newEpisode.episode == null) {
+        // A movie has no episode numbering to build a label from.
+        _currentTitle = showName;
+        _statusMessage = 'Buffering ${newSource.displayTitle}...';
+      } else {
+        final epNum = newEpisode.episode ?? 1;
+        final sNum = newEpisode.season ?? 1;
+        _currentTitle = '$showName - S${sNum}E$epNum ${newEpisode.title}';
+        _statusMessage = 'Buffering S$sNum:E$epNum - ${newEpisode.title.isNotEmpty ? newEpisode.title : "Episode $epNum"}...';
+      }
       _showEpisodesPanel = false;
       _showSourcesPanel = false;
       _activeMenu = null;
@@ -2195,7 +2239,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                       onToggleEpisodes: (!_isLoading && widget.detail?.videos.isNotEmpty == true)
                           ? _toggleEpisodesPanel
                           : null,
-                      isEpisodesActive: _showEpisodesPanel || _showSourcesPanel,
+                      isEpisodesActive: _showEpisodesPanel,
+                      onShowSources: (!_isLoading && _sourcesTarget != null)
+                          ? _openSourcesPanel
+                          : null,
+                      isSourcesActive: _showSourcesPanel,
                       onBack: () {
                         _handleBack();
                       },
@@ -2524,7 +2572,10 @@ class _PlayerScreenState extends State<PlayerScreen>
                         _cachedSourcesByEpisode['${_sourcesEpisode!.season ?? 1}:${_sourcesEpisode!.episode ?? 1}'] = sources;
                       },
                       onPlaySource: _playNewSource,
-                      onBackToEpisodes: _onBackToEpisodes,
+                      showBackToEpisodes: widget.detail?.videos.isNotEmpty == true,
+                      onBackToEpisodes: (widget.detail?.videos.isNotEmpty == true)
+                          ? _onBackToEpisodes
+                          : () => setState(() => _showSourcesPanel = false),
                       onClose: () => setState(() => _showSourcesPanel = false),
                     ),
                   ),
