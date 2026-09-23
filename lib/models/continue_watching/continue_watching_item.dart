@@ -152,7 +152,7 @@ class ContinueWatchingItem {
       infoHash: json['infoHash']?.toString(),
       fileIdx: json['fileIdx'] is int ? json['fileIdx'] : int.tryParse(json['fileIdx']?.toString() ?? ''),
       rawUrl: json['rawUrl']?.toString(),
-      streamName: json['streamName']?.toString(),
+      streamName: _canonicalStreamName(json['streamName']?.toString()),
       streamTitle: json['streamTitle']?.toString(),
       streamDescription: json['streamDescription']?.toString(),
       quality: json['quality']?.toString(),
@@ -174,6 +174,25 @@ class ContinueWatchingItem {
         return 'ZPlay Offline';
       default:
         return raw ?? 'ZPlay';
+    }
+  }
+
+  /// [streamName] holds the saved source card name, but several scrapers set
+  /// their StreamSource `name` to the addon name rather than the card title, so
+  /// this field carries the same pre-rebrand sentinels as [addonName] and must
+  /// be canonicalised identically. Without this, a session saved before the
+  /// rename loses the source-name match in `calculateSourceMatchScore`.
+  /// Null is preserved - unlike [addonName] there is no historical fallback.
+  static String? _canonicalStreamName(String? raw) {
+    switch (raw) {
+      case 'PlayTorrioHTTP':
+        return 'ZPlayHTTP';
+      case 'PlayTorrio':
+        return 'ZPlay';
+      case 'PlayTorrio Offline':
+        return 'ZPlay Offline';
+      default:
+        return raw;
     }
   }
 

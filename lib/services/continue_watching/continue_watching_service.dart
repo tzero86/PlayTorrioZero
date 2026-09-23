@@ -19,6 +19,7 @@ import '../../services/stream/stream_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../addon/addon_manager.dart';
 import '../anime/anime_library_service.dart';
+import '../stream/stream_health_checker.dart';
 import '../trakt/trakt_service.dart';
 import '../trakt/trakt_continue_watching_service.dart';
 import '../simkl/simkl_service.dart';
@@ -26,6 +27,10 @@ import '../simkl/simkl_continue_watching_service.dart';
 
 class ContinueWatchingService {
   static const _storageKey = 'continue_watching_sessions_v1';
+
+  /// Maximum number of top-scoring rescraped candidates probed for liveness when
+  /// resuming. Probes run concurrently, so added latency stays bounded by a single probe.
+  static const int _resumeProbeLimit = 8;
 
 
   static final ValueNotifier<List<ContinueWatchingItem>> activeItems =
@@ -950,9 +955,36 @@ class ContinueWatchingService {
 
     StreamSource? selectedSource;
     if (candidateSources.isNotEmpty) {
-      selectedSource = candidateSources.first;
-      final bestScore = calculateSourceMatchScore(selectedSource, item);
-      debugPrint('[ContinueWatchingService] Best source match: "${selectedSource.addonName} - ${selectedSource.displayTitle}" (Match Score: $bestScore)');
+      // Probe the highest-scoring candidates for liveness, concurrently, so the
+      // selection prefers a source that actually serves media. Probes are wrapped
+      // in a timeout so a hung URL can never stall the resume.
+      final probeCandidates = candidateSources.take(_resumeProbeLimit).toList();
+      final liveness = await Future.wait(
+        probeCandidates.map(
+          (s) => StreamHealthChecker.isAlive(s)
+              .timeout(const Duration(seconds: 8), onTimeout: () => false)
+              .catchError((_) => false),
+        ),
+      );
+
+      final aliveCount = liveness.where((alive) => alive).length;
+      final firstAliveIndex = liveness.indexOf(true);
+
+      // The probe above is a new async gap that can last seconds, and the
+      // Navigator.push calls below use this BuildContext - re-check before that.
+      if (!context.mounted) return;
+
+      // First alive candidate in score order; if none passed the probe, fall back
+      // to the best textual match. The probe can yield false negatives (providers
+      // that block range requests but stream fine over HLS), so it must only ever
+      // reorder preference toward a verified source, never reduce reach.
+      final StreamSource chosen = firstAliveIndex >= 0
+          ? probeCandidates[firstAliveIndex]
+          : candidateSources.first;
+      selectedSource = chosen;
+
+      final bestScore = calculateSourceMatchScore(chosen, item);
+      debugPrint('[ContinueWatchingService] Probed ${probeCandidates.length} source(s), $aliveCount alive; selected source match: "${chosen.addonName} - ${chosen.displayTitle}" (Match Score: $bestScore)');
     }
 
     if (selectedSource != null) {

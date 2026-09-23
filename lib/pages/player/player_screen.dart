@@ -103,6 +103,10 @@ class _PlayerScreenState extends State<PlayerScreen>
   Timer? _frameWatchdogTimer;
   bool _hasFallenBackToSoftware = false;
   bool _hasReceivedFirstVideoFrame = false;
+
+  /// Wall-clock instant playback first reported as playing for the current
+  /// stream. Used to detect a stream that stalls before its first frame.
+  DateTime? _playbackStartedAt;
   String? _fallbackNoticeText;
   Timer? _fallbackNoticeTimer;
 
@@ -183,6 +187,19 @@ class _PlayerScreenState extends State<PlayerScreen>
   String? _sourcesErrorMessage;
   final Map<String, List<StreamSource>> _cachedSourcesByEpisode = {};
   String? _activeStreamUrl;
+
+  /// Headers the active network stream was opened with. The black-screen
+  /// watchdog's recovery path must reuse these: several built-in providers
+  /// gate their URLs on Referer/Origin and answer 403 without them.
+  Map<String, String>? _activeHttpHeaders;
+
+  /// Playback offset the current stream was opened at. The watchdog measures
+  /// elapsed playback against this rather than the absolute position, because
+  /// on a resume the position already exceeds its 2.5s threshold the instant
+  /// playback starts - which fired the fallback before the decoder could
+  /// deliver a first frame.
+  Duration _positionAtStreamOpen = Duration.zero;
+
   bool _wasFullscreenBeforeEntering = false;
 
   @override
@@ -213,6 +230,9 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     _subscriptions.addAll([
       _player.stream.playing.listen((playing) {
+        if (playing) {
+          _playbackStartedAt ??= DateTime.now();
+        }
         if (mounted) {
           setState(() => _isPlaying = playing);
           _updateDiscordRpc(isPaused: !playing);
@@ -276,6 +296,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   Future<void> _initStream() async {
     _hasFallenBackToSoftware = false;
     _hasReceivedFirstVideoFrame = false;
+    _playbackStartedAt = null;
     String? streamUrl;
 
     print('[PlayerScreen] Initializing playback:');
@@ -426,6 +447,9 @@ class _PlayerScreenState extends State<PlayerScreen>
         }
       }
 
+      _activeHttpHeaders = isTorrentStream ? null : Map<String, String>.from(playerHeaders);
+      _positionAtStreamOpen = widget.initialPosition ?? Duration.zero;
+
       await _player.open(
         Media(
           cleanUri.toString(),
@@ -531,6 +555,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       if (mounted) {
         _hasReceivedFirstVideoFrame = true;
         debugPrint('[PlayerWatchdog] First video frame rendered successfully.');
+        _clearStallOverlay();
       }
     }).catchError((_) {});
 
@@ -543,6 +568,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       // If video frames are verified or width/height are populated, we have frames!
       if (_hasReceivedFirstVideoFrame || (_player.state.width != null && _player.state.width! > 0)) {
         _hasReceivedFirstVideoFrame = true;
+        _clearStallOverlay();
         if (_player.state.width != null && _player.state.width! > 0) {
           timer.cancel();
           return;
@@ -551,15 +577,47 @@ class _PlayerScreenState extends State<PlayerScreen>
 
       // Black screen watchdog condition:
       // Audio is actively playing past 2.5 seconds, but video width is null or 0 and no frame has rendered
+      // Elapsed playback, not absolute position: on a resume the position is
+      // already past 2.5s when playback starts, which would fire this before the
+      // decoder has had a chance to deliver a first frame.
+      final bool hasPlayedPastGrace =
+          (_position - _positionAtStreamOpen) > const Duration(milliseconds: 2500);
+
       final bool isAudioGhosting = _isPlaying &&
-          _position > const Duration(milliseconds: 2500) &&
+          hasPlayedPastGrace &&
           !_hasReceivedFirstVideoFrame &&
           (_player.state.width == null || _player.state.width == 0);
 
-      if (isAudioGhosting && !_hasFallenBackToSoftware) {
+      // A valid playlist that never delivers data leaves the player open with no
+      // frames AND no progress at all, so the audio-ghosting check above can never
+      // fire. Catch that separately: still no first frame and the position has not
+      // moved at all some seconds after playback nominally started.
+      final bool stalledAtStartup = _isPlaying &&
+          _playbackStartedAt != null &&
+          DateTime.now().difference(_playbackStartedAt!) > const Duration(seconds: 12) &&
+          !_hasReceivedFirstVideoFrame &&
+          (_player.state.width == null || _player.state.width == 0) &&
+          (_position - _positionAtStreamOpen).abs() < const Duration(seconds: 1);
+
+      if ((isAudioGhosting || stalledAtStartup) && !_hasFallenBackToSoftware) {
         timer.cancel();
-        _triggerSoftwareFallback(reason: 'Audio playing without video frames (decoder deadlock)');
+        _triggerSoftwareFallback(
+          reason: stalledAtStartup
+              ? 'Stream stalled with no frames or progress (not delivering data)'
+              : 'Audio playing without video frames (decoder deadlock)',
+        );
       }
+    });
+  }
+
+  /// Clears the stall/loading overlay once frames actually render. The stall
+  /// detector raises it optimistically, so leaving it up over playing video
+  /// would tell the user the stream failed while they are watching it.
+  void _clearStallOverlay() {
+    if (!mounted || !_isLoading) return;
+    setState(() {
+      _isLoading = false;
+      _statusMessage = '';
     });
   }
 
@@ -590,13 +648,31 @@ class _PlayerScreenState extends State<PlayerScreen>
           await platform?.setProperty('glsl-shaders', '');
           await platform?.setProperty('vid', 'auto');
           await _player.open(
-            Media(_activeStreamUrl!, start: resumePos),
+            Media(
+              _activeStreamUrl!,
+              httpHeaders: _activeHttpHeaders,
+              start: resumePos,
+            ),
             play: true,
           );
         } catch (e) {
           debugPrint('[PlayerWatchdog] Reload error during fallback: $e');
         }
       }
+    }
+
+    // The recovery above is best-effort (a dead provider URL cannot be revived).
+    // Never leave the user staring at a black screen with no explanation.
+    await Future<void>.delayed(const Duration(seconds: 8));
+    if (mounted && (_player.state.width == null || _player.state.width == 0)) {
+      setState(() {
+        // _statusMessage is only drawn inside the `if (_isLoading)` overlay, and
+        // _isLoading was cleared when the (valid but dataless) playlist opened.
+        // Re-show that overlay so the message is actually visible to the user.
+        _isLoading = true;
+        _statusMessage =
+            'This stream is not responding - the source may be expired. Please pick another source.';
+      });
     }
   }
 
