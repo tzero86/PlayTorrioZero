@@ -1,0 +1,51 @@
+name: Deploy landing site
+
+# GitHub Pages, deployed from Actions rather than the legacy Jekyll builder -
+# that builder failed twice with an opaque "Page build failed." and produces no
+# logs, whereas this gives a real build log and a real failure reason.
+#
+# Only docs/index.html, docs/icon.png and friends are published: the *.md files
+# in docs/ are internal planning notes and are deliberately excluded from the
+# site, even though they remain public in the repository itself.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage site (exclude internal notes)
+        run: |
+          mkdir -p _site
+          rsync -a --exclude='*.md' docs/ _site/
+          echo "Publishing:"
+          find _site -type f | sort
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
