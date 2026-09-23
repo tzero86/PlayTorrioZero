@@ -40,6 +40,7 @@ import '../../widgets/player/player_sub_style_modal.dart';
 import '../../widgets/player/player_skip_button.dart';
 import '../../widgets/player/player_episodes_panel.dart';
 import '../../widgets/player/player_sources_panel.dart';
+import 'watch_screen.dart';
 import '../../widgets/player/player_volume_control.dart';
 import '../../widgets/player/sub_sync_bar.dart';
 import '../../widgets/player/text_sync_overlay.dart';
@@ -185,6 +186,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   bool _showSourcesPanel = false;
   Video? _sourcesEpisode;
   String? _sourcesErrorMessage;
+
+  /// True once the startup-stall detector gives up on the current source. Drives
+  /// an actionable "choose another source" overlay instead of a bare spinner, so
+  /// the user is never told to pick another source without the means to.
+  bool _streamStalled = false;
   final Map<String, List<StreamSource>> _cachedSourcesByEpisode = {};
   String? _activeStreamUrl;
 
@@ -617,6 +623,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     if (!mounted || !_isLoading) return;
     setState(() {
       _isLoading = false;
+      _streamStalled = false;
       _statusMessage = '';
     });
   }
@@ -662,7 +669,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
 
     // The recovery above is best-effort (a dead provider URL cannot be revived).
-    // Never leave the user staring at a black screen with no explanation.
+    // Never leave the user staring at a black screen with no explanation, and
+    // never tell them to pick another source without giving them the means to.
     await Future<void>.delayed(const Duration(seconds: 8));
     if (mounted && (_player.state.width == null || _player.state.width == 0)) {
       setState(() {
@@ -670,10 +678,36 @@ class _PlayerScreenState extends State<PlayerScreen>
         // _isLoading was cleared when the (valid but dataless) playlist opened.
         // Re-show that overlay so the message is actually visible to the user.
         _isLoading = true;
+        _streamStalled = true;
         _statusMessage =
-            'This stream is not responding - the source may be expired. Please pick another source.';
+            'This stream is not responding - the source may be expired.';
       });
     }
+  }
+
+  /// Leaves the player and opens the canonical source picker for this title.
+  ///
+  /// The in-player [PlayerSourcesPanel] is episode-shaped (it needs a `Video`,
+  /// offers "back to episodes", and [switchStream] builds an S1E1 title), so for
+  /// movies the app's real source-selection surface is [WatchScreen]. Without
+  /// this the user is told to pick another source with no way to do so, and the
+  /// Continue Watching tile re-resumes the same dead source forever.
+  void _openSourcePicker() {
+    final detail = widget.detail;
+    if (detail == null) return;
+    final position = _position > Duration.zero ? _position : _player.state.position;
+    _progressSaveTimer?.cancel();
+    _frameWatchdogTimer?.cancel();
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => WatchScreen(
+          detail: detail,
+          selectedEpisode: _currentEpisode,
+          type: detail.type,
+          initialPosition: position,
+        ),
+      ),
+    );
   }
 
   void _updateMediaTracks(Tracks tracks) {
@@ -1880,7 +1914,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (widget.logoUrl != null)
+                    if (_streamStalled)
+                      const Icon(
+                        Icons.error_outline_rounded,
+                        color: Colors.white70,
+                        size: 56,
+                      )
+                    else if (widget.logoUrl != null)
                       AnimatedBuilder(
                         animation: _logoAnimController,
                         builder: (context, child) {
@@ -1905,12 +1945,31 @@ class _PlayerScreenState extends State<PlayerScreen>
                     const SizedBox(height: 32),
                     Text(
                       _statusMessage,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 16,
                         letterSpacing: 1.2,
                       ),
                     ),
+                    if (_streamStalled) ...[
+                      const SizedBox(height: 22),
+                      Wrap(
+                        spacing: 12,
+                        alignment: WrapAlignment.center,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: _openSourcePicker,
+                            icon: const Icon(Icons.swap_horiz_rounded, size: 20),
+                            label: const Text('Choose another source'),
+                          ),
+                          OutlinedButton(
+                            onPressed: () => Navigator.of(context).maybePop(),
+                            child: const Text('Go back'),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
