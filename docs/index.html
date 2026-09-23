@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZPlay — no telemetry, no accounts, just play</title>
+<meta name="description" content="ZPlay is a free, open-source all-in-one media client for movies, TV, anime, manga, audiobooks, music and live TV. No telemetry, no accounts, no paywall.">
+<meta property="og:title" content="ZPlay">
+<meta property="og:description" content="Free, open-source all-in-one media client. No telemetry, no accounts, no paywall.">
+<meta property="og:image" content="https://tzero86.github.io/ZPlay/icon.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="icon.png">
+<style>
+:root{
+  --bg:#0B0D13; --panel:#12151E; --panel-2:#171B26; --line:rgba(255,255,255,.07);
+  --fg:#EEF1F8; --dim:rgba(238,241,248,.62); --dimmer:rgba(238,241,248,.38);
+  --accent:#7C5CFF; --accent-soft:#9D84FF; --green:#10B981;
+  --max:1080px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent-soft); text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:var(--max); margin:0 auto; padding:0 24px}
+section{padding:72px 0; border-top:1px solid var(--line)}
+h1,h2,h3{line-height:1.2; margin:0}
+h2{font-size:28px; letter-spacing:-.02em; margin-bottom:8px}
+.eyebrow{font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--dimmer); margin-bottom:14px}
+.lead{color:var(--dim); max-width:70ch}
+
+/* hero */
+.hero{
+  text-align:center; padding:88px 0 72px; border-top:0;
+  background:
+    radial-gradient(900px 380px at 50% -140px, rgba(124,92,255,.30), transparent 70%),
+    radial-gradient(600px 300px at 88% 0%, rgba(16,185,129,.10), transparent 70%);
+}
+.hero img{width:112px; height:112px; border-radius:26px; box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.hero h1{font-size:56px; letter-spacing:-.035em; margin:22px 0 10px}
+.hero p{font-size:19px; color:var(--dim); max-width:60ch; margin:0 auto}
+.cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:30px 0 26px}
+.btn{
+  display:inline-block; padding:13px 24px; border-radius:12px; font-weight:650; font-size:15px;
+  border:1px solid var(--line); color:var(--fg);
+}
+.btn.primary{background:var(--accent); border-color:transparent; color:#fff}
+.btn.primary:hover{filter:brightness(1.1); text-decoration:none}
+.btn:hover{text-decoration:none; border-color:rgba(255,255,255,.22)}
+.badges{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+.badges img{height:20px}
+
+/* grids */
+.grid{display:grid; gap:14px; margin-top:30px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(232px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:20px;
+}
+.card h3{font-size:16px; margin-bottom:6px; display:flex; align-items:center; gap:9px}
+.card p{margin:0; color:var(--dim); font-size:14.5px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+.dot.green{background:var(--green)}
+.dot.plain{background:var(--dimmer)}
+
+/* table */
+table{width:100%; border-collapse:collapse; margin-top:26px; font-size:14.5px}
+th,td{text-align:left; padding:13px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+th{color:var(--dimmer); font-size:12px; letter-spacing:.1em; text-transform:uppercase; font-weight:700}
+td:first-child{color:var(--dim); width:38%}
+tbody tr:last-child td{border-bottom:0}
+code{background:rgba(255,255,255,.06); padding:.15em .42em; border-radius:6px; font-size:.9em}
+
+/* download */
+.dl{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap}
+.dl .files{color:var(--dim); font-size:13.5px; margin-top:4px}
+.dl .files code{display:inline-block; margin:4px 6px 0 0}
+
+.note{
+  margin-top:26px; padding:15px 18px; border-radius:12px; font-size:14px; color:var(--dim);
+  background:rgba(124,92,255,.09); border:1px solid rgba(124,92,255,.28);
+}
+footer{padding:52px 0 64px; border-top:1px solid var(--line); text-align:center; color:var(--dimmer); font-size:14px}
+footer .tags{margin-top:14px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+footer .tag{border:1px solid var(--line); border-radius:999px; padding:4px 12px; font-size:12px}
+@media(max-width:640px){
+  .hero h1{font-size:40px}
+  .hero{padding:64px 0 52px}
+  section{padding:56px 0}
+  td:first-child{width:auto}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <img src="icon.png" alt="ZPlay">
+    <h1>ZPlay</h1>
+    <p>Movies, TV, anime, manga, audiobooks, music and live TV — in one app.<br>No telemetry. No accounts. No paywall.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/tzero86/ZPlay/releases">Download</a>
+      <a class="btn" href="https://github.com/tzero86/ZPlay">View source</a>
+    </div>
+    <div class="badges">
+      <img src="https://img.shields.io/badge/licence-GPL--3.0-4169A1?style=flat" alt="GPL-3.0 licence">
+      <img src="https://img.shields.io/badge/telemetry-none-10B981?style=flat" alt="No telemetry">
+      <img src="https://img.shields.io/badge/price-free%20forever-7C5CFF?style=flat" alt="Free forever">
+      <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android%20%7C%20iOS-1F6FEB?style=flat" alt="Five platforms">
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Why ZPlay</div>
+    <h2>Built to be trusted, not to monetise you</h2>
+    <p class="lead">Most streaming apps ship an analytics SDK, a crash reporter and an account system. ZPlay ships none of them.</p>
+    <div class="grid g4">
+      <div class="card">
+        <h3><span class="dot green"></span>Nothing phones home</h3>
+        <p>No analytics SDK, no crash reporting, no accounts, no “anonymous usage statistics”. The only traffic is the content you asked for. Diagnostics stay on your disk in a file you can read or delete.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Free, and it stays free</h3>
+        <p>GPL-3.0, no paywalled tier, no feature-gating, no upsell screens. The sponsor subsystem that shipped in the upstream fork has been removed outright.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Install and play</h3>
+        <p>Download a build, run it, hit play. No sign-up wall, no onboarding, no setup wizard. Progress and reading positions save locally from the very first title.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Built for speed</h3>
+        <p>Stale-while-refresh catalogs, bounded image decoding, a pruned asset bundle, and release builds that are minified and resource-shrunk. <a href="#performance">See the numbers</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">What it plays</div>
+    <h2>Everything in one place</h2>
+    <div class="grid g3">
+      <div class="card"><h3><span class="dot plain"></span>Movies &amp; TV</h3><p>46 built-in HTTP providers plus 2 torrent providers, all scraped concurrently — results stream in as they arrive instead of waiting on the slowest source. Full Stremio addon support.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Torrents</h3><p>Embedded BitTorrent engine. Streams while downloading, prioritises the pieces playback needs, and picks the right file out of season packs.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Debrid</h3><p>Optional Real-Debrid / TorBox integration resolves torrents through your own cloud account instead of the local engine.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Anime</h3><p>A dedicated anime section with its own source extractors and Arabic-anime support.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Live TV</h3><p>IPTV portal support (Xtream-style), channel search, favourites and hit tracking.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Manga</h3><p>Reader with horizontal and vertical modes, pinch-zoom, and exact chapter-plus-page resume.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Audiobooks</h3><p>Multi-source aggregator, speed control, sleep timer, chapter navigation, position saved every five seconds.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Music</h3><p>Full player with search, artists, playlists, likes, quality switching and a persistent mini-player.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Subtitles</h3><p>Automatic fetching, multi-language selection, timing and size adjustment, dual-engine renderer.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Player</h3><p>Hardware-decoded playback with Anime4K upscaling shaders, HDR handling, gesture and keyboard controls, PiP and screenshots.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Sync</h3><p>Optional Trakt and Simkl watchlist and history synchronisation — only if you want it.</p></div>
+      <div class="card"><h3><span class="dot plain"></span>Android TV</h3><p>D-pad navigation and a leanback launcher entry, so it belongs on the TV row.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="performance">
+  <div class="wrap">
+    <div class="eyebrow">Performance</div>
+    <h2>Measured, not claimed</h2>
+    <p class="lead">Every number below is either measured on a release build or verifiable in the repository configuration.</p>
+    <table>
+      <thead><tr><th>Area</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td>Android release APK</td><td><strong>~48 MB</strong> per ABI — minified and resource-shrunk with ProGuard rules</td></tr>
+        <tr><td>Windows release tree</td><td><strong>148 MB</strong> total, of which only <strong>~1.35 MB</strong> is bundled app assets</td></tr>
+        <tr><td>Shader bundle</td><td><strong>9</strong> Anime4K shaders ship instead of the upstream 39-file set — the unused 30 were extracted on every install without ever reaching the player’s shader chain</td></tr>
+        <tr><td>Launcher art</td><td>Only the small icon variant ships; the 1 MB master is build-time input only</td></tr>
+        <tr><td>Catalog loading</td><td>Stale-while-refresh — cached catalogs render immediately and refresh underneath, so navigation never blocks on the network</td></tr>
+        <tr><td>Image decoding</td><td>Bounded decode plus a shared disk and memory cache, so long scrolling does not spike memory</td></tr>
+        <tr><td>Renderer</td><td>Skia is the default backend on Windows, selected natively before the first frame and persisted</td></tr>
+        <tr><td>Diagnosability</td><td>Local crash breadcrumbs and a dev-only performance HUD (frames, jank, RSS)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Since the fork</div>
+    <h2>What we changed</h2>
+    <p class="lead">ZPlay is a fork of <a href="https://github.com/ayman708-UX/PlayTorrioV3">PlayTorrio V3</a> by Ayman. Since forking we have focused on performance, player correctness, and owning our own release path.</p>
+    <div class="grid g3">
+      <div class="card">
+        <h3><span class="dot"></span>Performance &amp; diagnostics</h3>
+        <p>Stream-cycle leak fixes and bounded image decoding across the card and slider widgets · Skia as the default Windows renderer · local-only crash breadcrumbs and perf HUD · stale-while-refresh catalogs and cache infrastructure · the sponsor/monetisation subsystem removed completely.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Release engineering</h3>
+        <p>Minified and resource-shrunk release APKs · a pruned asset bundle measured at −2.99 MB · symbol artifacts published for every platform · our own installer identity and a self-updater pointed at our releases rather than upstream’s.</p>
+      </div>
+      <div class="card">
+        <h3><span class="dot"></span>Player correctness</h3>
+        <p>Fixed resume black-screening at its root — the watchdog mis-fired on every resume and its recovery dropped the HTTP headers provider URLs require · resume now verifies a source is reachable before committing · an in-player source switcher available mid-playback · a stalling stream offers a real way out.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Download</div>
+    <h2>Five platforms</h2>
+    <p class="lead">Built by CI on every tagged release.</p>
+    <div class="grid g2">
+      <div class="card">
+        <div class="dl"><h3><span class="dot plain"></span>Windows</h3></div>
+        <div class="files"><code>ZPlay-Windows-Setup.exe</code> <code>ZPlay-Windows-x64-Portable.zip</code></div>
+      </div>
+      <div class="card">
+        <div class="dl"><h3><span class="dot plain"></span>Android</h3></div>
+        <div class="files"><code>app-arm64-v8a-release.apk</code> <code>app-armeabi-v7a-release.apk</code></div>
+      </div>
+      <div class="card">
+        <div class="dl"><h3><span class="dot plain"></span>Linux</h3></div>
+        <div class="files"><code>ZPlay-Linux-x86_64.AppImage</code> <code>ZPlay-Linux-x86_64.tar.gz</code></div>
+      </div>
+      <div class="card">
+        <div class="dl"><h3><span class="dot plain"></span>macOS</h3></div>
+        <div class="files"><code>ZPlay-macOS-arm64.dmg</code> <code>ZPlay-macOS-intel.dmg</code></div>
+      </div>
+    </div>
+    <div class="note">
+      Get them from the <a href="https://github.com/tzero86/ZPlay/releases">Releases page</a>.
+      Prefer to build it yourself? <code>flutter build windows --release</code> — the full instructions are in the
+      <a href="https://github.com/tzero86/ZPlay#build-from-source">README</a>.
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><strong>ZPlay</strong> is a modified version of PlayTorrio V3, © 2026 Ayman, distributed under the GNU GPL v3.0.</p>
+    <p>ZPlay hosts no content and stores none; everything is fetched from third-party sources at your request.</p>
+    <div class="tags">
+      <span class="tag">GPL-3.0</span>
+      <span class="tag">No telemetry</span>
+      <span class="tag">Free forever</span>
+      <span class="tag">Open source</span>
+    </div>
+    <p style="margin-top:20px">
+      <a href="https://github.com/tzero86/ZPlay">github.com/tzero86/ZPlay</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
