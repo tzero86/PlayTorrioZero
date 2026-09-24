@@ -6,6 +6,7 @@ import '../../models/movie/movie_section.dart';
 import '../../pages/calendar/tv_calendar_page.dart';
 import '../../pages/catalog/catalog_page.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../utils/navigation/route_transitions.dart';
 import './movie_card.dart';
 import '../common/section_header.dart';
@@ -24,7 +25,8 @@ class MovieSliderSection extends StatefulWidget {
   State<MovieSliderSection> createState() => _MovieSliderSectionState();
 }
 
-class _MovieSliderSectionState extends State<MovieSliderSection> {
+class _MovieSliderSectionState extends State<MovieSliderSection>
+    with SingleTickerProviderStateMixin {
   Offset? _tapPosition;
   late final ScrollController _scrollController;
 
@@ -32,11 +34,48 @@ class _MovieSliderSectionState extends State<MovieSliderSection> {
   bool _canScrollRight = true;
   bool _isHoveringSlider = false;
 
+  /// Cards that take part in the entry stagger.
+  ///
+  /// The rail mounts every card at once, so a row used to arrive in one hard
+  /// cut. Only the first few animate, and only once on mount: animating a list
+  /// that scrolls is the quickest way to lose frames, and the perf notes already
+  /// call this screen heavy.
+  static const int _staggeredCards = 6;
+  static const double _staggerStep = 0.08;
+
+  late final AnimationController _entry;
+  final List<Animation<double>> _entryFades = [];
+  final List<Animation<Offset>> _entrySlides = [];
+
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
     _scrollController.addListener(_updateScrollButtons);
+
+    // Built once rather than per build, so a scroll does not allocate.
+    _entry = AnimationController(vsync: this, duration: ZplayMotion.slow);
+    for (var i = 0; i < _staggeredCards; i++) {
+      final fade = _entry.drive(
+        CurveTween(
+          curve: Interval(
+            i * _staggerStep,
+            0.45 + i * _staggerStep,
+            curve: ZplayMotion.standard,
+          ),
+        ),
+      );
+      _entryFades.add(fade);
+      _entrySlides.add(
+        fade.drive(
+          Tween<Offset>(
+            begin: const Offset(0, 0.06),
+            end: Offset.zero,
+          ),
+        ),
+      );
+    }
+    _entry.forward();
 
     // Defer the initial check until after first frame so maxScrollExtent is calculated
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -46,9 +85,21 @@ class _MovieSliderSectionState extends State<MovieSliderSection> {
 
   @override
   void dispose() {
+    _entry.dispose();
     _scrollController.removeListener(_updateScrollButtons);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  /// Wraps a card in its share of the entry animation. Cards past the stagger
+  /// window are returned untouched.
+  Widget _enter(int index, Widget child) {
+    if (index >= _staggeredCards) return child;
+
+    return FadeTransition(
+      opacity: _entryFades[index],
+      child: SlideTransition(position: _entrySlides[index], child: child),
+    );
   }
 
   void _updateScrollButtons() {
@@ -190,9 +241,12 @@ class _MovieSliderSectionState extends State<MovieSliderSection> {
                       return SizedBox(width: sizing.spacing);
                     },
                     itemBuilder: (context, index) {
-                      return SizedBox(
-                        width: sizing.cardWidth,
-                        child: MovieCard(movie: widget.section.movies[index]),
+                      return _enter(
+                        index,
+                        SizedBox(
+                          width: sizing.cardWidth,
+                          child: MovieCard(movie: widget.section.movies[index]),
+                        ),
                       );
                     },
                   ),

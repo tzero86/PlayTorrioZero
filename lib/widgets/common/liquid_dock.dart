@@ -185,8 +185,8 @@ class _LiquidDockState extends State<LiquidDock> {
     );
     _scrollController.animateTo(
       target,
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOutCubic,
+      duration: ZplayMotion.base,
+      curve: ZplayMotion.standard,
     );
   }
 
@@ -475,11 +475,11 @@ class _DockItemWidget extends StatelessWidget {
             valueListenable: GlassSettings.enabled,
             builder: (context, glass, _) => AnimatedScale(
               scale: _scaleFor(state),
-              duration: const Duration(milliseconds: 180),
-              curve: Curves.easeOutBack,
+              duration: ZplayMotion.base,
+              curve: ZplayMotion.spring,
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeOut,
+                duration: ZplayMotion.base,
+                curve: ZplayMotion.standard,
                 height: size,
                 width: active ? _dockActiveItemWidth(item.label, size) : size,
                 child: glass

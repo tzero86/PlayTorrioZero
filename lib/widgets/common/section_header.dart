@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import 'focusable_card.dart';
 
 /// Clean section header — title on left, optional count, optional trailing
@@ -109,8 +110,8 @@ class SectionHeader extends StatelessWidget {
                 focused: state.focused,
                 radius: _actionRadius,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 160),
-                  curve: Curves.easeOut,
+                  duration: ZplayMotion.fast,
+                  curve: ZplayMotion.standard,
                   constraints: const BoxConstraints(minHeight: 44),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(

@@ -186,8 +186,8 @@ class ZplaySheetItem extends StatelessWidget {
         focused: state.focused,
         radius: radius,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
+          duration: ZplayMotion.fast,
+          curve: ZplayMotion.standard,
           constraints: const BoxConstraints(minHeight: minHeight),
           margin: const EdgeInsets.symmetric(
             horizontal: ZplaySpacing.s8,

@@ -121,8 +121,8 @@ class SegmentedTabs<T> extends StatelessWidget {
                   // moving between them reads as a single selection travelling.
                   Positioned.fill(
                     child: AnimatedAlign(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOutCubic,
+                      duration: ZplayMotion.base,
+                      curve: ZplayMotion.standard,
                       alignment: Alignment(_alignX(selected), 0),
                       child: FractionallySizedBox(
                         widthFactor: 1 / options.length,

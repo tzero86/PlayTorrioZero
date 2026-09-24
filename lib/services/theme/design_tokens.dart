@@ -320,6 +320,10 @@ abstract final class ZplayMotion {
 
   /// Progress and indeterminate indicators.
   static const Curve linear = Curves.linear;
+
+  /// Slight overshoot, for elements that pop into place under the pointer —
+  /// dock items swelling, the active pill expanding.
+  static const Curve spring = Curves.easeOutBack;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
