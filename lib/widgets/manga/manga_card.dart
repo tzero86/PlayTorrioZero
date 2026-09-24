@@ -7,6 +7,7 @@ import '../../services/theme/app_theme_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../common/poster_skeleton.dart';
+import '../common/focusable_card.dart';
 import '../../services/storage/app_image_cache.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -70,7 +71,7 @@ class MangaCardSizing {
 // Manga Card
 // ─────────────────────────────────────────────────────────────────────────────
 
-class MangaCard extends StatefulWidget {
+class MangaCard extends StatelessWidget {
   final Manga manga;
   final VoidCallback? onTap;
 
@@ -81,16 +82,7 @@ class MangaCard extends StatefulWidget {
   });
 
   @override
-  State<MangaCard> createState() => _MangaCardState();
-}
-
-class _MangaCardState extends State<MangaCard> {
-  bool _hovered = false;
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final manga = widget.manga;
     final palette = AppThemeService.currentPalette.value;
     final showYear = MangaSettings.showMangaYear.value;
     final showBadge = MangaSettings.showContentTypeBadge.value;
@@ -102,101 +94,76 @@ class _MangaCardState extends State<MangaCard> {
       if (genreText.isNotEmpty) genreText,
     ].join(' • ');
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        setState(() {
-          _hovered = true;
-        });
-      },
-      onExit: (_) {
-        setState(() {
-          _hovered = false;
-          _pressed = false;
-        });
-      },
-      child: GestureDetector(
-        onTapDown: (_) {
-          setState(() {
-            _pressed = true;
-          });
-        },
-        onTapCancel: () {
-          setState(() {
-            _pressed = false;
-          });
-        },
-        onTapUp: (_) {
-          setState(() {
-            _pressed = false;
-          });
-        },
-        onTap: widget.onTap ??
-            () {
-              Navigator.push(
-                context,
-                LiquidRevealRoute(
-                  page: MangaDetailsPage(manga: manga),
-                  tapPosition: null,
-                ),
-              );
-            },
-        child: AnimatedScale(
+    return FocusableCard(
+      onTap: onTap ??
+          () {
+            Navigator.push(
+              context,
+              LiquidRevealRoute(
+                page: MangaDetailsPage(manga: manga),
+                tapPosition: null,
+              ),
+            );
+          },
+      builder: (context, state) => AnimatedScale(
+        duration: const Duration(milliseconds: 170),
+        curve: Curves.easeOutCubic,
+        scale: state.pressed ? 0.97 : (state.highlighted ? 1.045 : 1.0),
+        child: AnimatedContainer(
           duration: const Duration(milliseconds: 170),
           curve: Curves.easeOutCubic,
-          scale: _pressed ? 0.97 : (_hovered ? 1.045 : 1.0),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 170),
-            curve: Curves.easeOutCubic,
-            transform: Matrix4.translationValues(0, _hovered ? -6 : 0, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Poster ──────────────────────────────────────────────
-                Expanded(
+          transform: Matrix4.translationValues(0, state.highlighted ? -6 : 0, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Poster ──────────────────────────────────────────────
+              Expanded(
+                child: CardFocusRing(
+                  focused: state.focused,
+                  radius: BorderRadius.circular(18),
                   child: _PosterFrame(
                     posterUrl: manga.coverNormal.isNotEmpty ? manga.coverNormal : manga.coverSmall,
-                    hovered: _hovered,
+                    hovered: state.highlighted,
                     contentType: manga.type.isNotEmpty ? manga.type : 'MANGA',
                     palette: palette,
                     showBadge: showBadge,
                     ambientGlow: ambientGlow,
                   ),
                 ),
-                
-                // ── Title & Info ─────────────────────────────────────────
-                const SizedBox(height: 10),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 170),
+              ),
+
+              // ── Title & Info ─────────────────────────────────────────
+              const SizedBox(height: 10),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 170),
+                style: TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.15,
+                  height: 1.25,
+                  color: state.highlighted ? Colors.white : Colors.white.withOpacity(0.92),
+                ),
+                child: Text(
+                  manga.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (metaText.isNotEmpty || showYear) ...[
+                const SizedBox(height: 3),
+                Text(
+                  metaText.isNotEmpty ? metaText : 'Unknown Year',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.15,
-                    height: 1.25,
-                    color: _hovered ? Colors.white : Colors.white.withOpacity(0.92),
-                  ),
-                  child: Text(
-                    manga.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.55),
+                    letterSpacing: -0.1,
                   ),
                 ),
-                if (metaText.isNotEmpty || showYear) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    metaText.isNotEmpty ? metaText : 'Unknown Year',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white.withOpacity(0.55),
-                      letterSpacing: -0.1,
-                    ),
-                  ),
-                ],
               ],
-            ),
+            ],
           ),
         ),
       ),

@@ -6,6 +6,7 @@ import '../../pages/details/details_page.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/home/home_page_settings.dart';
 import '../../utils/navigation/route_transitions.dart';
+import '../common/focusable_card.dart';
 import '../common/poster_skeleton.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -76,7 +77,7 @@ class MovieCardSizing {
 // Movie Card
 // ─────────────────────────────────────────────────────────────────────────────
 
-class MovieCard extends StatefulWidget {
+class MovieCard extends StatelessWidget {
   final Movie movie;
   final VoidCallback? onTap;
 
@@ -87,74 +88,41 @@ class MovieCard extends StatefulWidget {
   });
 
   @override
-  State<MovieCard> createState() => _MovieCardState();
-}
-
-class _MovieCardState extends State<MovieCard> {
-  bool _hovered = false;
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final movie = widget.movie;
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) {
-        setState(() {
-          _hovered = true;
-        });
-      },
-      onExit: (_) {
-        setState(() {
-          _hovered = false;
-          _pressed = false;
-        });
-      },
-      child: GestureDetector(
-        onTapDown: (_) {
-          setState(() {
-            _pressed = true;
-          });
-        },
-        onTapCancel: () {
-          setState(() {
-            _pressed = false;
-          });
-        },
-        onTapUp: (_) {
-          setState(() {
-            _pressed = false;
-          });
-        },
-        onTap: widget.onTap ??
-            () {
-              Navigator.push(
-                context,
-                LiquidRevealRoute(
-                  page: DetailsPage(movie: movie),
-                  tapPosition: null, // Let it center if tapPosition not easily available
-                ),
-              );
-            },
-        child: AnimatedScale(
+    return FocusableCard(
+      onTap: onTap ??
+          () {
+            Navigator.push(
+              context,
+              LiquidRevealRoute(
+                page: DetailsPage(movie: movie),
+                tapPosition: null, // Let it center if tapPosition not easily available
+              ),
+            );
+          },
+      builder: (_, state) {
+        return AnimatedScale(
           duration: const Duration(milliseconds: 170),
           curve: Curves.easeOutCubic,
-          scale: _pressed ? 0.97 : (_hovered ? HomePageSettings.cardHoverZoom.value : 1.0),
+          scale: state.pressed ? 0.97 : (state.highlighted ? HomePageSettings.cardHoverZoom.value : 1.0),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 170),
             curve: Curves.easeOutCubic,
-            transform: Matrix4.translationValues(0, _hovered ? -6 : 0, 0),
+            transform: Matrix4.translationValues(0, state.highlighted ? -6 : 0, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── Poster ──────────────────────────────────────────────
                 Expanded(
-                  child: _PosterFrame(
-                    posterUrl: movie.poster,
-                    hovered: _hovered,
-                    contentType: movie.type,
-                    imdbRating: movie.imdbRating,
+                  child: CardFocusRing(
+                    focused: state.focused,
+                    radius: BorderRadius.circular(18),
+                    child: _PosterFrame(
+                      posterUrl: movie.poster,
+                      highlighted: state.highlighted,
+                      contentType: movie.type,
+                      imdbRating: movie.imdbRating,
+                    ),
                   ),
                 ),
 
@@ -210,8 +178,8 @@ class _MovieCardState extends State<MovieCard> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -222,13 +190,13 @@ class _MovieCardState extends State<MovieCard> {
 
 class _PosterFrame extends StatelessWidget {
   final String? posterUrl;
-  final bool hovered;
+  final bool highlighted;
   final String contentType;
   final String? imdbRating;
 
   const _PosterFrame({
     required this.posterUrl,
-    required this.hovered,
+    required this.highlighted,
     required this.contentType,
     this.imdbRating,
   });
@@ -245,11 +213,11 @@ class _PosterFrame extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(hovered ? 0.60 : 0.34),
-            blurRadius: hovered ? 32 : 20,
-            offset: Offset(0, hovered ? 18 : 10),
+            color: Colors.black.withOpacity(highlighted ? 0.60 : 0.34),
+            blurRadius: highlighted ? 32 : 20,
+            offset: Offset(0, highlighted ? 18 : 10),
           ),
-          if (hovered)
+          if (highlighted)
             BoxShadow(
               color: palette.primaryColor.withOpacity(0.35),
               blurRadius: 34,
@@ -309,7 +277,7 @@ class _PosterFrame extends StatelessWidget {
             // Hover highlight gradient
             Positioned.fill(
               child: AnimatedOpacity(
-                opacity: hovered ? 1 : 0,
+                opacity: highlighted ? 1 : 0,
                 duration: const Duration(milliseconds: 170),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
@@ -332,7 +300,7 @@ class _PosterFrame extends StatelessWidget {
               left: 9,
               top: 9,
               child: AnimatedOpacity(
-                opacity: hovered ? 1.0 : 0.0,
+                opacity: highlighted ? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 170),
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -407,10 +375,10 @@ class _PosterFrame extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: hovered
+                      color: highlighted
                           ? Colors.white.withOpacity(0.28)
                           : Colors.white.withOpacity(0.08),
-                      width: hovered ? 1.35 : 1,
+                      width: highlighted ? 1.35 : 1,
                     ),
                   ),
                 ),
@@ -422,10 +390,10 @@ class _PosterFrame extends StatelessWidget {
               right: 10,
               bottom: 10,
               child: AnimatedOpacity(
-                opacity: hovered ? 1 : 0,
+                opacity: highlighted ? 1 : 0,
                 duration: const Duration(milliseconds: 150),
                 child: AnimatedScale(
-                  scale: hovered ? 1 : 0.82,
+                  scale: highlighted ? 1 : 0.82,
                   duration: const Duration(milliseconds: 150),
                   curve: Curves.easeOutBack,
                   child: Container(

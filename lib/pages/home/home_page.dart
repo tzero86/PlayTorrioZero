@@ -708,7 +708,13 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: palette.scaffoldBackgroundColor,
       body: Focus(
-        autofocus: true,
+        // Deliberately NOT autofocused. This node wraps the whole page body, so
+        // its rect covers every focusable child, and directional (D-pad)
+        // traversal looks for candidates outside the focused node's rectangle -
+        // from here it finds none in any direction, so no card could ever be
+        // reached. Focus starts on the hero CTA instead, which sits inside the
+        // content. Key handling is unaffected: events from a focused descendant
+        // still bubble up to this handler.
         onKeyEvent: (node, event) {
           if (event is KeyDownEvent) {
             final primaryFocus = FocusManager.instance.primaryFocus;
@@ -1907,6 +1913,10 @@ class _HeroSlide extends StatelessWidget {
                       Builder(
                         builder: (context) {
                           return ElevatedButton.icon(
+                            // The starting point for keyboard and D-pad
+                            // traversal on Home. Without one, no node holds
+                            // focus and the first arrow press does nothing.
+                            autofocus: true,
                             onPressed: () => _openDetails(context),
                             icon: const Icon(
                               Icons.play_arrow_rounded,

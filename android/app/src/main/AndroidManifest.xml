@@ -13,6 +13,14 @@
     <!-- OTA Update Permissions -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- Android TV. The LEANBACK_LAUNCHER category below is not sufficient on its
+         own: without the touchscreen declaration Android treats a touchscreen as
+         a hard requirement and filters the app off TV devices, which is what was
+         happening here. Both are required="false" so phones and tablets keep
+         working unchanged. -->
+    <uses-feature android:name="android.software.leanback" android:required="false"/>
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false"/>
+
     <!-- Browser & URL Launch Queries (Android 11+ / API 30+) -->
     <queries>
         <intent>
@@ -30,6 +38,7 @@
         android:name="${applicationName}"
         android:usesCleartextTraffic="true"
         android:extractNativeLibs="true"
+        android:banner="@drawable/tv_banner"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

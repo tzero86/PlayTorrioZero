@@ -13,6 +13,7 @@ import '../../services/content/content_settings.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
+import '../common/focusable_card.dart';
 import '../common/slider_arrow.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -291,8 +292,6 @@ class _ContinueWatchingCard extends StatefulWidget {
 }
 
 class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
-  bool _isHovered = false;
-
   void _openDetails(BuildContext context) {
     final item = widget.item;
     if (item.id.startsWith('arabic_anime:') || item.addonName == 'ArabicAnime') {
@@ -369,26 +368,26 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
     final progress = item.progressPercent;
     final imageUrl = item.backdropUrl ?? item.posterUrl;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
+    return FocusableCard(
+      onTap: widget.onTap,
+      builder: (_, state) => CardFocusRing(
+        focused: state.focused,
+        radius: BorderRadius.circular(14),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: widget.width,
-          transform: _isHovered ? Matrix4.diagonal3Values(1.02, 1.02, 1.0) : Matrix4.identity(),
+          transform: state.highlighted ? Matrix4.diagonal3Values(1.02, 1.02, 1.0) : Matrix4.identity(),
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             color: const Color(0xFF13151F).withValues(alpha: 0.75),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: _isHovered
+              color: state.highlighted
                   ? widget.palette.primaryColor.withValues(alpha: 0.5)
                   : Colors.white.withValues(alpha: 0.08),
-              width: _isHovered ? 1.4 : 1.0,
+              width: state.highlighted ? 1.4 : 1.0,
             ),
-            boxShadow: _isHovered
+            boxShadow: state.highlighted
                 ? [
                     BoxShadow(
                       color: widget.palette.primaryColor.withValues(alpha: 0.18),
@@ -441,10 +440,10 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                     Positioned.fill(
                       child: Center(
                         child: AnimatedScale(
-                          scale: _isHovered ? 1.0 : 0.8,
+                          scale: state.highlighted ? 1.0 : 0.8,
                           duration: const Duration(milliseconds: 180),
                           child: AnimatedOpacity(
-                            opacity: _isHovered ? 1.0 : 0.0,
+                            opacity: state.highlighted ? 1.0 : 0.0,
                             duration: const Duration(milliseconds: 180),
                             child: Container(
                               width: 44,
@@ -470,8 +469,8 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                       ),
                     ),
 
-                    // Action Buttons (Top-Right: always on mobile, hover-only on desktop)
-                    if (_isHovered || !(defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux))
+                    // Action Buttons (Top-Right: always on mobile, on highlight on desktop)
+                    if (state.highlighted || !(defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux))
                       Positioned(
                         top: 6,
                         right: 6,

@@ -4,8 +4,9 @@ import '../../services/theme/app_theme_service.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_settings.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../common/focusable_card.dart';
 
-class IptvChannelCard extends StatefulWidget {
+class IptvChannelCard extends StatelessWidget {
   final HardcodedChannel channel;
   final VoidCallback onTap;
   final double? width;
@@ -20,46 +21,31 @@ class IptvChannelCard extends StatefulWidget {
   });
 
   @override
-  State<IptvChannelCard> createState() => _IptvChannelCardState();
-}
-
-class _IptvChannelCardState extends State<IptvChannelCard> {
-  bool _hovered = false;
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final ch = widget.channel;
+    final ch = channel;
     final palette = AppThemeService.currentPalette.value;
     final primaryColor = ch.gradient.isNotEmpty ? ch.gradient.first : palette.primaryColor;
     final secondaryColor = ch.gradient.length > 1 ? ch.gradient.last : palette.accentColor;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() {
-        _hovered = false;
-        _pressed = false;
-      }),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _pressed = true),
-        onTapCancel: () => setState(() => _pressed = false),
-        onTapUp: (_) => setState(() => _pressed = false),
-        onTap: widget.onTap,
-        child: RepaintBoundary(
-          child: AnimatedScale(
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => RepaintBoundary(
+        child: AnimatedScale(
+          duration: const Duration(milliseconds: 170),
+          curve: Curves.easeOutCubic,
+          scale: state.pressed ? 0.96 : (state.highlighted ? IptvSettings.cardHoverZoom.value : 1.0),
+          child: AnimatedContainer(
             duration: const Duration(milliseconds: 170),
             curve: Curves.easeOutCubic,
-            scale: _pressed ? 0.96 : (_hovered ? IptvSettings.cardHoverZoom.value : 1.0),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 170),
-              curve: Curves.easeOutCubic,
-              transform: Matrix4.translationValues(0, _hovered ? -6 : 0, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Poster / Gradient Box
-                  Expanded(
+            transform: Matrix4.translationValues(0, state.highlighted ? -6 : 0, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Poster / Gradient Box
+                Expanded(
+                  child: CardFocusRing(
+                    focused: state.focused,
+                    radius: BorderRadius.circular(16),
                     child: Container(
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
@@ -75,18 +61,18 @@ class _IptvChannelCardState extends State<IptvChannelCard> {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: _hovered
+                            color: state.highlighted
                                 ? primaryColor.withValues(alpha: 0.45)
                                 : Colors.black.withValues(alpha: 0.35),
-                            blurRadius: _hovered ? 20 : 10,
-                            offset: Offset(0, _hovered ? 8 : 4),
+                            blurRadius: state.highlighted ? 20 : 10,
+                            offset: Offset(0, state.highlighted ? 8 : 4),
                           ),
                         ],
                         border: Border.all(
-                          color: _hovered
+                          color: state.highlighted
                               ? primaryColor.withValues(alpha: 0.8)
                               : Colors.white.withValues(alpha: 0.12),
-                          width: _hovered ? 1.5 : 1.0,
+                          width: state.highlighted ? 1.5 : 1.0,
                         ),
                       ),
                       child: ClipRRect(
@@ -208,7 +194,7 @@ class _IptvChannelCardState extends State<IptvChannelCard> {
                               ),
 
                             // Gloss overlay on hover
-                            if (_hovered)
+                            if (state.highlighted)
                               Positioned.fill(
                                 child: Container(
                                   decoration: BoxDecoration(
@@ -228,58 +214,58 @@ class _IptvChannelCardState extends State<IptvChannelCard> {
                       ),
                     ),
                   ),
+                ),
 
-                  // Title
-                  const SizedBox(height: 8),
-                  Text(
-                    ch.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                      color: Colors.white,
-                    ),
+                // Title
+                const SizedBox(height: 8),
+                Text(
+                  ch.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.2,
+                    color: Colors.white,
                   ),
+                ),
 
-                  // Category & Stream tag
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      if (IptvSettings.showCategoryTag.value) ...[
-                        Text(
-                          ch.category,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.52),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: Container(
-                            width: 3.5,
-                            height: 3.5,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ],
+                // Category & Stream tag
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    if (IptvSettings.showCategoryTag.value) ...[
                       Text(
-                        'HD Live',
+                        ch.category,
                         style: TextStyle(
                           fontSize: 12,
-                          color: primaryColor,
-                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withValues(alpha: 0.52),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Container(
+                          width: 3.5,
+                          height: 3.5,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            shape: BoxShape.circle,
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                ],
-              ),
+                    Text(
+                      'HD Live',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: primaryColor,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),

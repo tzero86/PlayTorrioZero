@@ -8,6 +8,7 @@ import '../../utils/navigation/route_transitions.dart';
 import '../details/details_page.dart';
 import '../../models/movie/movie.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../../widgets/common/focusable_card.dart';
 
 class MyListPage extends StatefulWidget {
   const MyListPage({super.key});
@@ -538,7 +539,7 @@ class _MyListPageState extends State<MyListPage> {
 // Interactive Hover Card Widget with Home Page Quality & Liquid Effects
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _MyListCard extends StatefulWidget {
+class _MyListCard extends StatelessWidget {
   const _MyListCard({
     required this.item,
     required this.onTap,
@@ -550,212 +551,211 @@ class _MyListCard extends StatefulWidget {
   final VoidCallback onRemove;
 
   @override
-  State<_MyListCard> createState() => _MyListCardState();
-}
-
-class _MyListCardState extends State<_MyListCard> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final item = widget.item;
     final isMovie = item.type == 'movie';
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        onLongPress: widget.onRemove,
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => GestureDetector(
+        // Pointer-only shortcut: FocusableCard owns tap and activation, not long press.
+        onLongPress: onRemove,
         child: AnimatedScale(
-          scale: _isHovered ? 1.04 : 1.0,
+          scale: state.highlighted ? 1.04 : 1.0,
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 220),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: _isHovered
-                    ? const Color(0xFF7C5CFF).withValues(alpha: 0.8)
-                    : Colors.white.withValues(alpha: 0.08),
-                width: _isHovered ? 1.8 : 1.0,
+          child: CardFocusRing(
+            focused: state.focused,
+            radius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: state.highlighted
+                      ? const Color(0xFF7C5CFF).withValues(alpha: 0.8)
+                      : Colors.white.withValues(alpha: 0.08),
+                  width: state.highlighted ? 1.8 : 1.0,
+                ),
+                boxShadow: state.highlighted
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                          blurRadius: 18,
+                          spreadRadius: 2,
+                        )
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        )
+                      ],
               ),
-              boxShadow: _isHovered
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
-                        blurRadius: 18,
-                        spreadRadius: 2,
-                      )
-                    ]
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      )
-                    ],
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Poster Image
-                  if (item.poster != null && item.poster!.isNotEmpty)
-                    CachedNetworkImage(
-                      imageUrl: item.poster!,
-                      cacheManager: AppImageCache.manager,
-                      fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => _buildFallbackPoster())
-                  else
-                    _buildFallbackPoster(),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(15),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Poster Image
+                    if (item.poster != null && item.poster!.isNotEmpty)
+                      CachedNetworkImage(
+                        imageUrl: item.poster!,
+                        cacheManager: AppImageCache.manager,
+                        fit: BoxFit.cover,
+                        errorWidget: (context, url, error) => _buildFallbackPoster())
+                    else
+                      _buildFallbackPoster(),
 
-                  // Bottom Gradient & Title Overlay
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: const [0.0, 0.5, 1.0],
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: _isHovered ? 0.4 : 0.2),
-                            Colors.black.withValues(alpha: 0.92),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Top Badges (Media Type & Trakt Source)
-                  Positioned(
-                    top: 8,
-                    left: 8,
-                    right: 8,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Media Type Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: isMovie
-                                ? const Color(0xFF7C5CFF).withValues(alpha: 0.85)
-                                : const Color(0xFF00E5FF).withValues(alpha: 0.85),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            isMovie ? 'MOVIE' : 'SERIES',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-
-                        // Cloud Sync Badge
-                        if (item.source == MyListSource.trakt)
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFFED1C24).withValues(alpha: 0.5)),
-                            ),
-                            child: const Icon(Icons.cloud_done_rounded, color: Color(0xFFED1C24), size: 11),
-                          )
-                        else if (item.source == MyListSource.simkl)
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.6),
-                              shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFF00ADFF).withValues(alpha: 0.5)),
-                            ),
-                            child: const Icon(Icons.cloud_done_rounded, color: Color(0xFF00ADFF), size: 11),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // Title & Metadata
-                  Positioned(
-                    left: 10,
-                    right: 10,
-                    bottom: 10,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.2,
-                          ),
-                        ),
-                        if (item.year != null)
-                          Text(
-                            '${item.year}',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  // Hover Action Overlay (Play & Remove Buttons)
-                  if (_isHovered)
+                    // Bottom Gradient & Title Overlay
                     Positioned.fill(
-                      child: Container(
-                        color: Colors.black.withValues(alpha: 0.35),
-                        child: Center(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              // Play/Details Button
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: const BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Color(0xFF7C5CFF),
-                                ),
-                                child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
-                              ),
-                              const SizedBox(width: 12),
-
-                              // Quick Delete Button
-                              GestureDetector(
-                                onTap: widget.onRemove,
-                                child: Container(
-                                  width: 38,
-                                  height: 38,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFFE50914).withValues(alpha: 0.9),
-                                  ),
-                                  child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 20),
-                                ),
-                              ),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            stops: const [0.0, 0.5, 1.0],
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: state.highlighted ? 0.4 : 0.2),
+                              Colors.black.withValues(alpha: 0.92),
                             ],
                           ),
                         ),
                       ),
                     ),
-                ],
+
+                    // Top Badges (Media Type & Trakt Source)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      right: 8,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Media Type Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: isMovie
+                                  ? const Color(0xFF7C5CFF).withValues(alpha: 0.85)
+                                  : const Color(0xFF00E5FF).withValues(alpha: 0.85),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              isMovie ? 'MOVIE' : 'SERIES',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+
+                          // Cloud Sync Badge
+                          if (item.source == MyListSource.trakt)
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.6),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFFED1C24).withValues(alpha: 0.5)),
+                              ),
+                              child: const Icon(Icons.cloud_done_rounded, color: Color(0xFFED1C24), size: 11),
+                            )
+                          else if (item.source == MyListSource.simkl)
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.6),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFF00ADFF).withValues(alpha: 0.5)),
+                              ),
+                              child: const Icon(Icons.cloud_done_rounded, color: Color(0xFF00ADFF), size: 11),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Title & Metadata
+                    Positioned(
+                      left: 10,
+                      right: 10,
+                      bottom: 10,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          if (item.year != null)
+                            Text(
+                              '${item.year}',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+
+                    // Pointer-only. On TV this overlay is unusable: the delete
+                    // button below is a bare GestureDetector, so a remote cannot
+                    // activate it, and the scrim would cover the poster a D-pad
+                    // user is trying to look at. Gating on hover leaves the focused
+                    // card clean instead of promising a control that cannot be used.
+                    if (state.hovered)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Play/Details Button
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF7C5CFF),
+                                  ),
+                                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                                ),
+                                const SizedBox(width: 12),
+
+                                // Quick Delete Button
+                                GestureDetector(
+                                  onTap: onRemove,
+                                  child: Container(
+                                    width: 38,
+                                    height: 38,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFFE50914).withValues(alpha: 0.9),
+                                    ),
+                                    child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 20),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -769,7 +769,7 @@ class _MyListCardState extends State<_MyListCard> {
       color: const Color(0xFF151822),
       child: Center(
         child: Icon(
-          widget.item.type == 'movie' ? Icons.movie_rounded : Icons.tv_rounded,
+          item.type == 'movie' ? Icons.movie_rounded : Icons.tv_rounded,
           color: Colors.white24,
           size: 38,
         ),
