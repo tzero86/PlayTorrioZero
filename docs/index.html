@@ -7,14 +7,16 @@
 <meta name="description" content="ZPlay is a free, open-source all-in-one media client for movies, TV, anime, manga, audiobooks, music and live TV. No telemetry, no accounts, no paywall.">
 <meta property="og:title" content="ZPlay">
 <meta property="og:description" content="Free, open-source all-in-one media client. No telemetry, no accounts, no paywall.">
-<meta property="og:image" content="https://tzero86.github.io/ZPlay/icon.png">
+<meta property="og:image" content="https://tzero86.github.io/ZPlay/icon.png?v=2">
 <meta property="og:type" content="website">
-<link rel="icon" href="icon.png">
+<link rel="icon" href="icon.png?v=2">
 <style>
 :root{
-  --bg:#0B0D13; --panel:#12151E; --panel-2:#171B26; --line:rgba(255,255,255,.07);
+  /* Matches the app's token layer: canvas #0A0D12, surface #12151E,
+     raised #161C29, accent Signal Teal. */
+  --bg:#0A0D12; --panel:#12151E; --panel-2:#161C29; --line:rgba(255,255,255,.07);
   --fg:#EEF1F8; --dim:rgba(238,241,248,.62); --dimmer:rgba(238,241,248,.38);
-  --accent:#7C5CFF; --accent-soft:#9D84FF; --green:#10B981;
+  --accent:#2FD0C0; --accent-soft:#5CE0D2; --green:#10B981;
   --max:1080px;
 }
 *{box-sizing:border-box}
@@ -37,8 +39,8 @@ h2{font-size:28px; letter-spacing:-.02em; margin-bottom:8px}
 .hero{
   text-align:center; padding:88px 0 72px; border-top:0;
   background:
-    radial-gradient(900px 380px at 50% -140px, rgba(124,92,255,.30), transparent 70%),
-    radial-gradient(600px 300px at 88% 0%, rgba(16,185,129,.10), transparent 70%);
+    radial-gradient(900px 380px at 50% -140px, rgba(47,208,192,.26), transparent 70%),
+    radial-gradient(600px 300px at 88% 0%, rgba(47,208,192,.08), transparent 70%);
 }
 .hero img{width:112px; height:112px; border-radius:26px; box-shadow:0 18px 50px rgba(0,0,0,.55)}
 .hero h1{font-size:56px; letter-spacing:-.035em; margin:22px 0 10px}
@@ -48,7 +50,7 @@ h2{font-size:28px; letter-spacing:-.02em; margin-bottom:8px}
   display:inline-block; padding:13px 24px; border-radius:12px; font-weight:650; font-size:15px;
   border:1px solid var(--line); color:var(--fg);
 }
-.btn.primary{background:var(--accent); border-color:transparent; color:#fff}
+.btn.primary{background:var(--accent); border-color:transparent; color:#07231F}
 .btn.primary:hover{filter:brightness(1.1); text-decoration:none}
 .btn:hover{text-decoration:none; border-color:rgba(255,255,255,.22)}
 .badges{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
@@ -83,7 +85,7 @@ code{background:rgba(255,255,255,.06); padding:.15em .42em; border-radius:6px; f
 
 .note{
   margin-top:26px; padding:15px 18px; border-radius:12px; font-size:14px; color:var(--dim);
-  background:rgba(124,92,255,.09); border:1px solid rgba(124,92,255,.28);
+  background:rgba(47,208,192,.09); border:1px solid rgba(47,208,192,.28);
 }
 footer{padding:52px 0 64px; border-top:1px solid var(--line); text-align:center; color:var(--dimmer); font-size:14px}
 footer .tags{margin-top:14px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
@@ -100,7 +102,7 @@ footer .tag{border:1px solid var(--line); border-radius:999px; padding:4px 12px;
 
 <header class="hero">
   <div class="wrap">
-    <img src="icon.png" alt="ZPlay">
+    <img src="icon.png?v=2" alt="ZPlay">
     <h1>ZPlay</h1>
     <p>Movies, TV, anime, manga, audiobooks, music and live TV — in one app.<br>No telemetry. No accounts. No paywall.</p>
     <div class="cta">
@@ -110,7 +112,7 @@ footer .tag{border:1px solid var(--line); border-radius:999px; padding:4px 12px;
     <div class="badges">
       <img src="https://img.shields.io/badge/licence-GPL--3.0-4169A1?style=flat" alt="GPL-3.0 licence">
       <img src="https://img.shields.io/badge/telemetry-none-10B981?style=flat" alt="No telemetry">
-      <img src="https://img.shields.io/badge/price-free%20forever-7C5CFF?style=flat" alt="Free forever">
+      <img src="https://img.shields.io/badge/price-free%20forever-2FD0C0?style=flat" alt="Free forever">
       <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20Android%20%7C%20iOS-1F6FEB?style=flat" alt="Five platforms">
     </div>
   </div>
