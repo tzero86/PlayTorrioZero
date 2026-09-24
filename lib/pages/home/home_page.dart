@@ -25,6 +25,7 @@ import '../../services/my_list/my_list_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/error_view.dart';
+import '../../widgets/common/segmented_tabs.dart';
 import '../../widgets/home/continue_watching_slider.dart';
 import '../../widgets/movie/movie_slider_section.dart';
 import '../search/search_page.dart';
@@ -114,18 +115,44 @@ class _HomePageState extends State<HomePage> {
   /// tv, anime, and whatever type a future addon invents — stays visible under
   /// Series, so no catalog entry can fall through both tabs. Anime is split out
   /// of Series so the dedicated tab can surface it the way the Anime page does.
-  bool _matchesFilter(Movie movie, _HomeFilter filter) {
-    final isAnime = _isAnime(movie);
-    switch (filter) {
-      case _HomeFilter.all:
-        return true;
-      case _HomeFilter.movies:
-        return !isAnime && movie.type.trim().toLowerCase() == 'movie';
-      case _HomeFilter.series:
-        return !isAnime && movie.type.trim().toLowerCase() != 'movie';
-      case _HomeFilter.anime:
-        return isAnime;
+  bool _matchesFilter(Movie movie, _HomeFilter filter) =>
+      filter == _HomeFilter.all || _partitionOf(movie) == filter;
+
+  /// Which partition a title belongs to: the one place the Movies / Series /
+  /// Anime split is defined, so the filter and the tab counts cannot drift
+  /// apart.
+  _HomeFilter _partitionOf(Movie movie) {
+    if (_isAnime(movie)) return _HomeFilter.anime;
+    return movie.type.trim().toLowerCase() == 'movie'
+        ? _HomeFilter.movies
+        : _HomeFilter.series;
+  }
+
+  /// How many catalogue titles each filter matches, counted in one pass.
+  ///
+  /// Counts describe *catalogue* content, which is exactly what All, Movies and
+  /// Series show. The Anime tab additionally surfaces AniList discovery rows
+  /// that are fetched separately on first open, so its number can be smaller
+  /// than the number of tiles on screen. The alternative — leaving the count
+  /// out until those rows arrive — would make one tab silently disagree with
+  /// the other three.
+  Map<_HomeFilter, int> get _filterCounts {
+    var all = 0, movies = 0, series = 0, anime = 0;
+    for (final section in _sections) {
+      for (final movie in section.movies) {
+        all++;
+        final partition = _partitionOf(movie);
+        if (partition == _HomeFilter.movies) movies++;
+        if (partition == _HomeFilter.series) series++;
+        if (partition == _HomeFilter.anime) anime++;
+      }
     }
+    return {
+      _HomeFilter.all: all,
+      _HomeFilter.movies: movies,
+      _HomeFilter.series: series,
+      _HomeFilter.anime: anime,
+    };
   }
 
   /// Mirrors the `anime` filter in [ContinueWatchingSlider] so both agree on
@@ -576,10 +603,22 @@ class _HomePageState extends State<HomePage> {
   static bool _filtersInAppBar(BuildContext context) =>
       MediaQuery.sizeOf(context).width >= _appBarFilterBreakpoint;
 
-  Widget _buildFilterTabs() => _HomeFilterTabs(
-    selected: _selectedFilter,
-    onSelected: _setFilter,
-  );
+  Widget _buildFilterTabs() {
+    final counts = _filterCounts;
+    return SegmentedTabs<_HomeFilter>(
+      semanticsLabel: 'Home content filter',
+      selected: _selectedFilter,
+      onSelected: _setFilter,
+      options: [
+        for (final (filter, label) in _homeFilterLabels)
+          SegmentedTabOption(
+            value: filter,
+            label: label,
+            count: counts[filter],
+          ),
+      ],
+    );
+  }
 
   /// ListView slot 0: spacing when the tabs moved into the app bar, the tabs
   /// themselves otherwise.
@@ -878,107 +917,22 @@ class _HomePageState extends State<HomePage> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// All / Movies / Series filter tabs — flat text with an underline indicator,
-// sized to sit inside the glass app bar without competing with the hero.
+// Content filter — All / Movies / Series / Anime.
+//
+// One segmented control (the shared [SegmentedTabs]) rather than four
+// independent text tabs. Those were ~26px tall with an 18px accent underline of
+// their own that grew out of nothing, so nothing connected one tab to the next
+// and a remote had little to aim at. The control now carries one sliding
+// selection indicator, a focus ring that is distinct from the accent fill, and
+// 44px targets.
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _HomeFilterTabs extends StatelessWidget {
-  final _HomeFilter selected;
-  final ValueChanged<_HomeFilter> onSelected;
-
-  const _HomeFilterTabs({required this.selected, required this.onSelected});
-
-  static const _filters = <(_HomeFilter, String)>[
-    (_HomeFilter.all, 'All'),
-    (_HomeFilter.movies, 'Movies'),
-    (_HomeFilter.series, 'Series'),
-    (_HomeFilter.anime, 'Anime'),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final accent = AppThemeService.currentPalette.value.primaryColor;
-    return Semantics(
-      container: true,
-      label: 'Home content filter',
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final (filter, label) in _filters)
-            _HomeFilterTab(
-              label: label,
-              selected: selected == filter,
-              accent: accent,
-              onTap: () => onSelected(filter),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HomeFilterTab extends StatelessWidget {
-  final String label;
-  final bool selected;
-  final Color accent;
-  final VoidCallback onTap;
-
-  const _HomeFilterTab({
-    required this.label,
-    required this.selected,
-    required this.accent,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: label,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          hoverColor: Colors.white.withValues(alpha: 0.06),
-          focusColor: Colors.white.withValues(alpha: 0.10),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 160),
-                  style: TextStyle(
-                    fontSize: 13,
-                    letterSpacing: 0.2,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                    color: selected
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.55),
-                  ),
-                  child: Text(label),
-                ),
-                const SizedBox(height: 3),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  curve: Curves.easeOutCubic,
-                  height: 2,
-                  width: selected ? 18 : 0,
-                  decoration: BoxDecoration(
-                    color: accent,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+const _homeFilterLabels = <(_HomeFilter, String)>[
+  (_HomeFilter.all, 'All'),
+  (_HomeFilter.movies, 'Movies'),
+  (_HomeFilter.series, 'Series'),
+  (_HomeFilter.anime, 'Anime'),
+];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Frosted Glass App Bar
