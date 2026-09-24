@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/trakt/trakt_service.dart';
 import '../../services/my_list/my_list_service.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
+import '../../services/theme/app_theme_service.dart';
 
 class TraktSettingsPage extends StatefulWidget {
   const TraktSettingsPage({super.key});
@@ -388,7 +389,7 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                     borderRadius: BorderRadius.circular(12),
                     side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                   ),
-                  leading: const Icon(Icons.sync_rounded, color: Color(0xFF7C5CFF)),
+                  leading: Icon(Icons.sync_rounded, color: AppThemeService.currentPalette.value.primaryColor),
                   title: const Text('Sync Watchlist & Continue Watching Now', style: TextStyle(color: Colors.white, fontSize: 14)),
                   subtitle: const Text('Manually triggers an immediate pull from Trakt', style: TextStyle(color: Colors.white54, fontSize: 12)),
                   trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.white38),

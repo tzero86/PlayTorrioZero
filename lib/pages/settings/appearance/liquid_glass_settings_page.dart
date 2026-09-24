@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/theme/glass_settings.dart';
+import '../../../services/theme/app_theme_service.dart';
 
 class LiquidGlassSettingsPage extends StatefulWidget {
   const LiquidGlassSettingsPage({super.key});
@@ -33,10 +34,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
               setState(() {});
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Liquid Glass settings reset to defaults.'),
+                SnackBar(
+                  content: const Text('Liquid Glass settings reset to defaults.'),
                   behavior: SnackBarBehavior.floating,
-                  backgroundColor: Color(0xFF7C5CFF),
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                 ),
               );
             },
@@ -66,7 +67,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
                         color: enabled
-                            ? const Color(0xFF7C5CFF).withValues(alpha: 0.45)
+                            ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.45)
                             : Colors.white.withValues(alpha: 0.08),
                       ),
                     ),
@@ -76,10 +77,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.blur_on_rounded, color: Color(0xFF7C5CFF), size: 24),
+                          child: Icon(Icons.blur_on_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 24),
                         ),
                         const SizedBox(width: 14),
                         const Expanded(
@@ -101,7 +102,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                         const SizedBox(width: 12),
                         Switch.adaptive(
                           value: enabled,
-                          activeColor: const Color(0xFF7C5CFF),
+                          activeColor: AppThemeService.currentPalette.value.primaryColor,
                           onChanged: (val) {
                             GlassSettings.setEnabled(val);
                             setState(() {});
@@ -348,10 +349,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                 child: Container(
                   width: 80,
                   height: 80,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [Color(0xFF7C5CFF), Color(0xFFFF2A85)],
+                      colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFFFF2A85)],
                     ),
                   ),
                 ),
@@ -362,10 +363,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                 child: Container(
                   width: 90,
                   height: 90,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [Color(0xFF00E5FF), Color(0xFF10B981)],
+                      colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF10B981)],
                     ),
                   ),
                 ),
@@ -428,7 +429,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
                               blurRadius: 16,
                               spreadRadius: 2,
                             ),
@@ -451,7 +452,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                           width: GlassSettings.borderWidth.value,
                         ),
                       ),
-                      child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF00E5FF), size: 24),
+                      child: Icon(Icons.auto_awesome_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 24),
                     ),
                     const SizedBox(width: 16),
 
@@ -504,16 +505,16 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
             return ChoiceChip(
               label: Text(preset.label),
               selected: isSelected,
-              selectedColor: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+              selectedColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
               backgroundColor: const Color(0xFF12151E),
               labelStyle: TextStyle(
-                color: isSelected ? const Color(0xFF7C5CFF) : Colors.white70,
+                color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
                 fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                 fontSize: 12.5,
               ),
               side: BorderSide(
                 color: isSelected
-                    ? const Color(0xFF7C5CFF).withValues(alpha: 0.6)
+                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
                     : Colors.white.withValues(alpha: 0.08),
               ),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -565,15 +566,15 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
                   valueDisplay,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF7C5CFF),
+                    color: AppThemeService.currentPalette.value.primaryColor,
                   ),
                 ),
               ),
@@ -590,10 +591,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
           const SizedBox(height: 6),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: const Color(0xFF7C5CFF),
+              activeTrackColor: AppThemeService.currentPalette.value.primaryColor,
               inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
-              thumbColor: const Color(0xFF7C5CFF),
-              overlayColor: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+              thumbColor: AppThemeService.currentPalette.value.primaryColor,
+              overlayColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
               trackHeight: 4,
             ),
             child: Slider(

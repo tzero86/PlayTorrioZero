@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/cloudstream/marketplace/cloudstream_marketplace_service.dart';
 import 'cloudstream_repo_modal.dart';
+import '../../services/theme/app_theme_service.dart';
 
 class CloudStreamMarketplaceModal extends StatefulWidget {
   const CloudStreamMarketplaceModal({super.key});
@@ -145,7 +146,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
       case 'Anime / Cartoons':
         return const Color(0xFFA855F7);
       default:
-        return const Color(0xFF7C5CFF);
+        return AppThemeService.currentPalette.value.primaryColor;
     }
   }
 
@@ -191,7 +192,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C5CFF),
+                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
@@ -233,7 +234,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
-              const CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+              CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
               const SizedBox(height: 16),
               ValueListenableBuilder<String>(
                 valueListenable: _manager.busyMessage,
@@ -308,15 +309,15 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7C5CFF), Color(0xFF6366F1)],
+                    gradient: LinearGradient(
+                      colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF6366F1)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -346,7 +347,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF7C5CFF).withValues(alpha: 0.18),
+                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -376,10 +377,10 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                 IconButton(
                   tooltip: 'Refresh list from web',
                   icon: _isRefreshing
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 16,
                           height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7C5CFF)),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor),
                         )
                       : Icon(Icons.refresh_rounded, color: Colors.white.withValues(alpha: 0.6)),
                   onPressed: _isRefreshing ? null : () => _loadRepos(forceRefresh: true),
@@ -492,12 +493,12 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color(0xFF7C5CFF).withValues(alpha: 0.22)
+                                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.22)
                                     : const Color(0xFF151822),
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFF7C5CFF)
+                                      ? AppThemeService.currentPalette.value.primaryColor
                                       : Colors.white.withValues(alpha: 0.08),
                                 ),
                               ),
@@ -582,8 +583,8 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
           // Repositories List
           Expanded(
             child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+                ? Center(
+                    child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
                   )
                 : _filteredRepos.isEmpty
                     ? Center(
@@ -786,7 +787,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF7C5CFF).withValues(alpha: 0.12),
+                                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Row(
@@ -832,14 +833,14 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                               style: TextStyle(
                                                 fontSize: 11.5,
                                                 fontWeight: FontWeight.w600,
-                                                color: const Color(0xFF7C5CFF).withValues(alpha: 0.9),
+                                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.9),
                                               ),
                                             ),
                                             const SizedBox(width: 4),
                                             Icon(
                                               isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
                                               size: 16,
-                                              color: const Color(0xFF7C5CFF),
+                                              color: AppThemeService.currentPalette.value.primaryColor,
                                             ),
                                           ],
                                         ),
@@ -856,12 +857,12 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                             decoration: BoxDecoration(
                                               color: isMatched
-                                                  ? const Color(0xFF7C5CFF).withValues(alpha: 0.3)
+                                                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)
                                                   : Colors.white.withValues(alpha: 0.05),
                                               borderRadius: BorderRadius.circular(6),
                                               border: Border.all(
                                                 color: isMatched
-                                                    ? const Color(0xFF7C5CFF)
+                                                    ? AppThemeService.currentPalette.value.primaryColor
                                                     : Colors.white.withValues(alpha: 0.08),
                                               ),
                                             ),
@@ -902,7 +903,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF7C5CFF),
+                                              backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                                               foregroundColor: Colors.white,
                                               padding: const EdgeInsets.symmetric(vertical: 10),
                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

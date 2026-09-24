@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/cloudstream/cloudstream_source.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
+import '../../services/theme/app_theme_service.dart';
 
 class CloudStreamRepoModal extends StatefulWidget {
   const CloudStreamRepoModal({super.key});
@@ -298,7 +299,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF7C5CFF),
+                                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                                 foregroundColor: Colors.white,
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -389,16 +390,16 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C5CFF).withValues(alpha: 0.12),
+                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.3)),
+                          border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
-                            const SizedBox(
+                            SizedBox(
                               width: 14,
                               height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7C5CFF)),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -447,7 +448,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
               // Plugins list
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C5CFF)))
+                    ? Center(child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor))
                     : filtered.isEmpty
                         ? Center(
                             child: Padding(
@@ -546,15 +547,15 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                                                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
                                                 child: Text(
                                                   plugin.effectiveLanguage.toUpperCase(),
-                                                  style: const TextStyle(
+                                                  style: TextStyle(
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w700,
-                                                    color: Color(0xFF7C5CFF),
+                                                    color: AppThemeService.currentPalette.value.primaryColor,
                                                   ),
                                                 ),
                                               ),
@@ -574,10 +575,10 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
 
                                     // Install / Installed button
                                     if (isProcessing)
-                                      const SizedBox(
+                                      SizedBox(
                                         width: 28,
                                         height: 28,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7C5CFF)),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor),
                                       )
                                     else if (installed)
                                       Row(
@@ -616,7 +617,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                       ElevatedButton(
                                         onPressed: () => _install(plugin),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF7C5CFF),
+                                          backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                                           foregroundColor: Colors.white,
                                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

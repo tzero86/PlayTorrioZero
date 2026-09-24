@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../services/updater/app_updater_service.dart';
 import '../../widgets/updater/update_dialog.dart';
+import '../../services/theme/app_theme_service.dart';
 
 class UpdatesSettingsPage extends StatefulWidget {
   const UpdatesSettingsPage({super.key});
@@ -31,9 +32,9 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ZPlay is up to date!'),
-            backgroundColor: Color(0xFF7C5CFF),
+          SnackBar(
+            content: const Text('ZPlay is up to date!'),
+            backgroundColor: AppThemeService.currentPalette.value.primaryColor,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -106,7 +107,7 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                       color: const Color(0xFF12151E),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Column(
@@ -118,12 +119,12 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7C5CFF).withValues(alpha: 0.14),
+                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.14),
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.system_update_rounded,
-                                color: Color(0xFF7C5CFF),
+                                color: AppThemeService.currentPalette.value.primaryColor,
                                 size: 24,
                               ),
                             ),
@@ -178,7 +179,7 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF7C5CFF),
+                              backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),

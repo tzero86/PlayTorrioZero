@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/theme/dock_settings.dart';
 import '../../../widgets/common/app_liquid_dock.dart';
+import '../../../services/theme/app_theme_service.dart';
 
 class DockSettingsPage extends StatefulWidget {
   const DockSettingsPage({super.key});
@@ -32,10 +33,10 @@ class _DockSettingsPageState extends State<DockSettingsPage> {
               setState(() {});
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Dock items reset to default layout.'),
+                SnackBar(
+                  content: const Text('Dock items reset to default layout.'),
                   behavior: SnackBarBehavior.floating,
-                  backgroundColor: Color(0xFF7C5CFF),
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                 ),
               );
             },
@@ -64,7 +65,7 @@ class _DockSettingsPageState extends State<DockSettingsPage> {
                         color: const Color(0xFF12151E),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -73,12 +74,12 @@ class _DockSettingsPageState extends State<DockSettingsPage> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.dock_rounded,
-                              color: Color(0xFF7C5CFF),
+                              color: AppThemeService.currentPalette.value.primaryColor,
                               size: 24,
                             ),
                           ),
@@ -214,7 +215,7 @@ class _DockSettingsPageState extends State<DockSettingsPage> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isEnabled
-              ? const Color(0xFF7C5CFF).withValues(alpha: 0.35)
+              ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35)
               : Colors.white.withValues(alpha: 0.06),
           width: 1,
         ),
@@ -226,14 +227,14 @@ class _DockSettingsPageState extends State<DockSettingsPage> {
             height: 40,
             decoration: BoxDecoration(
               color: isEnabled
-                  ? const Color(0xFF7C5CFF).withValues(alpha: 0.15)
+                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15)
                   : Colors.white.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               item.icon,
               color: isEnabled
-                  ? const Color(0xFF7C5CFF)
+                  ? AppThemeService.currentPalette.value.primaryColor
                   : Colors.white.withValues(alpha: 0.3),
               size: 20,
             ),
@@ -292,7 +293,7 @@ class _DockSettingsPageState extends State<DockSettingsPage> {
           Switch.adaptive(
             value: isPinned ? true : isEnabled,
             onChanged: isPinned ? null : onToggle,
-            activeColor: const Color(0xFF7C5CFF),
+            activeColor: AppThemeService.currentPalette.value.primaryColor,
           ),
         ],
       ),

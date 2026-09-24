@@ -41,7 +41,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                   gradient: LinearGradient(
                     colors: [
                       palette.primaryColor.withValues(alpha: 0.12),
-                      const Color(0xFF00E5FF).withValues(alpha: 0.04),
+                      AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.04),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -143,7 +143,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Mode A — High Quality (Ultra)',
                         subtitle: 'Maximum perceptual fidelity using Very Large CNNs. Recommended for discrete GPUs (RTX/Radeon).',
                         tag: 'Ultra Quality',
-                        tagColor: const Color(0xFF7C5CFF),
+                        tagColor: AppThemeService.currentPalette.value.primaryColor,
                         icon: Icons.diamond_rounded,
                         isSelected: currentPreset == Anime4KPreset.modeAHQ,
                         palette: palette,
@@ -155,7 +155,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Mode B — Soft / Denoise',
                         subtitle: 'Smooth line reconstruction and artifact reduction. Best for blurry, compressed, or older anime.',
                         tag: 'Denoise',
-                        tagColor: const Color(0xFF00E5FF),
+                        tagColor: AppThemeService.currentPalette.value.primaryColor,
                         icon: Icons.blur_linear_rounded,
                         isSelected: currentPreset == Anime4KPreset.modeB,
                         palette: palette,
@@ -771,7 +771,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: const Color(0xFF00E5FF), size: 20),
+        Icon(icon, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
         const SizedBox(width: 12),
         Expanded(
           child: Column(

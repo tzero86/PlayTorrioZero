@@ -620,7 +620,7 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
         color: const Color(0xFF12151E),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
         ),
       ),
       child: Column(
@@ -632,12 +632,12 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.14),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.14),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.auto_awesome_rounded,
-                  color: Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                   size: 22,
                 ),
               ),
@@ -868,7 +868,7 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
               const SizedBox(width: 12),
               Switch.adaptive(
                 value: enabled,
-                activeColor: const Color(0xFF7C5CFF),
+                activeColor: AppThemeService.currentPalette.value.primaryColor,
                 onChanged: onChanged,
               ),
             ],
@@ -899,12 +899,12 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7C5CFF).withValues(alpha: 0.14),
+                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.movie_filter_rounded,
-                      color: Color(0xFF7C5CFF),
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       size: 20,
                     ),
                   ),
@@ -931,7 +931,7 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                   ),
                   Switch.adaptive(
                     value: enabled,
-                    activeColor: const Color(0xFF7C5CFF),
+                    activeColor: AppThemeService.currentPalette.value.primaryColor,
                     onChanged: (val) {
                       HomePageSettings.setEnableSpotlight(val);
                       setState(() {});
@@ -976,16 +976,16 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                           return ChoiceChip(
                             label: Text(style.label),
                             selected: isSelected,
-                            selectedColor: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+                            selectedColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
                             backgroundColor: const Color(0xFF0D1017),
                             labelStyle: TextStyle(
-                              color: isSelected ? const Color(0xFF7C5CFF) : Colors.white70,
+                              color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
                               fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                               fontSize: 12,
                             ),
                             side: BorderSide(
                               color: isSelected
-                                  ? const Color(0xFF7C5CFF).withValues(alpha: 0.6)
+                                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
                                   : Colors.white.withValues(alpha: 0.08),
                             ),
                             onSelected: (selected) {
@@ -1030,7 +1030,7 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                       ),
                       Switch.adaptive(
                         value: autoRotate,
-                        activeColor: const Color(0xFF7C5CFF),
+                        activeColor: AppThemeService.currentPalette.value.primaryColor,
                         onChanged: (val) {
                           HomePageSettings.setHeroAutoRotate(val);
                           setState(() {});
@@ -1052,9 +1052,9 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                             Expanded(
                               child: SliderTheme(
                                 data: SliderTheme.of(context).copyWith(
-                                  activeTrackColor: const Color(0xFF7C5CFF),
+                                  activeTrackColor: AppThemeService.currentPalette.value.primaryColor,
                                   inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
-                                  thumbColor: const Color(0xFF7C5CFF),
+                                  thumbColor: AppThemeService.currentPalette.value.primaryColor,
                                   trackHeight: 3,
                                 ),
                                 child: Slider(
@@ -1109,7 +1109,7 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                   ),
                   Switch.adaptive(
                     value: glow,
-                    activeColor: const Color(0xFF7C5CFF),
+                    activeColor: AppThemeService.currentPalette.value.primaryColor,
                     onChanged: (val) {
                       HomePageSettings.setAmbientGlow(val);
                       setState(() {});
@@ -1159,16 +1159,16 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                   return ChoiceChip(
                     label: Text(density.label),
                     selected: isSelected,
-                    selectedColor: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+                    selectedColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
                     backgroundColor: const Color(0xFF0D1017),
                     labelStyle: TextStyle(
-                      color: isSelected ? const Color(0xFF7C5CFF) : Colors.white70,
+                      color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
                       fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                       fontSize: 12,
                     ),
                     side: BorderSide(
                       color: isSelected
-                          ? const Color(0xFF7C5CFF).withValues(alpha: 0.6)
+                          ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
                           : Colors.white.withValues(alpha: 0.08),
                     ),
                     onSelected: (selected) {
@@ -1215,7 +1215,7 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                   ),
                   Switch.adaptive(
                     value: showRating,
-                    activeColor: const Color(0xFF7C5CFF),
+                    activeColor: AppThemeService.currentPalette.value.primaryColor,
                     onChanged: (val) {
                       HomePageSettings.setShowRating(val);
                       setState(() {});
@@ -1251,10 +1251,10 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                       ),
                       Text(
                         '${zoom.toStringAsFixed(2)}x',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF7C5CFF),
+                          color: AppThemeService.currentPalette.value.primaryColor,
                         ),
                       ),
                     ],
@@ -1262,9 +1262,9 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                   const SizedBox(height: 4),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
-                      activeTrackColor: const Color(0xFF7C5CFF),
+                      activeTrackColor: AppThemeService.currentPalette.value.primaryColor,
                       inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
-                      thumbColor: const Color(0xFF7C5CFF),
+                      thumbColor: AppThemeService.currentPalette.value.primaryColor,
                       trackHeight: 3,
                     ),
                     child: Slider(

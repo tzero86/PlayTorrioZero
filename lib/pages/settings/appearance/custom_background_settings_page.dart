@@ -27,7 +27,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
       SnackBar(
         content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? Colors.red.shade700 : const Color(0xFF7C5CFF),
+        backgroundColor: isError ? Colors.red.shade700 : AppThemeService.currentPalette.value.primaryColor,
         duration: const Duration(seconds: 2),
       ),
     );

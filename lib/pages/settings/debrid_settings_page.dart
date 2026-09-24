@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/debrid/debrid_service.dart';
+import '../../services/theme/app_theme_service.dart';
 
 class DebridSettingsPage extends StatefulWidget {
   const DebridSettingsPage({super.key});
@@ -228,7 +229,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
       SnackBar(
         content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? Colors.red.shade700 : const Color(0xFF00E5FF),
+        backgroundColor: isError ? Colors.red.shade700 : AppThemeService.currentPalette.value.primaryColor,
         action: SnackBarAction(
           label: 'Dismiss',
           textColor: Colors.black,
@@ -290,7 +291,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: _useDebrid
-                        ? const Color(0xFF00E5FF).withValues(alpha: 0.35)
+                        ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35)
                         : Colors.white.withValues(alpha: 0.08),
                   ),
                 ),
@@ -303,12 +304,12 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00E5FF).withValues(alpha: 0.12),
+                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.cloud_download_rounded,
-                            color: Color(0xFF00E5FF),
+                            color: AppThemeService.currentPalette.value.primaryColor,
                             size: 24,
                           ),
                         ),
@@ -338,7 +339,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                         const SizedBox(width: 12),
                         Switch.adaptive(
                           value: _useDebrid,
-                          activeColor: const Color(0xFF00E5FF),
+                          activeColor: AppThemeService.currentPalette.value.primaryColor,
                           onChanged: (val) async {
                             setState(() => _useDebrid = val);
                             await _debrid.saveUseDebridForStreams(val);
@@ -440,7 +441,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: Color(0xFF00E5FF)),
+                          borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
                         ),
                       ),
                       style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
@@ -452,7 +453,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                               Icon(
                                 s == 'None' ? Icons.block_rounded : Icons.flash_on_rounded,
                                 size: 16,
-                                color: s == 'None' ? Colors.white38 : const Color(0xFF00E5FF),
+                                color: s == 'None' ? Colors.white38 : AppThemeService.currentPalette.value.primaryColor,
                               ),
                               const SizedBox(width: 8),
                               Text(s),
@@ -595,7 +596,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isActive
-              ? const Color(0xFF00E5FF).withValues(alpha: 0.3)
+              ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)
               : Colors.white.withValues(alpha: 0.06),
         ),
       ),
@@ -619,15 +620,15 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF00E5FF).withValues(alpha: 0.15),
+                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: const Text(
+                  child: Text(
                     'ACTIVE',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF00E5FF),
+                      color: AppThemeService.currentPalette.value.primaryColor,
                     ),
                   ),
                 ),
@@ -689,7 +690,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Color(0xFF00E5FF)),
+                      borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
                     ),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -721,7 +722,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                           },
                         ),
                         IconButton(
-                          icon: const Icon(Icons.content_paste_rounded, color: Color(0xFF00E5FF), size: 16),
+                          icon: Icon(Icons.content_paste_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 16),
                           padding: const EdgeInsets.all(4),
                           constraints: const BoxConstraints(),
                           tooltip: 'Paste from Clipboard',
@@ -737,7 +738,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
               ElevatedButton(
                 onPressed: isLoading ? null : onSave,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00E5FF),
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

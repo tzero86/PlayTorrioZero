@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../services/theme/app_theme_service.dart';
 
 class AboutSettingsPage extends StatelessWidget {
   const AboutSettingsPage({super.key});
@@ -35,15 +36,15 @@ class AboutSettingsPage extends StatelessWidget {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF7C5CFF), Color(0xFF00E5FF)],
+                        gradient: LinearGradient(
+                          colors: [AppThemeService.currentPalette.value.primaryColor, AppThemeService.currentPalette.value.primaryColor],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(22),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
@@ -221,7 +222,7 @@ class AboutSettingsPage extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: const Color(0xFF7C5CFF),
+              color: AppThemeService.currentPalette.value.primaryColor,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -348,7 +349,7 @@ class _CreditTile extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 18, color: const Color(0xFF7C5CFF)),
+              Icon(icon, size: 18, color: AppThemeService.currentPalette.value.primaryColor),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(

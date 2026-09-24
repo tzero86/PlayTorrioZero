@@ -102,11 +102,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     builder: (context, preset, _) {
                       return _buildSectionButton(
                         icon: Icons.blur_on_rounded,
-                        iconColor: const Color(0xFF7C5CFF),
+                        iconColor: AppThemeService.currentPalette.value.primaryColor,
                         title: 'Liquid Glass Setup',
                         subtitle: 'Adjust hover impact, wobble spring physics, lens refraction, and chromatic aberration',
                         badgeText: glassEnabled ? preset.label : 'Disabled',
-                        badgeColor: glassEnabled ? const Color(0xFF7C5CFF) : Colors.white38,
+                        badgeColor: glassEnabled ? AppThemeService.currentPalette.value.primaryColor : Colors.white38,
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -131,11 +131,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                   final activeCount = enabledMap.values.where((v) => v).length;
                   return _buildSectionButton(
                     icon: Icons.dock_rounded,
-                    iconColor: const Color(0xFF7C5CFF),
+                    iconColor: AppThemeService.currentPalette.value.primaryColor,
                     title: 'Liquid Dock / Deck Navbar',
                     subtitle: 'Choose which navigation shortcuts appear in the bottom liquid glass dock across all screens',
                     badgeText: '$activeCount / ${DockItemKey.values.length} Items',
-                    badgeColor: const Color(0xFF7C5CFF),
+                    badgeColor: AppThemeService.currentPalette.value.primaryColor,
                     onTap: () async {
                       await Navigator.push(
                         context,
@@ -364,12 +364,12 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00E5FF).withValues(alpha: 0.14),
+                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.14),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.speed_rounded,
-                      color: Color(0xFF00E5FF),
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       size: 22,
                     ),
                   ),
@@ -396,17 +396,15 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFF00E5FF,
-                                ).withValues(alpha: 0.15),
+                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 backend.label,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w800,
-                                  color: Color(0xFF00E5FF),
+                                  color: AppThemeService.currentPalette.value.primaryColor,
                                 ),
                               ),
                             ),
@@ -469,8 +467,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     required bool selected,
   }) {
     final color = backend == RendererBackend.skia
-        ? const Color(0xFF00E5FF)
-        : const Color(0xFF7C5CFF);
+        ? AppThemeService.currentPalette.value.primaryColor
+        : AppThemeService.currentPalette.value.primaryColor;
     return Material(
       color: Colors.transparent,
       child: InkWell(

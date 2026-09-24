@@ -11,6 +11,7 @@ import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/cloudstream/runtime/cloudstream_downloader.dart';
 import 'cloudstream_marketplace_modal.dart';
 import 'cloudstream_repo_modal.dart';
+import '../../services/theme/app_theme_service.dart';
 
 class AddonsSettingsPage extends StatefulWidget {
   const AddonsSettingsPage({super.key});
@@ -152,7 +153,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF7C5CFF)),
+                    borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -174,7 +175,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
             ElevatedButton(
               onPressed: () => Navigator.pop(context, controller.text),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C5CFF),
+                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -284,7 +285,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C5CFF),
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
@@ -325,7 +326,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
-              const CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+              CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
               const SizedBox(height: 16),
               ValueListenableBuilder<String>(
                 valueListenable: _csManager.busyMessage,
@@ -420,7 +421,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF7C5CFF)),
+                    borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -437,8 +438,8 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                 Navigator.pop(context);
                 CloudStreamMarketplaceModal.show(context);
               },
-              icon: const Icon(Icons.hub_rounded, size: 16, color: Color(0xFF7C5CFF)),
-              label: const Text('Browse Marketplace', style: TextStyle(color: Color(0xFF7C5CFF), fontWeight: FontWeight.bold, fontSize: 12.5)),
+              icon: Icon(Icons.hub_rounded, size: 16, color: AppThemeService.currentPalette.value.primaryColor),
+              label: Text('Browse Marketplace', style: TextStyle(color: AppThemeService.currentPalette.value.primaryColor, fontWeight: FontWeight.bold, fontSize: 12.5)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -450,7 +451,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
             ElevatedButton(
               onPressed: () => Navigator.pop(context, controller.text),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C5CFF),
+                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -747,15 +748,15 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 '${addons.length} Total',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                 ),
               ),
             ),
@@ -971,7 +972,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                   child: LinearProgressIndicator(
                     value: _csDownloader.progress.value > 0 ? _csDownloader.progress.value : null,
                     backgroundColor: Colors.white.withValues(alpha: 0.08),
-                    color: const Color(0xFF7C5CFF),
+                    color: AppThemeService.currentPalette.value.primaryColor,
                     minHeight: 6,
                   ),
                 ),
@@ -992,7 +993,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF7C5CFF).withValues(alpha: 0.22),
+                  AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.22),
                   const Color(0xFF06B6D4).withValues(alpha: 0.12),
                 ],
                 begin: Alignment.topLeft,
@@ -1000,11 +1001,11 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.1),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.1),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -1015,15 +1016,15 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7C5CFF), Color(0xFF6366F1)],
+                    gradient: LinearGradient(
+                      colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF6366F1)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
                         blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),
@@ -1108,12 +1109,12 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C5CFF), Color(0xFF6366F1)],
+                  gradient: LinearGradient(
+                    colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF6366F1)],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
                     ),
@@ -1147,29 +1148,29 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                   ),
-                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.06),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.06),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_isAddingCsRepo)
-                      const SizedBox(
+                      SizedBox(
                         width: 18,
                         height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7C5CFF)),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor),
                       )
                     else
-                      const Icon(Icons.add_link_rounded, color: Color(0xFF7C5CFF), size: 20),
+                      Icon(Icons.add_link_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
                     const SizedBox(width: 8),
-                    const Flexible(
+                    Flexible(
                       child: Text(
                         'Add Repository',
                         style: TextStyle(
                           fontSize: 13.5,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFF7C5CFF),
+                          color: AppThemeService.currentPalette.value.primaryColor,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1227,19 +1228,19 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                           ? Icons.indeterminate_check_box_rounded
                           : Icons.check_box_outline_blank_rounded),
                   size: 16,
-                  color: anySelected ? const Color(0xFF7C5CFF) : Colors.white60,
+                  color: anySelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white60,
                 ),
                 label: Text(
                   allSelected ? 'Deselect All' : (anySelected ? 'Deselect All' : 'Select All'),
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.w600,
-                    color: anySelected ? const Color(0xFF7C5CFF) : Colors.white70,
+                    color: anySelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
                   ),
                 ),
                 style: TextButton.styleFrom(
                   backgroundColor: anySelected
-                      ? const Color(0xFF7C5CFF).withValues(alpha: 0.12)
+                      ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12)
                       : Colors.white.withValues(alpha: 0.05),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -1270,15 +1271,15 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
             final totalBadge = Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
                 '${installed.length} Total',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                 ),
               ),
             );
@@ -1476,7 +1477,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.folder_copy_rounded, color: Color(0xFF7C5CFF), size: 20),
+                    Icon(Icons.folder_copy_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -1505,7 +1506,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
                     ),
                     IconButton(
                       icon: const Icon(Icons.download_rounded, size: 20),
-                      color: const Color(0xFF7C5CFF),
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       splashRadius: 18,
                       tooltip: 'Install all plugins from this repository',
                       onPressed: () => _installAllFromRepo(repo.url),
@@ -1558,7 +1559,7 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
       icon: const Icon(Icons.download_rounded, size: 16),
       label: const Text('Setup Engine', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5)),
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF7C5CFF),
+        backgroundColor: AppThemeService.currentPalette.value.primaryColor,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         shape: RoundedRectangleBorder(
@@ -1615,8 +1616,8 @@ class _AddonCard extends StatelessWidget {
     final hasAnyFeature = hasCatalogs || hasSearch || hasStreams || hasSubtitles;
 
     final providerColor = isP2p
-        ? const Color(0xFF7C5CFF)
-        : (isHttp ? const Color(0xFF10B981) : const Color(0xFF7C5CFF));
+        ? AppThemeService.currentPalette.value.primaryColor
+        : (isHttp ? const Color(0xFF10B981) : AppThemeService.currentPalette.value.primaryColor);
 
     final subtitleText = isP2p
         ? 'Built-in TorrServer P2P streaming engine'
@@ -2104,7 +2105,7 @@ class _FeatureToggleChip extends StatefulWidget {
   final String label;
   final int? count;
   final bool isEnabled;
-  final Color activeColor;
+  final Color? activeColor;
   final bool showStateIcon;
   final VoidCallback onTap;
 
@@ -2113,7 +2114,7 @@ class _FeatureToggleChip extends StatefulWidget {
     required this.label,
     this.count,
     required this.isEnabled,
-    this.activeColor = const Color(0xFF7C5CFF),
+    this.activeColor,
     this.showStateIcon = true,
     required this.onTap,
   });
@@ -2127,7 +2128,10 @@ class _FeatureToggleChipState extends State<_FeatureToggleChip> {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = widget.activeColor;
+    // A default parameter value has to be a compile-time constant, so the
+    // palette accent cannot be one; it is resolved here instead.
+    final activeColor =
+        widget.activeColor ?? AppThemeService.currentPalette.value.primaryColor;
     final isEnabled = widget.isEnabled;
 
     return MouseRegion(
@@ -2227,31 +2231,31 @@ class _AddAddonButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
           ),
-          color: const Color(0xFF7C5CFF).withValues(alpha: 0.05),
+          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.05),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (isLoading)
-              const SizedBox(
+              SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                 ),
               )
             else
-              const Icon(Icons.add_rounded, color: Color(0xFF7C5CFF), size: 22),
+              Icon(Icons.add_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 22),
             const SizedBox(width: 10),
             Text(
               isLoading ? 'Installing...' : 'Add Addon',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14.5,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF7C5CFF),
+                color: AppThemeService.currentPalette.value.primaryColor,
               ),
             ),
           ],
@@ -2289,12 +2293,12 @@ class _TabButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF7C5CFF).withValues(alpha: 0.20)
+              ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.20)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected
-                ? const Color(0xFF7C5CFF).withValues(alpha: 0.40)
+                ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.40)
                 : Colors.transparent,
           ),
         ),
@@ -2304,7 +2308,7 @@ class _TabButton extends StatelessWidget {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? const Color(0xFF7C5CFF) : Colors.white54,
+              color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white54,
             ),
             const SizedBox(width: 6),
             Flexible(
@@ -2323,7 +2327,7 @@ class _TabButton extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF7C5CFF)
+                    ? AppThemeService.currentPalette.value.primaryColor
                     : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -2371,14 +2375,14 @@ class _CloudStreamCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         color: isSelected
-            ? const Color(0xFF7C5CFF).withValues(alpha: 0.08)
+            ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.08)
             : const Color(0xFF12151E),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isSelected
-              ? const Color(0xFF7C5CFF).withValues(alpha: 0.6)
+              ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
               : (source.enabled
-                  ? const Color(0xFF7C5CFF).withValues(alpha: 0.25)
+                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25)
                   : Colors.white.withValues(alpha: 0.06)),
           width: isSelected ? 1.5 : 1.0,
         ),
@@ -2397,12 +2401,12 @@ class _CloudStreamCard extends StatelessWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? const Color(0xFF7C5CFF)
+                      ? AppThemeService.currentPalette.value.primaryColor
                       : Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(7),
                   border: Border.all(
                     color: isSelected
-                        ? const Color(0xFF7C5CFF)
+                        ? AppThemeService.currentPalette.value.primaryColor
                         : Colors.white.withValues(alpha: 0.2),
                     width: 1.5,
                   ),
@@ -2424,20 +2428,20 @@ class _CloudStreamCard extends StatelessWidget {
             child: Container(
               width: 42,
               height: 42,
-              color: const Color(0xFF7C5CFF).withValues(alpha: 0.12),
+              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
               child: hasIcon
                   ? CachedNetworkImage(
                       imageUrl: source.iconUrl!,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => const Icon(
+                      errorWidget: (_, __, ___) => Icon(
                         Icons.cloud_rounded,
-                        color: Color(0xFF7C5CFF),
+                        color: AppThemeService.currentPalette.value.primaryColor,
                         size: 22,
                       ),
                     )
-                  : const Icon(
+                  : Icon(
                       Icons.cloud_rounded,
-                      color: Color(0xFF7C5CFF),
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       size: 22,
                     ),
             ),
@@ -2515,7 +2519,7 @@ class _CloudStreamCard extends StatelessWidget {
           // Switch
           Switch(
             value: source.enabled,
-            activeColor: const Color(0xFF7C5CFF),
+            activeColor: AppThemeService.currentPalette.value.primaryColor,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             onChanged: onToggle,
           ),
