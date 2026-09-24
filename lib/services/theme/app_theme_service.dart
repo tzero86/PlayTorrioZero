@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'design_tokens.dart';
+
 class AppThemePalette {
   final String id;
   final String name;
@@ -10,6 +12,13 @@ class AppThemePalette {
   final Color cardBackgroundColor;
   final Color appBarBackgroundColor;
 
+  /// Explicit hover/pressed states for [primaryColor]. Left null by every preset
+  /// that pre-dates the token layer, in which case `ZplayTokens` derives them by
+  /// lightening and darkening the accent. A palette with pinned brand states sets
+  /// them instead of accepting the derived approximation.
+  final Color? accentHoverColor;
+  final Color? accentPressedColor;
+
   const AppThemePalette({
     required this.id,
     required this.name,
@@ -18,6 +27,8 @@ class AppThemePalette {
     this.scaffoldBackgroundColor = const Color(0xFF080A0F),
     this.cardBackgroundColor = const Color(0xFF12151E),
     this.appBarBackgroundColor = const Color(0xFF0D1017),
+    this.accentHoverColor,
+    this.accentPressedColor,
   });
 }
 
@@ -97,6 +108,22 @@ abstract final class AppThemeService {
       cardBackgroundColor: Color(0xFF220A18),
       appBarBackgroundColor: Color(0xFF1A0713),
     ),
+    // The current brand direction. Cool near-black slate (never pure black) with
+    // a single teal accent; hover/pressed are pinned by brand rather than derived.
+    // Appended last so existing preset indices are untouched — palettes[0] is
+    // still Amethyst Violet, which stays the default until the screens that
+    // hardcode 0xFF7C5CFF have migrated (412 occurrences, see DESIGN_AUDIT.md).
+    AppThemePalette(
+      id: 'zplay',
+      name: 'Signal Teal',
+      primaryColor: Color(0xFF2FD0C0),
+      accentColor: Color(0xFF5ADFD2),
+      scaffoldBackgroundColor: Color(0xFF0A0D12),
+      cardBackgroundColor: Color(0xFF111621),
+      appBarBackgroundColor: Color(0xFF161C29),
+      accentHoverColor: Color(0xFF5ADFD2),
+      accentPressedColor: Color(0xFF22B3A5),
+    ),
   ];
 
   static final ValueNotifier<AppThemePalette> currentPalette =
@@ -120,12 +147,41 @@ abstract final class AppThemeService {
     await prefs.setString(_storageKey, palette.id);
   }
 
+  /// The design-token set for [palette] — the semantic colours every screen can
+  /// migrate onto. Derives from the five palette colours only, so all presets
+  /// (including any added later) are supported without per-preset code.
+  static ZplayTokens tokensFor(AppThemePalette palette) => ZplayTokens.derive(
+    accent: palette.primaryColor,
+    accentHover: palette.accentHoverColor,
+    accentPressed: palette.accentPressedColor,
+    bg: palette.scaffoldBackgroundColor,
+    surface: palette.cardBackgroundColor,
+    surfaceRaised: palette.appBarBackgroundColor,
+  );
+
+  /// Tokens for the active palette, for code without a `BuildContext`. Memoised
+  /// on palette identity — [AppThemePalette] is immutable and every preset is a
+  /// const, so the derivation runs once per palette switch instead of once per
+  /// call.
+  static ZplayTokens get currentTokens {
+    final palette = currentPalette.value;
+    if (!identical(_tokensFor, palette)) {
+      _tokensFor = palette;
+      _tokens = tokensFor(palette);
+    }
+    return _tokens;
+  }
+
+  static AppThemePalette? _tokensFor;
+  static late ZplayTokens _tokens;
+
   static ThemeData createThemeData(AppThemePalette palette) {
     return ThemeData(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: palette.scaffoldBackgroundColor,
       useMaterial3: true,
       colorSchemeSeed: palette.primaryColor,
+      extensions: [tokensFor(palette)],
       appBarTheme: AppBarTheme(
         backgroundColor: palette.appBarBackgroundColor,
         surfaceTintColor: Colors.transparent,
