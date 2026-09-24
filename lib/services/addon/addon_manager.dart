@@ -27,11 +27,11 @@ class AddonManager {
   void _ensureBuiltInsExist() {
     bool changed = false;
     if (!_addons.any((a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio')) {
-      _addons.add(playTorrioBuiltin);
+      _addons.add(zplayBuiltin);
       changed = true;
     }
     if (!_addons.any((a) => a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp')) {
-      _addons.add(playTorrioHttpBuiltin);
+      _addons.add(zplayHttpBuiltin);
       changed = true;
     }
     if (changed && _initialized) {
@@ -46,7 +46,7 @@ class AddonManager {
   /// built-ins before the rename would otherwise keep the stale name forever.
   bool _refreshBuiltInNames() {
     var changed = false;
-    for (final builtIn in [playTorrioBuiltin, playTorrioHttpBuiltin]) {
+    for (final builtIn in [zplayBuiltin, zplayHttpBuiltin]) {
       final index = _addons.indexWhere(
         (a) => a.manifest.id == builtIn.manifest.id || a.baseUrl == builtIn.baseUrl,
       );
@@ -113,7 +113,7 @@ class AddonManager {
     _ensureBuiltInsExist();
     final p2p = _addons.firstWhere(
       (a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio',
-      orElse: () => playTorrioBuiltin,
+      orElse: () => zplayBuiltin,
     );
     return p2p.isStreamsActive;
   }
@@ -122,7 +122,7 @@ class AddonManager {
     _ensureBuiltInsExist();
     final http = _addons.firstWhere(
       (a) => a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp',
-      orElse: () => playTorrioHttpBuiltin,
+      orElse: () => zplayHttpBuiltin,
     );
     return http.isStreamsActive;
   }
@@ -147,7 +147,7 @@ class AddonManager {
     return null;
   }
 
-  static final InstalledAddon playTorrioBuiltin = InstalledAddon(
+  static final InstalledAddon zplayBuiltin = InstalledAddon(
     baseUrl: 'builtin:playtorrio',
     manifest: AddonManifest(
       id: 'builtin.playtorrio',
@@ -166,7 +166,7 @@ class AddonManager {
     enableStreams: true,
   );
 
-  static final InstalledAddon playTorrioHttpBuiltin = InstalledAddon(
+  static final InstalledAddon zplayHttpBuiltin = InstalledAddon(
     baseUrl: 'builtin:playtorriohttp',
     manifest: AddonManifest(
       id: 'builtin.playtorriohttp',
@@ -224,13 +224,13 @@ class AddonManager {
 
     // Ensure ZPlay P2P engine is registered in the list
     if (!_addons.any((a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio')) {
-      _addons.add(playTorrioBuiltin);
+      _addons.add(zplayBuiltin);
       await _save();
     }
 
     // Ensure ZPlayHTTP is registered in the list
     if (!_addons.any((a) => a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp')) {
-      _addons.add(playTorrioHttpBuiltin);
+      _addons.add(zplayHttpBuiltin);
       await _save();
     }
 
@@ -244,7 +244,7 @@ class AddonManager {
     // Sync P2P state
     final p2pAddon = _addons.firstWhere(
       (a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio',
-      orElse: () => playTorrioBuiltin,
+      orElse: () => zplayBuiltin,
     );
     P2pSettingsService.isP2pEnabled.value = p2pAddon.isStreamsActive;
 

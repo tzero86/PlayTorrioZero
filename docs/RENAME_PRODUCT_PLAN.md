@@ -1,6 +1,6 @@
 # Rename playbook — PlayTorrioZero → own brand
 
-**Status:** assessment + plan. **No source file has been renamed yet.** This document is the brief for the agent (human or AI) that executes the rebrand.
+**Status:** executed and closed. The rebrand shipped: the product is **ZPlay** (`tzero86/ZPlay`), and the §8 recommendation (`Zylova`) was **not** taken. The Tier A/B/C decisions were applied as written, with one deliberate deviation — `Runner.rc` `CompanyName`/`ProductName` were **pinned** rather than renamed, so `path_provider` keeps resolving the existing `%APPDATA%\Roaming\com.example\playtorrio` data directory (see §4 and the note in `windows/runner/main.cpp`). Retained as the historical brief; the `path:line` references below describe the pre-rename tree.
 
 **Audience / how to use this file**
 
