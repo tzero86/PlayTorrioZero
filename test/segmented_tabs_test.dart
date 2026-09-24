@@ -120,6 +120,81 @@ void main() {
     }
   });
 
+  testWidgets('it sizes itself inside an unbounded Row, as the app bar does',
+      (tester) async {
+    // The bug the first version shipped: Expanded segments placed in the app
+    // bar's Row, where the incoming width is unbounded. Release collapses the
+    // segments toward each other instead of throwing, so rendering it in this
+    // context is the only way to catch it — a bounded test host hides it.
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Row(
+          children: [
+            const Text('logo'),
+            const Spacer(),
+            SegmentedTabs<String>(
+              options: options,
+              selected: 'all',
+              onSelected: (_) {},
+            ),
+          ],
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull,
+        reason: 'a flex child under unbounded width is the failure mode');
+
+    final first = tester.getSize(find.byType(FocusableCard).at(0));
+    final second = tester.getSize(find.byType(FocusableCard).at(1));
+    expect(first.width, greaterThanOrEqualTo(78),
+        reason: 'segments sized by Expanded collapse toward zero out here');
+    expect(second.width, first.width,
+        reason: 'segments must stay equal for the indicator arithmetic');
+    expect(
+      tester.getSize(find.byType(SegmentedTabs<String>)).width,
+      moreOrLessEquals(first.width * options.length, epsilon: 0.5),
+      reason: 'the control should be exactly its segments wide',
+    );
+
+    // The visible symptom the user reported: adjacent labels touching.
+    final all = tester.getRect(find.text('All'));
+    final movies = tester.getRect(find.text('Movies'));
+    expect(all.right, lessThan(movies.left),
+        reason: 'adjacent labels must not run into each other');
+  });
+
+  testWidgets('it never exceeds the width it is offered', (tester) async {
+    // A loose, bounded parent — what Flexible hands it in the app bar. The
+    // control must divide the space it is given rather than run past it: it
+    // previously ran off the end of the bar and took the icon buttons with it.
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Align(
+          alignment: Alignment.centerLeft,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: SegmentedTabs<String>(
+              options: options,
+              selected: 'all',
+              onSelected: (_) {},
+            ),
+          ),
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+
+    final control = tester.getSize(find.byType(SegmentedTabs<String>));
+    expect(control.width, lessThanOrEqualTo(200),
+        reason: 'running past the offered width is what pushed the bar out');
+    expect(control.width, 200,
+        reason: 'it should take what it is offered, so segments stay equal');
+  });
+
   testWidgets('a segment announces its label and count', (tester) async {
     final handle = tester.ensureSemantics();
 

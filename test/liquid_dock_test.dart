@@ -15,7 +15,9 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:zplay/services/theme/dock_settings.dart';
 import 'package:zplay/services/theme/glass_settings.dart';
+import 'package:zplay/widgets/common/app_liquid_dock.dart';
 import 'package:zplay/widgets/common/focusable_card.dart';
 import 'package:zplay/widgets/common/liquid_dock.dart';
 
@@ -123,6 +125,74 @@ void main() {
     expect(hits, 1,
         reason: 'the item is both focusable and tappable — it must not '
             'forward the tap to a second handler as well');
+  });
+
+  testWidgets('the dock renders its destinations as Home mounts it',
+      (tester) async {
+    // Renders the real AppLiquidDock in the position Home gives it — a
+    // Positioned inside a Stack. The individual widget tests use LiquidDock
+    // directly, so they cannot see a failure that only happens in this context:
+    // the dock was observed missing from the running app.
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: Stack(
+          children: [
+            Positioned(
+              bottom: 12,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: AppLiquidDock(currentDestination: DockItemKey.home),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    expect(find.byType(FocusableCard), findsWidgets,
+        reason: 'the dock must render reachable destinations');
+    expect(find.byType(LiquidDock), findsOneWidget,
+        reason: 'the dock itself must mount');
+    expect(find.text('Home'), findsOneWidget,
+        reason: 'the current destination must be named');
+  });
+
+  testWidgets('the dock still renders with the glass path enabled',
+      (tester) async {
+    // The rest of this file forces glass off, which is the path the app does NOT
+    // take by default: GlassSettings is on for a normal install. The dock was
+    // observed missing from the running app while these tests passed, so this
+    // asserts the path the app actually uses.
+    GlassSettings.enabled.value = true;
+
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: Stack(
+          children: [
+            Positioned(
+              bottom: 12,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: AppLiquidDock(currentDestination: DockItemKey.home),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    final error = tester.takeException();
+    expect(error, isNull, reason: 'glass path threw: $error');
+    expect(find.byType(FocusableCard), findsWidgets,
+        reason: 'destinations must render on the glass path too');
+
+    // The dock sweeps its hover state once on mount to warm the lens up. Those
+    // timers have to drain before the test ends or the framework fails on them.
+    await tester.pump(const Duration(milliseconds: 700));
   });
 
   testWidgets('a long active label does not overflow or drop destinations',

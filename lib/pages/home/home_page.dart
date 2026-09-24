@@ -1036,7 +1036,10 @@ class _GlassAppBar extends StatelessWidget {
             const Spacer(),
             // All / Movies / Series tabs (wide layouts only)
             if (filterTabs != null) ...[
-              filterTabs!,
+              // Flexible, not intrinsic: the bar must be able to shrink the
+              // control rather than let it run off the end and take the icon
+              // buttons with it. The control divides whatever it is given.
+              Flexible(child: filterTabs!),
               Container(
                 width: 1,
                 height: 18,

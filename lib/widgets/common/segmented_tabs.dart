@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../services/theme/design_tokens.dart';
@@ -25,15 +27,15 @@ class SegmentedTabOption<T> {
 ///
 /// Built because the app hand-rolls this pattern repeatedly — `ChoiceChip` rows
 /// in IPTV, audiobooks and books, text tabs with per-tab underlines on Home —
-/// and every one of those is pointer-sized with no D-pad story. Two things are
-/// deliberate here:
+/// and every one of those is pointer-sized with no D-pad story.
 ///
-/// * **Equal-width segments.** The indicator is then placed arithmetically
-///   instead of measured, so the slide cannot drift out of alignment as labels
-///   or counts change.
-/// * **Focus is a ring, selection is a fill.** A focused segment and a selected
-///   one look different, which they did not before: on a remote you could move
-///   onto a tab and not tell whether you were on the one already chosen.
+/// **Segments are sized to their content, not by `Expanded`.** That is not a
+/// style preference: Home places this control in the app bar's [Row], where the
+/// incoming width is unbounded, and a flex child in an unbounded row collapses
+/// in release (labels crushed together, indicator mis-sized) or throws in debug.
+/// Sizing to content gives the control a width of its own, which works in both a
+/// bounded parent and an unbounded one. Segments stay equal either way, which is
+/// what keeps the sliding indicator's arithmetic honest.
 class SegmentedTabs<T> extends StatelessWidget {
   final List<SegmentedTabOption<T>> options;
   final T selected;
@@ -57,70 +59,145 @@ class SegmentedTabs<T> extends StatelessWidget {
   static const double _trackRadius = 12;
   static const double _inset = 3;
 
+  /// Side padding inside a segment. The first version had none, so adjacent
+  /// labels sat against each other.
+  static const double _hPad = 16;
+  static const double _minSegmentWidth = 78;
+  static const double _maxSegmentWidth = 136;
+
+  /// The label style. Measured at the selected weight so the widest case is the
+  /// one budgeted for.
+  static TextStyle _labelStyle(bool selected) => TextStyle(
+        fontSize: 13,
+        letterSpacing: 0.1,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+      );
+
+  static const TextStyle _countStyle = TextStyle(
+    fontSize: 11,
+    height: 1.25,
+    fontWeight: FontWeight.w500,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   @override
   Widget build(BuildContext context) {
     final tokens = ZplayTokens.of(context);
+    final radius = BorderRadius.circular(_trackRadius - _inset);
 
     return Semantics(
       container: true,
       label: semanticsLabel,
-      child: SizedBox(
-        height: height,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(_trackRadius),
-            border: Border.all(color: tokens.borderSubtle),
-          ),
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: AnimatedAlign(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  alignment: Alignment(_alignX(selected), 0),
-                  child: FractionallySizedBox(
-                    widthFactor: 1 / options.length,
-                    heightFactor: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.all(_inset),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: tokens.accent,
-                          borderRadius:
-                              BorderRadius.circular(_trackRadius - _inset),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final natural = _contentSegmentWidth() * options.length;
+          // Two width sources, and they must not be mixed: a parent that
+          // demands an exact width (a SizedBox, an Expanded) wins, and the
+          // segments divide whatever that is — the indicator is a fraction of
+          // the track, so any mismatch shows up as it sitting off-centre. Only
+          // when the parent is loose does the control size to its labels, which
+          // is the app bar case. Clamped so a tight desktop window cannot push
+          // the app bar's row into overflow.
+          final tight =
+              constraints.minWidth == constraints.maxWidth &&
+                  constraints.minWidth.isFinite;
+          final trackWidth = tight
+              ? constraints.maxWidth
+              : math.min(natural, constraints.maxWidth);
+          final segmentWidth = trackWidth / options.length;
+
+          return SizedBox(
+            height: height,
+            width: trackWidth,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(_trackRadius),
+                border: Border.all(color: tokens.borderSubtle),
+              ),
+              child: Stack(
+                children: [
+                  // One indicator that slides between the equal segments, so
+                  // moving between them reads as a single selection travelling.
+                  Positioned.fill(
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment(_alignX(selected), 0),
+                      child: FractionallySizedBox(
+                        widthFactor: 1 / options.length,
+                        heightFactor: 1,
+                        child: Padding(
+                          padding: const EdgeInsets.all(_inset),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: tokens.accent,
+                              borderRadius: BorderRadius.circular(
+                                _trackRadius - _inset,
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              Row(
-                children: [
-                  for (final option in options)
-                    Expanded(
-                      child: _Segment(
-                        option: option,
-                        selected: option.value == selected,
-                        radius: BorderRadius.circular(_trackRadius - _inset),
-                        onTap: () => onSelected(option.value),
-                      ),
-                    ),
+                  Row(
+                    children: [
+                      for (final option in options)
+                        SizedBox(
+                          width: segmentWidth,
+                          child: _Segment(
+                            option: option,
+                            selected: option.value == selected,
+                            radius: radius,
+                            onTap: () => onSelected(option.value),
+                          ),
+                        ),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  /// -1 for the first segment and +1 for the last, matching the [Expanded] that
+  /// -1 for the first segment and +1 for the last, matching the segment that
   /// shares its index.
   double _alignX(T value) {
     final index = options.indexWhere((option) => option.value == value);
     if (index < 0) return 0;
     return index * 2 / (options.length - 1) - 1;
+  }
+
+  /// Equal segment width, driven by the widest label (or count) plus padding.
+  ///
+  /// The `+ 4` matters: sizing to *exactly* the measured text width leaves no
+  /// slack, and any sub-pixel difference between the [TextPainter] measurement
+  /// and the rendered glyphs then truncates the label ("Mov…").
+  double _contentSegmentWidth() {
+    var widest = 0.0;
+    for (final option in options) {
+      widest = math.max(widest, _textWidth(option.label, _labelStyle(true)));
+      final count = option.count;
+      if (count != null) {
+        widest = math.max(widest, _textWidth('$count', _countStyle));
+      }
+    }
+    return (widest + _hPad * 2 + 4)
+        .clamp(_minSegmentWidth, _maxSegmentWidth)
+        .toDouble();
+  }
+
+  static double _textWidth(String text, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    return painter.width;
   }
 }
 
@@ -166,6 +243,9 @@ class _Segment<T> extends StatelessWidget {
           child: Container(
             alignment: Alignment.center,
             margin: const EdgeInsets.all(SegmentedTabs._inset),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SegmentedTabs._hPad,
+            ),
             decoration: BoxDecoration(
               // Hover is suppressed on the selected segment so the accent fill
               // goes on meaning exactly one thing: the option you are on.
@@ -184,24 +264,17 @@ class _Segment<T> extends StatelessWidget {
                   maxLines: 1,
                   softWrap: false,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    letterSpacing: 0.1,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                    color: foreground,
-                  ),
+                  textAlign: TextAlign.center,
+                  style: SegmentedTabs._labelStyle(selected)
+                      .copyWith(color: foreground),
                 ),
                 if (option.count != null)
                   Text(
                     '${option.count}',
-                    // Tabular figures so the number cannot jitter.
-                    style: TextStyle(
-                      fontSize: 11,
-                      height: 1.25,
-                      fontWeight: FontWeight.w500,
-                      color: secondary,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: SegmentedTabs._countStyle.copyWith(color: secondary),
                   ),
               ],
             ),
