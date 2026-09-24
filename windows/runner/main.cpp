@@ -1,5 +1,6 @@
 #include <flutter/dart_project.h>
 #include <flutter/flutter_view_controller.h>
+#include <shobjidl.h>
 #include <windows.h>
 
 #include "flutter_window.h"
@@ -86,6 +87,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+
+  // Give this process its own shell identity.
+  //
+  // ZPlay deliberately inherited upstream's CompanyName/ProductName
+  // (com.example\playtorrio) so that path_provider keeps resolving the existing
+  // %APPDATA%\Roaming\com.example\playtorrio data directory - see the note in
+  // Runner.rc and ReadSavedRendererBackend below. The cost of that is that this
+  // binary advertises the *same* version-info identity as an installed copy of
+  // the original PlayTorrio, and Windows has no other signal to tell two Win32
+  // apps apart: with no explicit AppUserModelID the shell is free to treat them
+  // as one application, which is how a running ZPlay ends up adopting the old
+  // PlayTorrio taskbar pin, its name and its icon.
+  //
+  // Setting one keeps the two separate at the shell level while leaving the
+  // version info - and therefore the data directory - untouched.
+  ::SetCurrentProcessExplicitAppUserModelID(L"com.example.zplay");
 
   flutter::DartProject project(L"data");
 
