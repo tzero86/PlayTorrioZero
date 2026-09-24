@@ -21,29 +21,41 @@ class ZplaySheet extends StatelessWidget {
   /// Shown at the end of the header row — a spinner, a count, a close button.
   final Widget? status;
 
+  /// Shown before the title. For a sheet whose subject has a mark, e.g. a repo
+  /// icon.
+  final Widget? leading;
+
   /// Sheet body. Make it scrollable if it can exceed [maxHeightFactor].
   final Widget child;
 
-  /// Fraction of the screen height the sheet may occupy.
+  /// Fraction of the screen height the sheet may occupy. The sheet is only as
+  /// tall as its content beneath this ceiling.
   final double maxHeightFactor;
+
+  /// Sets a *definite* height as a fraction of the screen, for sheets that fill
+  /// their frame and scroll their body with an [Expanded]. Mutually exclusive
+  /// with [maxHeightFactor] in effect: a definite height wins.
+  final double? heightFactor;
 
   const ZplaySheet({
     super.key,
     this.title,
     this.subtitle,
     this.status,
+    this.leading,
     required this.child,
     this.maxHeightFactor = 0.88,
+    this.heightFactor,
   });
 
   @override
   Widget build(BuildContext context) {
     final tokens = ZplayTokens.of(context);
+    final screenHeight = MediaQuery.sizeOf(context).height;
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * maxHeightFactor,
-      ),
+      height: heightFactor == null ? null : screenHeight * heightFactor!,
+      constraints: BoxConstraints(maxHeight: screenHeight * maxHeightFactor),
       decoration: BoxDecoration(
         color: tokens.surfaceRaised,
         borderRadius: ZplayRadius.sheetTop,
@@ -70,6 +82,10 @@ class ZplaySheet extends StatelessWidget {
               ),
               child: Row(
                 children: [
+                  if (leading != null) ...[
+                    leading!,
+                    const SizedBox(width: ZplaySpacing.s12),
+                  ],
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,

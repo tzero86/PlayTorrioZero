@@ -5,6 +5,7 @@ import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/cloudstream/marketplace/cloudstream_marketplace_service.dart';
 import 'cloudstream_repo_modal.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../widgets/common/zplay_sheet.dart';
 
 class CloudStreamMarketplaceModal extends StatefulWidget {
   const CloudStreamMarketplaceModal({super.key});
@@ -278,121 +279,65 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-
-    return Container(
-      height: mediaQuery.size.height * 0.88,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0D1017),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return ZplaySheet(
+      heightFactor: 0.88,
+      // The header mark stays. The "N Repos" pill does not: the count moves into
+      // the subtitle, which removes a hand-written colour (0xFF9D84FF) and one
+      // more container for the eye to parse.
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppThemeService.currentPalette.value.primaryColor,
+              const Color(0xFF6366F1),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20),
+      ),
+      title: 'Marketplace',
+      subtitle:
+          '${_repos.length} repos · Direct install links & verified providers',
+      status: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Refresh list from web',
+            icon: _isRefreshing
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppThemeService.currentPalette.value.primaryColor,
+                    ),
+                  )
+                : Icon(
+                    Icons.refresh_rounded,
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
+            onPressed:
+                _isRefreshing ? null : () => _loadRepos(forceRefresh: true),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, color: Colors.white70),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          // Drag Handle
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 8),
-              width: 36,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 16, 12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF6366F1)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Wrap(
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: [
-                          const Text(
-                            'Marketplace',
-                            style: TextStyle(
-                              fontSize: 16.5,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.18),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              '${_repos.length} Repos',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF9D84FF),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Direct install links & verified providers',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Colors.white.withValues(alpha: 0.45),
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: 'Refresh list from web',
-                  icon: _isRefreshing
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor),
-                        )
-                      : Icon(Icons.refresh_rounded, color: Colors.white.withValues(alpha: 0.6)),
-                  onPressed: _isRefreshing ? null : () => _loadRepos(forceRefresh: true),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Colors.white70),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-
           // Search Box
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

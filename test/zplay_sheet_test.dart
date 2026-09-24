@@ -128,4 +128,35 @@ void main() {
     expect(reached, ['chosen', 'other'],
         reason: 'traversal must skip the row that has no action');
   });
+
+  testWidgets('a leading mark renders before the title', (tester) async {
+    await tester.pumpWidget(host(const ZplaySheet(
+      leading: Icon(Icons.hub_rounded),
+      title: 'Marketplace',
+      child: SizedBox(height: 40),
+    )));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.hub_rounded), findsOneWidget);
+    expect(
+      tester.getRect(find.byIcon(Icons.hub_rounded)).right,
+      lessThanOrEqualTo(tester.getRect(find.text('Marketplace')).left),
+      reason: 'the leading mark must sit before the title, not overlap it',
+    );
+  });
+
+  testWidgets('a fixed-height sheet gives its body a definite frame',
+      (tester) async {
+    // A definite height is what lets a body use Expanded and scroll its own
+    // list; a min-height sheet cannot, so sheets that fill their frame need it.
+    await tester.pumpWidget(host(const ZplaySheet(
+      title: 'Marketplace',
+      heightFactor: 0.5,
+      child: SizedBox(height: 40),
+    )));
+    await tester.pump();
+
+    expect(tester.getSize(find.byType(ZplaySheet)).height, greaterThan(40),
+        reason: 'a fixed-height sheet fills its frame, not just its content');
+  });
 }
