@@ -556,7 +556,7 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
         short: isLive ? 'LIVE' : (_activeSection == IptvSection.vod ? 'VOD' : 'SERIES'),
         category: currentCat.name,
         keywords: [stream.name],
-        gradient: const [Color(0xFF7C5CFF), Color(0xFF00D2EF)],
+        gradient: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
       );
 
       Navigator.push(
@@ -598,7 +598,7 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
         short: isLive ? 'LIVE' : 'VOD',
         category: currentCat.name,
         keywords: [stream.name],
-        gradient: const [Color(0xFF7C5CFF), Color(0xFF00D2EF)],
+        gradient: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
       );
 
       Navigator.push(
@@ -683,7 +683,7 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
-                        const Icon(Icons.folder_rounded, color: Color(0xFF7C5CFF), size: 20),
+                        Icon(Icons.folder_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
                         const SizedBox(width: 8),
                         const Text(
                           'Select Category',
@@ -1034,12 +1034,12 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
                             decoration: BoxDecoration(
                               color: const Color(0xFF141824),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.5)),
+                              border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.5)),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.folder_rounded, color: Color(0xFF7C5CFF), size: 15),
+                                Icon(Icons.folder_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 15),
                                 const SizedBox(width: 6),
                                 ConstrainedBox(
                                   constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.32),
@@ -1051,7 +1051,7 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 4),
-                                const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF7C5CFF), size: 18),
+                                Icon(Icons.arrow_drop_down_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 18),
                               ],
                             ),
                           ),
@@ -1103,7 +1103,7 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
                         decoration: InputDecoration(
                           hintText: 'Search in this category…',
                           hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 12),
-                          prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7C5CFF), size: 18),
+                          prefixIcon: Icon(Icons.search_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 18),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 16),
@@ -1126,7 +1126,7 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
             // ── MAIN CONTENT (SPLIT VIEW ON DESKTOP, FULL-WIDTH ON MOBILE) ──
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C5CFF)))
+                  ? Center(child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor))
                   : _errorMessage != null
                       ? Center(child: Text(_errorMessage!, style: const TextStyle(color: Colors.redAccent, fontSize: 15)))
                       : isDesktop
@@ -2246,13 +2246,13 @@ class _VodSeriesCardState extends State<_VodSeriesCard> {
                       color: const Color(0xFF141824),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: state.highlighted ? const Color(0xFF7C5CFF) : const Color(0xFF22283A),
+                        color: state.highlighted ? AppThemeService.currentPalette.value.primaryColor : const Color(0xFF22283A),
                         width: state.highlighted ? 1.4 : 1.0,
                       ),
                       boxShadow: state.highlighted
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                                 blurRadius: 12,
                                 offset: const Offset(0, 3),
                               ),
@@ -2280,8 +2280,8 @@ class _VodSeriesCardState extends State<_VodSeriesCard> {
                             Positioned.fill(
                               child: Container(
                                 color: Colors.black45,
-                                child: const Center(
-                                  child: Icon(Icons.play_circle_fill_rounded, color: Color(0xFF7C5CFF), size: 40),
+                                child: Center(
+                                  child: Icon(Icons.play_circle_fill_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 40),
                                 ),
                               ),
                             ),
@@ -2415,7 +2415,7 @@ class _SeriesEpisodesSheetState extends State<_SeriesEpisodesSheet> {
       short: 'TV',
       category: widget.series.name,
       keywords: [widget.series.name],
-      gradient: const [Color(0xFF7C5CFF), Color(0xFF00D2EF)],
+      gradient: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
     );
 
     Navigator.pop(context);
@@ -2486,7 +2486,7 @@ class _SeriesEpisodesSheetState extends State<_SeriesEpisodesSheet> {
 
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C5CFF)))
+                ? Center(child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor))
                 : _error != null
                     ? Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent)))
                     : ListView.separated(
@@ -2501,7 +2501,7 @@ class _SeriesEpisodesSheetState extends State<_SeriesEpisodesSheet> {
                             leading: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -2513,7 +2513,7 @@ class _SeriesEpisodesSheetState extends State<_SeriesEpisodesSheet> {
                               ep.title.isNotEmpty ? ep.title : 'Episode ${ep.episode}',
                               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
                             ),
-                            trailing: const Icon(Icons.play_circle_fill_rounded, color: Color(0xFF7C5CFF)),
+                            trailing: Icon(Icons.play_circle_fill_rounded, color: AppThemeService.currentPalette.value.primaryColor),
                             onTap: () => _playEpisode(ep),
                           );
                         },
@@ -2543,10 +2543,10 @@ class _VerticalScrollButton extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: state.highlighted ? const Color(0xFF7C5CFF) : Colors.black87,
+            color: state.highlighted ? AppThemeService.currentPalette.value.primaryColor : Colors.black87,
             shape: BoxShape.circle,
             border: Border.all(
-              color: state.highlighted ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.3),
+              color: state.highlighted ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.3),
               width: 1.2,
             ),
             boxShadow: [

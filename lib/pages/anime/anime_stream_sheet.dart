@@ -234,7 +234,7 @@ class _AnimeStreamSheetState extends State<AnimeStreamSheet> {
                             const SizedBox(height: 14),
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF7C5CFF),
+                                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                               ),
                               onPressed: _startScraping,
                               child: const Text('Retry Scraping'),
@@ -289,14 +289,14 @@ class _AnimeStreamSheetState extends State<AnimeStreamSheet> {
                                           Container(
                                             padding: const EdgeInsets.all(8),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF7C5CFF)
+                                              color: AppThemeService.currentPalette.value.primaryColor
                                                   .withValues(alpha: 0.2),
                                               borderRadius:
                                                   BorderRadius.circular(10),
                                             ),
-                                            child: const Icon(
+                                            child: Icon(
                                               Icons.play_circle_fill_rounded,
-                                              color: Color(0xFF7C5CFF),
+                                              color: AppThemeService.currentPalette.value.primaryColor,
                                               size: 24,
                                             ),
                                           ),

@@ -9,6 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../services/theme/app_theme_service.dart';
 import '../../services/updater/app_updater_service.dart';
 
 class UpdateDialog extends StatefulWidget {
@@ -27,7 +28,6 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
   static const Color _surfaceColor = Color(0xFF12151E);
   static const Color _backgroundColor = Color(0xFF080A0F);
-  static const Color _accentColor = Color(0xFF7C5CFF);
 
   @override
   void dispose() {
@@ -53,12 +53,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
             color: _surfaceColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _accentColor.withValues(alpha: 0.3),
+              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
               width: 1.5,
             ),
           boxShadow: [
             BoxShadow(
-              color: _accentColor.withValues(alpha: 0.2),
+              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
               blurRadius: 40,
               spreadRadius: 5,
             ),
@@ -73,8 +73,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    _accentColor.withValues(alpha: 0.2),
-                    _accentColor.withValues(alpha: 0.05),
+                    AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
+                    AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
@@ -87,12 +87,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: _accentColor.withValues(alpha: 0.2),
+                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.system_update_rounded,
-                      color: _accentColor,
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       size: 32,
                     ),
                   ),
@@ -101,13 +101,13 @@ class _UpdateDialogState extends State<UpdateDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           'UPDATE AVAILABLE',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 2,
-                            color: _accentColor,
+                            color: AppThemeService.currentPalette.value.primaryColor,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -167,9 +167,9 @@ class _UpdateDialogState extends State<UpdateDialog> {
                             ),
                           ],
                         ),
-                        const Icon(
+                        Icon(
                           Icons.arrow_forward_rounded,
-                          color: _accentColor,
+                          color: AppThemeService.currentPalette.value.primaryColor,
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
@@ -185,10 +185,10 @@ class _UpdateDialogState extends State<UpdateDialog> {
                             const SizedBox(height: 4),
                             Text(
                               widget.updateInfo.latestVersion,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: _accentColor,
+                                color: AppThemeService.currentPalette.value.primaryColor,
                               ),
                             ),
                           ],
@@ -274,12 +274,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
+                            Text(
                               'Downloading...',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: _accentColor,
+                                color: AppThemeService.currentPalette.value.primaryColor,
                               ),
                             ),
                             Text(
@@ -300,8 +300,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
                             backgroundColor: Colors.white.withValues(
                               alpha: 0.1,
                             ),
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              _accentColor,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppThemeService.currentPalette.value.primaryColor,
                             ),
                             minHeight: 8,
                           ),
@@ -350,7 +350,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                       child: ElevatedButton(
                         onPressed: _handleUpdate,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _accentColor,
+                          backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -585,8 +585,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
                   ),
                   child: SelectableText(
                     filePath,
-                    style: const TextStyle(
-                      color: _accentColor,
+                    style: TextStyle(
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       fontSize: 12,
                       fontFamily: 'monospace',
                     ),
@@ -619,7 +619,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _accentColor,
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                   foregroundColor: Colors.white,
                 ),
                 child: const Text('OK'),

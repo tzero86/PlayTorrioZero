@@ -5,6 +5,7 @@ import '../../models/addon/addon.dart';
 import '../../models/movie/movie.dart';
 import '../../models/movie/movie_section.dart';
 import '../../services/metadata/metadata_service.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../widgets/common/error_view.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/movie/movie_card.dart';
@@ -227,8 +228,8 @@ class _CatalogPageState extends State<CatalogPage> {
         children: [
           // ── Main Content Grid ──
           if (_items.isEmpty && _isLoading)
-            const Center(
-              child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+            Center(
+              child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
             )
           else if (_items.isEmpty && _error != null)
             ErrorView(
@@ -261,8 +262,8 @@ class _CatalogPageState extends State<CatalogPage> {
               itemCount: _items.length + (_hasMore ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _items.length) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+                  return Center(
+                    child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
                   );
                 }
                 return MovieCard(movie: _items[index]);
@@ -478,7 +479,7 @@ class _CatalogPageState extends State<CatalogPage> {
                   child: Text(
                     opt,
                     style: TextStyle(
-                      color: opt == currentVal ? const Color(0xFF7C5CFF) : Colors.white,
+                      color: opt == currentVal ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
                       fontWeight: opt == currentVal ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
@@ -488,10 +489,10 @@ class _CatalogPageState extends State<CatalogPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               decoration: BoxDecoration(
-                color: currentVal != null ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.08),
+                color: currentVal != null ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: currentVal != null ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.12),
+                  color: currentVal != null ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.12),
                 ),
               ),
               child: Row(
@@ -569,15 +570,15 @@ class _GenreChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.08),
+          color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected 
-              ? const Color(0xFF7C5CFF) 
+              ? AppThemeService.currentPalette.value.primaryColor 
               : Colors.white.withValues(alpha: 0.12),
           ),
           boxShadow: isSelected 
-            ? [BoxShadow(color: const Color(0xFF7C5CFF).withValues(alpha: 0.3), blurRadius: 8)] 
+            ? [BoxShadow(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3), blurRadius: 8)] 
             : null,
         ),
         alignment: Alignment.center,

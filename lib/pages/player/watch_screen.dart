@@ -19,6 +19,7 @@ import '../../models/subtitle/subtitle_model.dart';
 import './player_screen.dart';
 import '../../services/addon/addon_manager.dart';
 import '../../services/stream/stream_service.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/scraper/builtin_providers_settings_service.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
@@ -35,7 +36,6 @@ class _C {
   static const bg = Color(0xFF0A0C10);
   static const surface = Color(0xFF13151C);
   static const surfaceLight = Color(0xFF1A1D26);
-  static const accent = Color(0xFF7C5CFF);
   static const textPrimary = Color(0xFFF5F5F7);
   static const textSecondary = Color(0xFFAAAAAF);
   static const textTertiary = Color(0xFF66666B);
@@ -589,15 +589,15 @@ class _WatchScreenState extends State<WatchScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Icon(
                               Icons.stream_rounded,
-                              color: _C.accent,
+                              color: AppThemeService.currentPalette.value.primaryColor,
                               size: 20,
                             ),
-                            SizedBox(width: _S.xs),
-                            Text(
+                            const SizedBox(width: _S.xs),
+                            const Text(
                               'Watch Sources',
                               style: TextStyle(
                                 color: _C.textPrimary,
@@ -637,7 +637,7 @@ class _WatchScreenState extends State<WatchScreen>
                             'torrent',
                             '🧲 Torrents (${_sources.where((s) => s.isTorrent).length})',
                             Icons.share_rounded,
-                            const Color(0xFF7C5CFF),
+                            AppThemeService.currentPalette.value.primaryColor,
                           ),
                           _buildTypeChip(
                             'direct',
@@ -737,16 +737,16 @@ class _WatchScreenState extends State<WatchScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: _C.accent.withValues(alpha: 0.15),
+              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _C.accent.withValues(alpha: 0.3)),
+              border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Text(
               _isCollection
                   ? 'PART ${ep.episode ?? 1}'
                   : 'S${ep.season ?? '?' }E${ep.episode ?? '?' }',
-              style: const TextStyle(
-                color: _C.accent,
+              style: TextStyle(
+                color: AppThemeService.currentPalette.value.primaryColor,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 letterSpacing: 0.5,
@@ -1007,8 +1007,8 @@ class _WatchScreenState extends State<WatchScreen>
                   setState(() => _synopsisExpanded = !_synopsisExpanded),
               builder: (context, _) => Text(
                 _synopsisExpanded ? 'Show less' : 'Read more',
-                style: const TextStyle(
-                  color: _C.accent,
+                style: TextStyle(
+                  color: AppThemeService.currentPalette.value.primaryColor,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1176,12 +1176,12 @@ class _WatchScreenState extends State<WatchScreen>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Row(
+            Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.stream_rounded, color: _C.accent, size: 20),
-                SizedBox(width: _S.xs),
-                Text(
+                Icon(Icons.stream_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
+                const SizedBox(width: _S.xs),
+                const Text(
                   'Watch Sources',
                   style: TextStyle(
                     color: _C.textPrimary,
@@ -1220,7 +1220,7 @@ class _WatchScreenState extends State<WatchScreen>
                 'torrent',
                 '🧲 Torrents (${_sources.where((s) => s.isTorrent).length})',
                 Icons.share_rounded,
-                const Color(0xFF7C5CFF),
+                AppThemeService.currentPalette.value.primaryColor,
               ),
               _buildTypeChip(
                 'direct',
@@ -1258,7 +1258,7 @@ class _WatchScreenState extends State<WatchScreen>
 
   Widget _buildTypeChip(String typeKey, String label, IconData icon, Color? color) {
     final isSelected = _selectedTypeFilter == typeKey;
-    final activeColor = color ?? _C.accent;
+    final activeColor = color ?? AppThemeService.currentPalette.value.primaryColor;
 
     return ChoiceChip(
       label: Text(label),
@@ -2984,13 +2984,13 @@ class _SourceCardState extends State<_SourceCard> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _hovered
-                      ? _C.accent.withValues(alpha: 0.3)
+                      ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)
                       : Colors.white.withValues(alpha: 0.06),
                 ),
                 boxShadow: _hovered
                     ? [
                         BoxShadow(
-                          color: _C.accent.withValues(alpha: 0.08),
+                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.08),
                           blurRadius: 16,
                         ),
                       ]
@@ -3063,13 +3063,13 @@ class _SourceCardState extends State<_SourceCard> {
                     height: 36,
                     decoration: BoxDecoration(
                       color: _hovered
-                          ? _C.accent.withValues(alpha: 0.2)
+                          ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2)
                           : Colors.white.withValues(alpha: 0.06),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.play_arrow_rounded,
-                      color: _hovered ? _C.accent : _C.textTertiary,
+                      color: _hovered ? AppThemeService.currentPalette.value.primaryColor : _C.textTertiary,
                       size: 20,
                     ),
                   ),
@@ -3128,7 +3128,7 @@ class _AddonSourceIcon extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
           ),
         ),
         child: ClipRRect(
@@ -3189,13 +3189,13 @@ class _AddonSourceIcon extends StatelessWidget {
             fit: BoxFit.contain,
             placeholder: (context, url) => Container(
               color: Colors.white.withValues(alpha: 0.04),
-              child: const Center(
+              child: Center(
                 child: SizedBox(
                   width: 14,
                   height: 14,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: _C.accent,
+                    color: AppThemeService.currentPalette.value.primaryColor,
                   ),
                 ),
               ),
@@ -3214,15 +3214,15 @@ class _AddonSourceIcon extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: _C.accent.withValues(alpha: 0.15),
+        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _C.accent.withValues(alpha: 0.3)),
+        border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)),
       ),
       child: Center(
         child: Text(
           firstLetter,
-          style: const TextStyle(
-            color: _C.accent,
+          style: TextStyle(
+            color: AppThemeService.currentPalette.value.primaryColor,
             fontSize: 17,
             fontWeight: FontWeight.w900,
           ),

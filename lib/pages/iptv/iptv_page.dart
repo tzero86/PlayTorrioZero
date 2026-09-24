@@ -449,13 +449,13 @@ class _IptvGlassAppBar extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: isSmall ? 8 : 10, vertical: isSmall ? 4 : 5),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF7C5CFF), Color(0xFF00D2EF)],
+                  gradient: LinearGradient(
+                    colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
                   ),
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
                       blurRadius: 10,
                     ),
                   ],
@@ -583,11 +583,11 @@ class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
               gradient: LinearGradient(
                 colors: _hovered
                     ? [
-                        const Color(0xFF7C5CFF).withValues(alpha: 0.38),
+                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.38),
                         const Color(0xFF00D2EF).withValues(alpha: 0.28),
                       ]
                     : [
-                        const Color(0xFF7C5CFF).withValues(alpha: 0.18),
+                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.18),
                         const Color(0xFF00D2EF).withValues(alpha: 0.10),
                       ],
               ),
@@ -595,14 +595,14 @@ class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
               border: Border.all(
                 color: _hovered
                     ? const Color(0xFF00D2EF).withValues(alpha: 0.85)
-                    : const Color(0xFF7C5CFF).withValues(alpha: 0.45),
+                    : AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.45),
                 width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
                   color: _hovered
                       ? const Color(0xFF00D2EF).withValues(alpha: 0.35)
-                      : const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                      : AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                   blurRadius: _hovered ? 12 : 6,
                   offset: const Offset(0, 2),
                 ),
@@ -631,8 +631,8 @@ class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF7C5CFF), Color(0xFF00D2EF)],
+                          gradient: LinearGradient(
+                            colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
                           ),
                           borderRadius: BorderRadius.circular(5),
                         ),
@@ -715,13 +715,13 @@ class _GlassActionButtonState extends State<_GlassActionButton> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: _hovered
-                    ? const Color(0xFF7C5CFF).withValues(alpha: 0.6)
+                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
                     : Colors.white.withValues(alpha: 0.12),
               ),
               boxShadow: _hovered
                   ? [
                       BoxShadow(
-                        color: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
                         blurRadius: 10,
                       )
                     ]
@@ -830,7 +830,7 @@ class _QuickChannelsSliderState extends State<_QuickChannelsSlider> {
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline_rounded, size: 24),
-                color: const Color(0xFF7C5CFF),
+                color: AppThemeService.currentPalette.value.primaryColor,
                 tooltip: 'Add Quick Channel',
                 onPressed: widget.onAddTap,
               ),
@@ -1027,15 +1027,15 @@ class _QuickAddCard extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.5), width: 2),
+            border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.5), width: 2),
             color: const Color(0xFF0C0F17),
           ),
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_rounded, color: Color(0xFF7C5CFF), size: 36),
-              SizedBox(height: 8),
-              Text('Add Channel', style: TextStyle(color: Color(0xFF7C5CFF), fontSize: 12, fontWeight: FontWeight.w700)),
+              Icon(Icons.add_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 36),
+              const SizedBox(height: 8),
+              Text('Add Channel', style: TextStyle(color: AppThemeService.currentPalette.value.primaryColor, fontSize: 12, fontWeight: FontWeight.w700)),
             ],
           ),
         ),
@@ -1115,11 +1115,11 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                 TextFormField(
                   controller: _nameCtrl,
                   style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Channel Name',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    border: UnderlineInputBorder(),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF7C5CFF))),
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    border: const UnderlineInputBorder(),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                 ),
@@ -1130,11 +1130,11 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                       child: TextFormField(
                         controller: _shortCtrl,
                         style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Short Code (optional)',
-                          labelStyle: TextStyle(color: Colors.white70),
-                          border: UnderlineInputBorder(),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF7C5CFF))),
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          border: const UnderlineInputBorder(),
+                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
                         ),
                       ),
                     ),
@@ -1144,11 +1144,11 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                         value: _selectedCategory,
                         dropdownColor: const Color(0xFF0C0F17),
                         style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Category',
-                          labelStyle: TextStyle(color: Colors.white70),
-                          border: UnderlineInputBorder(),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF7C5CFF))),
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          border: const UnderlineInputBorder(),
+                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
                         ),
                         items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(color: Colors.white)))).toList(),
                         onChanged: (v) => setState(() => _selectedCategory = v!),
@@ -1160,13 +1160,13 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                 TextFormField(
                   controller: _keywordsCtrl,
                   style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Keywords (comma-separated)',
-                    labelStyle: TextStyle(color: Colors.white70),
+                    labelStyle: const TextStyle(color: Colors.white70),
                     hintText: 'e.g. cnn, news, international',
-                    hintStyle: TextStyle(color: Colors.white38),
-                    border: UnderlineInputBorder(),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF7C5CFF))),
+                    hintStyle: const TextStyle(color: Colors.white38),
+                    border: const UnderlineInputBorder(),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                 ),
@@ -1188,7 +1188,7 @@ return FocusableCard(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(8),
                             gradient: LinearGradient(colors: g),
-                            border: Border.all(color: isSelected ? const Color(0xFF7C5CFF) : Colors.transparent, width: 2),
+                            border: Border.all(color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.transparent, width: 2),
                           ),
                         ),
                       ),
@@ -1203,7 +1203,7 @@ return FocusableCard(
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C5CFF), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: ElevatedButton.styleFrom(backgroundColor: AppThemeService.currentPalette.value.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final id = 'user_${DateTime.now().millisecondsSinceEpoch}';

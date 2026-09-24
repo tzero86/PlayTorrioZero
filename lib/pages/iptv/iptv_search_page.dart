@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../services/iptv/hardcoded_channels.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/iptv/iptv_channel_card.dart';
 import 'iptv_channel_sheet.dart';
@@ -128,7 +129,7 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
             decoration: InputDecoration(
               hintText: 'Search 60+ live channels, leagues, networks…',
               hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13.5),
-              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7C5CFF), size: 20),
+              prefixIcon: Icon(Icons.search_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
               suffixIcon: _query.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 18),
@@ -169,12 +170,12 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? const Color(0xFF7C5CFF)
+                            ? AppThemeService.currentPalette.value.primaryColor
                             : Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isSelected
-                              ? const Color(0xFF7C5CFF)
+                              ? AppThemeService.currentPalette.value.primaryColor
                               : Colors.white.withValues(alpha: 0.1),
                         ),
                       ),

@@ -427,7 +427,7 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
                               gradient: LinearGradient(
                                 colors: [
                                   palette.primaryColor.withValues(alpha: 0.25),
-                                  const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+                                  palette.primaryColor.withValues(alpha: 0.25),
                                 ],
                               ),
                               borderRadius: BorderRadius.circular(20),
@@ -969,7 +969,7 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
               gradient: LinearGradient(
                 colors: [
                   palette.primaryColor.withValues(alpha: 0.15),
-                  const Color(0xFF7C5CFF).withValues(alpha: 0.10),
+                  palette.primaryColor.withValues(alpha: 0.10),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

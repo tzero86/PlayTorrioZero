@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../models/player/skip_segment_model.dart';
+import 'player_glass.dart';
 
 /// Ultra-sleek, responsive glassmorphism Skip Button with dynamic hover effects
 /// and a left-to-right sweep progress bar that auto-hides when complete.
@@ -66,7 +67,7 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
     final isCompact = screenWidth < 640;
 
     final isCredits = widget.segment.type == 'credits';
-    final accentColor = isCredits ? const Color(0xFF10B981) : const Color(0xFF7C5CFF);
+    final accentColor = isCredits ? const Color(0xFF10B981) : PlayerTheme.accent;
     final accentGlow = isCredits ? const Color(0xFF34D399) : const Color(0xFF9D84FF);
 
     return MouseRegion(

@@ -164,7 +164,7 @@ class _AnimeHeroSpotlightState extends State<AnimeHeroSpotlight> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF7C5CFF),
+                                  color: AppThemeService.currentPalette.value.primaryColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(

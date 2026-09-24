@@ -538,18 +538,18 @@ class _HeroArrowButton extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: state.highlighted
-                ? const Color(0xFF7C5CFF)
+                ? AppThemeService.currentPalette.value.primaryColor
                 : Colors.black.withValues(alpha: 0.55),
             border: Border.all(
               color: state.highlighted
-                  ? const Color(0xFF7C5CFF)
+                  ? AppThemeService.currentPalette.value.primaryColor
                   : Colors.white.withValues(alpha: 0.2),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
                 color: state.highlighted
-                    ? const Color(0xFF7C5CFF).withValues(alpha: 0.45)
+                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.45)
                     : Colors.black45,
                 blurRadius: 12,
                 offset: const Offset(0, 4),

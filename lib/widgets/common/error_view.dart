@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../services/theme/app_theme_service.dart';
+
 /// Full-screen error view with retry button.
 class ErrorView extends StatelessWidget {
   final String? error;
@@ -46,7 +48,7 @@ class ErrorView extends StatelessWidget {
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try again'),
               style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF7C5CFF),
+                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
               ),
             ),
           ],

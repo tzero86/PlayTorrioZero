@@ -18,7 +18,7 @@ class PlayerTheme {
   static const Color edgeSoft = Color(0x12FFFFFF); // 7% white
 
   // Accents. Sourced from the user's palette rather than a literal: these were
-  // pinned to #7C5CFF, which is only the *default* palette's primary, so
+  // pinned to a hard-coded violet, which is only one palette's primary, so
   // choosing any other palette left the whole player UI purple regardless.
   static Color get accent => AppThemeService.currentPalette.value.primaryColor;
   static Color get accentSoft => accent.withValues(alpha: 0.20);
@@ -209,7 +209,7 @@ class PlayerIconButton extends StatelessWidget {
                   final buttonStyle = GlassSettings.createButtonGlassStyle(
                     cornerRadius: borderRadius.clamp(0, size / 2),
                     customColor: active
-                        ? (activeColor?.withValues(alpha: 0.35) ?? const Color(0x557C5CFF))
+                        ? (activeColor?.withValues(alpha: 0.35) ?? PlayerTheme.accent.withValues(alpha: 0.35))
                         : (highlighted ? const Color(0x38FFFFFF) : const Color(0x18FFFFFF)),
                   );
 

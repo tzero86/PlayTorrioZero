@@ -800,10 +800,10 @@ class _IptvPortalsModalState extends State<IptvPortalsModal>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C5CFF).withValues(alpha: 0.12),
+                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                 ),
               ),
               child: Wrap(
@@ -1018,7 +1018,7 @@ class _IptvPortalsModalState extends State<IptvPortalsModal>
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C5CFF),
+                        backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                       ),
                       onPressed: _ctrl.isAdding ? null : _submitAddPortal,
                       child: _ctrl.isAdding
@@ -1802,7 +1802,7 @@ class _IptvPortalsModalState extends State<IptvPortalsModal>
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C5CFF),
+                        backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                       ),
                       onPressed: _ctrl.isM3uLoading ? null : _submitAddM3u,
                       child: _ctrl.isM3uLoading

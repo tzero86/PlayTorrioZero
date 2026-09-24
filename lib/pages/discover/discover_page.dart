@@ -7,6 +7,7 @@ import '../../models/movie/movie_section.dart';
 import '../../services/addon/addon_manager.dart';
 import '../../services/content/content_settings.dart';
 import '../../services/metadata/metadata_service.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/dock_settings.dart';
 import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/error_view.dart';
@@ -525,8 +526,8 @@ class _DiscoverPageState extends State<DiscoverPage> {
     }
 
     if (_items.isEmpty && _isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+      return Center(
+        child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
       );
     }
 
@@ -589,8 +590,8 @@ class _DiscoverPageState extends State<DiscoverPage> {
       itemCount: _items.length + (_hasMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == _items.length) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+          return Center(
+            child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
           );
         }
         return MovieCard(movie: _items[index]);
@@ -621,10 +622,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
           decoration: BoxDecoration(
             color: const Color(0xFF131622).withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.3)),
+            border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF7C5CFF).withValues(alpha: 0.1),
+                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.1),
                 blurRadius: 24,
                 offset: const Offset(0, 8),
               ),
@@ -636,7 +637,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.tune_rounded, color: Color(0xFF9D85FF), size: 30),
@@ -691,7 +692,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                           vertical: isNarrow ? 7 : 8,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C5CFF),
+                          color: AppThemeService.currentPalette.value.primaryColor,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -715,7 +716,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                     return ElevatedButton.icon(
                       onPressed: () => _showCustomExtraDialog(extra.name),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF7C5CFF),
+                        backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(
                           horizontal: isNarrow ? 14 : 18,
@@ -767,8 +768,8 @@ class _DiscoverPageState extends State<DiscoverPage> {
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
               ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: Color(0xFF7C5CFF)),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
               ),
             ),
             onSubmitted: (val) {
@@ -784,7 +785,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C5CFF),
+              backgroundColor: AppThemeService.currentPalette.value.primaryColor,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
@@ -844,7 +845,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                     ),
                     const SizedBox(width: 2),
                     if (!_isSearching) ...[
-                      const Icon(Icons.explore_rounded, color: Color(0xFF7C5CFF), size: 21),
+                      Icon(Icons.explore_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 21),
                       const SizedBox(width: 8),
                       Text(
                         'Discover',
@@ -922,7 +923,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                                 child: Text(
                                   '${t[0].toUpperCase()}${t.substring(1)}',
                                   style: TextStyle(
-                                    color: t == _selectedType ? const Color(0xFF7C5CFF) : Colors.white,
+                                    color: t == _selectedType ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
                                     fontWeight: t == _selectedType ? FontWeight.bold : FontWeight.normal,
                                   ),
                                 ),
@@ -935,9 +936,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.4)),
+                            border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -985,18 +986,18 @@ class _DiscoverPageState extends State<DiscoverPage> {
                                   ),
                                   decoration: BoxDecoration(
                                     color: isSelected
-                                        ? const Color(0xFF7C5CFF)
+                                        ? AppThemeService.currentPalette.value.primaryColor
                                         : Colors.white.withValues(alpha: 0.08),
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(
                                       color: isSelected
-                                          ? const Color(0xFF7C5CFF)
+                                          ? AppThemeService.currentPalette.value.primaryColor
                                           : Colors.white.withValues(alpha: 0.12),
                                     ),
                                     boxShadow: isSelected
                                         ? [
                                             BoxShadow(
-                                              color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                                               blurRadius: 8,
                                             )
                                           ]
@@ -1087,7 +1088,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
                                   child: Text(
                                     opt,
                                     style: TextStyle(
-                                      color: opt == currentVal ? const Color(0xFF7C5CFF) : Colors.white,
+                                      color: opt == currentVal ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
                                       fontWeight: opt == currentVal ? FontWeight.bold : FontWeight.normal,
                                     ),
                                   ),
@@ -1101,12 +1102,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color(0xFF7C5CFF)
+                                    ? AppThemeService.currentPalette.value.primaryColor
                                     : (isReq ? Colors.amber.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08)),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFF7C5CFF)
+                                      ? AppThemeService.currentPalette.value.primaryColor
                                       : (isReq ? Colors.amber.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.12)),
                                 ),
                               ),
@@ -1150,12 +1151,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? const Color(0xFF7C5CFF)
+                                  ? AppThemeService.currentPalette.value.primaryColor
                                   : (isReq ? Colors.amber.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08)),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: isSelected
-                                    ? const Color(0xFF7C5CFF)
+                                    ? AppThemeService.currentPalette.value.primaryColor
                                     : (isReq ? Colors.amber.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.12)),
                               ),
                             ),
@@ -1208,7 +1209,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
       body: Stack(
         children: [
           if (_legacyLoading)
-            const Center(child: CircularProgressIndicator(color: Color(0xFF7C5CFF)))
+            Center(child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor))
           else if (_legacyError != null)
             ErrorView(error: _legacyError, onRetry: _fetchLegacyData)
           else if (_legacySections.isEmpty)

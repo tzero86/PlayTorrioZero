@@ -277,8 +277,8 @@ class _AnimePosterFrame extends StatelessWidget {
                 right: 9,
                 child: Container(
                   padding: const EdgeInsets.all(7),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF7C5CFF),
+                  decoration: BoxDecoration(
+                    color: AppThemeService.currentPalette.value.primaryColor,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

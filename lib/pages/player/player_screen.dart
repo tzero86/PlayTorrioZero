@@ -19,6 +19,7 @@ import '../../models/stream/stream_model.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
 import '../../services/debrid/debrid_service.dart';
 import '../../services/stream/torrent_stream_service.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/trakt/trakt_service.dart';
 import '../../services/simkl/simkl_service.dart';
@@ -3243,12 +3244,12 @@ class _PlayerScreenState extends State<PlayerScreen>
           color: const Color(0xFF0F1117).withValues(alpha: 0.90),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: const Color(0xFF7C5CFF).withValues(alpha: 0.5),
+            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.5),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
               blurRadius: 24,
               spreadRadius: 2,
             ),

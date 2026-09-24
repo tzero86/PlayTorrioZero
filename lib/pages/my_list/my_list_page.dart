@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/my_list/my_list_item.dart';
 import '../../services/content/content_settings.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../services/my_list/my_list_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../details/details_page.dart';
@@ -145,7 +146,7 @@ class _MyListPageState extends State<MyListPage> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                     blurRadius: 120,
                     spreadRadius: 40,
                   ),
@@ -291,26 +292,26 @@ class _MyListPageState extends State<MyListPage> {
               return Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C5CFF).withValues(alpha: 0.15),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (isSyncing)
-                      const SizedBox(
+                      SizedBox(
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C5CFF)),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppThemeService.currentPalette.value.primaryColor),
                         ),
                       )
                     else
-                      const Icon(Icons.cloud_done_rounded, color: Color(0xFF7C5CFF), size: 15),
+                      Icon(Icons.cloud_done_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 15),
                     const SizedBox(width: 6),
                     Text(
                       isSyncing ? 'Syncing...' : 'Cloud Synced',
@@ -372,7 +373,7 @@ class _MyListPageState extends State<MyListPage> {
                       value: _sortBy,
                       dropdownColor: const Color(0xFF151822),
                       style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-                      icon: const Icon(Icons.sort_rounded, color: Color(0xFF7C5CFF), size: 16),
+                      icon: Icon(Icons.sort_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 16),
                       items: const [
                         DropdownMenuItem(value: 'recent', child: Text('Recently Added')),
                         DropdownMenuItem(value: 'title', child: Text('Alphabetical')),
@@ -431,15 +432,15 @@ class _MyListPageState extends State<MyListPage> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.05),
+          color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.1),
+            color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.1),
           ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
                     blurRadius: 10,
                     spreadRadius: 1,
                   )
@@ -488,13 +489,13 @@ class _MyListPageState extends State<MyListPage> {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C5CFF).withValues(alpha: 0.08),
-              border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.2)),
+              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.08),
+              border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2)),
             ),
             child: Icon(
               isListEmpty ? Icons.bookmark_border_rounded : Icons.search_off_rounded,
               size: 54,
-              color: const Color(0xFF7C5CFF),
+              color: AppThemeService.currentPalette.value.primaryColor,
             ),
           ),
           const SizedBox(height: 18),
@@ -523,7 +524,7 @@ class _MyListPageState extends State<MyListPage> {
               icon: const Icon(Icons.filter_alt_off_rounded, size: 16),
               label: const Text('Reset Filters'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C5CFF),
+                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
@@ -572,14 +573,14 @@ class _MyListCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: state.highlighted
-                      ? const Color(0xFF7C5CFF).withValues(alpha: 0.8)
+                      ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.8)
                       : Colors.white.withValues(alpha: 0.08),
                   width: state.highlighted ? 1.8 : 1.0,
                 ),
                 boxShadow: state.highlighted
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
                           blurRadius: 18,
                           spreadRadius: 2,
                         )
@@ -638,7 +639,7 @@ class _MyListCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
                               color: isMovie
-                                  ? const Color(0xFF7C5CFF).withValues(alpha: 0.85)
+                                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.85)
                                   : const Color(0xFF00E5FF).withValues(alpha: 0.85),
                               borderRadius: BorderRadius.circular(6),
                             ),
@@ -737,9 +738,9 @@ class _MyListCard extends StatelessWidget {
                                 Container(
                                   width: 38,
                                   height: 38,
-                                  decoration: const BoxDecoration(
+                                  decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color: Color(0xFF7C5CFF),
+                                    color: AppThemeService.currentPalette.value.primaryColor,
                                   ),
                                   child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
                                 ),

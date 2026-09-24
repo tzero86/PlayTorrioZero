@@ -124,11 +124,11 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           builder: (ctx) => AlertDialog(
             backgroundColor: const Color(0xFF13151F),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.call_split_rounded, color: Color(0xFF7C5CFF)),
-                SizedBox(width: 10),
-                Text('EPUB Exceeds 250k Words', style: TextStyle(color: Colors.white, fontSize: 16)),
+                Icon(Icons.call_split_rounded, color: AppThemeService.currentPalette.value.primaryColor),
+                const SizedBox(width: 10),
+                const Text('EPUB Exceeds 250k Words', style: TextStyle(color: Colors.white, fontSize: 16)),
               ],
             ),
             content: Text(
@@ -143,7 +143,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C5CFF),
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () => Navigator.pop(ctx, true),
@@ -295,11 +295,11 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           return AlertDialog(
             backgroundColor: const Color(0xFF13151F),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Row(
+            title: Row(
               children: [
-                Icon(Icons.upload_file_rounded, color: Color(0xFF7C5CFF)),
-                SizedBox(width: 10),
-                Text('Add Personal Audiobook', style: TextStyle(color: Colors.white, fontSize: 16.5, fontWeight: FontWeight.w800)),
+                Icon(Icons.upload_file_rounded, color: AppThemeService.currentPalette.value.primaryColor),
+                const SizedBox(width: 10),
+                const Text('Add Personal Audiobook', style: TextStyle(color: Colors.white, fontSize: 16.5, fontWeight: FontWeight.w800)),
               ],
             ),
             content: SizedBox(
@@ -377,7 +377,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                         TextButton.icon(
                           icon: const Icon(Icons.photo_library_rounded, size: 16),
                           label: Text(pickedCoverFile == null ? 'Select Cover Art' : 'Change Cover'),
-                          style: TextButton.styleFrom(foregroundColor: const Color(0xFF7C5CFF)),
+                          style: TextButton.styleFrom(foregroundColor: AppThemeService.currentPalette.value.primaryColor),
                           onPressed: () async {
                             final imgResult = await FilePicker.platform.pickFiles(
                               type: FileType.image,
@@ -403,7 +403,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C5CFF),
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () async {
@@ -457,11 +457,11 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.auto_stories_rounded, color: Color(0xFF7C5CFF), size: 22),
-            SizedBox(width: 10),
-            Text('Audiobook Studio & Generator', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            Icon(Icons.auto_stories_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 22),
+            const SizedBox(width: 10),
+            const Text('Audiobook Studio & Generator', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
           ],
         ),
         bottom: TabBar(

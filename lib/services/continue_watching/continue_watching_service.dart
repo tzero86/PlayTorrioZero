@@ -16,6 +16,7 @@ import '../../services/anime/anime_scraper_service.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
 import '../../services/anime_arabic/anime_arabic_extractor.dart';
 import '../../services/stream/stream_service.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../addon/addon_manager.dart';
 import '../anime/anime_library_service.dart';
@@ -592,12 +593,12 @@ class ContinueWatchingService {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: Color(0xFF7C5CFF),
+                    color: AppThemeService.currentPalette.value.primaryColor,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -734,12 +735,12 @@ class ContinueWatchingService {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(
+                SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2.5,
-                    color: Color(0xFF7C5CFF),
+                    color: AppThemeService.currentPalette.value.primaryColor,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -875,12 +876,12 @@ class ContinueWatchingService {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(
+              SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                 ),
               ),
               const SizedBox(width: 16),

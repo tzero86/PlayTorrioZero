@@ -36,6 +36,21 @@ abstract final class AppThemeService {
   static const _storageKey = 'app_theme_id';
 
   static const List<AppThemePalette> palettes = [
+    // The product's own palette, and therefore first: [currentPalette] seeds
+    // from `palettes[0]`, and `initialize()` falls back to it for a stored id it
+    // does not recognise. Cool near-black slate (never pure black) with a single
+    // teal accent; hover/pressed are pinned by brand rather than derived.
+    AppThemePalette(
+      id: 'zplay',
+      name: 'Signal Teal',
+      primaryColor: Color(0xFF2FD0C0),
+      accentColor: Color(0xFF5ADFD2),
+      scaffoldBackgroundColor: Color(0xFF0A0D12),
+      cardBackgroundColor: Color(0xFF111621),
+      appBarBackgroundColor: Color(0xFF161C29),
+      accentHoverColor: Color(0xFF5ADFD2),
+      accentPressedColor: Color(0xFF22B3A5),
+    ),
     AppThemePalette(
       id: 'amethyst',
       name: 'Amethyst Violet',
@@ -107,22 +122,6 @@ abstract final class AppThemeService {
       scaffoldBackgroundColor: Color(0xFF14050E),
       cardBackgroundColor: Color(0xFF220A18),
       appBarBackgroundColor: Color(0xFF1A0713),
-    ),
-    // The current brand direction. Cool near-black slate (never pure black) with
-    // a single teal accent; hover/pressed are pinned by brand rather than derived.
-    // Appended last so existing preset indices are untouched — palettes[0] is
-    // still Amethyst Violet, which stays the default until the screens that
-    // hardcode 0xFF7C5CFF have migrated (412 occurrences, see DESIGN_AUDIT.md).
-    AppThemePalette(
-      id: 'zplay',
-      name: 'Signal Teal',
-      primaryColor: Color(0xFF2FD0C0),
-      accentColor: Color(0xFF5ADFD2),
-      scaffoldBackgroundColor: Color(0xFF0A0D12),
-      cardBackgroundColor: Color(0xFF111621),
-      appBarBackgroundColor: Color(0xFF161C29),
-      accentHoverColor: Color(0xFF5ADFD2),
-      accentPressedColor: Color(0xFF22B3A5),
     ),
   ];
 

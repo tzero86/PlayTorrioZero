@@ -494,8 +494,8 @@ class _SearchPageState extends State<SearchPage> {
               magnet: _magnetQuery,
             )
           else if (_isLoading && _results.isEmpty)
-            const Center(
-              child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+            Center(
+              child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
             )
           else if (!_isLoading && _lastQuery.isNotEmpty && _results.isEmpty)
             Center(
@@ -542,12 +542,12 @@ class _SearchPageState extends State<SearchPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(
+                        SizedBox(
                           width: 14,
                           height: 14,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Color(0xFF7C5CFF),
+                            color: AppThemeService.currentPalette.value.primaryColor,
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -573,11 +573,11 @@ class _SearchPageState extends State<SearchPage> {
               top: topPadding + kToolbarHeight + 10,
               left: 0,
               right: 0,
-              child: const SizedBox(
+              child: SizedBox(
                 height: 2,
                 child: LinearProgressIndicator(
                   backgroundColor: Colors.transparent,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C5CFF)),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppThemeService.currentPalette.value.primaryColor),
                 ),
               ),
             ),
@@ -672,7 +672,7 @@ class _SearchPageState extends State<SearchPage> {
           ..._suggestedSections.map((sec) => MovieSliderSection(section: sec)),
         ] else if (_isLoadingSuggestions) ...[
           const SizedBox(height: 32),
-          const Center(child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF7C5CFF))),
+          Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor)),
         ],
       ],
     );

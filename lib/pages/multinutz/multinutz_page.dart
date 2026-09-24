@@ -981,7 +981,7 @@ final gridContent = _fullscreenIndex != null
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7C5CFF))),
+                      CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppThemeService.currentPalette.value.primaryColor)),
                       if (cell.statusText != null) ...[
                         const SizedBox(height: 12),
                         Text(
@@ -1166,9 +1166,9 @@ final gridContent = _fullscreenIndex != null
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Color(0xFF7C5CFF), Color(0xFF00D2EF)]),
+                    gradient: LinearGradient(colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)]),
                     borderRadius: BorderRadius.circular(10),
-                    boxShadow: [BoxShadow(color: const Color(0xFF7C5CFF).withValues(alpha: 0.4), blurRadius: 10)],
+                    boxShadow: [BoxShadow(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4), blurRadius: 10)],
                   ),
                   child: const Row(mainAxisSize: MainAxisSize.min, children: [
                     Icon(Icons.dashboard_rounded, color: Colors.white, size: 18),

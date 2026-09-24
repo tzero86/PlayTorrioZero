@@ -291,18 +291,18 @@ class _MusicPageState extends State<MusicPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
           side: BorderSide(
-            color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
+            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
           ),
         ),
-        title: const Row(
+        title: Row(
           children: [
             Icon(
               Icons.playlist_add_rounded,
-              color: Color(0xFF7C5CFF),
+              color: AppThemeService.currentPalette.value.primaryColor,
               size: 26,
             ),
-            SizedBox(width: 10),
-            Text(
+            const SizedBox(width: 10),
+            const Text(
               'New Playlist',
               style: TextStyle(
                 color: Colors.white,
@@ -374,7 +374,7 @@ class _MusicPageState extends State<MusicPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF7C5CFF)),
+                  borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
                 ),
               ),
             ),
@@ -390,7 +390,7 @@ class _MusicPageState extends State<MusicPage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7C5CFF),
+              backgroundColor: AppThemeService.currentPalette.value.primaryColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -580,15 +580,15 @@ class _MusicPageState extends State<MusicPage> {
                         Navigator.pop(ctx);
                         _showCreatePlaylistDialog(initialTrack: track);
                       },
-                      icon: const Icon(
+                      icon: Icon(
                         Icons.add_rounded,
-                        color: Color(0xFF7C5CFF),
+                        color: AppThemeService.currentPalette.value.primaryColor,
                         size: 18,
                       ),
-                      label: const Text(
+                      label: Text(
                         'New Playlist',
                         style: TextStyle(
-                          color: Color(0xFF7C5CFF),
+                          color: AppThemeService.currentPalette.value.primaryColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -620,7 +620,7 @@ class _MusicPageState extends State<MusicPage> {
                           const SizedBox(height: 12),
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF7C5CFF),
+                              backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                             ),
                             onPressed: () {
                               Navigator.pop(ctx);
@@ -661,12 +661,12 @@ class _MusicPageState extends State<MusicPage> {
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.music_note_rounded,
-                              color: Color(0xFF7C5CFF),
+                              color: AppThemeService.currentPalette.value.primaryColor,
                             ),
                           ),
                           title: Text(
@@ -967,11 +967,11 @@ class _MusicPageState extends State<MusicPage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7C5CFF),
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF7C5CFF).withValues(alpha: 0.4),
+                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
                           blurRadius: 16,
                           offset: const Offset(0, 4),
                         ),
@@ -996,8 +996,8 @@ class _MusicPageState extends State<MusicPage> {
 
   Widget _buildTabContent(bool isDesktop) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+      return Center(
+        child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
       );
     }
 
@@ -1011,7 +1011,7 @@ class _MusicPageState extends State<MusicPage> {
     final bottomPad = isDesktop ? 120.0 : 160.0;
 
     return RefreshIndicator(
-      color: const Color(0xFF7C5CFF),
+      color: AppThemeService.currentPalette.value.primaryColor,
       backgroundColor: const Color(0xFF151822),
       onRefresh: _loadMusicData,
       child: ListView(
@@ -1098,10 +1098,10 @@ class _MusicPageState extends State<MusicPage> {
         ),
         const SizedBox(height: 24),
         if (_isSearching)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 48.0),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 48.0),
             child: Center(
-              child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+              child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
             ),
           )
         else if (_searchData.tracks.isEmpty &&
@@ -1325,12 +1325,12 @@ class _MusicPageState extends State<MusicPage> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? const Color(0xFF7C5CFF)
+                ? AppThemeService.currentPalette.value.primaryColor
                 : Colors.white.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? const Color(0xFF7C5CFF)
+                  ? AppThemeService.currentPalette.value.primaryColor
                   : Colors.white.withValues(alpha: 0.12),
             ),
           ),
@@ -1543,7 +1543,7 @@ class _MusicPageState extends State<MusicPage> {
               scaleFactor: 1.05,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF7C5CFF),
+                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -1821,12 +1821,12 @@ class _MusicPageState extends State<MusicPage> {
                           height: 70,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.queue_music_rounded,
-                            color: Color(0xFF7C5CFF),
+                            color: AppThemeService.currentPalette.value.primaryColor,
                             size: 36,
                           ),
                         ),
@@ -2133,7 +2133,7 @@ class _MusicSidebar extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7C5CFF),
+                    color: AppThemeService.currentPalette.value.primaryColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -2347,18 +2347,18 @@ class _MusicSidebar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? const Color(0xFF7C5CFF).withValues(alpha: 0.2)
+                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
               border: isSelected
-                  ? Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.4))
+                  ? Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4))
                   : null,
             ),
             child: Row(
               children: [
                 Icon(
                   icon,
-                  color: isSelected ? const Color(0xFF7C5CFF) : Colors.white60,
+                  color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white60,
                   size: 20,
                 ),
                 const SizedBox(width: 14),
@@ -2621,10 +2621,10 @@ class _AudioSourceSelectorButton extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: const Icon(Icons.tune_rounded, color: Color(0xFF7C5CFF), size: 22),
+                          child: Icon(Icons.tune_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 22),
                         ),
                         const SizedBox(width: 14),
                         const Column(
@@ -2831,7 +2831,7 @@ class _MusicMobileBottomNav extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: isSelected ? const Color(0xFF7C5CFF) : Colors.white54,
+                color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white54,
                 size: 24,
               ),
               const SizedBox(height: 4),
@@ -2878,7 +2878,7 @@ class _MusicHeroBillboard extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7C5CFF).withValues(alpha: 0.25),
+            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
             blurRadius: 32,
             offset: const Offset(0, 10),
           ),
@@ -2918,7 +2918,7 @@ class _MusicHeroBillboard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF7C5CFF),
+                      color: AppThemeService.currentPalette.value.primaryColor,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Text(
@@ -2961,7 +2961,7 @@ class _MusicHeroBillboard extends StatelessWidget {
                         scaleFactor: 1.06,
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7C5CFF),
+                            backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -3044,7 +3044,7 @@ class _MusicTrendingArtists extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFF7C5CFF).withValues(alpha: 0.5),
+                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.5),
                       width: 2,
                     ),
                   ),
@@ -3205,8 +3205,8 @@ class _MusicTrackCard extends StatelessWidget {
                     right: 8,
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF7C5CFF),
+                      decoration: BoxDecoration(
+                        color: AppThemeService.currentPalette.value.primaryColor,
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -3392,7 +3392,7 @@ class _MusicTrackRow extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         tileColor: isCurrent
-            ? const Color(0xFF7C5CFF).withValues(alpha: 0.15)
+            ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15)
             : const Color(0xFF13151F),
         leading: Stack(
           alignment: Alignment.center,
@@ -3417,7 +3417,7 @@ class _MusicTrackRow extends StatelessWidget {
                 ),
                 child: Icon(
                   isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: const Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                   size: 28,
                 ),
               ),
@@ -3426,7 +3426,7 @@ class _MusicTrackRow extends StatelessWidget {
         title: Text(
           track.title,
           style: TextStyle(
-            color: isCurrent ? const Color(0xFF7C5CFF) : Colors.white,
+            color: isCurrent ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -3978,9 +3978,9 @@ class _MusicLyricsDrawer extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.format_quote_rounded,
-                  color: Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                   size: 22,
                 ),
                 const SizedBox(width: 10),
@@ -4001,9 +4001,9 @@ class _MusicLyricsDrawer extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             if (playerController.isLoadingLyrics)
-              const Expanded(
+              Expanded(
                 child: Center(
-                  child: CircularProgressIndicator(color: Color(0xFF7C5CFF)),
+                  child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
                 ),
               )
             else if (!lyrics.isSynced && lyrics.plainLyrics.isEmpty)
@@ -4030,7 +4030,7 @@ class _MusicLyricsDrawer extends StatelessWidget {
                           line.text,
                           style: TextStyle(
                             color: isActive
-                                ? const Color(0xFF7C5CFF)
+                                ? AppThemeService.currentPalette.value.primaryColor
                                 : Colors.white.withValues(alpha: 0.45),
                             fontSize: isActive ? 18 : 15,
                             fontWeight: isActive ? FontWeight.w900 : FontWeight.w600,
@@ -4093,9 +4093,9 @@ class _MusicQueueDrawer extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.queue_music_rounded,
-                  color: Color(0xFF7C5CFF),
+                  color: AppThemeService.currentPalette.value.primaryColor,
                   size: 22,
                 ),
                 const SizedBox(width: 10),
@@ -4146,7 +4146,7 @@ class _MusicQueueDrawer extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       tileColor: isCurrent
-                          ? const Color(0xFF7C5CFF).withValues(alpha: 0.2)
+                          ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2)
                           : const Color(0xFF13151F),
                       leading: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
@@ -4161,7 +4161,7 @@ class _MusicQueueDrawer extends StatelessWidget {
                       title: Text(
                         track.title,
                         style: TextStyle(
-                          color: isCurrent ? const Color(0xFF7C5CFF) : Colors.white,
+                          color: isCurrent ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
                         ),
@@ -4276,7 +4276,7 @@ class _MusicArtistDetailModal extends StatelessWidget {
                           if (details.topTracks.isNotEmpty)
                             ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF7C5CFF),
+                                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20),
                                 ),
@@ -4424,8 +4424,8 @@ class _MusicAlbumDetailModal extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             album.artistName,
-                            style: const TextStyle(
-                              color: Color(0xFF7C5CFF),
+                            style: TextStyle(
+                              color: AppThemeService.currentPalette.value.primaryColor,
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                             ),
@@ -4443,7 +4443,7 @@ class _MusicAlbumDetailModal extends StatelessWidget {
                               children: [
                                 ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF7C5CFF),
+                                    backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
@@ -4588,7 +4588,7 @@ class _MusicCuratedPlaylistDetailModal extends StatelessWidget {
                               children: [
                                 ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF7C5CFF),
+                                    backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
@@ -4699,12 +4699,12 @@ class _MusicUserPlaylistDetailModal extends StatelessWidget {
                       width: isMobile ? 80 : 120,
                       height: isMobile ? 80 : 120,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C5CFF).withValues(alpha: 0.2),
+                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Icon(
                         Icons.queue_music_rounded,
-                        color: const Color(0xFF7C5CFF),
+                        color: AppThemeService.currentPalette.value.primaryColor,
                         size: isMobile ? 36 : 48,
                       ),
                     ),
@@ -4734,7 +4734,7 @@ class _MusicUserPlaylistDetailModal extends StatelessWidget {
                               children: [
                                 ElevatedButton.icon(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF7C5CFF),
+                                    backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
@@ -5584,7 +5584,7 @@ class _MusicShortcutsModal extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.keyboard_rounded, color: Color(0xFF7C5CFF), size: 24),
+                    Icon(Icons.keyboard_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 24),
                     const SizedBox(width: 10),
                     const Text(
                       'Keyboard Shortcuts',
@@ -5617,8 +5617,8 @@ class _MusicShortcutsModal extends StatelessWidget {
                           ),
                           child: Text(
                             s['key']!,
-                            style: const TextStyle(
-                              color: Color(0xFF7C5CFF),
+                            style: TextStyle(
+                              color: AppThemeService.currentPalette.value.primaryColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),

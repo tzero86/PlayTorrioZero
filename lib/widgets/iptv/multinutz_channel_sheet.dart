@@ -644,7 +644,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C5CFF)),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppThemeService.currentPalette.value.primaryColor),
                       onPressed: ctrl.isAdding ? null : _submitAddPortal,
                       child: ctrl.isAdding
                           ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
@@ -1410,7 +1410,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                   Align(
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C5CFF)),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppThemeService.currentPalette.value.primaryColor),
                       onPressed: ctrl.isM3uLoading ? null : _submitAddM3u,
                       child: ctrl.isM3uLoading
                           ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))

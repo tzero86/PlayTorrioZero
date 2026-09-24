@@ -8,6 +8,7 @@ import '../../models/anime/anime_media.dart';
 import '../../services/anime/anilist_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/anime/extractors/anidb_extractor.dart';
+import '../../services/theme/app_theme_service.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -218,12 +219,12 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                             ),
 
                             if (_isLoadingDetails)
-                              const Positioned(
+                              Positioned(
                                 top: 0,
                                 left: 0,
                                 right: 0,
                                 child: LinearProgressIndicator(
-                                  color: Color(0xFF7C5CFF),
+                                  color: AppThemeService.currentPalette.value.primaryColor,
                                   backgroundColor: Colors.transparent,
                                   minHeight: 2.5,
                                 ),
@@ -288,7 +289,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF7C5CFF),
+                                          color: AppThemeService.currentPalette.value.primaryColor,
                                           borderRadius: BorderRadius.circular(8),
                                         ),
                                         child: Text(
@@ -381,13 +382,20 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                       decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [Color(0xFF7C5CFF), Color(0xFF633DFF)],
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            AppThemeService.currentPalette.value.primaryColor,
+                                            Color.lerp(
+                                              AppThemeService.currentPalette.value.primaryColor,
+                                              Colors.black,
+                                              0.33,
+                                            )!,
+                                          ],
                                         ),
                                         borderRadius: BorderRadius.circular(16),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: const Color(0xFF7C5CFF).withValues(alpha: 0.35),
+                                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35),
                                             blurRadius: 16,
                                             offset: const Offset(0, 4),
                                           ),
@@ -510,7 +518,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                             duration: const Duration(milliseconds: 180),
                                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                             decoration: BoxDecoration(
-                                              color: !_isDub ? const Color(0xFF7C5CFF) : Colors.transparent,
+                                              color: !_isDub ? AppThemeService.currentPalette.value.primaryColor : Colors.transparent,
                                               borderRadius: BorderRadius.circular(9),
                                             ),
                                             child: const Text(
@@ -529,7 +537,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                             duration: const Duration(milliseconds: 180),
                                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                             decoration: BoxDecoration(
-                                              color: _isDub ? const Color(0xFF7C5CFF) : Colors.transparent,
+                                              color: _isDub ? AppThemeService.currentPalette.value.primaryColor : Colors.transparent,
                                               borderRadius: BorderRadius.circular(9),
                                             ),
                                             child: const Text(
@@ -642,7 +650,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                             contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
                                             suffixIcon: IconButton(
                                               padding: EdgeInsets.zero,
-                                              icon: const Icon(Icons.arrow_forward_rounded, color: Color(0xFF7C5CFF), size: 16),
+                                              icon: Icon(Icons.arrow_forward_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 16),
                                               onPressed: () => _jumpToEpisode(_jumpEpController.text),
                                             ),
                                           ),
@@ -667,7 +675,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                           decoration: BoxDecoration(
                                             color: const Color(0xFF141724),
                                             borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.4)),
+                                            border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4)),
                                           ),
                                           child: DropdownButton<int>(
                                             value: currentBatchSafe,
@@ -678,7 +686,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                               fontSize: 12,
                                               fontWeight: FontWeight.bold,
                                             ),
-                                            icon: const Icon(Icons.expand_more_rounded, color: Color(0xFF7C5CFF), size: 16),
+                                            icon: Icon(Icons.expand_more_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 16),
                                             items: List.generate(
                                               totalBatches,
                                               (idx) {
@@ -838,8 +846,8 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                               const SizedBox(height: 4),
                                               Text(
                                                 rel.relationType.replaceAll('_', ' '),
-                                                style: const TextStyle(
-                                                  color: Color(0xFF7C5CFF),
+                                                style: TextStyle(
+                                                  color: AppThemeService.currentPalette.value.primaryColor,
                                                   fontSize: 9,
                                                   fontWeight: FontWeight.w900,
                                                 ),
@@ -996,7 +1004,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
               color: isHighlighted
                   ? const Color(0xFFEF4444).withValues(alpha: 0.30)
                   : isCurrent
-                      ? const Color(0xFF7C5CFF).withValues(alpha: 0.35)
+                      ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35)
                       : (isWatched
                           ? Colors.white.withValues(alpha: 0.08)
                           : const Color(0xFF141724)),
@@ -1005,7 +1013,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                 color: isHighlighted
                     ? const Color(0xFFEF4444)
                     : isCurrent
-                        ? const Color(0xFF7C5CFF)
+                        ? AppThemeService.currentPalette.value.primaryColor
                         : (isWatched
                             ? Colors.white24
                             : Colors.white.withValues(alpha: 0.08)),
@@ -1019,7 +1027,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                   color: isHighlighted
                       ? const Color(0xFFEF4444)
                       : isCurrent
-                          ? const Color(0xFF7C5CFF)
+                          ? AppThemeService.currentPalette.value.primaryColor
                           : (isWatched ? Colors.white70 : Colors.white),
                   fontSize: 13,
                   fontWeight: (isCurrent || isHighlighted) ? FontWeight.w900 : FontWeight.bold,

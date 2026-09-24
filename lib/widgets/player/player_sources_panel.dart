@@ -592,7 +592,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                   decoration: BoxDecoration(
                     color: isTorrent
                         ? const Color(0x33F59E0B)
-                        : const Color(0x337C5CFF),
+                        : PlayerTheme.accent.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
