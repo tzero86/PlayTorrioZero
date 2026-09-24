@@ -102,6 +102,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () => _handleHomeTap(context),
                 ),
               );
@@ -112,6 +113,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.discover) return;
                     _navigateToPage(context, const DiscoverPage());
@@ -125,6 +127,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.manga) return;
                     _navigateToPage(context, const MangaPage());
@@ -138,6 +141,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.books) return;
                     _navigateToPage(context, const BooksPage());
@@ -151,6 +155,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.audiobooks) return;
                     _navigateToPage(context, const AudiobooksPage());
@@ -164,6 +169,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.music) return;
                     _navigateToPage(context, const MusicPage());
@@ -177,6 +183,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.anime) return;
                     _navigateToPage(context, const AnimePage());
@@ -190,6 +197,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.liveTv) return;
                     _navigateToPage(context, const IptvPage());
@@ -203,6 +211,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () => _navigateToPage(
                     context,
                     const AddonsSettingsPage(),
@@ -217,6 +226,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () => _navigateToPage(
                     context,
                     const DownloadsPage(),
@@ -231,6 +241,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (currentDestination == DockItemKey.myList) return;
                     _navigateToPage(context, const MyListPage());
@@ -244,6 +255,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (onSettingsTap != null) {
                       onSettingsTap!();
@@ -264,6 +276,7 @@ class AppLiquidDock extends StatelessWidget {
                 DockItem(
                   icon: itemKey.icon,
                   label: itemKey.label,
+                  isActive: itemKey == currentDestination,
                   onTap: () {
                     if (onSearchTap != null) {
                       onSearchTap!();

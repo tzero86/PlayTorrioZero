@@ -3,18 +3,68 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
+import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
+import 'focusable_card.dart';
 import 'performance_liquid_lens.dart';
+
+/// Item corner radius. Deliberately smaller than the container's so the pill
+/// reads as sitting *in* the dock rather than being another dock.
+const double _dockItemRadius = 14;
+
+/// Dock corner radius. Was 32, which fought the 14–18px radii used by every
+/// other surface in the app.
+const double _dockContainerRadius = 24;
+
+/// Padding and icon-to-label gap of the expanded active item.
+const double _dockActivePadding = 14;
+const double _dockActiveGap = 8;
+
+/// The active item's label. Matches the app's 13.5px label step so the dock
+/// reads as the same family as the rest of the shell.
+const TextStyle _dockActiveLabelStyle = TextStyle(
+  fontSize: 13.5,
+  fontWeight: FontWeight.w600,
+  height: 1.0,
+);
+
+/// Width of the expanded (active) item: its padding, icon, gap and label.
+///
+/// Measured with a [TextPainter] rather than read back from layout, because the
+/// dock has to know the row's width *before* laying it out to decide whether it
+/// scrolls. A pill that only widened after layout would clip the last
+/// destination or leave the scroll arrows unused.
+double _dockActiveItemWidth(String label, double size) {
+  final labelWidth = (TextPainter(
+    text: TextSpan(text: label, style: _dockActiveLabelStyle),
+    textDirection: TextDirection.ltr,
+    maxLines: 1,
+  )..layout())
+      .width;
+
+  return math.max(
+    size,
+    _dockActivePadding * 2 + size * 0.45 + _dockActiveGap + labelWidth + 2,
+  );
+}
 
 class DockItem {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
 
+  /// True for the destination currently on screen.
+  ///
+  /// The dock had no such concept: every item rendered identically, so the only
+  /// way to tell where you were was to remember what you tapped. That is
+  /// tolerable with a pointer and a tooltip, and impossible on a TV remote.
+  final bool isActive;
+
   const DockItem({
     required this.icon,
     required this.label,
     required this.onTap,
+    this.isActive = false,
   });
 }
 
@@ -42,9 +92,42 @@ class LiquidDock extends StatefulWidget {
 
 class _LiquidDockState extends State<LiquidDock> {
   final ScrollController _scrollController = ScrollController();
+  /// Pointer X in global coordinates, compared against measured item centres.
   double? _mouseX;
   bool _dockHovered = false;
   bool _isWarmingUp = false;
+
+  final List<GlobalKey> _itemKeys = <GlobalKey>[];
+
+  GlobalKey _itemKeyAt(int index) {
+    while (_itemKeys.length <= index) {
+      _itemKeys.add(GlobalKey());
+    }
+    return _itemKeys[index];
+  }
+
+  /// Jelly proximity for [index], from where the item actually is.
+  ///
+  /// Centres are read off the render boxes instead of computed as
+  /// `index * itemExtent`: the active item is a wider pill, so a positional
+  /// formula drifts by its extra width for every item after it and the jelly
+  /// swells the wrong neighbour. Reading the boxes also costs nothing worth
+  /// caching — a dozen parent lookups per hover event.
+  double _proximityFor(int index) {
+    final mouse = _mouseX;
+    if (!_dockHovered || mouse == null || index >= _itemKeys.length) return 0;
+
+    final box =
+        _itemKeys[index].currentContext?.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return 0;
+
+    final range = widget.baseItemSize * GlassSettings.hoverProximity.value;
+    final distance =
+        (mouse - box.localToGlobal(Offset(box.size.width / 2, 0)).dx).abs();
+    if (distance >= range) return 0;
+
+    return math.pow(1 - distance / range, 1.45).toDouble();
+  }
 
   @override
   void initState() {
@@ -121,8 +204,20 @@ class _LiquidDockState extends State<LiquidDock> {
       widget.maxWidth,
       isMobile ? screenWidth * 0.94 : screenWidth * 0.88,
     );
+    final itemSize = isMobile
+        ? math.min(widget.baseItemSize, 44.0)
+        : widget.baseItemSize;
     final itemExtent = widget.baseItemSize + 10;
-    final contentWidth = widget.items.length * itemExtent + 32;
+    // The active item is a pill rather than a square, so the row has to be
+    // budgeted for its label before it is laid out.
+    final activeExtra = widget.items
+        .where((item) => item.isActive)
+        .fold<double>(
+          0,
+          (extra, item) =>
+              extra + _dockActiveItemWidth(item.label, itemSize) - itemSize,
+        );
+    final contentWidth = widget.items.length * itemExtent + 32 + activeExtra;
     final needsScrolling = contentWidth > effectiveMaxWidth;
     final scrollAreaWidth = needsScrolling
         ? math.max(60.0, effectiveMaxWidth - 68.0)
@@ -133,8 +228,8 @@ class _LiquidDockState extends State<LiquidDock> {
       children: [
         if (needsScrolling)
           SizedBox(
-            width: 30,
-            height: 44,
+            width: 32,
+            height: 48,
             child: IconButton(
               padding: EdgeInsets.zero,
               icon: const Icon(Icons.chevron_left_rounded, color: Colors.white70, size: 20),
@@ -158,33 +253,16 @@ class _LiquidDockState extends State<LiquidDock> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: List.generate(widget.items.length, (index) {
-                  double proximity = 0;
-                  if (_dockHovered && _mouseX != null) {
-                    final arrowOffset = needsScrolling ? 30.0 : 0.0;
-                    final center =
-                        arrowOffset +
-                        8 +
-                        index * itemExtent +
-                        itemExtent / 2 -
-                        (_scrollController.hasClients
-                            ? _scrollController.offset
-                            : 0);
-                    final distance = (_mouseX! - center).abs();
-                    final range = widget.baseItemSize * GlassSettings.hoverProximity.value;
-                    if (distance < range) {
-                      proximity = math
-                          .pow(1 - distance / range, 1.45)
-                          .toDouble();
-                    }
-                  }
-
                   return Padding(
+                    key: _itemKeyAt(index),
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: _DockItemWidget(
                       item: widget.items[index],
-                      size: isMobile ? math.min(widget.baseItemSize, 42.0) : widget.baseItemSize,
-                      hoverSize: isMobile ? math.min(widget.maxItemSize, 56.0) : widget.maxItemSize,
-                      proximity: proximity,
+                      size: itemSize,
+                      hoverSize: isMobile
+                          ? math.min(widget.maxItemSize, 56.0)
+                          : widget.maxItemSize,
+                      proximity: _proximityFor(index),
                     ),
                   );
                 }),
@@ -194,8 +272,8 @@ class _LiquidDockState extends State<LiquidDock> {
         ),
         if (needsScrolling)
           SizedBox(
-            width: 30,
-            height: 44,
+            width: 32,
+            height: 48,
             child: IconButton(
               padding: EdgeInsets.zero,
               icon: const Icon(
@@ -217,7 +295,7 @@ class _LiquidDockState extends State<LiquidDock> {
       },
       onHover: (event) {
         if (GlassSettings.enabled.value) {
-          setState(() => _mouseX = event.localPosition.dx);
+          setState(() => _mouseX = event.position.dx);
         }
       },
       onExit: (_) {
@@ -231,11 +309,12 @@ class _LiquidDockState extends State<LiquidDock> {
       child: RepaintBoundary(
         child: DecoratedBox(
           decoration: const BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(32)),
+            borderRadius:
+                BorderRadius.all(Radius.circular(_dockContainerRadius)),
             boxShadow: [
               BoxShadow(
                 color: Color(0x66000000),
-                blurRadius: 18,
+                blurRadius: 24,
                 offset: Offset(0, 8),
               ),
             ],
@@ -244,7 +323,16 @@ class _LiquidDockState extends State<LiquidDock> {
             style: PerformanceGlassStyles.dock,
             child: Container(
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
+                borderRadius: BorderRadius.circular(_dockContainerRadius),
+                // A gradient wash that is heavier at the top is what actually
+                // reads as a lit pane of glass. It cannot be done with
+                // per-side border colours: BoxDecoration requires a uniform
+                // border whenever a borderRadius is set.
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x1AFFFFFF), Color(0x05FFFFFF)],
+                ),
                 border: Border.all(color: const Color(0x24FFFFFF)),
               ),
               child: dockContent,
@@ -256,7 +344,14 @@ class _LiquidDockState extends State<LiquidDock> {
   }
 }
 
-class _DockItemWidget extends StatefulWidget {
+/// One destination: an icon that expands into a labelled accent pill when it is
+/// the page you are on.
+///
+/// Stateless by design — hover, focus and press now come from [FocusableCard],
+/// which is also what makes the dock usable with a remote. The previous
+/// "optimized" path was a bare [GestureDetector], which is pointer-only, so on a
+/// TV the dock could not be reached at all.
+class _DockItemWidget extends StatelessWidget {
   final DockItem item;
   final double size;
   final double hoverSize;
@@ -269,117 +364,131 @@ class _DockItemWidget extends StatefulWidget {
     required this.proximity,
   });
 
-  @override
-  State<_DockItemWidget> createState() => _DockItemWidgetState();
-}
+  static const BorderRadius _radius =
+      BorderRadius.all(Radius.circular(_dockItemRadius));
 
-class _DockItemWidgetState extends State<_DockItemWidget> {
-  bool _pressed = false;
-  bool _hovered = false;
+  /// The jelly: items swell as the pointer approaches, and further on hover.
+  ///
+  /// Growth is capped by the dock's declared maximum item size so a large
+  /// hover-scale setting cannot push an item past the slot beside it.
+  double _scaleFor(CardInteraction state) {
+    if (state.pressed) return 0.92;
 
-  Widget _icon(double size) => Tooltip(
-    message: widget.item.label,
-    child: Icon(
-      widget.item.icon,
+    final ceiling = math.max(1.0, hoverSize / size);
+    final hoverScale = math.min(GlassSettings.hoverScale.value, ceiling);
+    final amount = state.hovered ? 1.0 : proximity;
+    return (1 + (hoverScale - 1) * amount) * (state.hovered ? hoverScale : 1.0);
+  }
+
+  /// The item's own box, including the active pill.
+  ///
+  /// On the glass path the inactive background stays clear so the lens beneath
+  /// is what you see — but the accent pill is painted in both paths, because
+  /// the two cannot be allowed to disagree about which page you are on.
+  Widget _content(
+    BuildContext context,
+    CardInteraction state, {
+    required bool glass,
+  }) {
+    final tokens = ZplayTokens.of(context);
+    final active = item.isActive;
+
+    final glyph = Icon(
+      item.icon,
       size: size * 0.45,
-      color: const Color(0xF2FFFFFF),
-    ),
-  );
+      color: active
+          ? tokens.onAccent
+          : Colors.white.withValues(alpha: state.highlighted ? 1.0 : 0.88),
+    );
 
-  void _setHover(bool value) {
-    setState(() {
-      _hovered = value;
-    });
-  }
-
-  void _setPressed(bool value) {
-    setState(() {
-      _pressed = value;
-    });
-  }
-
-  Widget _buildFullLiquid() {
-    final hoverAmount = _hovered ? 1.0 : widget.proximity;
-    final scaleMultiplier = GlassSettings.hoverScale.value;
-    final maxHoverSize = widget.size * scaleMultiplier;
-    final targetSize =
-        widget.size + (maxHoverSize - widget.size) * hoverAmount;
-    final wobble = GlassSettings.wobbleIntensity.value;
-    final dynamicStyle = GlassSettings.createButtonGlassStyle();
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => _setHover(true),
-      onExit: (_) => _setHover(false),
-      child: AnimatedContainer(
-        duration: Duration(milliseconds: (190 / wobble.clamp(0.5, 2.0)).round()),
-        curve: Curves.easeOutBack,
-        width: targetSize,
-        height: targetSize,
-        child: SizedBox.square(
-          dimension: targetSize,
-          child: LiquidGlassButton(
-            padding: EdgeInsets.zero,
-            touch: LiquidGlassTouch(
-              flex: wobble > 1.4 ? const LiquidGlassFlex.pronounced() : const LiquidGlassFlex(),
+    return Container(
+      padding:
+          EdgeInsets.symmetric(horizontal: active ? _dockActivePadding : 0),
+      decoration: BoxDecoration(
+        borderRadius: _radius,
+        color: active
+            ? tokens.accent
+            : glass
+                ? Colors.transparent
+                : Colors.white
+                    .withValues(alpha: state.highlighted ? 0.16 : 0.07),
+        border:
+            active || glass ? null : Border.all(color: tokens.borderDefault),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // The active item already shows its name, so the tooltip is left for
+          // the destinations that are still a glyph to guess at.
+          if (active)
+            glyph
+          else
+            Tooltip(message: item.label, child: glyph),
+          if (active) ...[
+            const SizedBox(width: _dockActiveGap),
+            Flexible(
+              child: Text(
+                item.label,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.clip,
+                style: _dockActiveLabelStyle.copyWith(color: tokens.onAccent),
+              ),
             ),
-            style: dynamicStyle,
-            onPressed: widget.item.onTap,
-            child: AnimatedScale(
-              scale: _hovered ? scaleMultiplier : 1.0,
-              duration: const Duration(milliseconds: 160),
-              curve: Curves.easeOutBack,
-              child: _icon(targetSize),
-            ),
-          ),
-        ),
+          ],
+        ],
       ),
     );
   }
 
-  Widget _buildOptimized() {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => _setHover(true),
-      onExit: (_) => _setHover(false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) => _setPressed(true),
-        onTapUp: (_) => _setPressed(false),
-        onTapCancel: () => _setPressed(false),
-        onTap: widget.item.onTap,
-        child: AnimatedScale(
-          scale: _pressed ? 0.92 : (_hovered ? 1.08 : 1),
-          duration: const Duration(milliseconds: 110),
-          curve: Curves.easeOut,
-          child: Container(
-            width: widget.size,
-            height: widget.size,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: _hovered
-                    ? const [Color(0x38FFFFFF), Color(0x1FFFFFFF)]
-                    : const [Color(0x24FFFFFF), Color(0x12FFFFFF)],
-              ),
-              border: Border.all(color: const Color(0x26FFFFFF)),
-            ),
-            child: _icon(widget.size),
-          ),
-        ),
+  Widget _buildFullLiquid(BuildContext context, CardInteraction state) {
+    final wobble = GlassSettings.wobbleIntensity.value;
+
+    return LiquidGlassButton(
+      padding: EdgeInsets.zero,
+      height: size,
+      touch: LiquidGlassTouch(
+        flex: wobble > 1.4
+            ? const LiquidGlassFlex.pronounced()
+            : const LiquidGlassFlex(),
       ),
+      style: GlassSettings.createButtonGlassStyle(),
+      // Purely decorative: [FocusableCard] owns activation now, so leaving this
+      // wired would fire the destination twice per click.
+      onPressed: null,
+      child: _content(context, state, glass: true),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final active = item.isActive;
+
     return RepaintBoundary(
-      child: ValueListenableBuilder<bool>(
-        valueListenable: GlassSettings.enabled,
-        builder: (context, enabled, _) =>
-            enabled ? _buildFullLiquid() : _buildOptimized(),
+      child: FocusableCard(
+        onTap: item.onTap,
+        builder: (context, state) => CardFocusRing(
+          focused: state.focused,
+          radius: _radius,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: GlassSettings.enabled,
+            builder: (context, glass, _) => AnimatedScale(
+              scale: _scaleFor(state),
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutBack,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOut,
+                height: size,
+                width: active ? _dockActiveItemWidth(item.label, size) : size,
+                child: glass
+                    ? _buildFullLiquid(context, state)
+                    : _content(context, state, glass: false),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
