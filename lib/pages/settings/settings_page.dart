@@ -222,9 +222,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 children: [
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.file_download_outlined,
-                        color: Color(0xFF00E5FF),
+                        color: AppThemeService.currentPalette.value.primaryColor,
                         size: 22,
                       ),
                       const SizedBox(width: 10),
@@ -273,14 +273,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   Row(
                     children: [
                       TextButton.icon(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.paste_rounded,
                           size: 16,
-                          color: Color(0xFF00E5FF),
+                          color: AppThemeService.currentPalette.value.primaryColor,
                         ),
-                        label: const Text(
+                        label: Text(
                           'Paste from Clipboard',
-                          style: TextStyle(color: Color(0xFF00E5FF)),
+                          style: TextStyle(color: AppThemeService.currentPalette.value.primaryColor),
                         ),
                         onPressed: () async {
                           final data = await Clipboard.getData(
@@ -294,7 +294,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       const Spacer(),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00E5FF),
+                          backgroundColor: AppThemeService.currentPalette.value.primaryColor,
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 18,
@@ -421,17 +421,15 @@ class _SettingsPageState extends State<SettingsPage> {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(0xFF7C5CFF).withValues(alpha: 0.12),
-                        const Color(0xFF00E5FF).withValues(alpha: 0.04),
+                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
+                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.04),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: const Color(
-                        0xFF7C5CFF,
-                      ).withValues(alpha: 20 / 100),
+                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 20 / 100),
                     ),
                   ),
                   child: Row(
@@ -440,14 +438,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF7C5CFF,
-                          ).withValues(alpha: 0.18),
+                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.tune_rounded,
-                          color: Color(0xFF7C5CFF),
+                          color: AppThemeService.currentPalette.value.primaryColor,
                           size: 26,
                         ),
                       ),
@@ -524,7 +520,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   builder: (context, anime4kPreset, _) {
                     return _SettingsCategoryTile(
                       icon: Icons.auto_awesome_rounded,
-                      iconColor: const Color(0xFF7C5CFF),
+                      iconColor: AppThemeService.currentPalette.value.primaryColor,
                       title: 'Video & Upscaling',
                       subtitle:
                           'Anime4K neural GLSL shader presets and GPU pipeline',
@@ -533,7 +529,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           : anime4kPreset.label.split('(').first.trim(),
                       badgeColor: anime4kPreset == Anime4KPreset.off
                           ? Colors.white38
-                          : const Color(0xFF7C5CFF),
+                          : AppThemeService.currentPalette.value.primaryColor,
                       onTap: () => _navigateTo(const VideoSettingsPage()),
                     );
                   },
@@ -544,7 +540,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 3. Debrid & Cloud Streaming
                 _SettingsCategoryTile(
                   icon: Icons.cloud_download_rounded,
-                  iconColor: const Color(0xFF00E5FF),
+                  iconColor: AppThemeService.currentPalette.value.primaryColor,
                   title: 'Debrid & Cloud Streaming',
                   subtitle:
                       'Real-Debrid, TorBox, AllDebrid, Premiumize & Debrid-Link',
@@ -552,7 +548,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       ? (_debridProvider != 'None' ? _debridProvider : 'Active')
                       : 'Disabled',
                   badgeColor: _useDebrid
-                      ? const Color(0xFF00E5FF)
+                      ? AppThemeService.currentPalette.value.primaryColor
                       : Colors.white38,
                   onTap: () => _navigateTo(const DebridSettingsPage()),
                 ),
@@ -581,14 +577,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     return _SettingsCategoryTile(
                       icon: Icons.dns_rounded,
                       iconColor: isCustom
-                          ? const Color(0xFF7C5CFF)
+                          ? AppThemeService.currentPalette.value.primaryColor
                           : const Color(0xFF10B981),
                       title: 'Built-in Providers',
                       subtitle:
                           'ZPlayHTTP streaming sources, priority order & toggles',
                       badgeText: isCustom ? 'Custom' : 'Default',
                       badgeColor: isCustom
-                          ? const Color(0xFF7C5CFF)
+                          ? AppThemeService.currentPalette.value.primaryColor
                           : const Color(0xFF10B981),
                       onTap: () =>
                           _navigateTo(const BuiltinProvidersSettingsPage()),
