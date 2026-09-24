@@ -102,6 +102,9 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   // Frame Watchdog & Automatic Black Screen Recovery State
   Timer? _frameWatchdogTimer;
+
+  /// Guards the pre-open window. See [_startOpenWatchdog].
+  Timer? _openWatchdogTimer;
   bool _hasFallenBackToSoftware = false;
   bool _hasReceivedFirstVideoFrame = false;
 
@@ -270,6 +273,26 @@ class _PlayerScreenState extends State<PlayerScreen>
         }
         _wasBuffering = isBuffering;
       }),
+      // Per-stream "video is flowing" signal.
+      //
+      // VideoController.waitUntilFirstFrameRendered is backed by a single
+      // Completer that is created once per controller and never reset, so after
+      // the first stream it is already complete: re-registering on it marked
+      // frames as received the instant a NEW stream started, which made every
+      // stall condition unsatisfiable and permanently disabled the watchdog for
+      // the second and later streams - exactly the path taken when the user
+      // follows the app's own "Choose another source" advice.
+      //
+      // The width stream fires per stream instead, and _initStream resets the
+      // flag each time.
+      _player.stream.width.listen((width) {
+        if (!mounted || _hasReceivedFirstVideoFrame) return;
+        if (width != null && width > 0) {
+          _hasReceivedFirstVideoFrame = true;
+          debugPrint('[PlayerWatchdog] Video parameters received (${width}px wide).');
+          _clearStallOverlay();
+        }
+      }),
       _player.stream.tracks.listen((tracks) {
         _updateMediaTracks(tracks);
       }),
@@ -303,6 +326,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _hasFallenBackToSoftware = false;
     _hasReceivedFirstVideoFrame = false;
     _playbackStartedAt = null;
+    _startOpenWatchdog();
     String? streamUrl;
 
     print('[PlayerScreen] Initializing playback:');
@@ -456,6 +480,11 @@ class _PlayerScreenState extends State<PlayerScreen>
       _activeHttpHeaders = isTorrentStream ? null : Map<String, String>.from(playerHeaders);
       _positionAtStreamOpen = widget.initialPosition ?? Duration.zero;
 
+      // Breadcrumbs around open(): there was previously no stream event recorded
+      // between "about to open" and playback, so an incident inside the player
+      // left no trail at all - which is why a hung open looked like nothing
+      // happened.
+      CrashBreadcrumbs.stream('open.start', title: _currentTitle);
       await _player.open(
         Media(
           cleanUri.toString(),
@@ -464,6 +493,8 @@ class _PlayerScreenState extends State<PlayerScreen>
         ),
         play: true,
       );
+      CrashBreadcrumbs.stream('open.ok', title: _currentTitle);
+      _cancelOpenWatchdog();
 
       await PlayerSettings.applyPostOpenProperties(_player);
 
@@ -521,6 +552,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         _savePlaybackProgress();
       });
     } catch (e, stackTrace) {
+      _cancelOpenWatchdog();
       CrashBreadcrumbs.error(e, context: 'PlayerScreen.initStream $_currentTitle');
       print('[PlayerScreen ERROR] Failed to initialize stream URL: "$streamUrl"');
       print('[PlayerScreen ERROR] Exception: $e');
@@ -552,18 +584,46 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
   }
 
+  /// A one-shot guard over the window between "about to open" and "opened".
+  ///
+  /// `_isLoading` renders the "Buffering <title>..." spinner and is cleared ONLY
+  /// on the success path, after `await _player.open(...)` returns - and that call
+  /// has no timeout. Every other watchdog in this class is started *after* open
+  /// returns, so a hung `open()` used to leave the user on an infinite spinner
+  /// with no timer running, no error and no way out. This timer is independent of
+  /// that await, so it fires even when open() never completes, and it raises the
+  /// same actionable overlay the stall detector uses (Choose another source /
+  /// Go back) instead of a silent spin.
+  void _startOpenWatchdog() {
+    _openWatchdogTimer?.cancel();
+    _openWatchdogTimer = Timer(const Duration(seconds: 30), () {
+      if (!mounted || !_isLoading || _hasReceivedFirstVideoFrame) return;
+      CrashBreadcrumbs.stream('open.timeout', title: _currentTitle);
+      setState(() {
+        // Keep the overlay up; _streamStalled swaps the spinner for the message
+        // and the escape actions.
+        _isLoading = true;
+        _streamStalled = true;
+        _statusMessage = 'This stream is not responding - the source may be expired.';
+      });
+    });
+  }
+
+  void _cancelOpenWatchdog() {
+    _openWatchdogTimer?.cancel();
+    _openWatchdogTimer = null;
+  }
+
   void _startFrameWatchdog() {
     _frameWatchdogTimer?.cancel();
     if (!PlayerSettings.autoRecoverBlackScreen.value) return;
 
     // Listen to first frame rendered directly from VideoController
-    _videoController.waitUntilFirstFrameRendered.then((_) {
-      if (mounted) {
-        _hasReceivedFirstVideoFrame = true;
-        debugPrint('[PlayerWatchdog] First video frame rendered successfully.');
-        _clearStallOverlay();
-      }
-    }).catchError((_) {});
+    // Deliberately NOT registering waitUntilFirstFrameRendered here. Its backing
+    // Completer is one-shot per VideoController and never reset, so on the 2nd+
+    // stream it completes instantly and falsely marks frames as received, which
+    // disables every stall condition below. _hasReceivedFirstVideoFrame is fed
+    // by the per-stream width subscription in initState instead.
 
     _frameWatchdogTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (!mounted) {
@@ -620,6 +680,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// detector raises it optimistically, so leaving it up over playing video
   /// would tell the user the stream failed while they are watching it.
   void _clearStallOverlay() {
+    _cancelOpenWatchdog();
     if (!mounted || !_isLoading) return;
     setState(() {
       _isLoading = false;
@@ -714,6 +775,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     final position = _position > Duration.zero ? _position : _player.state.position;
     _progressSaveTimer?.cancel();
     _frameWatchdogTimer?.cancel();
+    _cancelOpenWatchdog();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => WatchScreen(
@@ -1337,6 +1399,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     CrashBreadcrumbs.stream('switch', title: newEpisode.title);
     _progressSaveTimer?.cancel();
     _frameWatchdogTimer?.cancel();
+    _cancelOpenWatchdog();
     _fallbackNoticeTimer?.cancel();
     _fallbackNoticeText = null;
     _savePlaybackProgress();
@@ -1569,7 +1632,15 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Future<void> _handleBack() async {
-    await _stopPlaybackForPop();
+    // Bounded on purpose. _stopPlaybackForPop awaits media_kit's process-wide,
+    // non-reentrant lock - the same lock a hung open() holds for its whole body -
+    // so an unbounded await here could trap the user on a stalled player with the
+    // back button as their only escape. Leaving the screen matters more than a
+    // tidy stop, so give it a deadline and pop regardless.
+    await _stopPlaybackForPop().timeout(
+      const Duration(seconds: 3),
+      onTimeout: () {},
+    );
     if (!mounted) return;
     if (!_wasFullscreenBeforeEntering &&
         WindowService.instance.isFullscreen) {
@@ -1586,6 +1657,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     }
     _progressSaveTimer?.cancel();
     _frameWatchdogTimer?.cancel();
+    _cancelOpenWatchdog();
     _fallbackNoticeTimer?.cancel();
     _volumeHudTimer?.cancel();
     _brightnessHudTimer?.cancel();
