@@ -5,6 +5,7 @@ import '../../models/stream/stream_model.dart';
 import '../../services/anime/anime_scraper_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../widgets/common/segmented_tabs.dart';
 import '../../widgets/common/zplay_sheet.dart';
 import '../player/player_screen.dart';
 
@@ -162,17 +163,29 @@ class _AnimeStreamSheetState extends State<AnimeStreamSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Sub / Dub Category Filter Pills
+          // Sub / Dub — the shared segmented control rather than three
+          // GestureDetector chips. Those were pointer-only (no key, remote or
+          // D-pad event could reach them), about 26px tall, and painted
+          // Colors.white on the accent fill, which is 1.9:1 on Signal Teal.
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            child: Row(
-              children: [
-                _buildFilterChip('All (${_allSources.length})', 'all'),
-                const SizedBox(width: 8),
-                _buildFilterChip('Sub', 'sub'),
-                const SizedBox(width: 8),
-                _buildFilterChip('Dub', 'dub'),
-              ],
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: SegmentedTabs<String>(
+                semanticsLabel: 'Subtitle or dub',
+                selected: _selectedCategory,
+                onSelected: (category) =>
+                    setState(() => _selectedCategory = category),
+                options: [
+                  SegmentedTabOption(
+                    value: 'all',
+                    label: 'All',
+                    count: _allSources.length,
+                  ),
+                  const SegmentedTabOption(value: 'sub', label: 'Sub'),
+                  const SegmentedTabOption(value: 'dub', label: 'Dub'),
+                ],
+              ),
             ),
           ),
 
@@ -347,37 +360,6 @@ class _AnimeStreamSheetState extends State<AnimeStreamSheet> {
                           ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip(String label, String category) {
-    final isSelected = _selectedCategory == category;
-    final primaryColor = AppThemeService.currentPalette.value.primaryColor;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedCategory = category),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? primaryColor
-              : Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? primaryColor
-                : Colors.white.withValues(alpha: 0.12),
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-          ),
-        ),
       ),
     );
   }
