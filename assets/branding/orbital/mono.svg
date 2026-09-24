@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 176" role="img" aria-labelledby="zplay-orbital-mono-title">
+  <title id="zplay-orbital-mono-title">ZPlay orbital monochrome lockup</title>
+  <!-- One colour only: every shape inherits currentColor, so the same file reads
+       white on the dark base (#0A0D12) and near-black on a light surface.
+       For a mark-only version, delete the wordmark group. -->
+  <g transform="translate(13.042 10.917) scale(1.134114)">
+    <ellipse cx="64" cy="64" rx="50" ry="36" transform="rotate(-40 64 64)"
+             fill="none" stroke="currentColor" stroke-width="16" />
+    <path d="M52.5 51 L78.5 64 L52.5 77 Z"
+          fill="currentColor" stroke="currentColor" stroke-width="16"
+          stroke-linejoin="round" />
+  </g>
+  <g transform="translate(179.357 36)" fill="none" stroke="currentColor" stroke-width="15"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.5 7.5 H48.5 L7.5 92.5 H48.5" />
+    <path d="M83.5 92.5 V7.5 H106 A21.25 21.25 0 0 1 106 50 H83.5" />
+    <path d="M160.25 7.5 V92.5" />
+    <ellipse cx="224.25" cy="65" rx="23" ry="27.5" />
+    <path d="M247.25 37.5 V92.5" />
+    <path d="M286.25 37.5 L306.75 71.75" />
+    <path d="M327.25 37.5 L286.25 106" />
+  </g>
+</svg>

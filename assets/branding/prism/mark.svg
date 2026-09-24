@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="zplay-prism-title">
+  <title id="zplay-prism-title">ZPlay prism mark</title>
+  <!-- accent: #2FD0C0 (Signal Teal). Re-tint by replacing this one hex; all other
+       shapes inherit currentColor so the mark works on dark and light surfaces.
+       The three slices are equal in area (cuts at 0.1835 and 0.4226 of the width)
+       and slide 6 and 12 units along the beam, so the play glyph still reads whole
+       at 16px and splits into three streams as the mark grows. -->
+  <path d="M20 20 L35.414 28.074 L35.414 99.926 L20 108 Z" fill="currentColor" />
+  <path d="M41.414 28.074 L61.503 38.597 L61.503 89.403 L41.414 99.926 Z" fill="#2FD0C0" />
+  <path d="M67.503 38.597 L116 64 L67.503 89.403 Z" fill="currentColor" />
+</svg>

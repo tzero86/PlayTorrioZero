@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 176" role="img" aria-labelledby="zplay-prism-mono-title">
+  <title id="zplay-prism-mono-title">ZPlay prism monochrome lockup</title>
+  <!-- One colour only: every shape inherits currentColor, so the same file reads
+       white on the dark base (#0A0D12) and near-black on a light surface.
+       For a mark-only version, delete the wordmark group. -->
+  <g transform="translate(-5.33 0.136) scale(1.318182)" fill="currentColor">
+    <path d="M20 20 L35.414 28.074 L35.414 99.926 L20 108 Z" />
+    <path d="M41.414 28.074 L61.503 38.597 L61.503 89.403 L41.414 99.926 Z" />
+    <path d="M67.503 38.597 L116 64 L67.503 89.403 Z" />
+  </g>
+  <g transform="translate(184.216 36)" fill="none" stroke="currentColor" stroke-width="15"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.5 7.5 H48.5 L7.5 92.5 H48.5" />
+    <path d="M83.5 92.5 V7.5 H106 A21.25 21.25 0 0 1 106 50 H83.5" />
+    <path d="M160.25 7.5 V92.5" />
+    <ellipse cx="224.25" cy="65" rx="23" ry="27.5" />
+    <path d="M247.25 37.5 V92.5" />
+    <path d="M286.25 37.5 L306.75 71.75" />
+    <path d="M327.25 37.5 L286.25 106" />
+  </g>
+</svg>
