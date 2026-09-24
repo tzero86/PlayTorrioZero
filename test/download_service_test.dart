@@ -42,10 +42,18 @@ void main() {
       expect(reconstructed.receivedBytes, equals(500 * 1024 * 1024));
       expect(reconstructed.totalBytes, equals(1000 * 1024 * 1024));
       expect(reconstructed.progressPercent, closeTo(0.5, 0.001));
-      expect(reconstructed.speedLabel, equals('5.00 MB/s'));
-      expect(reconstructed.etaLabel, equals('1m 40s'));
       expect(reconstructed.isDownloading, isTrue);
       expect(reconstructed.isCompleted, isFalse);
+
+      // Speed, ETA and peers are live measurements rather than persisted state:
+      // a resumed task re-measures them, so decoding must not resurrect stale
+      // values from a previous run.
+      expect(reconstructed.speedLabel, equals('0 KB/s'));
+      expect(reconstructed.etaLabel, equals('--'));
+
+      // The live object still formats them, which is what these labels do.
+      expect(task.speedLabel, equals('5.00 MB/s'));
+      expect(task.etaLabel, equals('1m 40s'));
     });
 
     test('DownloadTask copyWith updates state correctly', () {
