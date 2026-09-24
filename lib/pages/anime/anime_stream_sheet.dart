@@ -5,6 +5,7 @@ import '../../models/stream/stream_model.dart';
 import '../../services/anime/anime_scraper_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../widgets/common/zplay_sheet.dart';
 import '../player/player_screen.dart';
 
 import '../../services/anime/extractors/anidb_extractor.dart';
@@ -149,86 +150,18 @@ class _AnimeStreamSheetState extends State<AnimeStreamSheet> {
   Widget build(BuildContext context) {
     final filtered = _filteredSources;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0F121C),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return ZplaySheet(
+      title: '${widget.anime.displayTitle} • Ep ${widget.episodeNumber}',
+      subtitle: _isScraping
+          ? 'Cascading native anime extractors…'
+          : '${_allSources.length} sources found',
+      status: IconButton(
+        icon: const Icon(Icons.close_rounded, color: Colors.white54),
+        onPressed: () => Navigator.pop(context),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
-          Container(
-            margin: const EdgeInsets.only(top: 12, bottom: 8),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-
-          // Header
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${widget.anime.displayTitle} • Ep ${widget.episodeNumber}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          if (_isScraping) ...[
-                            SizedBox(
-                              width: 12,
-                              height: 12,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: AppThemeService.currentPalette.value.primaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Cascading native anime extractors...',
-                              style: TextStyle(
-                                color: AppThemeService.currentPalette.value.primaryColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ] else
-                            Text(
-                              '${_allSources.length} sources found',
-                              style: const TextStyle(
-                                color: Colors.white54,
-                                fontSize: 12,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, color: Colors.white54),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-
           // Sub / Dub Category Filter Pills
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
@@ -249,14 +182,16 @@ class _AnimeStreamSheetState extends State<AnimeStreamSheet> {
           // Stream list
           Flexible(
             child: _allSources.isEmpty && _isScraping
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
+                ? Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        CircularProgressIndicator(color: Color(0xFF7C5CFF)),
-                        SizedBox(height: 14),
-                        Text(
+                        CircularProgressIndicator(
+                          color: AppThemeService.currentPalette.value.primaryColor,
+                        ),
+                        const SizedBox(height: 14),
+                        const Text(
                           'Extracting MegaPlay, VidWish, AllAnime & Miruro streams...',
                           style: TextStyle(color: Colors.white70, fontSize: 13),
                         ),
