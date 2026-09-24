@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to PlayTorrio V3 will be documented in this file.
+All notable changes to ZPlay will be documented in this file.
 
 ## [3.0.0-early] — 2026-08-11
 

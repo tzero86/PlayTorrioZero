@@ -1,4 +1,4 @@
-// AnimeSlayer (animeslayer.to) native stream extractor for PlayTorrioV3.
+// AnimeSlayer (animeslayer.to) native stream extractor for ZPlay.
 // Resolves server map (Wit, Rift, RiftV2, Shof, Blkom, Animeify, Kuudere, TopCinema)
 // and extracts direct MP4 / HLS streams with Arabic subtitles.
 
@@ -472,7 +472,7 @@ class AnimeArabicExtractor {
     return s[0].toUpperCase() + s.substring(1);
   }
 
-  /// Converts resolved Arabic streams into PlayTorrio `StreamSource` items
+  /// Converts resolved Arabic streams into ZPlay `StreamSource` items
   static List<StreamSource> toSources(
     List<ArabicResolvedStream> hits, {
     String animeTitle = '',

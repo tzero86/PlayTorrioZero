@@ -1,4 +1,4 @@
-# Contributing to PlayTorrio V3
+# Contributing to ZPlay
 
 Thanks for your interest in contributing. This document outlines the process.
 
@@ -11,7 +11,7 @@ Thanks for your interest in contributing. This document outlines the process.
 
 ## Adding a New VOD Scraper
 
-PlayTorrio uses a plugin architecture for stream scrapers. To add a new source:
+ZPlay uses a plugin architecture for stream scrapers. To add a new source:
 
 1. Create a new file in `lib/services/scraper/sites/`.
 2. Extend the `StreamScraper` abstract class:
