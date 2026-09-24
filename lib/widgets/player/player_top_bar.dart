@@ -7,6 +7,10 @@ class PlayerTopBar extends StatelessWidget {
   final String? subtitle;
   final String? quality;
   final VoidCallback onBack;
+
+  /// Where the player hands focus when a remote's centre button raises the HUD.
+  final FocusNode? backFocusNode;
+
   final VoidCallback? onToggleEpisodes;
   final bool isEpisodesActive;
   /// Opens the in-player sources panel; null hides the Sources badge.
@@ -26,6 +30,7 @@ class PlayerTopBar extends StatelessWidget {
     this.subtitle,
     this.quality,
     required this.onBack,
+    this.backFocusNode,
     this.onToggleEpisodes,
     this.isEpisodesActive = false,
     this.onShowSources,
@@ -70,6 +75,7 @@ class PlayerTopBar extends StatelessWidget {
             tooltip: 'Back',
             backgroundColor: const Color(0x33080C12),
             borderRadius: 9999,
+            focusNode: backFocusNode,
             onPressed: onBack,
           ),
 

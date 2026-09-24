@@ -95,6 +95,14 @@ class _PlayerScreenState extends State<PlayerScreen>
   String _statusMessage = 'Initializing...';
   bool _showControls = true;
   bool _isHoveringUI = false;
+
+  /// Owns the player's shortcuts. [FocusNode.hasPrimaryFocus] on it means no HUD
+  /// control holds focus, which is exactly when the shortcuts apply.
+  final FocusNode _pageFocusNode = FocusNode(debugLabel: 'PlayerPage');
+
+  /// Where a remote's centre button lands once the HUD is up.
+  final FocusNode _hudBackFocusNode = FocusNode(debugLabel: 'PlayerHudBack');
+
   Timer? _hideTimer;
   Timer? _progressSaveTimer;
   DateTime? _lastPointerTimerReset;
@@ -997,6 +1005,11 @@ class _PlayerScreenState extends State<PlayerScreen>
           !_showSubSyncBar &&
           !_showTextSyncOverlay) {
         setState(() => _showControls = false);
+        // Hand focus back to the page node. While the HUD is up a control may
+        // hold focus, and the shortcuts deliberately stand down then so the
+        // arrows traverse those controls; if that focus lingered after the HUD
+        // went away, the shortcuts would stay dead.
+        _pageFocusNode.requestFocus();
       }
     });
   }
@@ -1716,6 +1729,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     PlayerSettings.changeNotifier.removeListener(_onPlayerSettingsChanged);
     _positionNotifier.dispose();
     _bufferNotifier.dispose();
+    _pageFocusNode.dispose();
+    _hudBackFocusNode.dispose();
     // No VideoController.dispose in pinned media_kit_video
     // (video_controller.dart:56-172); Player.dispose owns the texture.
     try {
@@ -1918,6 +1933,7 @@ class _PlayerScreenState extends State<PlayerScreen>
       child: Scaffold(
         backgroundColor: Colors.black,
         body: Focus(
+          focusNode: _pageFocusNode,
           autofocus: true,
           onKeyEvent: (node, event) {
             // Never intercept key events when typing or searching in text inputs or overlay
@@ -1932,7 +1948,29 @@ class _PlayerScreenState extends State<PlayerScreen>
               }
             }
 
+            // While a HUD control holds focus, every shortcut below stands down.
+            // Otherwise the arrows would seek and change volume instead of
+            // traversing the controls, and a remote could never reach them.
+            // `ignored` is what lets the framework's default directional
+            // traversal and activate bindings run instead.
+            if (!node.hasPrimaryFocus) {
+              return KeyEventResult.ignored;
+            }
+
             if (event is KeyDownEvent) {
+              // A remote's centre button has no pointer equivalent, so it is the
+              // only way to raise a HUD that has auto-hidden, and then to step
+              // into it.
+              if (event.logicalKey == LogicalKeyboardKey.select ||
+                  event.logicalKey == LogicalKeyboardKey.enter) {
+                if (!_showControls) {
+                  setState(() => _showControls = true);
+                  _startHideControlsTimer();
+                } else {
+                  _hudBackFocusNode.requestFocus();
+                }
+                return KeyEventResult.handled;
+              }
               if (event.logicalKey == LogicalKeyboardKey.arrowUp ||
                   event.logicalKey == LogicalKeyboardKey.audioVolumeUp) {
                 _applyVolume((_volume + 0.05).clamp(0.0, PlayerVolumeControl.maxVolume), showHud: true);

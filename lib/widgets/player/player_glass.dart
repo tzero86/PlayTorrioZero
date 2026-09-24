@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../common/focusable_card.dart';
 
 /// Design tokens and glass styling for the modern video player UI.
 class PlayerTheme {
@@ -109,7 +110,7 @@ class PlayerGlassCard extends StatelessWidget {
 }
 
 /// Interactive button with smooth hover effects, tooltips, and badges.
-class PlayerIconButton extends StatefulWidget {
+class PlayerIconButton extends StatelessWidget {
   final Widget icon;
   final VoidCallback? onPressed;
   final String? tooltip;
@@ -121,6 +122,10 @@ class PlayerIconButton extends StatefulWidget {
   final Color? badgeColor;
   final Color? backgroundColor;
   final double borderRadius;
+
+  /// Optional owner for the focus node, so the player can hand focus to a
+  /// specific control when a remote raises the HUD.
+  final FocusNode? focusNode;
 
   const PlayerIconButton({
     super.key,
@@ -135,133 +140,131 @@ class PlayerIconButton extends StatefulWidget {
     this.badgeColor,
     this.backgroundColor,
     this.borderRadius = 9999,
+    this.focusNode,
   });
 
   @override
-  State<PlayerIconButton> createState() => _PlayerIconButtonState();
-}
-
-class _PlayerIconButtonState extends State<PlayerIconButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: GlassSettings.enabled,
-      builder: (context, glassEnabled, _) {
-        return ValueListenableBuilder<int>(
-          valueListenable: GlassSettings.styleRevision,
-          builder: (context, _, __) {
-            final hoverScaleVal = glassEnabled ? GlassSettings.hoverScale.value : 1.0;
-            final effectiveScale = _hovered ? hoverScaleVal : 1.0;
+    return FocusableCard(
+      onTap: onPressed,
+      focusNode: focusNode,
+      enabled: onPressed != null,
+      cursor: onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      builder: (context, state) {
+        // Focus is given the same treatment as hover. On a TV there is no hover
+        // and no pointer, so this highlight is the only thing telling a remote
+        // user which control is live.
+        final highlighted = state.highlighted;
 
-            final bg = widget.active
-                ? (widget.activeColor ?? Colors.white.withValues(alpha: 0.22))
-                : (_hovered
-                    ? (widget.backgroundColor ?? Colors.white.withValues(alpha: 0.12))
-                    : (widget.backgroundColor ?? Colors.transparent));
+        return ValueListenableBuilder<bool>(
+          valueListenable: GlassSettings.enabled,
+          builder: (context, glassEnabled, _) {
+            return ValueListenableBuilder<int>(
+              valueListenable: GlassSettings.styleRevision,
+              builder: (context, _, __) {
+                final hoverScaleVal = glassEnabled ? GlassSettings.hoverScale.value : 1.0;
+                final effectiveScale = highlighted ? hoverScaleVal : 1.0;
 
-            final iconContent = Stack(
-              alignment: Alignment.center,
-              children: [
-                IconTheme(
-                  data: IconThemeData(
-                    color: widget.active ? Colors.white : (_hovered ? Colors.white : PlayerTheme.inkMuted),
-                    size: widget.iconSize,
-                  ),
-                  child: widget.icon,
-                ),
-                if (widget.showActiveBadge)
-                  Positioned(
-                    top: widget.size * 0.2,
-                    right: widget.size * 0.2,
-                    child: Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: widget.badgeColor ?? PlayerTheme.accent,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: (widget.badgeColor ?? PlayerTheme.accent).withValues(alpha: 0.8),
-                            blurRadius: 4,
-                            spreadRadius: 1,
+                final bg = active
+                    ? (activeColor ?? Colors.white.withValues(alpha: 0.22))
+                    : (highlighted
+                        ? (backgroundColor ?? Colors.white.withValues(alpha: 0.12))
+                        : (backgroundColor ?? Colors.transparent));
+
+                final iconContent = Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconTheme(
+                      data: IconThemeData(
+                        color: active ? Colors.white : (highlighted ? Colors.white : PlayerTheme.inkMuted),
+                        size: iconSize,
+                      ),
+                      child: icon,
+                    ),
+                    if (showActiveBadge)
+                      Positioned(
+                        top: size * 0.2,
+                        right: size * 0.2,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: badgeColor ?? PlayerTheme.accent,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: (badgeColor ?? PlayerTheme.accent).withValues(alpha: 0.8),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                      ),
+                  ],
+                );
+
+                Widget buttonBody;
+                if (glassEnabled) {
+                  final buttonStyle = GlassSettings.createButtonGlassStyle(
+                    cornerRadius: borderRadius.clamp(0, size / 2),
+                    customColor: active
+                        ? (activeColor?.withValues(alpha: 0.35) ?? const Color(0x557C5CFF))
+                        : (highlighted ? const Color(0x38FFFFFF) : const Color(0x18FFFFFF)),
+                  );
+
+                  buttonBody = RepaintBoundary(
+                    child: LiquidGlassLens(
+                      style: buttonStyle,
+                      useImpellerBackdrop: true,
+                      child: SizedBox(
+                        width: size,
+                        height: size,
+                        child: iconContent,
                       ),
                     ),
-                  ),
-              ],
-            );
-
-            Widget buttonBody;
-            if (glassEnabled) {
-              final buttonStyle = GlassSettings.createButtonGlassStyle(
-                cornerRadius: widget.borderRadius.clamp(0, widget.size / 2),
-                customColor: widget.active
-                    ? (widget.activeColor?.withValues(alpha: 0.35) ?? const Color(0x557C5CFF))
-                    : (_hovered ? const Color(0x38FFFFFF) : const Color(0x18FFFFFF)),
-              );
-
-              buttonBody = RepaintBoundary(
-                child: LiquidGlassLens(
-                  style: buttonStyle,
-                  useImpellerBackdrop: true,
-                  child: SizedBox(
-                    width: widget.size,
-                    height: widget.size,
+                  );
+                } else {
+                  buttonBody = AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: size,
+                    height: size,
+                    decoration: BoxDecoration(
+                      color: bg,
+                      borderRadius: BorderRadius.circular(borderRadius),
+                    ),
                     child: iconContent,
-                  ),
-                ),
-              );
-            } else {
-              buttonBody = AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  color: bg,
-                  borderRadius: BorderRadius.circular(widget.borderRadius),
-                ),
-                child: iconContent,
-              );
-            }
+                  );
+                }
 
-            Widget button = MouseRegion(
-              cursor: widget.onPressed != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
-              onEnter: (_) => setState(() => _hovered = true),
-              onExit: (_) => setState(() => _hovered = false),
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: widget.onPressed,
-                child: AnimatedScale(
+                final Widget button = AnimatedScale(
                   scale: effectiveScale,
                   duration: const Duration(milliseconds: 140),
                   curve: Curves.easeOutCubic,
                   child: buttonBody,
-                ),
-              ),
+                );
+
+                if (tooltip != null) {
+                  return Tooltip(
+                    message: tooltip!,
+                    waitDuration: const Duration(milliseconds: 400),
+                    decoration: BoxDecoration(
+                      color: const Color(0xE6080C12),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: PlayerTheme.edgeSoft),
+                    ),
+                    textStyle: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    child: button,
+                  );
+                }
+
+                return button;
+              },
             );
-
-            if (widget.tooltip != null) {
-              return Tooltip(
-                message: widget.tooltip!,
-                waitDuration: const Duration(milliseconds: 400),
-                decoration: BoxDecoration(
-                  color: const Color(0xE6080C12),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: PlayerTheme.edgeSoft),
-                ),
-                textStyle: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-                child: button,
-              );
-            }
-
-            return button;
           },
         );
       },

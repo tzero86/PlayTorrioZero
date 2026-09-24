@@ -18,8 +18,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zplay/models/movie/movie.dart';
+import 'package:zplay/services/theme/glass_settings.dart';
 import 'package:zplay/widgets/common/focusable_card.dart';
 import 'package:zplay/widgets/movie/movie_card.dart';
+import 'package:zplay/widgets/player/player_glass.dart';
 
 void main() {
   setUp(() {
@@ -76,6 +78,51 @@ void main() {
     await tester.pump();
     expect(hits, ['first', 'second', 'first'],
         reason: 'gamepad A is what some remotes report instead of select');
+  });
+
+  testWidgets('a player HUD button is reachable and activates on the remote key',
+      (tester) async {
+    // The player's entire HUD is built from PlayerIconButton: 39 of them across
+    // 13 files. They were MouseRegion > GestureDetector, so a remote could not
+    // reach a single one.
+    final glassWas = GlassSettings.enabled.value;
+    GlassSettings.enabled.value = false; // take the plain path, no glass lens
+    addTearDown(() => GlassSettings.enabled.value = glassWas);
+
+    var hits = 0;
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Row(children: [
+            PlayerIconButton(
+              icon: const Icon(Icons.chevron_left_rounded),
+              tooltip: 'Back',
+              onPressed: () => hits += 1,
+            ),
+            PlayerIconButton(
+              icon: const Icon(Icons.download_rounded),
+              onPressed: () => hits += 10,
+            ),
+          ]),
+        ),
+      ),
+    ));
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(find.byType(FocusableCard), findsNWidgets(2),
+        reason: 'HUD buttons must be built on the focus primitive');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.sendKeyEvent(LogicalKeyboardKey.select);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(hits, 1, reason: 'the centre key must activate a focused HUD button');
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(hits, 11, reason: 'arrowRight must move between HUD buttons');
   });
 
   testWidgets('a MovieCard in a horizontal rail is reachable and navigable',
