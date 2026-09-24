@@ -6,9 +6,12 @@
   <g transform="translate(13.042 10.917) scale(1.134114)">
     <ellipse cx="64" cy="64" rx="50" ry="36" transform="rotate(-40 64 64)"
              fill="none" stroke="currentColor" stroke-width="16" />
-    <path d="M52.5 51 L78.5 64 L52.5 77 Z"
-          fill="currentColor" stroke="currentColor" stroke-width="16"
-          stroke-linejoin="round" />
+    <!-- Core: a solid body caught mid-orbit. Deliberately not a play
+         triangle - that glyph is the most generic mark in streaming, and the
+         offset reads as motion rather than a static pause point. Sized (r=16,
+         offset +5/-5) to keep the ring's ~10-unit clearance, so ring and core
+         stay two separate shapes in a single colour. -->
+    <circle cx="69" cy="59" r="16" fill="currentColor" />
   </g>
   <g transform="translate(179.357 36)" fill="none" stroke="currentColor" stroke-width="15"
      stroke-linecap="round" stroke-linejoin="round">
