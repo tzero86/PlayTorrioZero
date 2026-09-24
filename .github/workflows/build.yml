@@ -497,7 +497,12 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: "ZPlay ${{ github.ref_name }}"
-          draft: true
+          # Must be false. The in-app updater reads GitHub's releases/latest
+          # endpoint, and that endpoint EXCLUDES drafts, so a draft release makes
+          # the updater report "up to date" forever. This is why the app has 16
+          # inherited tags and 0 releases and no one has ever been offered an
+          # update. The release is still reviewed through its generated notes.
+          draft: false
           prerelease: false
           generate_release_notes: true
           files: |
