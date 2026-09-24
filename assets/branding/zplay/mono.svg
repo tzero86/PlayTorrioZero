@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 176" role="img" aria-labelledby="t">
+  <title id="t">ZPlay lockup, monochrome</title>
+  <g transform="translate(-5.57 16.43) scale(1.087)">
+    <path fill="currentColor" fill-rule="evenodd" d="M40 18 H88 A22 22 0 0 1 110 40 V88 A22 22 0 0 1 88 110 H40 A22 22 0 0 1 18 88 V40 A22 22 0 0 1 40 18 Z M48 40 L86 40 L86 56 L66 72 L86 72 L86 88 L48 88 L48 72 L68 56 L48 56 Z" />
+  </g>
+  <g transform="translate(148 36)" fill="none" stroke="currentColor" stroke-width="15"
+     stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7.5 7.5 H48.5 L7.5 92.5 H48.5" />
+    <path d="M83.5 92.5 V7.5 H106 A21.25 21.25 0 0 1 106 50 H83.5" />
+    <path d="M160.25 7.5 V92.5" />
+    <ellipse cx="224.25" cy="65" rx="23" ry="27.5" />
+    <path d="M247.25 37.5 V92.5" />
+    <path d="M286.25 37.5 L306.75 71.75" />
+    <path d="M327.25 37.5 L286.25 106" />
+  </g>
+</svg>
