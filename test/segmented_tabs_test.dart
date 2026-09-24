@@ -262,4 +262,40 @@ void main() {
           reason: '"${option.label}" was truncated to fit its segment');
     }
   });
+
+  testWidgets('a long label gets the width it needs, not a fixed ceiling',
+      (tester) async {
+    // The chips this control replaces showed labels like "Compact (Dense Grid)"
+    // in full. A 136px segment ceiling silently truncated them, which is a worse
+    // outcome than a wide control.
+    const longOptions = <SegmentedTabOption<String>>[
+      SegmentedTabOption(value: 'compact', label: 'Compact (Dense Grid)'),
+      SegmentedTabOption(value: 'spacious', label: 'Spacious (Large Covers)'),
+    ];
+
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Row(
+          children: [
+            const Text('logo'),
+            const Spacer(),
+            SegmentedTabs<String>(
+              options: longOptions,
+              selected: 'compact',
+              onSelected: (_) {},
+            ),
+          ],
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    for (final option in longOptions) {
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text(option.label),
+      );
+      expect(paragraph.didExceedMaxLines, isFalse,
+          reason: '"${option.label}" was truncated by the segment ceiling');
+    }
+  });
 }

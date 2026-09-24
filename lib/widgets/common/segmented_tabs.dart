@@ -29,6 +29,14 @@ class SegmentedTabOption<T> {
 /// in IPTV, audiobooks and books, text tabs with per-tab underlines on Home —
 /// and every one of those is pointer-sized with no D-pad story.
 ///
+/// **Assumes a dark surface.** The track and the unselected labels are white at
+/// low alpha, so on a light surface the control would be near-invisible. The
+/// reader's Light and Sepia themes are exactly that and are not [ZplayTokens],
+/// which is why the reader's own margin picker was left as chips rather than
+/// converted — flagged by the conversion pass that found it. Making this
+/// theme-agnostic means taking those two colours from the ambient [ColorScheme]
+/// instead of white.
+///
 /// **Segments are sized to their content, not by `Expanded`.** That is not a
 /// style preference: Home places this control in the app bar's [Row], where the
 /// incoming width is unbounded, and a flex child in an unbounded row collapses
@@ -63,7 +71,6 @@ class SegmentedTabs<T> extends StatelessWidget {
   /// labels sat against each other.
   static const double _hPad = 16;
   static const double _minSegmentWidth = 78;
-  static const double _maxSegmentWidth = 136;
 
   /// The label style. Measured at the selected weight so the widest case is the
   /// one budgeted for.
@@ -179,6 +186,12 @@ class SegmentedTabs<T> extends StatelessWidget {
   /// inset is a margin on the box inside the segment. Budgeting only [_hPad]
   /// left the widest label 2px short, which is why "Movies" rendered as "Movi…"
   /// while the shorter labels were fine.
+  ///
+  /// There is deliberately no upper bound. A 136px ceiling was truncating longer
+  /// labels — "Compact (Dense Grid)" became "Compact (Dense…" — where the chips
+  /// they replaced had shown them in full, and a truncated label is worse than a
+  /// wide control. A caller short of room gets the width it offers instead, and
+  /// the label ellipsises only as a last resort.
   double _contentSegmentWidth() {
     var widest = 0.0;
     for (final option in options) {
@@ -188,9 +201,7 @@ class SegmentedTabs<T> extends StatelessWidget {
         widest = math.max(widest, _textWidth('$count', _countStyle));
       }
     }
-    return (widest + (_hPad + _inset) * 2 + 4)
-        .clamp(_minSegmentWidth, _maxSegmentWidth)
-        .toDouble();
+    return math.max(widest + (_hPad + _inset) * 2 + 4, _minSegmentWidth);
   }
 
   static double _textWidth(String text, TextStyle style) {
