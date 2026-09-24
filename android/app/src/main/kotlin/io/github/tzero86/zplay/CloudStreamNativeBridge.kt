@@ -1,4 +1,4 @@
-package com.example.zplay
+package io.github.tzero86.zplay
 
 import android.app.Activity
 import android.content.Context

@@ -53,14 +53,14 @@ class DownloadPathHelper {
   static Future<String> getDefaultDownloadsDirectoryPath() async {
     if (!kIsWeb && Platform.isAndroid) {
       try {
-        final publicDownload = Directory('/storage/emulated/0/Download/PlayTorrio');
+        final publicDownload = Directory('/storage/emulated/0/Download/ZPlay');
         if (await publicDownload.exists() || await _tryCreate(publicDownload)) {
           return publicDownload.path;
         }
 
         final extDirs = await getExternalStorageDirectories(type: StorageDirectory.downloads);
         if (extDirs != null && extDirs.isNotEmpty) {
-          final target = Directory(p.join(extDirs.first.path, 'PlayTorrio'));
+          final target = Directory(p.join(extDirs.first.path, 'ZPlay'));
           if (await target.exists() || await _tryCreate(target)) {
             return target.path;
           }
@@ -72,7 +72,7 @@ class DownloadPathHelper {
       try {
         final downloadsDir = await getDownloadsDirectory();
         if (downloadsDir != null) {
-          final target = Directory(p.join(downloadsDir.path, 'PlayTorrio'));
+          final target = Directory(p.join(downloadsDir.path, 'ZPlay'));
           if (await target.exists() || await _tryCreate(target)) {
             return target.path;
           }

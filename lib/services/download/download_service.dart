@@ -48,7 +48,7 @@ class DownloadService {
   }
 
   // ── Task Persistence ───────────────────────────────────────────────────────
-  static const String _storageFilename = 'playtorrio_download_tasks.json';
+  static const String _storageFilename = 'zplay_download_tasks.json';
 
   Future<File> _getStorageFile() async {
     final docDir = await getApplicationDocumentsDirectory();

@@ -69,10 +69,10 @@ class _FocusModeViewState extends State<FocusModeView> {
   Future<void> _checkCoachMark() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final seen = prefs.getBool('playtorrio_seen_focus_coach_v2') ?? false;
+      final seen = prefs.getBool('zplay_seen_focus_coach_v2') ?? false;
       if (!seen && mounted) {
         setState(() => _showCoachMark = true);
-        await prefs.setBool('playtorrio_seen_focus_coach_v2', true);
+        await prefs.setBool('zplay_seen_focus_coach_v2', true);
         _coachMarkTimer = Timer(const Duration(seconds: 4), () {
           if (mounted) setState(() => _showCoachMark = false);
         });

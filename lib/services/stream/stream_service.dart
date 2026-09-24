@@ -167,7 +167,7 @@ class StreamService {
     final currentSession = _streamSessionId;
 
     final addons = AddonManager.instance.activeStreamAddons;
-    final isHttpActive = AddonManager.instance.isPlayTorrioHttpActive;
+    final isHttpActive = AddonManager.instance.isZplayHttpActive;
     final csExtensions = CloudStreamManager.instance.activeExtensions;
     final hasCs = csExtensions.isNotEmpty;
 
@@ -370,11 +370,11 @@ class StreamService {
     }
 
     // Check if targeting built-in ZPlayHTTP / ZPlay
-    final isLocalPlayTorrio = normalizedTarget == 'zplayhttp' ||
+    final isLocalZplay = normalizedTarget == 'zplayhttp' ||
         normalizedTarget == 'zplay' ||
         normalizedTarget.contains('zplay');
 
-    if (isLocalPlayTorrio) {
+    if (isLocalZplay) {
       _registerBuiltInScrapers();
 
       final isImdb = id.startsWith('tt');

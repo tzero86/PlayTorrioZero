@@ -36,7 +36,7 @@ class AllDebridService {
     if (trimmed.isEmpty) return null;
     try {
       final res = await http.get(
-        Uri.parse('https://api.alldebrid.com/v4/user?agent=PlayTorrio&apikey=$trimmed'),
+        Uri.parse('https://api.alldebrid.com/v4/user?agent=ZPlay&apikey=$trimmed'),
       );
       if (res.statusCode == 200) {
         final data = json.decode(res.body);

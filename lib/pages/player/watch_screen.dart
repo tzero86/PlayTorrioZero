@@ -123,10 +123,10 @@ class _WatchScreenState extends State<WatchScreen>
       final a = allAddons[i];
       map[a.manifest.name.toLowerCase()] = i;
       map[a.manifest.id.toLowerCase()] = i;
-      if (a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp') {
+      if (a.manifest.id == 'builtin.zplayhttp' || a.baseUrl == 'builtin:zplayhttp') {
         map['zplayhttp'] = i;
       }
-      if (a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio') {
+      if (a.manifest.id == 'builtin.zplay' || a.baseUrl == 'builtin:zplay') {
         map['zplay'] = i;
       }
     }
@@ -307,10 +307,10 @@ class _WatchScreenState extends State<WatchScreen>
     }
 
     // Filter by active status of built-in providers
-    if (!AddonManager.instance.isPlayTorrioActive) {
+    if (!AddonManager.instance.isZplayActive) {
       list = list.where((s) => !s.isTorrent || s.isDebrid).toList();
     }
-    if (!AddonManager.instance.isPlayTorrioHttpActive) {
+    if (!AddonManager.instance.isZplayHttpActive) {
       list = list.where((s) => s.addonName.toLowerCase() != 'zplayhttp').toList();
     }
 

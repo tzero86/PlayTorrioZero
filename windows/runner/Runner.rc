@@ -89,17 +89,18 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            // CompanyName and ProductName are intentionally pinned to their
-            // legacy values: path_provider_windows and shared_preferences_windows
-            // derive the %APPDATA%\Roaming\<CompanyName>\<ProductName>\ root from
-            // these fields, so changing them would orphan existing user data.
-            VALUE "CompanyName", "com.example" "\0"
+            // path_provider_windows / shared_preferences_windows derive the
+            // application-support root from these two fields as
+            // %APPDATA%\<CompanyName>\<ProductName> (= the RoamingAppData known
+            // folder plus company\product). Keep them in sync with the
+            // application identity, currently %APPDATA%\tzero86\zplay.
+            VALUE "CompanyName", "tzero86" "\0"
             VALUE "FileDescription", "ZPlay" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "zplay" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 tzero86. All rights reserved." "\0"
             VALUE "OriginalFilename", "zplay.exe" "\0"
-            VALUE "ProductName", "playtorrio" "\0"
+            VALUE "ProductName", "zplay" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

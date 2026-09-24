@@ -548,7 +548,7 @@ class IptvScraper {
   static String? _oauthToken;
   static DateTime? _oauthTokenExpiry;
   static int _oauthClientIdx = 0;
-  static const _ua = 'Mozilla/5.0 (Linux; Android 11; PlayTorrio) '
+  static const _ua = 'Mozilla/5.0 (Linux; Android 11; ZPlay) '
       'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0 Safari/537.36';
 
   static const _pasteDomains = [

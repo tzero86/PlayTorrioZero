@@ -152,7 +152,7 @@ abstract final class CustomBackgroundService {
         if (await originalFile.exists()) {
           final appDocDir = await getApplicationDocumentsDirectory();
           final ext = p.extension(originalFile.path);
-          final targetPath = p.join(appDocDir.path, 'playtorrio_custom_background$ext');
+          final targetPath = p.join(appDocDir.path, 'zplay_custom_background$ext');
           
           await originalFile.copy(targetPath);
 

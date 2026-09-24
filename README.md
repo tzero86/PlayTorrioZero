@@ -24,7 +24,7 @@
 
 ## Why ZPlay
 
-**Nothing phones home.** No analytics SDK, no crash reporter, no accounts, no "anonymous usage statistics". The only network traffic is the content you actually asked for. Diagnostics — crash breadcrumbs and a performance HUD — are off in release builds and written to a local file you can read or delete (`%APPDATA%\com.example\playtorrio\` on Windows).
+**Nothing phones home.** No analytics SDK, no crash reporter, no accounts, no "anonymous usage statistics". The only network traffic is the content you actually asked for. Diagnostics — crash breadcrumbs and a performance HUD — are off in release builds and written to a local file you can read or delete (`%APPDATA%\Roaming\tzero86\zplay\` on Windows).
 
 **Free, and it stays free.** GPL-3.0, no paywalled tier, no feature-gating, no upsell screens. Bring your own optional third-party accounts (Trakt, Simkl, a debrid provider) if you want them — the app never requires one.
 

@@ -79,7 +79,7 @@ void main() {
       final source = StreamSource(
         name: 'Alive M3U8',
         url: 'http://127.0.0.1:$serverPort/alive.m3u8',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
       );
       final isAlive = await StreamHealthChecker.isAlive(source);
       expect(isAlive, isTrue);
@@ -89,7 +89,7 @@ void main() {
       final sourceWithReferer = StreamSource(
         name: 'Alive with Referer',
         url: 'http://127.0.0.1:$serverPort/alive_with_referer.m3u8',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         headers: {
           'Referer': 'https://vuflix.co/',
         },
@@ -102,7 +102,7 @@ void main() {
       final source = StreamSource(
         name: 'Alive MP4',
         url: 'http://127.0.0.1:$serverPort/alive.mp4',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
       );
       final isAlive = await StreamHealthChecker.isAlive(source);
       expect(isAlive, isTrue);
@@ -112,7 +112,7 @@ void main() {
       final source = StreamSource(
         name: 'Dead 404',
         url: 'http://127.0.0.1:$serverPort/dead_404',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
       );
       final isAlive = await StreamHealthChecker.isAlive(source);
       expect(isAlive, isFalse);
@@ -122,7 +122,7 @@ void main() {
       final source = StreamSource(
         name: 'HTML Error',
         url: 'http://127.0.0.1:$serverPort/html_error',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
       );
       final isAlive = await StreamHealthChecker.isAlive(source);
       expect(isAlive, isFalse);
@@ -132,7 +132,7 @@ void main() {
       final source = StreamSource(
         name: 'Torrent Source',
         infoHash: 'abcdef1234567890abcdef1234567890abcdef12',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
       );
       final isAlive = await StreamHealthChecker.isAlive(source);
       expect(isAlive, isTrue);

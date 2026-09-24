@@ -5,7 +5,7 @@ void main() {
   group('Audio Language & Dub Detection in StreamSource', () {
     test('Purstream Multi detected as multi and english', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'Purstream · pulse · 1080p · MULTI',
         description: 'Purstream Multi-Audio HLS Stream',
       );
@@ -18,7 +18,7 @@ void main() {
 
     test('Movy Delhi detected as Hindi', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Movy - Delhi] 1080p',
         description: 'Hindi audio • HLS',
       );
@@ -31,7 +31,7 @@ void main() {
 
     test('Movy Munich detected as German', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Movy - Munich] 1080p',
         description: 'German audio • HLS',
       );
@@ -44,7 +44,7 @@ void main() {
 
     test('Movy Paris detected as French', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Movy - Paris] 1080p',
         description: 'French audio • HLS',
       );
@@ -57,7 +57,7 @@ void main() {
 
     test('Movy Cancun detected as Spanish', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Movy - Cancun] 1080p',
         description: 'Spanish audio • HLS',
       );
@@ -70,7 +70,7 @@ void main() {
 
     test('Movy Miami detected as English / Original', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Movy - Miami] 1080p',
         description: 'Original audio • HLS',
       );
@@ -83,7 +83,7 @@ void main() {
 
     test('Vuflix Hindi Audio stream', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Vuflix - Beta] Hindi Audio',
         description: 'Beta • Hindi Audio • MOVIE',
       );
@@ -94,7 +94,7 @@ void main() {
 
     test('MeowTV Hindiv3 stream', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'MeowTV · Hindiv3 · 1080p',
         description: 'MeowTV Stream · HLS',
       );
@@ -105,7 +105,7 @@ void main() {
 
     test('RiveStream hindicast stream', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Rive - hindicast] HD',
         description: 'hindicast • HD • HLS',
       );
@@ -116,7 +116,7 @@ void main() {
 
     test('Vadapav Hindi release', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         name: 'vadapav.mov 1080P',
         title: '3.Idiots.[2009].1080p.10bit.BluRay.x265.Hindi.AAC.5.1.Esub.mkv',
         description: '3.Idiots.[2009].1080p.10bit.BluRay.x265.Hindi.AAC.5.1.Esub.mkv',
@@ -128,7 +128,7 @@ void main() {
 
     test('111477 Telugu Indian dub release', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'Inception.2010.720p.AMZN.WEB-DL.TELUGU.DDP2.0.H.265-GTM.mkv [a11 970.6 MB]',
       );
       final langs = s.getAudioLanguages();
@@ -138,7 +138,7 @@ void main() {
 
     test('DownloadEverything Dual Audio Hindi release', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[HubCloud] Movie.2024.1080p.Dual.Audio.Hindi.English.x264',
         description: '1080p · Dual Audio · Hindi · HubCloud',
       );
@@ -151,7 +151,7 @@ void main() {
 
     test('ZERO JUNK: MultiEmbed does NOT trigger multi-audio', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '2embed XPS · Server 1',
         description: '2embed Multi-CDN Stream',
       );
@@ -163,7 +163,7 @@ void main() {
 
     test('ZERO JUNK: FlaxMovies Multi-CDN does NOT trigger multi-audio', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'FlaxMovies · Airflix · 1080p',
         description: 'FlaxMovies Multi-CDN Stream · 1080p',
       );
@@ -175,7 +175,7 @@ void main() {
 
     test('ZERO JUNK: Dulo Multi-CDN does NOT trigger multi-audio', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'Dulo · Source · 1080p',
         description: 'Dulo Multi-CDN HLS Stream · 1080p',
       );
@@ -187,7 +187,7 @@ void main() {
 
     test('ZERO JUNK: Indiana Jones movie title does NOT trigger Indian/Hindi', () {
       final s = StreamSource(
-        addonName: 'PlayTorrio',
+        addonName: 'ZPlay',
         title: 'Indiana.Jones.and.the.Dial.of.Destiny.2023.1080p.WEBRip.x264-FLUX.mkv',
       );
       final langs = s.getAudioLanguages(mediaTitle: 'Indiana Jones and the Dial of Destiny');
@@ -197,7 +197,7 @@ void main() {
 
     test('ZERO JUNK: German Sub does NOT trigger German audio', () {
       final s = StreamSource(
-        addonName: 'PlayTorrio',
+        addonName: 'ZPlay',
         title: 'Movie.2024.1080p.WEBRip.x264 [German-Sub]',
         description: 'Subs: German, French, Spanish',
       );
@@ -210,7 +210,7 @@ void main() {
 
     test('ZERO JUNK: Multi-Sub does NOT trigger multi-audio', () {
       final s = StreamSource(
-        addonName: 'PlayTorrio',
+        addonName: 'ZPlay',
         title: 'Movie.2024.1080p.Multi-Sub.x265',
       );
       final langs = s.getAudioLanguages();
@@ -220,7 +220,7 @@ void main() {
 
     test('French VF / Truefrench triggers French audio', () {
       final s = StreamSource(
-        addonName: 'PlayTorrio',
+        addonName: 'ZPlay',
         title: 'Movie.2024.1080p.VF.x264-ZONE',
       );
       final langs = s.getAudioLanguages();
@@ -230,7 +230,7 @@ void main() {
 
     test('Standard LookMovie / VidSrc defaults to English / Original', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'LookMovie · 1080p',
         description: 'LookMovie HLS Stream · 1080p',
       );
@@ -243,7 +243,7 @@ void main() {
 
     test('VidVault backend language and MKV extraction', () {
       final s1 = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'VidVault · MP4 · Hindi · IN · 1080p',
         description: 'VidVault Direct MP4 · Hindi · IN',
       );
@@ -251,7 +251,7 @@ void main() {
       expect(s1.getAudioBadge(), '🇮🇳 HINDI');
 
       final s2 = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'VidVault · MKV · German · DE · 1080p · 2.8GB',
         description: 'VidVault Direct MKV · German DE 2.8GB',
       );
@@ -261,7 +261,7 @@ void main() {
 
     test('VidZee backend language extraction', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'VidZee · Alpha · Spanish · 1080p',
         description: 'VidZee Stream · Spanish · HLS',
       );
@@ -271,7 +271,7 @@ void main() {
 
     test('VixSrc foreign language extraction', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'VixSrc · Master HLS · Spanish · 1080p',
         description: 'VixSrc Master Stream · Spanish',
       );
@@ -281,7 +281,7 @@ void main() {
 
     test('Movy server language in title', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '[Movy - Munich · German] 1080p',
         description: 'German audio • HLS',
       );
@@ -291,7 +291,7 @@ void main() {
 
     test('X-Downloader spokenLanguages extraction', () {
       final s = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'X-Downloader · Hindi, English',
         description: 'X-Downloader Direct MP4 Stream · Hindi, English',
       );

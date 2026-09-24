@@ -43,14 +43,14 @@ void main() {
         name: '4K Stream',
         title: 'Show S01E01 2160p',
         url: 'https://stream.test/s1e1.mp4',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
       );
 
       final mockSource2 = StreamSource(
         name: '1080p Stream',
         title: 'Show S01E02 1080p',
         url: 'https://stream.test/s1e2.mp4',
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
       );
 
       cache[s1e1Key] = [mockSource1];
@@ -67,7 +67,7 @@ void main() {
   group('StreamService Targeted Scraping', () {
     test('fetchStreamsForTargetAddon returns a Stream', () {
       final stream = StreamService.fetchStreamsForTargetAddon(
-        targetAddonName: 'PlayTorrioHTTP',
+        targetAddonName: 'ZPlayHTTP',
         type: 'tv',
         id: 'tt123456:1:1',
         title: 'Test Show',

@@ -1,4 +1,4 @@
-package com.example.zplay
+package io.github.tzero86.zplay
 
 import android.content.Context
 import android.net.wifi.WifiManager
@@ -9,7 +9,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.zplay/power"
+    private val CHANNEL = "io.github.tzero86.zplay/power"
     private var wifiLock: WifiManager.WifiLock? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var cloudStreamBridge: CloudStreamNativeBridge? = null

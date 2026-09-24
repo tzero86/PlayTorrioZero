@@ -10,8 +10,8 @@ class AnimeLibraryService extends ChangeNotifier {
     ContentSettings.adultEnabled.addListener(notifyListeners);
   }
 
-  static const String _watchlistKey = 'playtorrio_anime_watchlist_v1';
-  static const String _historyKey = 'playtorrio_anime_history_v1';
+  static const String _watchlistKey = 'zplay_anime_watchlist_v1';
+  static const String _historyKey = 'zplay_anime_history_v1';
 
   final List<AnimeWatchlistItem> _watchlist = [];
   final Map<int, AnimeWatchlistItem> _progressMap = {};

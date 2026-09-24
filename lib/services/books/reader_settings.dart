@@ -220,7 +220,7 @@ class ReaderSettingsData {
 }
 
 class ReaderSettings {
-  static const String _storageKey = 'playtorrio_reader_settings_v3';
+  static const String _storageKey = 'zplay_reader_settings_v3';
   static final ValueNotifier<ReaderSettingsData> settingsNotifier =
       ValueNotifier<ReaderSettingsData>(const ReaderSettingsData());
 

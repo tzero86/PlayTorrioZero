@@ -362,11 +362,11 @@ class _SettingsPageState extends State<SettingsPage> {
     final provider = await _debrid.getSelectedService();
     final traktAuth = await TraktService.instance.isAuthenticated();
     final simklAuth = await SimklService.instance.isAuthenticated();
-    final pkg = await PackageInfo.fromPlatform().catchError((_) => PackageInfo(
+        final pkg = await PackageInfo.fromPlatform().catchError((_) => PackageInfo(
           appName: 'ZPlay',
-          packageName: 'com.example.zplay',
+          packageName: 'io.github.tzero86.zplay',
           version: '1.1.6',
-          buildNumber: '17',
+          buildNumber: '2019',
         ));
 
     if (mounted) {

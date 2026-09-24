@@ -6,8 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class P2pSettingsService {
   P2pSettingsService._();
 
-  static const String _kP2pEnabledKey = 'playtorrio_p2p_source_enabled';
-  static const String _kNeverShowWarningKey = 'playtorrio_p2p_warning_never_show';
+  static const String _kP2pEnabledKey = 'zplay_p2p_source_enabled';
+  static const String _kNeverShowWarningKey = 'zplay_p2p_warning_never_show';
 
   /// Whether the built-in P2P torrent source ('ZPlay') is enabled.
   /// When false, only direct HTTP streaming ('ZPlayHTTP') and external addons are used.

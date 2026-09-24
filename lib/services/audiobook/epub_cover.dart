@@ -6,7 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:xml/xml.dart';
 
 /// Extracts a cover image from EPUB bytes and writes it to the app's
-/// documents directory under `PlayTorrio/AudiobookCovers/<name>.<ext>`.
+/// documents directory under `ZPlay/AudiobookCovers/<name>.<ext>`.
 /// Returns the local file path, or null if no cover could be found.
 class EpubCover {
   static Future<String?> extractAndSave({
@@ -22,10 +22,10 @@ class EpubCover {
       Directory? targetDir;
       try {
         final appDocDir = await getApplicationDocumentsDirectory();
-        targetDir = Directory(p.join(appDocDir.path, 'PlayTorrio', 'AudiobookCovers'));
+        targetDir = Directory(p.join(appDocDir.path, 'ZPlay', 'AudiobookCovers'));
       } catch (_) {
         final temp = await getTemporaryDirectory();
-        targetDir = Directory(p.join(temp.path, 'PlayTorrio', 'AudiobookCovers'));
+        targetDir = Directory(p.join(temp.path, 'ZPlay', 'AudiobookCovers'));
       }
 
       if (!await targetDir.exists()) {

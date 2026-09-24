@@ -14,32 +14,32 @@ void main() {
         totalDurationSeconds: 8400,
         lastWatchedAt: DateTime.now(),
         isTorrent: false,
-        addonName: 'PlayTorrioHTTP',
-        streamName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
+        streamName: 'ZPlayHTTP',
         streamTitle: 'FSOnline · FileSuN · 1080p',
         streamDescription: 'FSOnline HLS Stream',
         quality: '1080p',
       );
 
       final exactMatch = StreamSource(
-        name: 'PlayTorrioHTTP',
-        addonName: 'PlayTorrioHTTP',
+        name: 'ZPlayHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'FSOnline · FileSuN · 1080p',
         description: 'FSOnline HLS Stream',
         url: 'https://example.com/fsonline/master.m3u8',
       );
 
       final variantPunctuationMatch = StreamSource(
-        name: 'PlayTorrioHTTP',
-        addonName: 'PlayTorrioHTTP',
+        name: 'ZPlayHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'FSOnline . FileSuN . 1080P',
         description: 'FSOnline HLS Stream',
         url: 'https://example.com/fsonline/master2.m3u8',
       );
 
       final differentScraper = StreamSource(
-        name: 'PlayTorrioHTTP',
-        addonName: 'PlayTorrioHTTP',
+        name: 'ZPlayHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'VidFast · vRapid · 1080p',
         description: 'VidFast Direct Stream',
         url: 'https://example.com/vidfast/video.mp4',

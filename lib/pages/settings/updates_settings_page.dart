@@ -99,13 +99,13 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                 builder: (context, snapshot) {
                   final version = snapshot.hasData ? snapshot.data!.version : '1.1.6';
                   final buildNumber = snapshot.hasData ? snapshot.data!.buildNumber : '2019';
-                  // Deliberately not PackageInfo.appName. On Windows that reads
-                  // the executable's ProductName, which is pinned to
-                  // "playtorrio" so path_provider keeps resolving the existing
-                  // %APPDATA%\Roaming\com.example\playtorrio data directory —
-                  // see windows/runner/Runner.rc. Renaming it would orphan
-                  // everyone's data, so the user-facing name is the brand here
-                  // instead of the platform string.
+                  // Deliberately not PackageInfo.appName: on Windows that reads
+                  // the executable's ProductName, which is a lowercase path
+                  // segment ("zplay") because path_provider derives
+                  // %APPDATA%\Roaming\<CompanyName>\<ProductName> from it —
+                  // see windows/runner/Runner.rc. The display name is the brand,
+                  // so it is written out here instead of taken from the
+                  // platform string.
                   const appName = 'ZPlay';
 
                   return Container(

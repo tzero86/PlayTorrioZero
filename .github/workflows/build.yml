@@ -494,7 +494,9 @@ jobs:
           merge-multiple: true
 
       - name: Publish Release with Assets
-        uses: softprops/action-gh-release@v2
+        # v3 runs on Node 24. v2 is the final v2 release and pins the Node 20
+        # runtime that GitHub Actions has deprecated.
+        uses: softprops/action-gh-release@v3
         with:
           name: "ZPlay ${{ github.ref_name }}"
           # Must be false. The in-app updater reads GitHub's releases/latest
@@ -505,6 +507,15 @@ jobs:
           draft: false
           prerelease: false
           generate_release_notes: true
+          # GPLv3 §6d requires offering the Corresponding Source alongside a
+          # published binary, and §5a requires upstream's notices to survive.
+          # When generate_release_notes is set, this body is prepended to the
+          # generated notes rather than replacing them.
+          body: |
+            ZPlay is a modified fork of PlayTorrio V3, © 2026 Ayman, distributed under the GNU GPL v3.0.
+            Corresponding source for this release: https://github.com/tzero86/ZPlay (tag ${{ github.ref_name }})
+            Upstream project and source: https://github.com/ayman708-UX/PlayTorrioV3
+            This program comes with ABSOLUTELY NO WARRANTY.
           files: |
             *.exe
             *.zip

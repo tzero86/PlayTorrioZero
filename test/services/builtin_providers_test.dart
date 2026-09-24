@@ -102,7 +102,7 @@ void main() {
       // Create stream items:
       // CineSrc has lower quality (720p, 500MB)
       final cineStream = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         providerId: 'cinesrc',
         providerName: 'CineSrc',
         title: 'CineSrc · Direct · 720p',
@@ -111,7 +111,7 @@ void main() {
 
       // Dulo has higher quality (4K, 25GB)
       final duloStream = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         providerId: 'dulo',
         providerName: 'Dulo',
         title: 'Dulo · Source 1 · 4K',
@@ -138,19 +138,19 @@ void main() {
 
     test('detectProviderId identifies providers from title or description fallback', () {
       final stream1 = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'CineSrc · Direct Master · 1080p',
       );
       expect(BuiltinProvidersSettingsService.detectProviderId(stream1), 'cinesrc');
 
       final stream2 = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: 'Videasy Server 1 · 1080p',
       );
       expect(BuiltinProvidersSettingsService.detectProviderId(stream2), 'videasy');
 
       final stream3 = StreamSource(
-        addonName: 'PlayTorrioHTTP',
+        addonName: 'ZPlayHTTP',
         title: '111477 · Direct · 1080p',
       );
       expect(BuiltinProvidersSettingsService.detectProviderId(stream3), 'a111477');

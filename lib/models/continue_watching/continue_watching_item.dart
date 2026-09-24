@@ -146,54 +146,19 @@ class ContinueWatchingItem {
       positionSeconds: json['positionSeconds'] is int ? json['positionSeconds'] : int.tryParse(json['positionSeconds']?.toString() ?? '') ?? 0,
       totalDurationSeconds: json['totalDurationSeconds'] is int ? json['totalDurationSeconds'] : int.tryParse(json['totalDurationSeconds']?.toString() ?? '') ?? 0,
       lastWatchedAt: json['lastWatchedAt'] != null ? (DateTime.tryParse(json['lastWatchedAt'].toString()) ?? DateTime.now()) : DateTime.now(),
-      addonName: _canonicalAddonName(json['addonName']?.toString()),
+      addonName: json['addonName']?.toString() ?? 'ZPlay',
       isTorrent: json['isTorrent'] == true,
       magnetUrl: json['magnetUrl']?.toString(),
       infoHash: json['infoHash']?.toString(),
       fileIdx: json['fileIdx'] is int ? json['fileIdx'] : int.tryParse(json['fileIdx']?.toString() ?? ''),
       rawUrl: json['rawUrl']?.toString(),
-      streamName: _canonicalStreamName(json['streamName']?.toString()),
+      streamName: json['streamName']?.toString(),
       streamTitle: json['streamTitle']?.toString(),
       streamDescription: json['streamDescription']?.toString(),
       quality: json['quality']?.toString(),
       headers: json['headers'] is Map ? Map<String, String>.from(json['headers']) : null,
       isAdult: json['isAdult'] == true,
     );
-  }
-
-  /// Pre-rebrand provider sentinels still present in records persisted before
-  /// the ZPlay rename. Map them to the current canonical values on read so
-  /// existing users keep their resume/watchlist association.
-  static String _canonicalAddonName(String? raw) {
-    switch (raw) {
-      case 'PlayTorrioHTTP':
-        return 'ZPlayHTTP';
-      case 'PlayTorrio':
-        return 'ZPlay';
-      case 'PlayTorrio Offline':
-        return 'ZPlay Offline';
-      default:
-        return raw ?? 'ZPlay';
-    }
-  }
-
-  /// [streamName] holds the saved source card name, but several scrapers set
-  /// their StreamSource `name` to the addon name rather than the card title, so
-  /// this field carries the same pre-rebrand sentinels as [addonName] and must
-  /// be canonicalised identically. Without this, a session saved before the
-  /// rename loses the source-name match in `calculateSourceMatchScore`.
-  /// Null is preserved - unlike [addonName] there is no historical fallback.
-  static String? _canonicalStreamName(String? raw) {
-    switch (raw) {
-      case 'PlayTorrioHTTP':
-        return 'ZPlayHTTP';
-      case 'PlayTorrio':
-        return 'ZPlay';
-      case 'PlayTorrio Offline':
-        return 'ZPlay Offline';
-      default:
-        return raw;
-    }
   }
 
   ContinueWatchingItem copyWith({

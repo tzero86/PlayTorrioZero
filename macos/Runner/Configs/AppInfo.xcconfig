@@ -8,7 +8,7 @@
 PRODUCT_NAME = zplay
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.zplay
+PRODUCT_BUNDLE_IDENTIFIER = io.github.tzero86.zplay
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 tzero86. All rights reserved.

@@ -77,7 +77,7 @@ class MusicDownloadService extends ChangeNotifier {
 
     try {
       final appDocDir = await getApplicationDocumentsDirectory();
-      _musicDir = Directory(p.join(appDocDir.path, 'PlayTorrio', 'Music'));
+      _musicDir = Directory(p.join(appDocDir.path, 'ZPlay', 'Music'));
       _tracksDir = Directory(p.join(_musicDir!.path, 'Tracks'));
       _coversDir = Directory(p.join(_musicDir!.path, 'Covers'));
 

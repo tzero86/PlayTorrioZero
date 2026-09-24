@@ -18,11 +18,9 @@ namespace {
 // (lib/services/diagnostics/renderer_backend.dart). The Windows
 // shared_preferences plugin stores
 // `%APPDATA%\<CompanyName>\<ProductName>\shared_preferences.json`
-// (Runner.rc: CompanyName "com.example"; ProductName is deliberately pinned to
-// the legacy `playtorrio` product name so existing user preferences stay
-// readable across the product rename; the executable name is the fallback),
-// with keys prefixed `flutter.`. The candidate paths below are pinned to that
-// same legacy product directory for the same reason.
+// (Runner.rc: CompanyName "tzero86"; ProductName "zplay"; the executable
+// name is the fallback), with keys prefixed `flutter.`. The candidate paths
+// below mirror that layout.
 // Anything missing or unparseable falls back to "skia": measured A/B on
 // this machine felt faster on Skia, and the Impeller run coincided with
 // an NVIDIA driver crash notice.
@@ -35,8 +33,8 @@ std::string ReadSavedRendererBackend() {
   std::wstring base(appdata);
   free(appdata);
   const wchar_t* candidates[] = {
-      L"com.example\\playtorrio\\shared_preferences.json",
-      L"playtorrio\\shared_preferences.json",
+      L"tzero86\\zplay\\shared_preferences.json",
+      L"zplay\\shared_preferences.json",
   };
   for (const wchar_t* candidate : candidates) {
     std::ifstream file(base + L"\\" + candidate);
@@ -90,19 +88,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   // Give this process its own shell identity.
   //
-  // ZPlay deliberately inherited upstream's CompanyName/ProductName
-  // (com.example\playtorrio) so that path_provider keeps resolving the existing
-  // %APPDATA%\Roaming\com.example\playtorrio data directory - see the note in
-  // Runner.rc and ReadSavedRendererBackend below. The cost of that is that this
-  // binary advertises the *same* version-info identity as an installed copy of
-  // the original PlayTorrio, and Windows has no other signal to tell two Win32
-  // apps apart: with no explicit AppUserModelID the shell is free to treat them
-  // as one application, which is how a running ZPlay ends up adopting the old
-  // PlayTorrio taskbar pin, its name and its icon.
-  //
-  // Setting one keeps the two separate at the shell level while leaving the
-  // version info - and therefore the data directory - untouched.
-  ::SetCurrentProcessExplicitAppUserModelID(L"com.example.zplay");
+  // ZPlay used to inherit upstream's CompanyName/ProductName version-info
+  // identity verbatim, and this explicit AppUserModelID was added because a
+  // binary advertising that same identity could be grouped by the shell with an
+  // installed copy of the upstream app. The inherited identity is gone: Runner.rc
+  // now reports tzero86\zplay, so both the version info and the
+  // %APPDATA%\Roaming data directory are the fork's own. The explicit AUMID is
+  // kept regardless - the shell does not derive its grouping key from the
+  // version-info identity at all. Without an explicit AppUserModelID a Win32
+  // process is grouped by an implicit identity derived from its shortcut/executable
+  // path, so the separation would then depend on where each app happens to be
+  // installed; setting one makes the identity explicit and stable across installs.
+  ::SetCurrentProcessExplicitAppUserModelID(L"io.github.tzero86.zplay");
 
   flutter::DartProject project(L"data");
 

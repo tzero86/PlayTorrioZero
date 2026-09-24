@@ -19,53 +19,24 @@ class AddonManager {
   AddonManager._();
   static final AddonManager instance = AddonManager._();
 
-  static const String _storageKey = 'installed_addons_v4';
+  static const String _storageKey = 'installed_addons_v5';
 
   List<InstalledAddon> _addons = [];
   bool _initialized = false;
 
   void _ensureBuiltInsExist() {
     bool changed = false;
-    if (!_addons.any((a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio')) {
+    if (!_addons.any((a) => a.manifest.id == 'builtin.zplay' || a.baseUrl == 'builtin:zplay')) {
       _addons.add(zplayBuiltin);
       changed = true;
     }
-    if (!_addons.any((a) => a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp')) {
+    if (!_addons.any((a) => a.manifest.id == 'builtin.zplayhttp' || a.baseUrl == 'builtin:zplayhttp')) {
       _addons.add(zplayHttpBuiltin);
       changed = true;
     }
     if (changed && _initialized) {
       _save();
     }
-  }
-
-  /// Rewrites the manifest of persisted built-in addons when it still carries
-  /// the pre-rebrand display name, preserving every user-controlled flag.
-  ///
-  /// `_ensureBuiltInsExist` only checks the id, so an install that installed the
-  /// built-ins before the rename would otherwise keep the stale name forever.
-  bool _refreshBuiltInNames() {
-    var changed = false;
-    for (final builtIn in [zplayBuiltin, zplayHttpBuiltin]) {
-      final index = _addons.indexWhere(
-        (a) => a.manifest.id == builtIn.manifest.id || a.baseUrl == builtIn.baseUrl,
-      );
-      if (index == -1) continue;
-      final stored = _addons[index];
-      if (stored.manifest.name == builtIn.manifest.name) continue;
-      _addons[index] = InstalledAddon(
-        baseUrl: builtIn.baseUrl,
-        manifest: builtIn.manifest,
-        enabled: stored.enabled,
-        enableCatalogs: stored.enableCatalogs,
-        enableSearch: stored.enableSearch,
-        enableSubtitles: stored.enableSubtitles,
-        enableStreams: stored.enableStreams,
-        adultRating: stored.adultRating,
-      );
-      changed = true;
-    }
-    return changed;
   }
 
   List<InstalledAddon> get addons {
@@ -109,19 +80,19 @@ class AddonManager {
         .toList();
   }
 
-  bool get isPlayTorrioActive {
+  bool get isZplayActive {
     _ensureBuiltInsExist();
     final p2p = _addons.firstWhere(
-      (a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio',
+      (a) => a.manifest.id == 'builtin.zplay' || a.baseUrl == 'builtin:zplay',
       orElse: () => zplayBuiltin,
     );
     return p2p.isStreamsActive;
   }
 
-  bool get isPlayTorrioHttpActive {
+  bool get isZplayHttpActive {
     _ensureBuiltInsExist();
     final http = _addons.firstWhere(
-      (a) => a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp',
+      (a) => a.manifest.id == 'builtin.zplayhttp' || a.baseUrl == 'builtin:zplayhttp',
       orElse: () => zplayHttpBuiltin,
     );
     return http.isStreamsActive;
@@ -148,9 +119,9 @@ class AddonManager {
   }
 
   static final InstalledAddon zplayBuiltin = InstalledAddon(
-    baseUrl: 'builtin:playtorrio',
+    baseUrl: 'builtin:zplay',
     manifest: AddonManifest(
-      id: 'builtin.playtorrio',
+      id: 'builtin.zplay',
       name: 'ZPlay',
       version: '3.0.0',
       description: 'Built-in BitTorrent P2P streaming engine (TorrServer). Plays torrents, magnets, and infohashes directly.',
@@ -167,9 +138,9 @@ class AddonManager {
   );
 
   static final InstalledAddon zplayHttpBuiltin = InstalledAddon(
-    baseUrl: 'builtin:playtorriohttp',
+    baseUrl: 'builtin:zplayhttp',
     manifest: AddonManifest(
-      id: 'builtin.playtorriohttp',
+      id: 'builtin.zplayhttp',
       name: 'ZPlayHTTP',
       version: '3.0.0',
       description: 'Built-in fast HTTP stream scrapers (111477, Cinejoy, Vuflix, Movy, RiveStream, Vadapav, VidCore, VidSrc, etc.)',
@@ -223,27 +194,20 @@ class AddonManager {
     }
 
     // Ensure ZPlay P2P engine is registered in the list
-    if (!_addons.any((a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio')) {
+    if (!_addons.any((a) => a.manifest.id == 'builtin.zplay' || a.baseUrl == 'builtin:zplay')) {
       _addons.add(zplayBuiltin);
       await _save();
     }
 
     // Ensure ZPlayHTTP is registered in the list
-    if (!_addons.any((a) => a.manifest.id == 'builtin.playtorriohttp' || a.baseUrl == 'builtin:playtorriohttp')) {
+    if (!_addons.any((a) => a.manifest.id == 'builtin.zplayhttp' || a.baseUrl == 'builtin:zplayhttp')) {
       _addons.add(zplayHttpBuiltin);
-      await _save();
-    }
-
-    // Existing installs persisted the built-in addons under their pre-rebrand
-    // display name. Refresh the stored manifest so the rename reaches installs
-    // that never clear their addon list, keeping user state intact.
-    if (_refreshBuiltInNames()) {
       await _save();
     }
 
     // Sync P2P state
     final p2pAddon = _addons.firstWhere(
-      (a) => a.manifest.id == 'builtin.playtorrio' || a.baseUrl == 'builtin:playtorrio',
+      (a) => a.manifest.id == 'builtin.zplay' || a.baseUrl == 'builtin:zplay',
       orElse: () => zplayBuiltin,
     );
     P2pSettingsService.isP2pEnabled.value = p2pAddon.isStreamsActive;
@@ -330,7 +294,7 @@ class AddonManager {
   }
 
   Future<void> removeAddon(String addonId) async {
-    if (addonId == 'builtin.playtorrio' || addonId == 'builtin.playtorriohttp') {
+    if (addonId == 'builtin.zplay' || addonId == 'builtin.zplayhttp') {
       // For built-in providers, disable instead of deleting
       await toggleAddon(addonId, false);
       return;
@@ -347,7 +311,7 @@ class AddonManager {
         break;
       }
     }
-    if (addonId == 'builtin.playtorrio') {
+    if (addonId == 'builtin.zplay') {
       await P2pSettingsService.setP2pEnabled(enabled);
     }
     MetadataService.clearCache();
@@ -389,7 +353,7 @@ class AddonManager {
         break;
       }
     }
-    if (addonId == 'builtin.playtorrio' && enableStreams != null) {
+    if (addonId == 'builtin.zplay' && enableStreams != null) {
       await P2pSettingsService.setP2pEnabled(enableStreams);
     }
     MetadataService.clearCache();
