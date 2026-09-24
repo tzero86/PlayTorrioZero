@@ -98,8 +98,15 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                 future: PackageInfo.fromPlatform(),
                 builder: (context, snapshot) {
                   final version = snapshot.hasData ? snapshot.data!.version : '1.1.6';
-                  final buildNumber = snapshot.hasData ? snapshot.data!.buildNumber : '17';
-                  final appName = snapshot.hasData ? snapshot.data!.appName : 'ZPlay';
+                  final buildNumber = snapshot.hasData ? snapshot.data!.buildNumber : '2019';
+                  // Deliberately not PackageInfo.appName. On Windows that reads
+                  // the executable's ProductName, which is pinned to
+                  // "playtorrio" so path_provider keeps resolving the existing
+                  // %APPDATA%\Roaming\com.example\playtorrio data directory —
+                  // see windows/runner/Runner.rc. Renaming it would orphan
+                  // everyone's data, so the user-facing name is the brand here
+                  // instead of the platform string.
+                  const appName = 'ZPlay';
 
                   return Container(
                     padding: const EdgeInsets.all(18),
@@ -133,9 +140,9 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  const Text(
                                     appName,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w800,
                                       color: Colors.white,
