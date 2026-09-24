@@ -2095,7 +2095,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                         ),
                       )
                     else
-                      const CircularProgressIndicator(color: PlayerTheme.accent),
+                      CircularProgressIndicator(color: PlayerTheme.accent),
                     const SizedBox(height: 32),
                     Text(
                       _statusMessage,

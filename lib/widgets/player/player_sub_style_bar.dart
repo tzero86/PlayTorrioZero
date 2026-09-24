@@ -36,15 +36,15 @@ class PlayerSubStyleBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
             // Label
-            const Row(
+            Row(
               children: [
                 Icon(
                   Icons.format_size_rounded,
                   size: 16,
                   color: PlayerTheme.accent,
                 ),
-                SizedBox(width: 8),
-                Text(
+                const SizedBox(width: 8),
+                const Text(
                   'SUBTITLE SIZE',
                   style: TextStyle(
                     color: PlayerTheme.inkSubtle,

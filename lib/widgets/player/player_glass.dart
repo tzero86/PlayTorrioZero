@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import '../../services/theme/glass_settings.dart';
+import '../../services/theme/app_theme_service.dart';
 
 /// Design tokens and glass styling for the modern video player UI.
 class PlayerTheme {
@@ -15,10 +16,12 @@ class PlayerTheme {
   static const Color edge = Color(0x1FFFFFFF); // 12% white
   static const Color edgeSoft = Color(0x12FFFFFF); // 7% white
 
-  // Accents
-  static const Color accent = Color(0xFF7C5CFF);
-  static const Color accentSoft = Color(0x337C5CFF);
-  static const Color accentGlow = Color(0x667C5CFF);
+  // Accents. Sourced from the user's palette rather than a literal: these were
+  // pinned to #7C5CFF, which is only the *default* palette's primary, so
+  // choosing any other palette left the whole player UI purple regardless.
+  static Color get accent => AppThemeService.currentPalette.value.primaryColor;
+  static Color get accentSoft => accent.withValues(alpha: 0.20);
+  static Color get accentGlow => accent.withValues(alpha: 0.40);
   static const Color danger = Color(0xFFEF4444);
   static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);

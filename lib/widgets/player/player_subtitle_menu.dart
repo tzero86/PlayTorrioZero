@@ -302,7 +302,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                           ? SizedBox(
                               width: iconSize,
                               height: iconSize,
-                              child: const CircularProgressIndicator(
+                              child: CircularProgressIndicator(
                                 color: PlayerTheme.accent,
                                 strokeWidth: 2,
                               ),
@@ -856,10 +856,10 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
           if (compact)
             GestureDetector(
               onTap: _searchOnline,
-              child: const Row(
+              child: Row(
                 children: [
                   Icon(Icons.search_rounded, size: 13, color: PlayerTheme.accent),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   Text(
                     'Search Online',
                     style: TextStyle(
@@ -959,7 +959,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                                 color: PlayerTheme.accent.withValues(alpha: 0.18),
                                 borderRadius: BorderRadius.circular(4),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'EMBEDDED',
                                 style: TextStyle(
                                   color: PlayerTheme.accent,
@@ -1017,7 +1017,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
 
   Widget _buildVariantList(List<SubtitleVariant> filteredVariants, {required bool compact}) {
     if (_isLoadingSearch && filteredVariants.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -1025,8 +1025,8 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
               color: PlayerTheme.accent,
               strokeWidth: 2.5,
             ),
-            SizedBox(height: 10),
-            Text(
+            const SizedBox(height: 10),
+            const Text(
               'Searching subtitles...',
               style: TextStyle(color: PlayerTheme.inkMuted, fontSize: 12),
             ),
@@ -1092,14 +1092,14 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: PlayerTheme.accent.withValues(alpha: 0.3)),
             ),
-            child: const Row(
+            child: Row(
               children: [
                 SizedBox(
                   width: 12,
                   height: 12,
                   child: CircularProgressIndicator(strokeWidth: 2, color: PlayerTheme.accent),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Text(
                   'Searching additional subtitles online...',
                   style: TextStyle(color: PlayerTheme.accent, fontSize: 11, fontWeight: FontWeight.w500),
@@ -1275,13 +1275,13 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
         children: [
           GestureDetector(
             onTap: _searchOnline,
-            child: const MouseRegion(
+            child: MouseRegion(
               cursor: SystemMouseCursors.click,
               child: Row(
                 children: [
                   Icon(Icons.search_rounded, size: 13, color: PlayerTheme.accent),
-                  SizedBox(width: 5),
-                  Text(
+                  const SizedBox(width: 5),
+                  const Text(
                     'Find more subtitles',
                     style: TextStyle(
                       color: PlayerTheme.inkMuted,

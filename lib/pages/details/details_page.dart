@@ -14,6 +14,8 @@ import '../../utils/navigation/route_transitions.dart';
 import '../discover/discover_page.dart';
 import '../player/watch_screen.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../../services/theme/app_theme_service.dart';
+
 // ---------------------------------------------------------------------------
 // Design tokens
 // ---------------------------------------------------------------------------
@@ -29,8 +31,12 @@ class _Space {
 class _Palette {
   static const bg = Color(0xFF0B0D12);
   static const surface = Color(0xFF15171F);
-  static const accent = Color(0xFFE50914);
-  static const accentDim = Color(0xFF9A0710);
+
+  /// The screen's accent was pinned to #E50914, a Netflix red that belongs to no
+  /// palette in this app, so Details ignored the user's theme entirely. Both
+  /// accents now derive from the active palette.
+  static Color get accent => AppThemeService.currentPalette.value.primaryColor;
+  static Color get accentDim => Color.lerp(accent, Colors.black, 0.33)!;
   static const gold = Color(0xFFFFC107);
 
   static const avatarPairs = [
@@ -458,7 +464,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
     return Scaffold(
       backgroundColor: _Palette.bg,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: _Palette.accent))
+          ? Center(child: CircularProgressIndicator(color: _Palette.accent))
           : _detail == null
               ? _buildError()
               : _buildContent(context),
@@ -596,9 +602,9 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                             const SizedBox(height: _Space.xl),
                           ] else if (_isFetchingSimilar) ...[
                             _buildSectionHeader('Similar Content'),
-                            const Center(
+                            Center(
                               child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 40),
+                                padding: const EdgeInsets.symmetric(vertical: 40),
                                 child: SizedBox(
                                   width: 24, height: 24,
                                   child: CircularProgressIndicator(
@@ -974,7 +980,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
         width: fullWidth ? double.infinity : null,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [_Palette.accent, _Palette.accentDim]),
+          gradient: LinearGradient(colors: [_Palette.accent, _Palette.accentDim]),
           borderRadius: BorderRadius.circular(8),
           boxShadow: [BoxShadow(color: _Palette.accent.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 4))],
         ),
@@ -1020,12 +1026,12 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: BoxDecoration(
               color: inList
-                  ? const Color(0xFF7C5CFF).withOpacity(0.18)
+                  ? _Palette.accent.withOpacity(0.18)
                   : Colors.white.withOpacity(0.08),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
                 color: inList
-                    ? const Color(0xFF7C5CFF).withOpacity(0.35)
+                    ? _Palette.accent.withOpacity(0.35)
                     : Colors.white.withOpacity(0.14),
               ),
             ),
@@ -1035,14 +1041,14 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
               children: [
                 Icon(
                   inList ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                  color: inList ? const Color(0xFF7C5CFF) : Colors.white,
+                  color: inList ? _Palette.accent : Colors.white,
                   size: 22,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   inList ? 'In Library' : 'Library',
                   style: TextStyle(
-                    color: inList ? const Color(0xFF7C5CFF) : Colors.white,
+                    color: inList ? _Palette.accent : Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -1922,7 +1928,7 @@ class _EpisodeCardState extends State<_EpisodeCard> {
                           children: [
                             Text(
                               widget.isCollection ? 'PART ${ep.episode ?? "?"}' : 'EP ${ep.episode ?? "?"}',
-                              style: const TextStyle(color: _Palette.accent, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: TextStyle(color: _Palette.accent, fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                             const Spacer(),
                             if (ep.released != null && ep.released!.length >= 4)

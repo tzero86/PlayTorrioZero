@@ -98,7 +98,7 @@ class _PlayerSpeedMenuState extends State<PlayerSpeedMenu> {
                           ),
                         ),
                         if (isSelected)
-                          const Icon(
+                          Icon(
                             Icons.check_rounded,
                             size: 16,
                             color: PlayerTheme.accent,
