@@ -105,6 +105,16 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   /// Guards the pre-open window. See [_startOpenWatchdog].
   Timer? _openWatchdogTimer;
+
+  /// Times a sustained `player.stream.buffering == true`. See the listener in
+  /// initState for why the frame watchdog cannot cover this case.
+  Timer? _bufferingStallTimer;
+
+  /// How long buffering may stay latched with no frames before it is treated as
+  /// a stalled stream. Generous on purpose: a seek or a slow segment legitimately
+  /// buffers for a while, and the overlay is cleared automatically the moment
+  /// frames arrive.
+  static const Duration _bufferingStallTimeout = Duration(seconds: 25);
   bool _hasFallenBackToSoftware = false;
   bool _hasReceivedFirstVideoFrame = false;
 
@@ -271,6 +281,27 @@ class _PlayerScreenState extends State<PlayerScreen>
             }
           } catch (_) {}
         }
+        // Sustained buffering is the latched runtime signal for a stream that is
+        // not delivering data, and nothing else times it. The frame watchdog's
+        // conditions all require a missing first frame AND a zero video width, so
+        // a stream that latches buffering with a known width slips through every
+        // guard and sits there indefinitely. Time the false->true edge instead.
+        if (isBuffering && !_wasBuffering) {
+          _bufferingStallTimer?.cancel();
+          _bufferingStallTimer = Timer(_bufferingStallTimeout, () {
+            if (!mounted || _hasReceivedFirstVideoFrame || _streamStalled) return;
+            CrashBreadcrumbs.stream('buffering.stall', title: _currentTitle);
+            setState(() {
+              _isLoading = true;
+              _streamStalled = true;
+              _statusMessage =
+                  'This stream is not responding - the source may be expired.';
+            });
+          });
+        } else if (!isBuffering && _wasBuffering) {
+          _bufferingStallTimer?.cancel();
+          _bufferingStallTimer = null;
+        }
         _wasBuffering = isBuffering;
       }),
       // Per-stream "video is flowing" signal.
@@ -327,6 +358,8 @@ class _PlayerScreenState extends State<PlayerScreen>
     _hasReceivedFirstVideoFrame = false;
     _playbackStartedAt = null;
     _startOpenWatchdog();
+    _bufferingStallTimer?.cancel();
+    _bufferingStallTimer = null;
     String? streamUrl;
 
     print('[PlayerScreen] Initializing playback:');
@@ -681,6 +714,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// would tell the user the stream failed while they are watching it.
   void _clearStallOverlay() {
     _cancelOpenWatchdog();
+    _bufferingStallTimer?.cancel();
+    _bufferingStallTimer = null;
     if (!mounted || !_isLoading) return;
     setState(() {
       _isLoading = false;
@@ -776,6 +811,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _progressSaveTimer?.cancel();
     _frameWatchdogTimer?.cancel();
     _cancelOpenWatchdog();
+    _bufferingStallTimer?.cancel();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => WatchScreen(
@@ -1400,6 +1436,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _progressSaveTimer?.cancel();
     _frameWatchdogTimer?.cancel();
     _cancelOpenWatchdog();
+    _bufferingStallTimer?.cancel();
     _fallbackNoticeTimer?.cancel();
     _fallbackNoticeText = null;
     _savePlaybackProgress();
@@ -1658,6 +1695,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _progressSaveTimer?.cancel();
     _frameWatchdogTimer?.cancel();
     _cancelOpenWatchdog();
+    _bufferingStallTimer?.cancel();
     _fallbackNoticeTimer?.cancel();
     _volumeHudTimer?.cancel();
     _brightnessHudTimer?.cancel();
