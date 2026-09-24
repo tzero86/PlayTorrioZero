@@ -6,6 +6,7 @@ import '../../models/movie/movie.dart';
 import '../../services/calendar/tv_calendar_service.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../widgets/common/animated_ambient_background.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../details/details_page.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -844,7 +845,7 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
   }
 }
 
-class _EpisodeCalendarCard extends StatefulWidget {
+class _EpisodeCalendarCard extends StatelessWidget {
   final TvCalendarEntryModel entry;
   final AppThemePalette palette;
   final VoidCallback onTap;
@@ -856,38 +857,28 @@ class _EpisodeCalendarCard extends StatefulWidget {
   });
 
   @override
-  State<_EpisodeCalendarCard> createState() => _EpisodeCalendarCardState();
-}
-
-class _EpisodeCalendarCardState extends State<_EpisodeCalendarCard> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final entry = widget.entry;
     final posterUrl = entry.posterUrl ?? '';
     final airTimeStr = entry.airTimeFormatted ?? '';
     final epCode = entry.episodeCode;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) {
+        final isHovered = state.highlighted;
+        return AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOut,
           decoration: BoxDecoration(
-            color: _isHovered
+            color: isHovered
                 ? const Color(0xFF161B29).withValues(alpha: 0.95)
                 : const Color(0xFF10131E).withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: _isHovered
-                  ? widget.palette.primaryColor.withValues(alpha: 0.6)
+              color: isHovered
+                  ? palette.primaryColor.withValues(alpha: 0.6)
                   : Colors.white.withValues(alpha: 0.08),
-              width: _isHovered ? 1.4 : 1.0,
+              width: isHovered ? 1.4 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
@@ -895,9 +886,9 @@ class _EpisodeCalendarCardState extends State<_EpisodeCalendarCard> {
                 blurRadius: 14,
                 offset: const Offset(0, 4),
               ),
-              if (_isHovered)
+              if (isHovered)
                 BoxShadow(
-                  color: widget.palette.primaryColor.withValues(alpha: 0.18),
+                  color: palette.primaryColor.withValues(alpha: 0.18),
                   blurRadius: 16,
                   offset: const Offset(0, 2),
                 ),
@@ -954,13 +945,13 @@ class _EpisodeCalendarCardState extends State<_EpisodeCalendarCard> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                             decoration: BoxDecoration(
-                              color: widget.palette.primaryColor.withValues(alpha: 0.22),
+                              color: palette.primaryColor.withValues(alpha: 0.22),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               epCode,
                               style: TextStyle(
-                                color: widget.palette.primaryColor,
+                                color: palette.primaryColor,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w800,
                               ),
@@ -1056,14 +1047,14 @@ class _EpisodeCalendarCardState extends State<_EpisodeCalendarCard> {
                 padding: const EdgeInsets.only(right: 12),
                 child: Icon(
                   Icons.chevron_right_rounded,
-                  color: _isHovered ? widget.palette.primaryColor : Colors.white24,
+                  color: isHovered ? palette.primaryColor : Colors.white24,
                   size: 22,
                 ),
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

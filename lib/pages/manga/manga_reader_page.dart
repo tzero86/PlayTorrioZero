@@ -11,6 +11,7 @@ import '../../services/manga/manga_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../services/discord/discord_rpc_service.dart';
 import '../../widgets/common/custom_scroll_track.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/segmented_tabs.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -829,9 +830,9 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
               itemCount: _pageUrls.length,
               itemBuilder: (context, index) {
                 final isCurrent = index == _currentPageIndex;
-                return GestureDetector(
+                return FocusableCard(
                   onTap: () => _jumpToPage(index),
-                  child: AnimatedContainer(
+                  builder: (context, _) => AnimatedContainer(
                     duration: const Duration(milliseconds: 160),
                     width: cardWidth,
                     margin: const EdgeInsets.only(right: 8),

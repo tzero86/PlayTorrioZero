@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/music/music_settings.dart';
+import '../common/focusable_card.dart';
 
 class MusicInteractivePhysicsButton extends StatefulWidget {
   final Widget child;
@@ -30,8 +31,6 @@ class MusicInteractivePhysicsButton extends StatefulWidget {
 
 class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsButton>
     with SingleTickerProviderStateMixin {
-  bool _isHovered = false;
-  bool _isPressed = false;
   double _tiltX = 0.0;
   double _tiltY = 0.0;
 
@@ -74,7 +73,6 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
 
   void _onPointerExit() {
     setState(() {
-      _isHovered = false;
       _tiltX = 0.0;
       _tiltY = 0.0;
     });
@@ -87,61 +85,60 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
     final palette = AppThemeService.currentPalette.value;
     final glow = widget.glowColor ?? palette.primaryColor;
 
-    return MouseRegion(
+    return FocusableCard(
+      onTap: widget.onTap,
+      // A null `onTap` is how callers disable a step button, so it must not
+      // become a focus stop that does nothing when activated.
+      enabled: widget.enabled && widget.onTap != null,
       cursor: widget.enabled && widget.onTap != null
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
-      onEnter: (_) {
-        if (!widget.enabled) return;
-        setState(() => _isHovered = true);
-        if (activeEffect == MusicHoverEffect.glassRipple) {
-          _rippleAnimController.forward(from: 0.0);
-        }
-      },
-      onHover: (event) {
-        if (!widget.enabled || activeEffect != MusicHoverEffect.tilt3D) return;
-        final renderBox = context.findRenderObject() as RenderBox?;
-        if (renderBox != null) {
-          _onPointerHover(event, renderBox.size);
-        }
-      },
-      onExit: (_) => _onPointerExit(),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTapDown: (_) {
+      builder: (context, state) => MouseRegion(
+        // Pointer-only: [FocusableCard] owns tap, activation and the cursor, but
+        // `tilt3D` needs the raw hover position and the tilt has to reset when
+        // the pointer leaves.
+        onEnter: (_) {
           if (!widget.enabled) return;
-          setState(() => _isPressed = true);
           if (activeEffect == MusicHoverEffect.glassRipple) {
             _rippleAnimController.forward(from: 0.0);
           }
         },
-        onTapUp: (_) {
-          if (!widget.enabled) return;
-          setState(() => _isPressed = false);
+        onHover: (event) {
+          if (!widget.enabled || activeEffect != MusicHoverEffect.tilt3D) return;
+          final renderBox = context.findRenderObject() as RenderBox?;
+          if (renderBox != null) {
+            _onPointerHover(event, renderBox.size);
+          }
         },
-        onTapCancel: () {
-          if (!widget.enabled) return;
-          setState(() => _isPressed = false);
-        },
-        onTap: widget.enabled ? widget.onTap : null,
-        child: _buildPhysicsTransform(activeEffect, glow),
+        onExit: (_) => _onPointerExit(),
+        child: Listener(
+          // Pointer-only: the ripple beat that starts on the way down has no
+          // keyboard equivalent, so it keeps its own raw pointer hook.
+          onPointerDown: (_) {
+            if (!widget.enabled) return;
+            if (activeEffect == MusicHoverEffect.glassRipple) {
+              _rippleAnimController.forward(from: 0.0);
+            }
+          },
+          child: _buildPhysicsTransform(activeEffect, glow, state),
+        ),
       ),
     );
   }
 
-  Widget _buildPhysicsTransform(MusicHoverEffect effect, Color glow) {
+  Widget _buildPhysicsTransform(MusicHoverEffect effect, Color glow, CardInteraction state) {
     switch (effect) {
       case MusicHoverEffect.scaleBounce:
-        final scale = _isPressed ? 0.88 : (_isHovered ? 1.15 : 1.0);
+        final scale = state.pressed ? 0.88 : (state.highlighted ? 1.15 : 1.0);
         return AnimatedScale(
           scale: scale,
-          duration: Duration(milliseconds: _isPressed ? 80 : 220),
-          curve: _isPressed ? Curves.easeIn : Curves.elasticOut,
+          duration: Duration(milliseconds: state.pressed ? 80 : 220),
+          curve: state.pressed ? Curves.easeIn : Curves.elasticOut,
           child: widget.child,
         );
 
       case MusicHoverEffect.glowAura:
-        final scale = _isPressed ? 0.92 : (_isHovered ? 1.08 : 1.0);
+        final scale = state.pressed ? 0.92 : (state.highlighted ? 1.08 : 1.0);
         return AnimatedScale(
           scale: scale,
           duration: const Duration(milliseconds: 180),
@@ -151,15 +148,15 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
             curve: Curves.easeOutCubic,
             decoration: BoxDecoration(
               borderRadius: widget.borderRadius ?? BorderRadius.circular(30),
-              boxShadow: _isHovered
+              boxShadow: state.highlighted
                   ? [
                       BoxShadow(
-                        color: glow.withValues(alpha: _isPressed ? 0.85 : 0.6),
-                        blurRadius: _isPressed ? 30 : 22,
-                        spreadRadius: _isPressed ? 3 : 1,
+                        color: glow.withValues(alpha: state.pressed ? 0.85 : 0.6),
+                        blurRadius: state.pressed ? 30 : 22,
+                        spreadRadius: state.pressed ? 3 : 1,
                       ),
                       BoxShadow(
-                        color: Colors.white.withValues(alpha: _isPressed ? 0.35 : 0.18),
+                        color: Colors.white.withValues(alpha: state.pressed ? 0.35 : 0.18),
                         blurRadius: 8,
                       ),
                     ]
@@ -170,7 +167,7 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
         );
 
       case MusicHoverEffect.glassRipple:
-        final scale = _isPressed ? 0.93 : (_isHovered ? 1.07 : 1.0);
+        final scale = state.pressed ? 0.93 : (state.highlighted ? 1.07 : 1.0);
         final radius = widget.borderRadius ?? BorderRadius.circular(24);
 
         return AnimatedScale(
@@ -184,7 +181,7 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
               return Container(
                 decoration: BoxDecoration(
                   borderRadius: radius,
-                  boxShadow: _isHovered
+                  boxShadow: state.highlighted
                       ? [
                           BoxShadow(
                             color: glow.withValues(alpha: 0.35 * (1.0 - rippleVal * 0.3)),
@@ -198,11 +195,11 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
                   alignment: Alignment.center,
                   clipBehavior: Clip.none,
                   children: [
-                    if (_isHovered || _rippleAnimController.isAnimating)
+                    if (state.highlighted || _rippleAnimController.isAnimating)
                       Positioned.fill(
                         child: IgnorePointer(
                           child: AnimatedOpacity(
-                            opacity: _isHovered ? 1.0 : 0.0,
+                            opacity: state.highlighted ? 1.0 : 0.0,
                             duration: const Duration(milliseconds: 150),
                             child: Container(
                               decoration: BoxDecoration(
@@ -239,12 +236,12 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
         );
 
       case MusicHoverEffect.tilt3D:
-        final scale = _isPressed ? 0.90 : (_isHovered ? 1.10 : 1.0);
+        final scale = state.pressed ? 0.90 : (state.highlighted ? 1.10 : 1.0);
         final rotateX = -_tiltY * (math.pi / 10);
         final rotateY = _tiltX * (math.pi / 10);
 
         return AnimatedContainer(
-          duration: Duration(milliseconds: _isHovered ? 60 : 250),
+          duration: Duration(milliseconds: state.highlighted ? 60 : 250),
           curve: Curves.easeOutCubic,
           transform: Matrix4.identity()
             ..setEntry(3, 2, 0.0025)
@@ -254,7 +251,7 @@ class _MusicInteractivePhysicsButtonState extends State<MusicInteractivePhysicsB
           transformAlignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: widget.borderRadius ?? BorderRadius.circular(30),
-            boxShadow: _isHovered
+            boxShadow: state.highlighted
                 ? [
                     BoxShadow(
                       color: glow.withValues(alpha: 0.45),

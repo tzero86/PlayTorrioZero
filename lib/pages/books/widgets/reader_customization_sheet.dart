@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../services/books/reader_settings.dart';
+import '../../../widgets/common/focusable_card.dart';
 import 'reader_design_tokens.dart';
 
 class ReaderCustomizationSheet extends StatefulWidget {
@@ -614,12 +615,12 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
   }) {
     final isSelected = theme == current;
     return Expanded(
-      child: GestureDetector(
+      child: FocusableCard(
         onTap: () {
           HapticFeedback.lightImpact();
           ReaderSettings.updateTheme(theme);
         },
-        child: Container(
+        builder: (context, _) => Container(
           height: 64,
           decoration: BoxDecoration(
             color: bg,

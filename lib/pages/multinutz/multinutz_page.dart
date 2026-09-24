@@ -15,6 +15,7 @@ import '../../services/iptv/iptv_storage.dart';
 import '../../services/player/player_settings.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/app_liquid_dock.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/iptv/multinutz_channel_sheet.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -1268,11 +1269,11 @@ final gridContent = _fullscreenIndex != null
   Widget _buildGlassButton({required IconData icon, required bool isSelected, required String tooltip, VoidCallback? onTap}) {
     final palette = AppThemeService.currentPalette.value;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: Tooltip(message: tooltip, child: GestureDetector(
+    return Tooltip(
+      message: tooltip,
+      child: FocusableCard(
         onTap: onTap,
-        child: AnimatedContainer(
+        builder: (context, state) => AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           width: 40, height: 40,
           decoration: BoxDecoration(
@@ -1282,7 +1283,7 @@ final gridContent = _fullscreenIndex != null
           ),
           child: Icon(icon, color: Colors.white70, size: 20),
         ),
-      )),
+      ),
     );
   }
 }

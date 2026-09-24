@@ -5,6 +5,7 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import 'package:photo_view/photo_view.dart';
 import '../../../services/books/epub_parser_service.dart';
 import '../../../services/books/reader_settings.dart';
+import '../../../widgets/common/focusable_card.dart';
 
 class EpubContentView extends StatelessWidget {
   final EpubBookData book;
@@ -88,9 +89,9 @@ class EpubContentView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Center(
-        child: GestureDetector(
+        child: FocusableCard(
           onTap: () => _openImageZoom(context, bytes),
-          child: Container(
+          builder: (context, _) => Container(
             constraints: const BoxConstraints(maxHeight: 520),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),

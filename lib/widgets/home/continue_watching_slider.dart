@@ -431,9 +431,9 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                             // Details Button
                             Tooltip(
                               message: 'View Details',
-                              child: GestureDetector(
+                              child: FocusableCard(
                                 onTap: () => _openDetails(context),
-                                child: Container(
+                                builder: (_, state) => Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
@@ -455,9 +455,9 @@ class _ContinueWatchingCardState extends State<_ContinueWatchingCard> {
                             // Dismiss / Remove Button
                             Tooltip(
                               message: 'Remove from Continue Watching',
-                              child: GestureDetector(
+                              child: FocusableCard(
                                 onTap: widget.onRemove,
-                                child: Container(
+                                builder: (_, state) => Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,

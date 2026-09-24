@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../common/focusable_card.dart';
 
 class MangaCategoryDropdown extends StatefulWidget {
   final String selectedGenre;
@@ -27,7 +28,6 @@ class _MangaCategoryDropdownState extends State<MangaCategoryDropdown>
   late Animation<double> _fadeAnim;
 
   bool _isOpen = false;
-  bool _isHovered = false;
 
   @override
   void initState() {
@@ -183,18 +183,16 @@ class _MangaCategoryDropdownState extends State<MangaCategoryDropdown>
 
     return CompositedTransformTarget(
       link: _layerLink,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        cursor: SystemMouseCursors.click,
-        child: GestureDetector(
-          onTap: _toggleDropdown,
-          child: AnimatedContainer(
+      child: FocusableCard(
+        onTap: _toggleDropdown,
+        builder: (context, state) {
+          final isHovered = state.highlighted;
+          return AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
-              color: _isOpen || _isHovered
+              color: _isOpen || isHovered
                   ? palette.primaryColor.withValues(alpha: 0.16)
                   : (isSelectedGenre
                       ? palette.primaryColor.withValues(alpha: 0.10)
@@ -203,7 +201,7 @@ class _MangaCategoryDropdownState extends State<MangaCategoryDropdown>
               border: Border.all(
                 color: _isOpen
                     ? palette.primaryColor
-                    : (_isHovered || isSelectedGenre
+                    : (isHovered || isSelectedGenre
                         ? palette.primaryColor.withValues(alpha: 0.6)
                         : Colors.white.withValues(alpha: 0.12)),
                 width: _isOpen || isSelectedGenre ? 1.5 : 1.0,
@@ -215,7 +213,7 @@ class _MangaCategoryDropdownState extends State<MangaCategoryDropdown>
                     blurRadius: 14,
                     offset: const Offset(0, 3),
                   )
-                else if (_isHovered)
+                else if (isHovered)
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 8,
@@ -274,8 +272,8 @@ class _MangaCategoryDropdownState extends State<MangaCategoryDropdown>
                 ),
               ],
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
@@ -400,7 +398,13 @@ class _DropdownOverlayContentState extends State<_DropdownOverlayContent> {
 
     return Stack(
       children: [
-        // Full screen invisible barrier to dismiss dropdown on tap
+        // Full screen invisible barrier to dismiss dropdown on tap.
+        //
+        // Deliberately NOT a FocusableCard: it is a modal scrim, and making it a
+        // focus stop adds an invisible screen-sized target to traversal. The
+        // remote's dismiss path is the trigger button above (itself a
+        // FocusableCard) which toggles this closed — the same reasoning that
+        // left the player's three panel scrims as plain detectors.
         Positioned.fill(
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -669,7 +673,7 @@ class _DropdownOverlayContentState extends State<_DropdownOverlayContent> {
   }
 }
 
-class _CategoryItemTile extends StatefulWidget {
+class _CategoryItemTile extends StatelessWidget {
   final String genre;
   final IconData icon;
   final bool isSelected;
@@ -685,43 +689,34 @@ class _CategoryItemTile extends StatefulWidget {
   });
 
   @override
-  State<_CategoryItemTile> createState() => _CategoryItemTileState();
-}
-
-class _CategoryItemTileState extends State<_CategoryItemTile> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) {
+        final isHovered = state.highlighted;
+        return AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: widget.isSelected
-                ? widget.palette.primaryColor.withValues(alpha: 0.24)
-                : (_isHovered
+            color: isSelected
+                ? palette.primaryColor.withValues(alpha: 0.24)
+                : (isHovered
                     ? Colors.white.withValues(alpha: 0.10)
                     : Colors.white.withValues(alpha: 0.04)),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: widget.isSelected
-                  ? widget.palette.primaryColor.withValues(alpha: 0.8)
-                  : (_isHovered
+              color: isSelected
+                  ? palette.primaryColor.withValues(alpha: 0.8)
+                  : (isHovered
                       ? Colors.white.withValues(alpha: 0.20)
                       : Colors.white.withValues(alpha: 0.06)),
-              width: widget.isSelected ? 1.4 : 1.0,
+              width: isSelected ? 1.4 : 1.0,
             ),
-            boxShadow: widget.isSelected
+            boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: widget.palette.primaryColor.withValues(alpha: 0.25),
+                      color: palette.primaryColor.withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -731,38 +726,38 @@ class _CategoryItemTileState extends State<_CategoryItemTile> {
           child: Row(
             children: [
               Icon(
-                widget.icon,
+                icon,
                 size: 15,
-                color: widget.isSelected
-                    ? widget.palette.primaryColor
-                    : (_isHovered ? Colors.white : Colors.white60),
+                color: isSelected
+                    ? palette.primaryColor
+                    : (isHovered ? Colors.white : Colors.white60),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  widget.genre,
+                  genre,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: widget.isSelected
+                    color: isSelected
                         ? Colors.white
-                        : (_isHovered ? Colors.white : Colors.white70),
+                        : (isHovered ? Colors.white : Colors.white70),
                     fontSize: 12.5,
-                    fontWeight: widget.isSelected ? FontWeight.w800 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
                     letterSpacing: -0.2,
                   ),
                 ),
               ),
-              if (widget.isSelected) ...[
+              if (isSelected) ...[
                 const SizedBox(width: 4),
                 Container(
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: widget.palette.primaryColor,
+                    color: palette.primaryColor,
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: widget.palette.primaryColor,
+                        color: palette.primaryColor,
                         blurRadius: 6,
                       ),
                     ],
@@ -771,8 +766,8 @@ class _CategoryItemTileState extends State<_CategoryItemTile> {
               ],
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

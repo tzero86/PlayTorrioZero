@@ -15,6 +15,7 @@ import '../../services/music/music_player_controller.dart';
 import '../../services/music/music_service.dart';
 import '../../services/music/music_settings.dart';
 import '../../widgets/common/animated_ambient_background.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
 import '../../widgets/common/slider_arrow.dart';
 import '../../widgets/music/music_interactive_physics_button.dart';
@@ -1184,10 +1185,12 @@ class _MusicPageState extends State<MusicPage> {
                 separatorBuilder: (_, __) => const SizedBox(width: 16),
                 itemBuilder: (context, index) {
                   final artist = _searchData.artists[index];
-                  return _MusicHoverable(
-                    scaleFactor: 1.06,
-                    child: GestureDetector(
-                      onTap: () => _openArtistModal(artist.id),
+                  return FocusableCard(
+                    onTap: () => _openArtistModal(artist.id),
+                    builder: (context, state) => AnimatedScale(
+                      scale: state.highlighted ? 1.06 : 1.0,
+                      duration: const Duration(milliseconds: 160),
+                      curve: Curves.easeOutCubic,
                       child: Column(
                         children: [
                           ClipOval(
@@ -1298,24 +1301,26 @@ class _MusicPageState extends State<MusicPage> {
         (_selectedFilter == 'All' && label == 'All') ||
         (label.startsWith(_selectedFilter) && _selectedFilter != 'All');
 
-    return _MusicHoverable(
-      scaleFactor: 1.05,
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            if (label.startsWith('Tracks')) {
-              _selectedFilter = 'Tracks';
-            } else if (label.startsWith('Artists')) {
-              _selectedFilter = 'Artists';
-            } else if (label.startsWith('Albums')) {
-              _selectedFilter = 'Albums';
-            } else if (label.startsWith('Playlists')) {
-              _selectedFilter = 'Playlists';
-            } else {
-              _selectedFilter = 'All';
-            }
-          });
-        },
+    return FocusableCard(
+      onTap: () {
+        setState(() {
+          if (label.startsWith('Tracks')) {
+            _selectedFilter = 'Tracks';
+          } else if (label.startsWith('Artists')) {
+            _selectedFilter = 'Artists';
+          } else if (label.startsWith('Albums')) {
+            _selectedFilter = 'Albums';
+          } else if (label.startsWith('Playlists')) {
+            _selectedFilter = 'Playlists';
+          } else {
+            _selectedFilter = 'All';
+          }
+        });
+      },
+      builder: (context, state) => AnimatedScale(
+        scale: state.highlighted ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
@@ -1383,10 +1388,12 @@ class _MusicPageState extends State<MusicPage> {
           itemBuilder: (context, index) {
             final g = genres[index];
             final color = g['color'] as Color;
-            return _MusicHoverable(
-              scaleFactor: 1.04,
-              child: GestureDetector(
-                onTap: () => _onGenreTap(g['query'] as String),
+            return FocusableCard(
+              onTap: () => _onGenreTap(g['query'] as String),
+              builder: (context, state) => AnimatedScale(
+                scale: state.highlighted ? 1.04 : 1.0,
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutCubic,
                 child: PerformanceLiquidLens(
                   style: PerformanceGlassStyles.menu,
                   child: Container(
@@ -1471,10 +1478,12 @@ class _MusicPageState extends State<MusicPage> {
           itemBuilder: (context, index) {
             final station = radioGenres[index];
             final color = station['color'] as Color;
-            return _MusicHoverable(
-              scaleFactor: 1.04,
-              child: GestureDetector(
-                onTap: () => _onGenreTap(station['query'] as String),
+            return FocusableCard(
+              onTap: () => _onGenreTap(station['query'] as String),
+              builder: (context, state) => AnimatedScale(
+                scale: state.highlighted ? 1.04 : 1.0,
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutCubic,
                 child: PerformanceLiquidLens(
                   style: PerformanceGlassStyles.menu,
                   child: Container(
@@ -1552,16 +1561,18 @@ class _MusicPageState extends State<MusicPage> {
         const SizedBox(height: 20),
 
         // Liked Songs Banner
-        _MusicHoverable(
-          scaleFactor: 1.02,
-          child: GestureDetector(
-            onTap: () {
-              if (liked.isNotEmpty) {
-                _playerController.playTrack(liked.first, playlistQueue: liked);
-              } else {
-                _showToast('No liked songs yet');
-              }
-            },
+        FocusableCard(
+          onTap: () {
+            if (liked.isNotEmpty) {
+              _playerController.playTrack(liked.first, playlistQueue: liked);
+            } else {
+              _showToast('No liked songs yet');
+            }
+          },
+          builder: (context, state) => AnimatedScale(
+            scale: state.highlighted ? 1.02 : 1.0,
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOutCubic,
             child: PerformanceLiquidLens(
               style: PerformanceGlassStyles.menu,
               child: Container(
@@ -1653,12 +1664,14 @@ class _MusicPageState extends State<MusicPage> {
             final totalBytes = MusicDownloadService.instance.totalDownloadedSizeBytes;
             final sizeMb = (totalBytes / (1024 * 1024)).toStringAsFixed(1);
 
-            return _MusicHoverable(
-              scaleFactor: 1.02,
-              child: GestureDetector(
-                onTap: () {
-                  setState(() => _showDownloadsModal = true);
-                },
+            return FocusableCard(
+              onTap: () {
+                setState(() => _showDownloadsModal = true);
+              },
+              builder: (context, state) => AnimatedScale(
+                scale: state.highlighted ? 1.02 : 1.0,
+                duration: const Duration(milliseconds: 160),
+                curve: Curves.easeOutCubic,
                 child: PerformanceLiquidLens(
                   style: PerformanceGlassStyles.menu,
                   child: Container(
@@ -1788,10 +1801,12 @@ class _MusicPageState extends State<MusicPage> {
             itemCount: playlists.length,
             itemBuilder: (context, index) {
               final pl = playlists[index];
-              return _MusicHoverable(
-                scaleFactor: 1.04,
-                child: GestureDetector(
-                  onTap: () => setState(() => _activeUserPlaylistModal = pl),
+              return FocusableCard(
+                onTap: () => setState(() => _activeUserPlaylistModal = pl),
+                builder: (context, state) => AnimatedScale(
+                  scale: state.highlighted ? 1.04 : 1.0,
+                  duration: const Duration(milliseconds: 160),
+                  curve: Curves.easeOutCubic,
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF13151F),
@@ -2807,10 +2822,9 @@ class _MusicMobileBottomNav extends StatelessWidget {
   Widget _navItem(String label, IconData icon) {
     final isSelected = activeTab == label;
     return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: FocusableCard(
         onTap: () => onTabSelected(label),
-        child: SizedBox(
+        builder: (context, _) => SizedBox(
           height: 60,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -3018,10 +3032,12 @@ class _MusicTrendingArtists extends StatelessWidget {
       itemCount: artists.length,
       itemBuilder: (context, index) {
         final artist = artists[index];
-        return _MusicHoverable(
-          scaleFactor: 1.06,
-          child: GestureDetector(
-            onTap: () => onArtistTap(artist),
+        return FocusableCard(
+          onTap: () => onArtistTap(artist),
+          builder: (context, state) => AnimatedScale(
+            scale: state.highlighted ? 1.06 : 1.0,
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOutCubic,
             child: Column(
               children: [
                 Container(
@@ -3161,10 +3177,12 @@ class _MusicTrackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _MusicHoverable(
-      scaleFactor: 1.05,
-      child: GestureDetector(
-        onTap: onTap,
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => AnimatedScale(
+        scale: state.highlighted ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         child: SizedBox(
           width: 145,
           child: Column(
@@ -3240,10 +3258,12 @@ class _MusicAlbumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _MusicHoverable(
-      scaleFactor: 1.05,
-      child: GestureDetector(
-        onTap: onTap,
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => AnimatedScale(
+        scale: state.highlighted ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         child: SizedBox(
           width: 145,
           child: Column(
@@ -3299,10 +3319,12 @@ class _MusicPlaylistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _MusicHoverable(
-      scaleFactor: 1.05,
-      child: GestureDetector(
-        onTap: onTap,
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => AnimatedScale(
+        scale: state.highlighted ? 1.05 : 1.0,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         child: SizedBox(
           width: 145,
           child: Column(
@@ -3550,9 +3572,9 @@ class _MusicBottomPlayerBar extends StatelessWidget {
     final palette = AppThemeService.currentPalette.value;
     final preset = MusicSettings.selectedMiniPreset.value;
 
-    return GestureDetector(
+    return FocusableCard(
       onTap: onExpandTap,
-      child: PerformanceLiquidLens(
+      builder: (context, _) => PerformanceLiquidLens(
         style: PerformanceGlassStyles.dock,
         child: _buildPresetContainer(preset, palette, isMobile, track),
       ),
@@ -4000,9 +4022,9 @@ class _MusicLyricsDrawer extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final line = lyrics.syncedLines[index];
                     final isActive = index == activeIndex;
-                    return GestureDetector(
+                    return FocusableCard(
                       onTap: () => playerController.seekTo(line.timestamp),
-                      child: Padding(
+                      builder: (context, _) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Text(
                           line.text,

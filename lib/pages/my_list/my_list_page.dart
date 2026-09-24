@@ -425,9 +425,9 @@ class _MyListPageState extends State<MyListPage> {
   Widget _buildFilterPill(String type, String label, int count) {
     final isSelected = _filterType == type;
 
-    return GestureDetector(
+    return FocusableCard(
       onTap: () => setState(() => _filterType = type),
-      child: AnimatedContainer(
+      builder: (_, state) => AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
@@ -711,11 +711,20 @@ class _MyListCard extends StatelessWidget {
                       ),
                     ),
 
-                    // Pointer-only. On TV this overlay is unusable: the delete
-                    // button below is a bare GestureDetector, so a remote cannot
-                    // activate it, and the scrim would cover the poster a D-pad
-                    // user is trying to look at. Gating on hover leaves the focused
-                    // card clean instead of promising a control that cannot be used.
+                    // Pointer-only, deliberately. On TV this overlay is
+                    // unusable: the quick-delete below is a bare
+                    // GestureDetector, so a remote cannot activate it, and the
+                    // scrim would cover the poster a D-pad user is looking at.
+                    // Gating on hover keeps the focused card clean instead of
+                    // promising a control that cannot be used.
+                    //
+                    // TV is not left without a way to remove an item: the card is
+                    // focusable and opens the details page, whose My List toggle
+                    // is a FocusableCard and so answers to the centre key. The
+                    // alternative — showing this overlay on focus instead — would
+                    // cover the poster and would need a focus-holding Focus node,
+                    // because the overlay unmounts the button being pressed.
+                    // Revisit only if the details-page path goes away.
                     if (state.hovered)
                       Positioned.fill(
                         child: Container(

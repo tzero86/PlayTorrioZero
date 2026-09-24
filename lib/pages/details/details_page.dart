@@ -11,6 +11,7 @@ import '../../services/metadata/metadata_service.dart';
 import '../../services/my_list/my_list_service.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../utils/navigation/route_transitions.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../discover/discover_page.dart';
 import '../player/watch_screen.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -883,20 +884,21 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
           .map(
             (g) {
               Offset? lastTap;
-              return GestureDetector(
-                onTapDown: (d) => lastTap = d.globalPosition,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    LiquidRevealRoute(
-                      page: DiscoverPage(query: g, isGenre: true),
-                      tapPosition: lastTap,
-                    ),
-                  );
-                },
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: Container(
+              // The Listener records the pointer origin for the reveal without
+              // joining the gesture arena, so the card's tap still fires.
+              return Listener(
+                onPointerDown: (d) => lastTap = d.position,
+                child: FocusableCard(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      LiquidRevealRoute(
+                        page: DiscoverPage(query: g, isGenre: true),
+                        tapPosition: lastTap,
+                      ),
+                    );
+                  },
+                  builder: (_, state) => Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.06),
@@ -1111,9 +1113,9 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
             ),
             if (isOverflowing) ...[
               const SizedBox(height: _Space.xs),
-              GestureDetector(
+              FocusableCard(
                 onTap: () => setState(() => _isSynopsisExpanded = !_isSynopsisExpanded),
-                child: Text(
+                builder: (_, state) => Text(
                   _isSynopsisExpanded ? 'Show less' : 'Read more',
                   style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
                 ),
@@ -1802,21 +1804,28 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
         duration: const Duration(milliseconds: 200),
         child: IgnorePointer(
           ignoring: !isVisible,
-          child: _HoverButton(
-            onTap: onTap,
-            scaleAmount: 1.1,
-            child: ClipOval(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+          // An invisible arrow must not be a focus stop: IgnorePointer blocks
+          // taps but not focus, so a remote would land on a control that is not
+          // on screen. ExcludeFocus rather than the focus primitive's enabled
+          // flag, because the focusable lives inside the shared _HoverButton.
+          child: ExcludeFocus(
+            excluding: !isVisible,
+            child: _HoverButton(
+              onTap: onTap,
+              scaleAmount: 1.1,
+              child: ClipOval(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 18),
                   ),
-                  child: Icon(icon, color: Colors.white, size: 18),
                 ),
               ),
             ),
@@ -1827,7 +1836,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 }
 
-class _EpisodeCard extends StatefulWidget {
+class _EpisodeCard extends StatelessWidget {
   final Video episode;
   final String? fallbackImageUrl;
   final VoidCallback? onTap;
@@ -1841,33 +1850,24 @@ class _EpisodeCard extends StatefulWidget {
   });
 
   @override
-  State<_EpisodeCard> createState() => _EpisodeCardState();
-}
-
-class _EpisodeCardState extends State<_EpisodeCard> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final ep = widget.episode;
-    final imgUrl = ep.thumbnail ?? widget.fallbackImageUrl;
+    final ep = episode;
+    final imgUrl = ep.thumbnail ?? fallbackImageUrl;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap ?? () {},
-        child: AnimatedScale(
-          scale: _hovered ? 1.03 : 1.0,
+    return FocusableCard(
+      onTap: onTap,
+      enabled: onTap != null,
+      builder: (_, state) {
+        return AnimatedScale(
+          scale: state.highlighted ? 1.03 : 1.0,
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
           child: Container(
             decoration: BoxDecoration(
               color: _Palette.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _hovered ? Colors.white.withOpacity(0.22) : Colors.white.withOpacity(0.04)),
-              boxShadow: _hovered
+              border: Border.all(color: state.highlighted ? Colors.white.withOpacity(0.22) : Colors.white.withOpacity(0.04)),
+              boxShadow: state.highlighted
                   ? [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 18, offset: const Offset(0, 8))]
                   : [],
             ),
@@ -1902,7 +1902,7 @@ class _EpisodeCardState extends State<_EpisodeCard> {
                         ),
                         Center(
                           child: AnimatedOpacity(
-                            opacity: _hovered ? 1.0 : 0.0,
+                            opacity: state.highlighted ? 1.0 : 0.0,
                             duration: const Duration(milliseconds: 150),
                             child: Container(
                               padding: const EdgeInsets.all(10),
@@ -1927,13 +1927,13 @@ class _EpisodeCardState extends State<_EpisodeCard> {
                         Row(
                           children: [
                             Text(
-                              widget.isCollection ? 'PART ${ep.episode ?? "?"}' : 'EP ${ep.episode ?? "?"}',
+                              isCollection ? 'PART ${ep.episode ?? "?"}' : 'EP ${ep.episode ?? "?"}',
                               style: TextStyle(color: _Palette.accent, fontWeight: FontWeight.bold, fontSize: 12),
                             ),
                             const Spacer(),
                             if (ep.released != null && ep.released!.length >= 4)
                               Text(
-                                widget.isCollection
+                                isCollection
                                     ? ep.released!.substring(0, 4)
                                     : (ep.released!.length >= 10 ? ep.released!.substring(0, 10) : ep.released!),
                                 style: const TextStyle(color: Colors.white38, fontSize: 11),
@@ -1963,13 +1963,13 @@ class _EpisodeCardState extends State<_EpisodeCard> {
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
-class _HoverButton extends StatefulWidget {
+class _HoverButton extends StatelessWidget {
   final Widget child;
   final VoidCallback onTap;
   final double scaleAmount;
@@ -1977,30 +1977,14 @@ class _HoverButton extends StatefulWidget {
   const _HoverButton({required this.child, required this.onTap, this.scaleAmount = 1.04});
 
   @override
-  State<_HoverButton> createState() => _HoverButtonState();
-}
-
-class _HoverButtonState extends State<_HoverButton> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() { _isHovered = false; _isPressed = false; }),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
-        onTap: widget.onTap,
-        child: AnimatedScale(
-          scale: _isPressed ? 0.96 : (_isHovered ? widget.scaleAmount : 1.0),
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOutCubic,
-          child: widget.child,
-        ),
+    return FocusableCard(
+      onTap: onTap,
+      builder: (_, state) => AnimatedScale(
+        scale: state.pressed ? 0.96 : (state.highlighted ? scaleAmount : 1.0),
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOutCubic,
+        child: child,
       ),
     );
   }

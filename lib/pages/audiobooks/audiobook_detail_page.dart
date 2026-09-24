@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../models/audiobook/audiobook_model.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/audiobook/audiobook_scraper_service.dart';
+import '../../widgets/common/focusable_card.dart';
 import 'audiobook_player_screen.dart';
 import 'audiobook_route_transitions.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -349,7 +350,7 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
   }
 }
 
-class _PlayFirstChapterButton extends StatefulWidget {
+class _PlayFirstChapterButton extends StatelessWidget {
   final AppThemePalette palette;
   final VoidCallback onPressed;
 
@@ -359,28 +360,13 @@ class _PlayFirstChapterButton extends StatefulWidget {
   });
 
   @override
-  State<_PlayFirstChapterButton> createState() => _PlayFirstChapterButtonState();
-}
-
-class _PlayFirstChapterButtonState extends State<_PlayFirstChapterButton> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final scale = _isPressed ? 0.94 : (_isHovered ? 1.05 : 1.0);
-    final palette = widget.palette;
+    return FocusableCard(
+      onTap: onPressed,
+      builder: (context, state) {
+        final scale = state.pressed ? 0.94 : (state.highlighted ? 1.05 : 1.0);
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
-        onTap: widget.onPressed,
-        child: AnimatedScale(
+        return AnimatedScale(
           scale: scale,
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOutCubic,
@@ -389,7 +375,7 @@ class _PlayFirstChapterButtonState extends State<_PlayFirstChapterButton> {
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: _isHovered
+                colors: state.highlighted
                     ? [palette.primaryColor, palette.accentColor]
                     : [palette.primaryColor.withValues(alpha: 0.9), palette.accentColor.withValues(alpha: 0.8)],
                 begin: Alignment.topLeft,
@@ -398,9 +384,9 @@ class _PlayFirstChapterButtonState extends State<_PlayFirstChapterButton> {
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
-                  color: palette.primaryColor.withValues(alpha: _isHovered ? 0.6 : 0.35),
-                  blurRadius: _isHovered ? 18 : 10,
-                  spreadRadius: _isHovered ? 2 : 0,
+                  color: palette.primaryColor.withValues(alpha: state.highlighted ? 0.6 : 0.35),
+                  blurRadius: state.highlighted ? 18 : 10,
+                  spreadRadius: state.highlighted ? 2 : 0,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -422,13 +408,13 @@ class _PlayFirstChapterButtonState extends State<_PlayFirstChapterButton> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
-class _ChapterTile extends StatefulWidget {
+class _ChapterTile extends StatelessWidget {
   final AudiobookChapter chapter;
   final AppThemePalette palette;
   final VoidCallback onTap;
@@ -440,48 +426,32 @@ class _ChapterTile extends StatefulWidget {
   });
 
   @override
-  State<_ChapterTile> createState() => _ChapterTileState();
-}
-
-class _ChapterTileState extends State<_ChapterTile> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final chapter = widget.chapter;
-    final palette = widget.palette;
-    final scale = _isPressed ? 0.98 : (_isHovered ? 1.015 : 1.0);
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: GestureDetector(
-          onTapDown: (_) => setState(() => _isPressed = true),
-          onTapUp: (_) => setState(() => _isPressed = false),
-          onTapCancel: () => setState(() => _isPressed = false),
-          onTap: widget.onTap,
-          child: AnimatedScale(
+      child: FocusableCard(
+        onTap: onTap,
+        builder: (context, state) {
+          final scale = state.pressed ? 0.98 : (state.highlighted ? 1.015 : 1.0);
+
+          return AnimatedScale(
             scale: scale,
             duration: const Duration(milliseconds: 150),
             curve: Curves.easeOutCubic,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               decoration: BoxDecoration(
-                color: _isHovered
+                color: state.highlighted
                     ? const Color(0xFF1B2030)
                     : const Color(0xFF12151E).withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: _isHovered
+                  color: state.highlighted
                       ? palette.primaryColor.withValues(alpha: 0.5)
                       : Colors.white.withValues(alpha: 0.08),
-                  width: _isHovered ? 1.5 : 1.0,
+                  width: state.highlighted ? 1.5 : 1.0,
                 ),
-                boxShadow: _isHovered
+                boxShadow: state.highlighted
                     ? [
                         BoxShadow(
                           color: palette.primaryColor.withValues(alpha: 0.25),
@@ -500,11 +470,11 @@ class _ChapterTileState extends State<_ChapterTile> {
                       width: 42,
                       height: 42,
                       decoration: BoxDecoration(
-                        color: _isHovered
+                        color: state.highlighted
                             ? palette.primaryColor
                             : palette.primaryColor.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
-                        boxShadow: _isHovered
+                        boxShadow: state.highlighted
                             ? [
                                 BoxShadow(
                                   color: palette.primaryColor.withValues(alpha: 0.5),
@@ -515,7 +485,7 @@ class _ChapterTileState extends State<_ChapterTile> {
                       ),
                       child: Icon(
                         Icons.play_arrow_rounded,
-                        color: _isHovered ? Colors.white : palette.primaryColor,
+                        color: state.highlighted ? Colors.white : palette.primaryColor,
                         size: 24,
                       ),
                     ),
@@ -524,7 +494,7 @@ class _ChapterTileState extends State<_ChapterTile> {
                       child: Text(
                         chapter.title,
                         style: TextStyle(
-                          color: _isHovered ? Colors.white : Colors.white.withValues(alpha: 0.9),
+                          color: state.highlighted ? Colors.white : Colors.white.withValues(alpha: 0.9),
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -536,8 +506,8 @@ class _ChapterTileState extends State<_ChapterTile> {
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

@@ -10,6 +10,7 @@ import '../../services/metadata/metadata_service.dart';
 import '../../services/theme/dock_settings.dart';
 import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/error_view.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/movie/movie_card.dart';
 
 class DiscoverPage extends StatefulWidget {
@@ -974,9 +975,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
 
                             return Padding(
                               padding: const EdgeInsets.only(right: 8),
-                              child: GestureDetector(
+                              child: FocusableCard(
                                 onTap: () => _onCatalogChanged(entry),
-                                child: AnimatedContainer(
+                                builder: (context, state) => AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   padding: EdgeInsets.symmetric(
                                     horizontal: isNarrow ? 11 : 14,
@@ -1140,9 +1141,9 @@ class _DiscoverPageState extends State<DiscoverPage> {
                       // Text input chip for freeform extras (or search if isRequired)
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
-                        child: GestureDetector(
+                        child: FocusableCard(
                           onTap: () => _showCustomExtraDialog(extra.name),
-                          child: Container(
+                          builder: (context, state) => Container(
                             padding: EdgeInsets.symmetric(
                               horizontal: isNarrow ? 10 : 14,
                               vertical: 6,

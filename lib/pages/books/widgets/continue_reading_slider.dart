@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../models/book/book_result.dart';
 import '../../../models/book/reading_progress.dart';
 import '../../../services/books/continue_reading_service.dart';
+import '../../../widgets/common/focusable_card.dart';
 import '../epub_reader_page.dart';
 import '../pdf_reader_page.dart';
 import '../../../services/storage/app_image_cache.dart';
@@ -259,7 +260,7 @@ class _ContinueReadingSliderState extends State<ContinueReadingSlider> {
   }
 }
 
-class _ContinueReadingCard extends StatefulWidget {
+class _ContinueReadingCard extends StatelessWidget {
   final ReadingProgress item;
   final VoidCallback onTap;
   final VoidCallback onRemove;
@@ -271,29 +272,18 @@ class _ContinueReadingCard extends StatefulWidget {
   });
 
   @override
-  State<_ContinueReadingCard> createState() => _ContinueReadingCardState();
-}
-
-class _ContinueReadingCardState extends State<_ContinueReadingCard> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final item = widget.item;
     final percent = (item.progressPercent * 100).round();
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) {
+        return AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOutCubic,
           width: 140,
           margin: const EdgeInsets.only(right: 18),
-          transform: Matrix4.translationValues(0, _hovered ? -6 : 0, 0),
+          transform: Matrix4.translationValues(0, state.highlighted ? -6 : 0, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -306,15 +296,15 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: _hovered ? const Color(0xFF7C3AED) : Colors.white12,
-                        width: _hovered ? 2.0 : 1.0,
+                        color: state.highlighted ? const Color(0xFF7C3AED) : Colors.white12,
+                        width: state.highlighted ? 2.0 : 1.0,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: _hovered
+                          color: state.highlighted
                               ? const Color(0xFF7C3AED).withValues(alpha: 0.35)
                               : Colors.black54,
-                          blurRadius: _hovered ? 18 : 10,
+                          blurRadius: state.highlighted ? 18 : 10,
                           offset: const Offset(0, 6),
                         ),
                       ],
@@ -373,13 +363,13 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
                   ),
 
                   // Remove Button Top-Right (always on mobile, hover-only on desktop)
-                  if (_hovered || !(defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux))
+                  if (state.highlighted || !(defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux))
                     Positioned(
                       top: 6,
                       right: 6,
-                      child: GestureDetector(
-                        onTap: widget.onRemove,
-                        child: Container(
+                      child: FocusableCard(
+                        onTap: onRemove,
+                        builder: (context, closeState) => Container(
                           padding: const EdgeInsets.all(5),
                           decoration: const BoxDecoration(
                             color: Colors.black87,
@@ -445,8 +435,8 @@ class _ContinueReadingCardState extends State<_ContinueReadingCard> {
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

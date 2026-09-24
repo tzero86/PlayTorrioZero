@@ -66,6 +66,12 @@ class FocusableCard extends StatefulWidget {
   /// start; otherwise the first D-pad press does nothing.
   final bool autofocus;
 
+  /// Whether this card can be focused and activated. A disabled card still
+  /// installs an opaque hit target, so it swallows taps it will not act on —
+  /// harmless for a leaf, but it will silently break a child or ancestor
+  /// handler. `_HoverScale` in details_page.dart could not be used inside a
+  /// [PopupMenuButton] for exactly this reason. If you need a card that
+  /// declines taps, use `deferToChild` there instead.
   final bool enabled;
   final MouseCursor cursor;
 

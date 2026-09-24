@@ -6,6 +6,7 @@ import '../../../services/home/home_page_settings.dart';
 import '../../../widgets/audiobook/audiobook_interactive_physics_button.dart';
 import '../../../widgets/audiobook/audiobook_waveform_seekbar.dart';
 import '../../../widgets/common/animated_ambient_background.dart';
+import '../../../widgets/common/focusable_card.dart';
 import '../../../widgets/common/segmented_tabs.dart';
 import 'audiobook_player_studio_page.dart';
 
@@ -836,9 +837,9 @@ class _AudiobookSettingsPageState extends State<AudiobookSettingsPage> {
                     ValueListenableBuilder<AudiobookPlayButtonStyle>(
                       valueListenable: AudiobookSettings.customPlayButtonStyle,
                       builder: (context, playBtnStyle, _) {
-                        return GestureDetector(
+                        return FocusableCard(
                           onTap: () => setState(() => _previewIsPlaying = !_previewIsPlaying),
-                          child: _buildCustomPlayButtonWidget(playBtnStyle, palette, _previewIsPlaying),
+                          builder: (_, state) => _buildCustomPlayButtonWidget(playBtnStyle, palette, _previewIsPlaying),
                         );
                       },
                     ),

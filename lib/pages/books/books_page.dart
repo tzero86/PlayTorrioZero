@@ -8,6 +8,7 @@ import '../../services/theme/dock_settings.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
+import '../../widgets/common/focusable_card.dart';
 import 'book_detail_sheet.dart';
 import 'widgets/continue_reading_slider.dart';
 import 'widgets/reader_design_tokens.dart';
@@ -460,7 +461,7 @@ class _BooksPageState extends State<BooksPage> {
   }
 }
 
-class _BookCard extends StatefulWidget {
+class _BookCard extends StatelessWidget {
   final BookResult book;
   final VoidCallback onTap;
 
@@ -470,27 +471,16 @@ class _BookCard extends StatefulWidget {
   });
 
   @override
-  State<_BookCard> createState() => _BookCardState();
-}
-
-class _BookCardState extends State<_BookCard> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final book = widget.book;
     final progress = ContinueReadingService.getProgress(book.md5);
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) {
+        return AnimatedContainer(
           duration: ReaderTokens.motionFast,
           curve: ReaderTokens.curveFast,
-          transform: Matrix4.translationValues(0, _hovered ? -6 : 0, 0),
+          transform: Matrix4.translationValues(0, state.highlighted ? -6 : 0, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -500,11 +490,11 @@ class _BookCardState extends State<_BookCard> {
                   decoration: BoxDecoration(
                     borderRadius: ReaderTokens.rounded16,
                     border: Border.all(
-                      color: _hovered ? const Color(0xFF7C3AED) : Colors.white.withValues(alpha: 0.08),
-                      width: _hovered ? 2.0 : 1.0,
+                      color: state.highlighted ? const Color(0xFF7C3AED) : Colors.white.withValues(alpha: 0.08),
+                      width: state.highlighted ? 2.0 : 1.0,
                     ),
                     boxShadow: [
-                      _hovered
+                      state.highlighted
                           ? BoxShadow(
                               color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
                               blurRadius: 18,
@@ -655,8 +645,8 @@ class _BookCardState extends State<_BookCard> {
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

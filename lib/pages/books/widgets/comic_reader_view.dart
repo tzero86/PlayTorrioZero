@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../services/books/reader_settings.dart';
+import '../../../widgets/common/focusable_card.dart';
 
 class ComicReaderView extends StatefulWidget {
   final Uint8List imageBytes;
@@ -232,9 +233,9 @@ class _ComicReaderViewState extends State<ComicReaderView> with SingleTickerProv
                       ),
 
                       // Zoom Percentage
-                      GestureDetector(
+                      FocusableCard(
                         onTap: () => _resetZoom(),
-                        child: Container(
+                        builder: (context, _) => Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           child: Text(
                             '${(_currentScale * 100).round()}%',

@@ -8,6 +8,7 @@ import '../../services/theme/app_theme_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/anime/anime_slider_section.dart';
 import '../../widgets/common/animated_ambient_background.dart';
+import '../../widgets/common/focusable_card.dart';
 import 'anime_details_page.dart';
 
 import '../../services/anime_arabic/anime_arabic_service.dart';
@@ -589,7 +590,7 @@ class _AnimeSearchPageState extends State<AnimeSearchPage> {
                         // Language Switcher Pill (General vs Arabic Anime)
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: GestureDetector(
+                          child: FocusableCard(
                             onTap: () {
                               setState(() {
                                 _isArabicMode = !_isArabicMode;
@@ -601,7 +602,7 @@ class _AnimeSearchPageState extends State<AnimeSearchPage> {
                                 _loadInitialSliders();
                               }
                             },
-                            child: AnimatedContainer(
+                            builder: (_, state) => AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                               decoration: BoxDecoration(
@@ -639,9 +640,9 @@ class _AnimeSearchPageState extends State<AnimeSearchPage> {
                         if (!_isArabicMode)
                           Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: GestureDetector(
+                            child: FocusableCard(
                               onTap: () => _toggleAdult(!_allowAdult),
-                              child: AnimatedContainer(
+                              builder: (_, state) => AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                                 decoration: BoxDecoration(

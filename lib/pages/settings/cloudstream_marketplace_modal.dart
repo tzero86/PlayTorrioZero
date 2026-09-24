@@ -5,6 +5,7 @@ import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/cloudstream/marketplace/cloudstream_marketplace_service.dart';
 import 'cloudstream_repo_modal.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/zplay_sheet.dart';
 
 class CloudStreamMarketplaceModal extends StatefulWidget {
@@ -431,9 +432,9 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
 
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
-                          child: GestureDetector(
+                          child: FocusableCard(
                             onTap: () => setState(() => _selectedCategory = cat),
-                            child: AnimatedContainer(
+                            builder: (_, state) => AnimatedContainer(
                               duration: const Duration(milliseconds: 180),
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
@@ -702,7 +703,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                           ),
                                         ),
                                         const SizedBox(width: 4),
-                                        GestureDetector(
+                                        FocusableCard(
                                           onTap: () {
                                             Clipboard.setData(ClipboardData(text: repo.url));
                                             ScaffoldMessenger.of(context).showSnackBar(
@@ -713,7 +714,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                               ),
                                             );
                                           },
-                                          child: Container(
+                                          builder: (_, state) => Container(
                                             padding: const EdgeInsets.all(4),
                                             decoration: BoxDecoration(
                                               color: Colors.white.withValues(alpha: 0.08),

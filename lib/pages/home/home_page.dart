@@ -25,6 +25,7 @@ import '../../services/my_list/my_list_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/error_view.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/rail_skeleton.dart';
 import '../../widgets/common/segmented_tabs.dart';
 import '../../widgets/home/continue_watching_slider.dart';
@@ -1389,9 +1390,9 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                     final dotColor = active
                         ? primaryColor
                         : Colors.white.withValues(alpha: 0.30);
-                    return GestureDetector(
+                    return FocusableCard(
                       onTap: () => _goTo(i),
-                      child: AnimatedContainer(
+                      builder: (_, state) => AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         curve: Curves.easeOutCubic,
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -1449,47 +1450,36 @@ class _HeroCarouselState extends State<_HeroCarousel> {
   }
 }
 
-class _CarouselArrow extends StatefulWidget {
+class _CarouselArrow extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
   const _CarouselArrow({required this.icon, required this.onTap});
 
   @override
-  State<_CarouselArrow> createState() => _CarouselArrowState();
-}
-
-class _CarouselArrowState extends State<_CarouselArrow> {
-  bool _isHoveringArrow = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHoveringArrow = true),
-      onExit: (_) => setState(() => _isHoveringArrow = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _isHoveringArrow
-                ? Colors.black.withOpacity(0.6)
-                : Colors.black.withOpacity(0.3),
-            border: Border.all(
-              color: _isHoveringArrow
-                  ? Colors.white.withOpacity(0.6)
-                  : Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
+    return FocusableCard(
+      onTap: onTap,
+      builder: (_, state) => AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: state.highlighted
+              ? Colors.black.withOpacity(0.6)
+              : Colors.black.withOpacity(0.3),
+          border: Border.all(
+            color: state.highlighted
+                ? Colors.white.withOpacity(0.6)
+                : Colors.white.withOpacity(0.2),
+            width: 1.5,
           ),
-          child: Icon(
-            widget.icon,
-            color: _isHoveringArrow ? Colors.white : Colors.white70,
-            size: 24,
-          ),
+        ),
+        child: Icon(
+          icon,
+          color: state.highlighted ? Colors.white : Colors.white70,
+          size: 24,
         ),
       ),
     );
@@ -2216,44 +2206,33 @@ class _CustomScrollTrackState extends State<_CustomScrollTrack> {
   }
 }
 
-class _HoverArrow extends StatefulWidget {
+class _HoverArrow extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
   const _HoverArrow({required this.icon, required this.onTap});
 
   @override
-  State<_HoverArrow> createState() => _HoverArrowState();
-}
-
-class _HoverArrowState extends State<_HoverArrow> {
-  bool _isHovering = false;
-
-  @override
   Widget build(BuildContext context) {
     final primaryColor = AppThemeService.currentPalette.value.primaryColor;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _isHovering
-                ? Colors.white.withOpacity(0.15)
-                : Colors.white.withOpacity(0.05),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-          ),
-          child: Icon(
-            widget.icon,
-            color: _isHovering ? primaryColor : Colors.white70,
-            size: 22,
-          ),
+    return FocusableCard(
+      onTap: onTap,
+      builder: (_, state) => AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: state.highlighted
+              ? Colors.white.withOpacity(0.15)
+              : Colors.white.withOpacity(0.05),
+          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+        ),
+        child: Icon(
+          icon,
+          color: state.highlighted ? primaryColor : Colors.white70,
+          size: 22,
         ),
       ),
     );

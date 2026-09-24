@@ -8,6 +8,7 @@ import '../../models/anime/anime_media.dart';
 import '../../services/anime/anilist_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/anime/extractors/anidb_extractor.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -503,9 +504,9 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                     ),
                                     child: Row(
                                       children: [
-                                        GestureDetector(
+                                        FocusableCard(
                                           onTap: () => setState(() => _isDub = false),
-                                          child: AnimatedContainer(
+                                          builder: (_, state) => AnimatedContainer(
                                             duration: const Duration(milliseconds: 180),
                                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                             decoration: BoxDecoration(
@@ -522,9 +523,9 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                             ),
                                           ),
                                         ),
-                                        GestureDetector(
+                                        FocusableCard(
                                           onTap: () => setState(() => _isDub = true),
-                                          child: AnimatedContainer(
+                                          builder: (_, state) => AnimatedContainer(
                                             duration: const Duration(milliseconds: 180),
                                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                             decoration: BoxDecoration(
@@ -1044,28 +1045,38 @@ class _HoverScale extends StatefulWidget {
 class _HoverScaleState extends State<_HoverScale> {
   bool _hover = false;
 
+  Widget _scaled(bool lifted) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      transform: Matrix4.identity()
+        ..scaleByDouble(
+          lifted ? 1.04 : 1.0,
+          lifted ? 1.04 : 1.0,
+          1.0,
+          1.0,
+        ),
+      transformAlignment: Alignment.center,
+      child: widget.child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOutCubic,
-          transform: Matrix4.identity()
-            ..scaleByDouble(
-              _hover ? 1.04 : 1.0,
-              _hover ? 1.04 : 1.0,
-              1.0,
-              1.0,
-            ),
-          transformAlignment: Alignment.center,
-          child: widget.child,
-        ),
-      ),
+    final onTap = widget.onTap;
+    if (onTap == null) {
+      // Nothing here is actionable, so the scale stays pointer-only: a
+      // FocusableCard would install an opaque tap recogniser that swallows the
+      // tap of the PopupMenuButton this is used as the child of.
+      return MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: _scaled(_hover),
+      );
+    }
+    return FocusableCard(
+      onTap: onTap,
+      builder: (_, state) => _scaled(state.highlighted),
     );
   }
 }

@@ -12,6 +12,7 @@ import '../../services/addon/addon_manager.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/home/home_page_settings.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/movie/movie_slider_section.dart';
 import '../../widgets/search/magnet_files_view.dart';
 import '../ai/wewatch_quiz_page.dart';
@@ -611,9 +612,9 @@ class _SearchPageState extends State<SearchPage> {
                     letterSpacing: 1.1,
                   ),
                 ),
-                GestureDetector(
+                FocusableCard(
                   onTap: _clearSearchHistory,
-                  child: const Text(
+                  builder: (context, state) => const Text(
                     'Clear All',
                     style: TextStyle(
                       fontSize: 11.5,

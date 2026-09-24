@@ -14,6 +14,7 @@ import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/segmented_tabs.dart';
 import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/slider_arrow.dart';
 import '../../widgets/manga/manga_card.dart';
 import '../../widgets/manga/manga_category_dropdown.dart';
@@ -909,11 +910,10 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
         ? chaptersList[chapterIndex]['name'] ?? 'Chapter ${chaptersList[chapterIndex]['number']}'
         : 'Resume';
 
-    return GestureDetector(
+    return FocusableCard(
       onTap: () => widget.onResume(entry),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
+      builder: (context, _) {
+        return Container(
           width: widget.isMobile ? math.min(320.0, widget.screenWidth * 0.82) : 380,
           margin: const EdgeInsets.symmetric(horizontal: 8.0),
           decoration: BoxDecoration(
@@ -1064,8 +1064,8 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

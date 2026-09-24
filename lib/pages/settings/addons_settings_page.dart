@@ -12,6 +12,7 @@ import '../../services/cloudstream/runtime/cloudstream_downloader.dart';
 import 'cloudstream_marketplace_modal.dart';
 import 'cloudstream_repo_modal.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../widgets/common/focusable_card.dart';
 
 class AddonsSettingsPage extends StatefulWidget {
   const AddonsSettingsPage({super.key});
@@ -982,12 +983,12 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
         ),
 
         // Repository Marketplace Banner Card
-        GestureDetector(
+        FocusableCard(
           onTap: () async {
             await CloudStreamMarketplaceModal.show(context);
             if (mounted) setState(() {});
           },
-          child: Container(
+          builder: (_, state) => Container(
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -1100,12 +1101,12 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
           builder: (context, constraints) {
             final isNarrow = constraints.maxWidth < 520;
 
-            final browseBtn = GestureDetector(
+            final browseBtn = FocusableCard(
               onTap: () async {
                 await CloudStreamRepoModal.show(context);
                 if (mounted) setState(() {});
               },
-              child: Container(
+              builder: (_, state) => Container(
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
@@ -1141,9 +1142,10 @@ class _AddonsSettingsPageState extends State<AddonsSettingsPage> {
               ),
             );
 
-            final addRepoBtn = GestureDetector(
-              onTap: _isAddingCsRepo ? null : _addCsRepo,
-              child: Container(
+            final addRepoBtn = FocusableCard(
+              onTap: _addCsRepo,
+              enabled: !_isAddingCsRepo,
+              builder: (_, state) => Container(
                 padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(14),
@@ -2100,7 +2102,7 @@ class _AddonCard extends StatelessWidget {
   }
 }
 
-class _FeatureToggleChip extends StatefulWidget {
+class _FeatureToggleChip extends StatelessWidget {
   final IconData icon;
   final String label;
   final int? count;
@@ -2120,48 +2122,37 @@ class _FeatureToggleChip extends StatefulWidget {
   });
 
   @override
-  State<_FeatureToggleChip> createState() => _FeatureToggleChipState();
-}
-
-class _FeatureToggleChipState extends State<_FeatureToggleChip> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     // A default parameter value has to be a compile-time constant, so the
     // palette accent cannot be one; it is resolved here instead.
-    final activeColor =
-        widget.activeColor ?? AppThemeService.currentPalette.value.primaryColor;
-    final isEnabled = widget.isEnabled;
+    final accent =
+        activeColor ?? AppThemeService.currentPalette.value.primaryColor;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
+    return FocusableCard(
+      onTap: onTap,
+      builder: (_, state) {
+        return AnimatedContainer(
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: isEnabled
-                ? (_hovered
-                    ? activeColor.withValues(alpha: 0.25)
-                    : activeColor.withValues(alpha: 0.15))
-                : (_hovered
+                ? (state.highlighted
+                    ? accent.withValues(alpha: 0.25)
+                    : accent.withValues(alpha: 0.15))
+                : (state.highlighted
                     ? Colors.white.withValues(alpha: 0.08)
                     : Colors.white.withValues(alpha: 0.03)),
             borderRadius: BorderRadius.circular(9),
             border: Border.all(
               color: isEnabled
-                  ? activeColor.withValues(alpha: 0.50)
+                  ? accent.withValues(alpha: 0.50)
                   : Colors.white.withValues(alpha: 0.08),
               width: 1,
             ),
-            boxShadow: isEnabled && _hovered
+            boxShadow: isEnabled && state.highlighted
                 ? [
                     BoxShadow(
-                      color: activeColor.withValues(alpha: 0.25),
+                      color: accent.withValues(alpha: 0.25),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -2172,17 +2163,17 @@ class _FeatureToggleChipState extends State<_FeatureToggleChip> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                widget.icon,
+                icon,
                 size: 14,
                 color: isEnabled
-                    ? activeColor
+                    ? accent
                     : Colors.white.withValues(alpha: 0.35),
               ),
               const SizedBox(width: 6),
               Text(
-                widget.count != null
-                    ? '${widget.label} (${widget.count})'
-                    : widget.label,
+                count != null
+                    ? '$label ($count)'
+                    : label,
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: isEnabled ? FontWeight.w600 : FontWeight.w500,
@@ -2191,7 +2182,7 @@ class _FeatureToggleChipState extends State<_FeatureToggleChip> {
                       : Colors.white.withValues(alpha: 0.45),
                 ),
               ),
-              if (widget.showStateIcon) ...[
+              if (showStateIcon) ...[
                 const SizedBox(width: 6),
                 Icon(
                   isEnabled
@@ -2205,8 +2196,8 @@ class _FeatureToggleChipState extends State<_FeatureToggleChip> {
               ],
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -2223,9 +2214,10 @@ class _AddAddonButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: isLoading ? null : onTap,
-      child: AnimatedContainer(
+    return FocusableCard(
+      onTap: onTap,
+      enabled: !isLoading,
+      builder: (_, state) => AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
@@ -2286,9 +2278,9 @@ class _TabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return FocusableCard(
       onTap: onTap,
-      child: AnimatedContainer(
+      builder: (_, state) => AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
@@ -2390,10 +2382,9 @@ class _CloudStreamCard extends StatelessWidget {
       child: Row(
         children: [
           // Checkmark Selection Button
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
+          FocusableCard(
             onTap: onSelectToggle,
-            child: Padding(
+            builder: (_, state) => Padding(
               padding: const EdgeInsets.only(right: 12),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
@@ -2450,10 +2441,9 @@ class _CloudStreamCard extends StatelessWidget {
 
           // Details (Tap details area also toggles selection!)
           Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: FocusableCard(
               onTap: onSelectToggle,
-              child: Column(
+              builder: (_, state) => Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(

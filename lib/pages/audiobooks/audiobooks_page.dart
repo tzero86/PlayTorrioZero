@@ -12,6 +12,7 @@ import '../../services/audiobook/audiobook_settings.dart';
 import '../../services/audiobook/paper2audio_service.dart';
 import '../../services/audiobook/custom_audiobook_service.dart';
 import '../../widgets/common/animated_ambient_background.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/segmented_tabs.dart';
 import '../settings/appearance/audiobook_settings_page.dart';
 import 'audiobook_detail_page.dart';
@@ -1259,7 +1260,7 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
   }
 }
 
-class _ContinueListeningCard extends StatefulWidget {
+class _ContinueListeningCard extends StatelessWidget {
   final AudiobookProgress progress;
   final AppThemePalette palette;
   final VoidCallback onTap;
@@ -1273,21 +1274,11 @@ class _ContinueListeningCard extends StatefulWidget {
   });
 
   @override
-  State<_ContinueListeningCard> createState() => _ContinueListeningCardState();
-}
-
-class _ContinueListeningCardState extends State<_ContinueListeningCard> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-  bool _isDeleteHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    final item = widget.progress;
+    final item = progress;
     final book = item.audiobook;
     final hasCover = book.coverImage.isNotEmpty;
     final heroTag = 'continue-cover-${book.uuid.isNotEmpty ? book.uuid : book.title}';
-    final palette = widget.palette;
 
     final percent = item.durationMs > 0
         ? (item.positionMs / item.durationMs).clamp(0.0, 1.0)
@@ -1297,23 +1288,17 @@ class _ContinueListeningCardState extends State<_ContinueListeningCard> {
         ? item.chapters[item.chapterIndex].title
         : 'Chapter ${item.chapterIndex + 1}';
 
-    final scale = _isPressed ? 0.96 : (_isHovered ? 1.03 : 1.0);
-
     return Padding(
       padding: const EdgeInsets.only(right: 14),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          MouseRegion(
-            cursor: SystemMouseCursors.click,
-            onEnter: (_) => setState(() => _isHovered = true),
-            onExit: (_) => setState(() => _isHovered = false),
-            child: GestureDetector(
-              onTapDown: (_) => setState(() => _isPressed = true),
-              onTapUp: (_) => setState(() => _isPressed = false),
-              onTapCancel: () => setState(() => _isPressed = false),
-              onTap: widget.onTap,
-              child: AnimatedScale(
+          FocusableCard(
+            onTap: onTap,
+            builder: (context, state) {
+              final scale = state.pressed ? 0.96 : (state.highlighted ? 1.03 : 1.0);
+
+              return AnimatedScale(
                 scale: scale,
                 duration: const Duration(milliseconds: 150),
                 child: AnimatedContainer(
@@ -1321,22 +1306,22 @@ class _ContinueListeningCardState extends State<_ContinueListeningCard> {
                   width: 285,
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _isHovered
+                    color: state.highlighted
                         ? const Color(0xFF1B2030)
                         : const Color(0xFF12151E).withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: _isHovered
+                      color: state.highlighted
                           ? palette.primaryColor.withValues(alpha: 0.6)
                           : Colors.white.withValues(alpha: 0.08),
-                      width: _isHovered ? 1.5 : 1.0,
+                      width: state.highlighted ? 1.5 : 1.0,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: _isHovered
+                        color: state.highlighted
                             ? palette.primaryColor.withValues(alpha: 0.3)
                             : Colors.black.withValues(alpha: 0.4),
-                        blurRadius: _isHovered ? 14 : 8,
+                        blurRadius: state.highlighted ? 14 : 8,
                         offset: const Offset(0, 4),
                       ),
                     ],
@@ -1425,44 +1410,41 @@ class _ContinueListeningCardState extends State<_ContinueListeningCard> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _isHovered
+                          color: state.highlighted
                               ? palette.primaryColor
                               : palette.primaryColor.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           Icons.play_arrow_rounded,
-                          color: _isHovered ? Colors.white : palette.primaryColor,
+                          color: state.highlighted ? Colors.white : palette.primaryColor,
                           size: 20,
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
 
           // X Delete Button
           Positioned(
             top: -4,
             right: -4,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              onEnter: (_) => setState(() => _isDeleteHovered = true),
-              onExit: (_) => setState(() => _isDeleteHovered = false),
-              child: GestureDetector(
-                onTap: widget.onDelete,
-                child: AnimatedContainer(
+            child: FocusableCard(
+              onTap: onDelete,
+              builder: (context, state) {
+                return AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: _isDeleteHovered
+                    color: state.highlighted
                         ? const Color(0xFFFF4D4D)
                         : const Color(0xFF1E2332),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: _isDeleteHovered
+                      color: state.highlighted
                           ? const Color(0xFFFF4D4D)
                           : Colors.white.withValues(alpha: 0.2),
                       width: 1.2,
@@ -1479,8 +1461,8 @@ class _ContinueListeningCardState extends State<_ContinueListeningCard> {
                     color: Colors.white,
                     size: 14,
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -1489,7 +1471,7 @@ class _ContinueListeningCardState extends State<_ContinueListeningCard> {
   }
 }
 
-class _ScrollArrowButton extends StatefulWidget {
+class _ScrollArrowButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
@@ -1499,46 +1481,36 @@ class _ScrollArrowButton extends StatefulWidget {
   });
 
   @override
-  State<_ScrollArrowButton> createState() => _ScrollArrowButtonState();
-}
-
-class _ScrollArrowButtonState extends State<_ScrollArrowButton> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) {
+        return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: _isHovered
+            color: state.highlighted
                 ? Colors.white.withValues(alpha: 0.15)
                 : Colors.white.withValues(alpha: 0.08),
             shape: BoxShape.circle,
             border: Border.all(
-              color: _isHovered
+              color: state.highlighted
                   ? Colors.white.withValues(alpha: 0.3)
                   : Colors.white.withValues(alpha: 0.1),
             ),
           ),
           child: Icon(
-            widget.icon,
-            color: _isHovered ? Colors.white : Colors.white70,
+            icon,
+            color: state.highlighted ? Colors.white : Colors.white70,
             size: 18,
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
-class _AudiobookCard extends StatefulWidget {
+class _AudiobookCard extends StatelessWidget {
   final Audiobook book;
   final String heroTag;
   final AppThemePalette palette;
@@ -1553,44 +1525,27 @@ class _AudiobookCard extends StatefulWidget {
   });
 
   @override
-  State<_AudiobookCard> createState() => _AudiobookCardState();
-}
-
-class _AudiobookCardState extends State<_AudiobookCard> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final book = widget.book;
     final hasCover = book.coverImage.isNotEmpty;
-    final heroTag = widget.heroTag;
-    final palette = widget.palette;
     final cardHoverGlow = AudiobookSettings.cardHoverGlow.value;
 
-    final scale = _isPressed ? 0.95 : (_isHovered ? 1.04 : 1.0);
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
-        onTap: () async {
-          await Navigator.push(
-            context,
-            AudiobookPageRoute(
-              page: AudiobookDetailPage(
-                audiobook: book,
-                heroTag: heroTag,
-              ),
+    return FocusableCard(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          AudiobookPageRoute(
+            page: AudiobookDetailPage(
+              audiobook: book,
+              heroTag: heroTag,
             ),
-          );
-          widget.onReturn?.call();
-        },
-        child: AnimatedScale(
+          ),
+        );
+        onReturn?.call();
+      },
+      builder: (context, state) {
+        final scale = state.pressed ? 0.95 : (state.highlighted ? 1.04 : 1.0);
+
+        return AnimatedScale(
           scale: scale,
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOutCubic,
@@ -1598,20 +1553,20 @@ class _AudiobookCardState extends State<_AudiobookCard> {
             duration: const Duration(milliseconds: 180),
             curve: Curves.easeOutCubic,
             decoration: BoxDecoration(
-              color: _isHovered ? const Color(0xFF191E2C) : const Color(0xFF12151E),
+              color: state.highlighted ? const Color(0xFF191E2C) : const Color(0xFF12151E),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _isHovered
+                color: state.highlighted
                     ? palette.primaryColor.withValues(alpha: 0.6)
                     : Colors.white.withValues(alpha: 0.08),
-                width: _isHovered ? 1.5 : 1.0,
+                width: state.highlighted ? 1.5 : 1.0,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: _isHovered && cardHoverGlow
+                  color: state.highlighted && cardHoverGlow
                       ? palette.primaryColor.withValues(alpha: 0.35)
                       : Colors.black.withValues(alpha: 0.4),
-                  blurRadius: _isHovered ? 16 : 10,
+                  blurRadius: state.highlighted ? 16 : 10,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -1656,7 +1611,7 @@ class _AudiobookCardState extends State<_AudiobookCard> {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: _isHovered ? Colors.white : Colors.white.withValues(alpha: 0.9),
+                          color: state.highlighted ? Colors.white : Colors.white.withValues(alpha: 0.9),
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
@@ -1671,7 +1626,7 @@ class _AudiobookCardState extends State<_AudiobookCard> {
                             decoration: BoxDecoration(
                               color: isTorrent
                                   ? const Color(0xFFFF9800).withValues(alpha: 0.25)
-                                  : (_isHovered
+                                  : (state.highlighted
                                       ? palette.primaryColor.withValues(alpha: 0.35)
                                       : palette.primaryColor.withValues(alpha: 0.2)),
                               borderRadius: BorderRadius.circular(6),
@@ -1709,8 +1664,8 @@ class _AudiobookCardState extends State<_AudiobookCard> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

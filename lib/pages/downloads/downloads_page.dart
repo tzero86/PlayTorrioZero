@@ -11,6 +11,7 @@ import '../../utils/platform/open_file_location_helper.dart';
 import '../../utils/download/download_path_helper.dart';
 import '../player/player_screen.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../../widgets/common/focusable_card.dart';
 
 class DownloadsPage extends StatefulWidget {
   const DownloadsPage({super.key});
@@ -524,9 +525,9 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
 
                   // Center Play Button
                   Center(
-                    child: GestureDetector(
+                    child: FocusableCard(
                       onTap: () => _playDownloadedMedia(task),
-                      child: Container(
+                      builder: (context, state) => Container(
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
@@ -552,7 +553,7 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                   Positioned(
                     top: 6,
                     left: 6,
-                    child: GestureDetector(
+                    child: FocusableCard(
                       onTap: () async {
                         final opened = await OpenFileLocationHelper.openLocation(task.targetFilePath);
                         if (!opened && mounted) {
@@ -561,7 +562,7 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                           );
                         }
                       },
-                      child: Container(
+                      builder: (context, state) => Container(
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -580,9 +581,9 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                   Positioned(
                     top: 6,
                     right: 6,
-                    child: GestureDetector(
+                    child: FocusableCard(
                       onTap: () => _confirmDelete(task),
-                      child: Container(
+                      builder: (context, state) => Container(
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,

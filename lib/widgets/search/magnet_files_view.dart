@@ -4,6 +4,7 @@ import '../../pages/player/player_screen.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/debrid/debrid_service.dart';
 import '../../services/stream/torrent_stream_service.dart';
+import '../common/focusable_card.dart';
 
 class MagnetFileItem {
   final int id;
@@ -581,9 +582,9 @@ class _MagnetFilesViewState extends State<MagnetFilesView> {
 
   Widget _buildCategoryChip(String category, String label, AppThemePalette palette) {
     final isSelected = _activeCategory == category;
-    return GestureDetector(
+    return FocusableCard(
       onTap: () => setState(() => _activeCategory = category),
-      child: AnimatedContainer(
+      builder: (context, state) => AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(

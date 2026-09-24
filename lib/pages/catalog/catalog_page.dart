@@ -6,6 +6,7 @@ import '../../models/movie/movie.dart';
 import '../../models/movie/movie_section.dart';
 import '../../services/metadata/metadata_service.dart';
 import '../../widgets/common/error_view.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/movie/movie_card.dart';
 
 class CatalogPage extends StatefulWidget {
@@ -526,9 +527,13 @@ class _CatalogPageState extends State<CatalogPage> {
         duration: const Duration(milliseconds: 200),
         child: IgnorePointer(
           ignoring: !isVisible,
-          child: GestureDetector(
+          // An invisible arrow must not be a focus stop. IgnorePointer blocks
+          // taps but not focus, so without this a remote lands on a control
+          // that is not on screen.
+          child: FocusableCard(
             onTap: onTap,
-            child: Container(
+            enabled: isVisible,
+            builder: (context, state) => Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -558,9 +563,9 @@ class _GenreChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return FocusableCard(
       onTap: onTap,
-      child: AnimatedContainer(
+      builder: (context, state) => AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(

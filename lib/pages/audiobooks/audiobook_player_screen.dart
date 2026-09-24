@@ -17,6 +17,7 @@ import '../../services/discord/discord_rpc_service.dart';
 import '../../services/player/player_settings.dart';
 import '../../widgets/audiobook/audiobook_interactive_physics_button.dart';
 import '../../widgets/audiobook/audiobook_waveform_seekbar.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/segmented_tabs.dart';
 import '../settings/appearance/audiobook_player_studio_page.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -1317,9 +1318,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
           onTap: () => _seekRelative(-10),
         );
 
-        final playButton = GestureDetector(
+        final playButton = FocusableCard(
           onTap: _togglePlayPause,
-          child: _buildPlayButtonByStyle(playBtnStyle, palette),
+          builder: (context, _) => _buildPlayButtonByStyle(playBtnStyle, palette),
         );
 
         final fwdBtn = _PlayerIconButton(
@@ -1793,7 +1794,7 @@ class _VolumeButtonState extends State<_VolumeButton> {
   }
 }
 
-class _ChapterListItemTile extends StatefulWidget {
+class _ChapterListItemTile extends StatelessWidget {
   final AudiobookChapter chapter;
   final int index;
   final bool isSelected;
@@ -1811,63 +1812,48 @@ class _ChapterListItemTile extends StatefulWidget {
   });
 
   @override
-  State<_ChapterListItemTile> createState() => _ChapterListItemTileState();
-}
-
-class _ChapterListItemTileState extends State<_ChapterListItemTile> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final scale = _isPressed ? 0.98 : (_isHovered ? 1.015 : 1.0);
-    final palette = widget.palette;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _isHovered = true),
-        onExit: (_) => setState(() => _isHovered = false),
-        child: GestureDetector(
-          onTapDown: (_) => setState(() => _isPressed = true),
-          onTapUp: (_) => setState(() => _isPressed = false),
-          onTapCancel: () => setState(() => _isPressed = false),
-          onTap: widget.onTap,
-          child: AnimatedScale(
+      child: FocusableCard(
+        onTap: onTap,
+        builder: (context, state) {
+          final scale = state.pressed ? 0.98 : (state.highlighted ? 1.015 : 1.0);
+
+          return AnimatedScale(
             scale: scale,
             duration: const Duration(milliseconds: 150),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
-                color: widget.isSelected
+                color: isSelected
                     ? palette.primaryColor.withValues(alpha: 0.22)
-                    : (_isHovered ? Colors.white.withValues(alpha: 0.08) : Colors.transparent),
+                    : (state.highlighted ? Colors.white.withValues(alpha: 0.08) : Colors.transparent),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: widget.isSelected
+                  color: isSelected
                       ? palette.primaryColor.withValues(alpha: 0.6)
-                      : (_isHovered ? Colors.white.withValues(alpha: 0.12) : Colors.transparent),
+                      : (state.highlighted ? Colors.white.withValues(alpha: 0.12) : Colors.transparent),
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    widget.isSelected
-                        ? (widget.isPlaying ? Icons.graphic_eq_rounded : Icons.pause_circle_filled_rounded)
+                    isSelected
+                        ? (isPlaying ? Icons.graphic_eq_rounded : Icons.pause_circle_filled_rounded)
                         : Icons.play_circle_outline_rounded,
-                    color: widget.isSelected ? palette.primaryColor : Colors.white54,
+                    color: isSelected ? palette.primaryColor : Colors.white54,
                     size: 22,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      widget.chapter.title,
+                      chapter.title,
                       style: TextStyle(
-                        color: widget.isSelected ? Colors.white : Colors.white70,
+                        color: isSelected ? Colors.white : Colors.white70,
                         fontSize: 14,
-                        fontWeight: widget.isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1876,8 +1862,8 @@ class _ChapterListItemTileState extends State<_ChapterListItemTile> {
                 ],
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
