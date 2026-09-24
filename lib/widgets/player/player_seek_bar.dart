@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../models/player/skip_segment_model.dart';
 import 'player_glass.dart';
+import '../common/focusable_card.dart';
 
 /// Timeline scrubber with buffered progress and interactive hover / drag preview.
 class PlayerSeekBar extends StatefulWidget {
@@ -313,11 +314,10 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
         const SizedBox(width: 12),
 
         // Time End / Remaining Toggle
-        GestureDetector(
+        FocusableCard(
           onTap: () => setState(() => _showRemainingTime = !_showRemainingTime),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: Container(
+          builder: (context, _) {
+            return Container(
               constraints: const BoxConstraints(minWidth: 46),
               alignment: Alignment.centerRight,
               child: Text(
@@ -331,8 +331,8 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                   fontFeatures: [FontFeature.tabularFigures()],
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ],
     );

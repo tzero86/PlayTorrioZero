@@ -22,6 +22,7 @@ import '../../services/stream/stream_service.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/scraper/builtin_providers_settings_service.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../settings/settings_page.dart';
 import '../details/details_page.dart';
 import '../../utils/navigation/route_transitions.dart';
@@ -1001,10 +1002,10 @@ class _WatchScreenState extends State<WatchScreen>
 
             if (!painter.didExceedMaxLines) return const SizedBox.shrink();
 
-            return GestureDetector(
+            return FocusableCard(
               onTap: () =>
                   setState(() => _synopsisExpanded = !_synopsisExpanded),
-              child: Text(
+              builder: (context, _) => Text(
                 _synopsisExpanded ? 'Show less' : 'Read more',
                 style: const TextStyle(
                   color: _C.accent,
@@ -1131,9 +1132,9 @@ class _WatchScreenState extends State<WatchScreen>
     String label, {
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return FocusableCard(
       onTap: onTap,
-      child: Container(
+      builder: (context, _) => Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: _C.surface.withValues(alpha: 0.6),
@@ -1325,11 +1326,11 @@ class _WatchScreenState extends State<WatchScreen>
 
     return Builder(
       builder: (buttonContext) {
-        return GestureDetector(
+        return FocusableCard(
           onTap: () => _isDesktop()
               ? _showSeederGlassDropdown(buttonContext)
               : _showSeederBottomSheet(),
-          child: DecoratedBox(
+          builder: (context, _) => DecoratedBox(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(18)),
               boxShadow: [
@@ -1537,11 +1538,11 @@ class _WatchScreenState extends State<WatchScreen>
 
     return Builder(
       builder: (buttonContext) {
-        return GestureDetector(
+        return FocusableCard(
           onTap: () => _isDesktop()
               ? _showSizeGlassDropdown(buttonContext)
               : _showSizeBottomSheet(),
-          child: DecoratedBox(
+          builder: (context, _) => DecoratedBox(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(18)),
               boxShadow: [
@@ -1751,11 +1752,11 @@ class _WatchScreenState extends State<WatchScreen>
 
     return Builder(
       builder: (buttonContext) {
-        return GestureDetector(
+        return FocusableCard(
           onTap: () => _isDesktop()
               ? _showGlassDropdown(buttonContext, addons)
               : _showAddonBottomSheet(addons),
-          child: DecoratedBox(
+          builder: (context, _) => DecoratedBox(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(18)),
               boxShadow: [
@@ -1979,11 +1980,11 @@ class _WatchScreenState extends State<WatchScreen>
 
     return Builder(
       builder: (buttonContext) {
-        return GestureDetector(
+        return FocusableCard(
           onTap: () => _isDesktop()
               ? _showAudioGlassDropdown(buttonContext)
               : _showAudioBottomSheet(),
-          child: DecoratedBox(
+          builder: (context, _) => DecoratedBox(
             decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(18)),
               boxShadow: [
@@ -3455,7 +3456,6 @@ class _EmptySourcesStateWidgetState extends State<_EmptySourcesStateWidget>
   late AnimationController _animController;
   late Animation<double> _scaleAnim;
   late Animation<double> _fadeAnim;
-  bool _isHovering = false;
 
   @override
   void initState() {
@@ -3537,18 +3537,16 @@ class _EmptySourcesStateWidgetState extends State<_EmptySourcesStateWidget>
             ),
           ),
           const SizedBox(height: 32),
-          MouseRegion(
-            onEnter: (_) => setState(() => _isHovering = true),
-            onExit: (_) => setState(() => _isHovering = false),
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SettingsPage()),
-                );
-              },
-              child: AnimatedContainer(
+          FocusableCard(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
+              );
+            },
+            builder: (context, state) {
+              final isHovering = state.highlighted;
+              return AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -3559,7 +3557,7 @@ class _EmptySourcesStateWidgetState extends State<_EmptySourcesStateWidget>
                   gradient: const LinearGradient(
                     colors: [Color(0xFF7C5CFC), Color(0xFF5CFCB6)],
                   ),
-                  boxShadow: _isHovering
+                  boxShadow: isHovering
                       ? [
                           BoxShadow(
                             color: const Color(
@@ -3572,7 +3570,7 @@ class _EmptySourcesStateWidgetState extends State<_EmptySourcesStateWidget>
                       : [],
                 ),
                 child: AnimatedScale(
-                  scale: _isHovering ? 1.05 : 1.0,
+                  scale: isHovering ? 1.05 : 1.0,
                   duration: const Duration(milliseconds: 200),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
@@ -3594,8 +3592,8 @@ class _EmptySourcesStateWidgetState extends State<_EmptySourcesStateWidget>
                     ],
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),

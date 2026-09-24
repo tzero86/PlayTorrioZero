@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'player_glass.dart';
+import '../common/focusable_card.dart';
 
 /// Floating glass toolbar for quick live subtitle delay adjustment.
 class SubSyncBar extends StatefulWidget {
@@ -161,9 +162,9 @@ class _SubSyncBarState extends State<SubSyncBar> {
                         ),
                         if (isNonZero) ...[
                           const SizedBox(width: 6),
-                          GestureDetector(
+                          FocusableCard(
                             onTap: () => _applyDelay(0.0),
-                            child: Container(
+                            builder: (context, _) => Container(
                               padding: const EdgeInsets.all(2),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.15),

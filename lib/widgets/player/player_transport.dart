@@ -7,6 +7,7 @@ import '../../services/theme/glass_settings.dart';
 import 'player_glass.dart';
 import 'player_seek_bar.dart';
 import 'player_volume_control.dart';
+import '../common/focusable_card.dart';
 
 /// Full bottom transport bar containing timeline scrubber, play controls, and menu triggers.
 class PlayerTransport extends StatelessWidget {
@@ -317,7 +318,7 @@ class PlayerTransport extends StatelessWidget {
   }
 }
 
-class _PlayerPlayPauseButton extends StatefulWidget {
+class _PlayerPlayPauseButton extends StatelessWidget {
   final bool isPlaying;
   final double size;
   final double iconSize;
@@ -331,46 +332,73 @@ class _PlayerPlayPauseButton extends StatefulWidget {
   });
 
   @override
-  State<_PlayerPlayPauseButton> createState() => _PlayerPlayPauseButtonState();
-}
-
-class _PlayerPlayPauseButtonState extends State<_PlayerPlayPauseButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: GlassSettings.enabled,
-      builder: (context, glassEnabled, _) {
-        return ValueListenableBuilder<int>(
-          valueListenable: GlassSettings.styleRevision,
-          builder: (context, _, __) {
-            final hoverScaleVal = glassEnabled ? GlassSettings.hoverScale.value : 1.0;
-            final effectiveScale = _hovered ? hoverScaleVal : 1.0;
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) {
+        // Focus is highlighted like hover: a remote has no pointer, so this is
+        // the only thing telling the viewer which control is live.
+        final highlighted = state.highlighted;
 
-            final iconWidget = Icon(
-              widget.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              color: Colors.white,
-              size: widget.iconSize,
-            );
+        return ValueListenableBuilder<bool>(
+          valueListenable: GlassSettings.enabled,
+          builder: (context, glassEnabled, _) {
+            return ValueListenableBuilder<int>(
+              valueListenable: GlassSettings.styleRevision,
+              builder: (context, _, __) {
+                final hoverScaleVal = glassEnabled ? GlassSettings.hoverScale.value : 1.0;
+                final effectiveScale = highlighted ? hoverScaleVal : 1.0;
 
-            Widget body;
-            if (glassEnabled) {
-              final style = GlassSettings.createButtonGlassStyle(
-                cornerRadius: widget.size / 2,
-                customColor: _hovered ? const Color(0x45FFFFFF) : const Color(0x28FFFFFF),
-              );
+                final iconWidget = Icon(
+                  isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: iconSize,
+                );
 
-              body = RepaintBoundary(
-                child: LiquidGlassLens(
-                  style: style,
-                  useImpellerBackdrop: true,
-                  child: Container(
-                    width: widget.size,
-                    height: widget.size,
-                    decoration: const BoxDecoration(
+                Widget body;
+                if (glassEnabled) {
+                  final style = GlassSettings.createButtonGlassStyle(
+                    cornerRadius: size / 2,
+                    customColor: highlighted ? const Color(0x45FFFFFF) : const Color(0x28FFFFFF),
+                  );
+
+                  body = RepaintBoundary(
+                    child: LiquidGlassLens(
+                      style: style,
+                      useImpellerBackdrop: true,
+                      child: Container(
+                        width: size,
+                        height: size,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0x66000000),
+                              offset: Offset(0, 4),
+                              blurRadius: 16,
+                            ),
+                          ],
+                        ),
+                        alignment: Alignment.center,
+                        child: iconWidget,
+                      ),
+                    ),
+                  );
+                } else {
+                  body = AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    width: size,
+                    height: size,
+                    decoration: BoxDecoration(
+                      color: highlighted
+                          ? Colors.white.withValues(alpha: 0.28)
+                          : Colors.white.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
-                      boxShadow: [
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        width: 1.2,
+                      ),
+                      boxShadow: const [
                         BoxShadow(
                           color: Color(0x66000000),
                           offset: Offset(0, 4),
@@ -380,49 +408,16 @@ class _PlayerPlayPauseButtonState extends State<_PlayerPlayPauseButton> {
                     ),
                     alignment: Alignment.center,
                     child: iconWidget,
-                  ),
-                ),
-              );
-            } else {
-              body = AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                width: widget.size,
-                height: widget.size,
-                decoration: BoxDecoration(
-                  color: _hovered
-                      ? Colors.white.withValues(alpha: 0.28)
-                      : Colors.white.withValues(alpha: 0.18),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    width: 1.2,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0x66000000),
-                      offset: Offset(0, 4),
-                      blurRadius: 16,
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: iconWidget,
-              );
-            }
+                  );
+                }
 
-            return MouseRegion(
-              cursor: SystemMouseCursors.click,
-              onEnter: (_) => setState(() => _hovered = true),
-              onExit: (_) => setState(() => _hovered = false),
-              child: GestureDetector(
-                onTap: widget.onTap,
-                child: AnimatedScale(
+                return AnimatedScale(
                   scale: effectiveScale,
                   duration: const Duration(milliseconds: 140),
                   curve: Curves.easeOutCubic,
                   child: body,
-                ),
-              ),
+                );
+              },
             );
           },
         );

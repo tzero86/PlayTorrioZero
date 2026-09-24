@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../services/iptv/hardcoded_channels.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/iptv/iptv_channel_card.dart';
 import 'iptv_channel_sheet.dart';
 
@@ -158,29 +159,33 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
                 final cat = _categories[index];
                 final isSelected = _selectedCategory == cat;
 
-                return GestureDetector(
+                return FocusableCard(
                   onTap: () => setState(() => _selectedCategory = cat),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFF7C5CFF)
-                          : Colors.white.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
+                  builder: (context, state) => CardFocusRing(
+                    focused: state.focused,
+                    radius: BorderRadius.circular(20),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? const Color(0xFF7C5CFF)
-                            : Colors.white.withValues(alpha: 0.1),
+                            : Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFF7C5CFF)
+                              : Colors.white.withValues(alpha: 0.1),
+                        ),
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        cat,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.white70,
-                          fontSize: 12.5,
-                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      child: Center(
+                        child: Text(
+                          cat,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.white70,
+                            fontSize: 12.5,
+                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          ),
                         ),
                       ),
                     ),

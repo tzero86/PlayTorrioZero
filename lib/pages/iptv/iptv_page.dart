@@ -16,6 +16,7 @@ import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/iptv/iptv_hero_carousel.dart';
 import '../../widgets/iptv/iptv_slider_section.dart';
 import '../multinutz/multinutz_page.dart';
@@ -916,7 +917,7 @@ class _QuickChannelsSliderState extends State<_QuickChannelsSlider> {
   }
 }
 
-class _QuickChannelCard extends StatefulWidget {
+class _QuickChannelCard extends StatelessWidget {
   final QuickChannel channel;
   final VoidCallback onTap;
   final VoidCallback onRemove;
@@ -928,84 +929,84 @@ class _QuickChannelCard extends StatefulWidget {
   });
 
   @override
-  State<_QuickChannelCard> createState() => _QuickChannelCardState();
-}
-
-class _QuickChannelCardState extends State<_QuickChannelCard> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        onLongPress: widget.onRemove,
-        child: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: widget.channel.gradient,
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => GestureDetector(
+        // Pointer-only shortcut: FocusableCard owns tap and activation, not long press.
+        onLongPress: onRemove,
+        child: CardFocusRing(
+          focused: state.focused,
+          radius: BorderRadius.circular(12),
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: channel.gradient,
+                  ),
+                  boxShadow: state.highlighted
+                      ? [BoxShadow(color: channel.gradient.first.withValues(alpha: 0.5), blurRadius: 16.0, spreadRadius: 2.0)]
+                      : null,
                 ),
-                boxShadow: _hovered
-                    ? [BoxShadow(color: widget.channel.gradient.first.withValues(alpha: 0.5), blurRadius: 16.0, spreadRadius: 2.0)]
-                    : null,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: widget.channel.iconUrl != null
-                          ? CachedNetworkImage(
-                              imageUrl: widget.channel.iconUrl!,
-                              cacheManager: AppImageCache.manager,
-                              fit: BoxFit.contain,
-                              errorWidget: (_, __, ___) => _QuickChannelIcon(widget.channel.short))
-                          : _QuickChannelIcon(widget.channel.short),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: channel.iconUrl != null
+                            ? CachedNetworkImage(
+                                imageUrl: channel.iconUrl!,
+                                cacheManager: AppImageCache.manager,
+                                fit: BoxFit.contain,
+                                errorWidget: (_, __, ___) => _QuickChannelIcon(channel.short))
+                            : _QuickChannelIcon(channel.short),
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.channel.name,
-                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.channel.category,
-                          style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
-                        ),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            channel.name,
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            channel.category,
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            // Remove button — always visible (works on touch + desktop)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: GestureDetector(
-                onTap: widget.onRemove,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(color: Color(0xFFCC0000), shape: BoxShape.circle),
-                  child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+                  ],
                 ),
               ),
-            ),
-          ],
+              // Remove button — always visible (works on touch + desktop)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: FocusableCard(
+                  onTap: onRemove,
+                  builder: (context, closeState) => CardFocusRing(
+                    focused: closeState.focused,
+                    radius: BorderRadius.circular(10),
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(color: Color(0xFFCC0000), shape: BoxShape.circle),
+                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1018,21 +1019,25 @@ class _QuickAddCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return FocusableCard(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.5), width: 2),
-          color: const Color(0xFF0C0F17),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_rounded, color: Color(0xFF7C5CFF), size: 36),
-            SizedBox(height: 8),
-            Text('Add Channel', style: TextStyle(color: Color(0xFF7C5CFF), fontSize: 12, fontWeight: FontWeight.w700)),
-          ],
+      builder: (context, state) => CardFocusRing(
+        focused: state.focused,
+        radius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFF7C5CFF).withValues(alpha: 0.5), width: 2),
+            color: const Color(0xFF0C0F17),
+          ),
+          child: const Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_rounded, color: Color(0xFF7C5CFF), size: 36),
+              SizedBox(height: 8),
+              Text('Add Channel', style: TextStyle(color: Color(0xFF7C5CFF), fontSize: 12, fontWeight: FontWeight.w700)),
+            ],
+          ),
         ),
       ),
     );
@@ -1172,15 +1177,19 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                   spacing: 8,
                   children: _presetGradients.map((g) {
                     final isSelected = _gradient == g;
-return GestureDetector(
+return FocusableCard(
                       onTap: () => setState(() => _gradient = g),
-                      child: Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          gradient: LinearGradient(colors: g),
-                          border: Border.all(color: isSelected ? const Color(0xFF7C5CFF) : Colors.transparent, width: 2),
+                      builder: (context, state) => CardFocusRing(
+                        focused: state.focused,
+                        radius: BorderRadius.circular(8),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            gradient: LinearGradient(colors: g),
+                            border: Border.all(color: isSelected ? const Color(0xFF7C5CFF) : Colors.transparent, width: 2),
+                          ),
                         ),
                       ),
                     );

@@ -10,6 +10,7 @@ import '../../services/anime/anime_scraper_service.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
 import '../../services/anime_arabic/anime_arabic_extractor.dart';
 import 'player_glass.dart';
+import '../common/focusable_card.dart';
 
 /// Glassmorphic Sources Side Panel for selecting episode stream sources,
 /// with targeted scraping, episode caching, and error recovery banners.
@@ -49,7 +50,6 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
   final List<StreamSource> _sources = [];
   bool _isLoading = false;
   StreamSubscription<StreamSource>? _streamSub;
-  int? _hoveredIndex;
 
   @override
   void initState() {
@@ -541,30 +541,25 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
         }
 
         final source = _sources[index];
-        final isHovered = _hoveredIndex == index;
 
-        return _buildSourceCard(source, index, isHovered, isCompact);
+        return _buildSourceCard(source, isCompact);
       },
     );
   }
 
   Widget _buildSourceCard(
     StreamSource source,
-    int index,
-    bool isHovered,
     bool isCompact,
   ) {
     final title = source.title ?? source.name ?? 'Stream Source';
     final isTorrent = source.infoHash != null && source.infoHash!.isNotEmpty;
     final resolution = _extractResolution(title);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hoveredIndex = index),
-      onExit: (_) => setState(() => _hoveredIndex = null),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () => widget.onPlaySource(source, widget.episode),
-        child: AnimatedScale(
+    return FocusableCard(
+      onTap: () => widget.onPlaySource(source, widget.episode),
+      builder: (context, state) {
+        final isHovered = state.highlighted;
+        return AnimatedScale(
           scale: isHovered ? 1.015 : 1.0,
           duration: const Duration(milliseconds: 160),
           curve: Curves.easeOutCubic,
@@ -756,8 +751,8 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

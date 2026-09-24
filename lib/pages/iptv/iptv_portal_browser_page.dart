@@ -13,6 +13,7 @@ import '../../services/discord/discord_rpc_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import 'iptv_player_page.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/segmented_tabs.dart';
 
 class IptvPortalBrowserPage extends StatefulWidget {
@@ -1293,15 +1294,16 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
     final palette = AppThemeService.currentPalette.value;
     final isSelected = _activeSection == section;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {
-          if (_activeSection != section) {
-            setState(() => _activeSection = section);
-            _loadSectionData();
-          }
-        },
+    return FocusableCard(
+      onTap: () {
+        if (_activeSection != section) {
+          setState(() => _activeSection = section);
+          _loadSectionData();
+        }
+      },
+      builder: (context, state) => CardFocusRing(
+        focused: state.focused,
+        radius: BorderRadius.circular(8),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 160),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
@@ -1546,7 +1548,7 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
   }
 }
 
-class _CategoryListRow extends StatefulWidget {
+class _CategoryListRow extends StatelessWidget {
   final IptvCategory category;
   final int count;
   final bool isSelected;
@@ -1560,35 +1562,27 @@ class _CategoryListRow extends StatefulWidget {
   });
 
   @override
-  State<_CategoryListRow> createState() => _CategoryListRowState();
-}
-
-class _CategoryListRowState extends State<_CategoryListRow> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
-    final isFavCategory = widget.category.id == _IptvPortalBrowserPageState.favoritesCategoryId;
+    final isFavCategory = category.id == _IptvPortalBrowserPageState.favoritesCategoryId;
     final showCount = IptvSettings.showCategoryCount.value;
 
     return RepaintBoundary(
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
+      child: FocusableCard(
+        onTap: onTap,
+        builder: (context, state) => CardFocusRing(
+          focused: state.focused,
+          radius: BorderRadius.circular(8),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: widget.isSelected
+              color: isSelected
                   ? (isFavCategory ? const Color(0xFFFFC107).withValues(alpha: 0.15) : palette.primaryColor.withValues(alpha: 0.15))
-                  : (_hovered ? const Color(0xFF141724) : Colors.transparent),
+                  : (state.highlighted ? const Color(0xFF141724) : Colors.transparent),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: widget.isSelected
+                color: isSelected
                     ? (isFavCategory ? const Color(0xFFFFC107).withValues(alpha: 0.6) : palette.primaryColor.withValues(alpha: 0.6))
                     : Colors.transparent,
               ),
@@ -1599,7 +1593,7 @@ class _CategoryListRowState extends State<_CategoryListRow> {
                   width: 3.5,
                   height: 16,
                   decoration: BoxDecoration(
-                    color: widget.isSelected
+                    color: isSelected
                         ? (isFavCategory ? const Color(0xFFFFC107) : palette.primaryColor)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(2),
@@ -1612,15 +1606,15 @@ class _CategoryListRowState extends State<_CategoryListRow> {
                 ],
                 Expanded(
                   child: Text(
-                    widget.category.name,
+                    category.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: widget.isSelected
+                      color: isSelected
                           ? (isFavCategory ? const Color(0xFFFFD54F) : Colors.white)
-                          : (_hovered ? Colors.white : (isFavCategory ? const Color(0xFFFFC107) : Colors.white70)),
+                          : (state.highlighted ? Colors.white : (isFavCategory ? const Color(0xFFFFC107) : Colors.white70)),
                       fontSize: 12.5,
-                      fontWeight: widget.isSelected ? FontWeight.w800 : (isFavCategory ? FontWeight.w700 : FontWeight.w600),
+                      fontWeight: isSelected ? FontWeight.w800 : (isFavCategory ? FontWeight.w700 : FontWeight.w600),
                     ),
                   ),
                 ),
@@ -1629,17 +1623,17 @@ class _CategoryListRowState extends State<_CategoryListRow> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                     decoration: BoxDecoration(
-                      color: widget.isSelected
+                      color: isSelected
                           ? (isFavCategory ? const Color(0xFFFFC107).withValues(alpha: 0.3) : palette.primaryColor.withValues(alpha: 0.3))
                           : (isFavCategory ? const Color(0xFFFFC107).withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.06)),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      '${widget.count}',
+                      '$count',
                       style: TextStyle(
                         color: isFavCategory
                             ? const Color(0xFFFFC107)
-                            : (widget.isSelected ? palette.primaryColor : Colors.white38),
+                            : (isSelected ? palette.primaryColor : Colors.white38),
                         fontSize: 10.5,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1680,7 +1674,6 @@ class _LiveChannelListRow extends StatefulWidget {
 }
 
 class _LiveChannelListRowState extends State<_LiveChannelListRow> {
-  bool _hovered = false;
   List<EpgEntry>? _cachedEpg;
 
   @override
@@ -1714,192 +1707,192 @@ class _LiveChannelListRowState extends State<_LiveChannelListRow> {
     final showEpg = IptvSettings.showEpgSnippet.value;
 
     return RepaintBoundary(
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) {
-          setState(() => _hovered = true);
-          _loadEpg();
-        },
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            padding: EdgeInsets.symmetric(horizontal: isVerySmall ? 8 : 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: _hovered ? const Color(0xFF161A28) : const Color(0xFF0E111A),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: _hovered ? palette.primaryColor.withValues(alpha: 0.7) : const Color(0xFF1B2030),
-                width: _hovered ? 1.4 : 1.0,
+      child: FocusableCard(
+        onTap: widget.onTap,
+        builder: (context, state) => MouseRegion(
+          // Pointer-only shortcut: FocusableCard owns tap; hover is kept only to fetch the EPG snippet lazily.
+          onEnter: (_) => _loadEpg(),
+          child: CardFocusRing(
+            focused: state.focused,
+            radius: BorderRadius.circular(10),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 120),
+              padding: EdgeInsets.symmetric(horizontal: isVerySmall ? 8 : 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: state.highlighted ? const Color(0xFF161A28) : const Color(0xFF0E111A),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: state.highlighted ? palette.primaryColor.withValues(alpha: 0.7) : const Color(0xFF1B2030),
+                  width: state.highlighted ? 1.4 : 1.0,
+                ),
+                boxShadow: state.highlighted
+                    ? [
+                        BoxShadow(
+                          color: palette.primaryColor.withValues(alpha: 0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
-              boxShadow: _hovered
-                  ? [
-                      BoxShadow(
-                        color: palette.primaryColor.withValues(alpha: 0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              children: [
-                // Index
-                if (!isVerySmall) ...[
-                  SizedBox(
-                    width: 30,
-                    child: Text(
-                      indexFormatted,
-                      style: const TextStyle(
-                        color: Colors.white24,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w700,
-                        fontFamily: 'monospace',
+              child: Row(
+                children: [
+                  // Index
+                  if (!isVerySmall) ...[
+                    SizedBox(
+                      width: 30,
+                      child: Text(
+                        indexFormatted,
+                        style: const TextStyle(
+                          color: Colors.white24,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: 'monospace',
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                ],
-
-                // ── CHANNEL LOGO BAY ──
-                if (showLogo) ...[
-                  Container(
-                    width: isVerySmall ? 52 : 64,
-                    height: isVerySmall ? 40 : 46,
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF080A10),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFF1E2336)),
+                    const SizedBox(width: 6),
+                  ],
+  
+                  // ── CHANNEL LOGO BAY ──
+                  if (showLogo) ...[
+                    Container(
+                      width: isVerySmall ? 52 : 64,
+                      height: isVerySmall ? 40 : 46,
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF080A10),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF1E2336)),
+                      ),
+                      child: s.icon.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(5),
+                              child: CachedNetworkImage(
+                                imageUrl: s.icon,
+                                cacheManager: AppImageCache.manager,
+                                fit: BoxFit.contain,
+                                memCacheWidth: 128,
+                                errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 20)),
+                            )
+                          : const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 20),
                     ),
-                    child: s.icon.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(5),
-                            child: CachedNetworkImage(
-                              imageUrl: s.icon,
-                              cacheManager: AppImageCache.manager,
-                              fit: BoxFit.contain,
-                              memCacheWidth: 128,
-                              errorWidget: (_, _, _) => const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 20)),
-                          )
-                        : const Icon(Icons.live_tv_rounded, color: Colors.white38, size: 20),
-                  ),
-                  SizedBox(width: isVerySmall ? 8 : 12),
-                ],
-
-                // Channel Title & EPG Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              s.name,
+                    SizedBox(width: isVerySmall ? 8 : 12),
+                  ],
+  
+                  // Channel Title & EPG Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                s.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (widget.isAlive)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: Colors.greenAccent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.fiber_manual_record_rounded, color: Colors.greenAccent, size: 7),
+                                    SizedBox(width: 3),
+                                    Text(
+                                      'LIVE',
+                                      style: TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.w900),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+  
+                        if (showEpg) ...[
+                          const SizedBox(height: 2),
+                          if (currentEpg != null) ...[
+                            Text(
+                              'NOW: ${currentEpg.title}${nextEpg != null ? "  |  NEXT: ${nextEpg.title}" : ""}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -0.2,
-                              ),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 11),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                          if (widget.isAlive)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.greenAccent.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(4),
-                                border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.fiber_manual_record_rounded, color: Colors.greenAccent, size: 7),
-                                  SizedBox(width: 3),
-                                  Text(
-                                    'LIVE',
-                                    style: TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.w900),
-                                  ),
-                                ],
-                              ),
+                          ] else ...[
+                            Text(
+                              'Live Stream Feed',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11),
                             ),
-                        ],
-                      ),
-
-                      if (showEpg) ...[
-                        const SizedBox(height: 2),
-                        if (currentEpg != null) ...[
-                          Text(
-                            'NOW: ${currentEpg.title}${nextEpg != null ? "  |  NEXT: ${nextEpg.title}" : ""}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.65), fontSize: 11),
-                          ),
-                        ] else ...[
-                          Text(
-                            'Live Stream Feed',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11),
-                          ),
+                          ],
                         ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 10),
-
-                // Format Tag
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF141824),
-                    borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: const Color(0xFF22283A)),
+  
+                  const SizedBox(width: 10),
+  
+                  // Format Tag
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141824),
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: const Color(0xFF22283A)),
+                    ),
+                    child: Text(
+                      s.containerExt.toUpperCase(),
+                      style: const TextStyle(color: Colors.white60, fontSize: 9.5, fontWeight: FontWeight.w800),
+                    ),
                   ),
-                  child: Text(
-                    s.containerExt.toUpperCase(),
-                    style: const TextStyle(color: Colors.white60, fontSize: 9.5, fontWeight: FontWeight.w800),
+  
+                  const SizedBox(width: 6),
+  
+                  // Favorite Button
+                  IconButton(
+                    icon: Icon(
+                      widget.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                      color: widget.isFavorite ? const Color(0xFFFFC107) : Colors.white38,
+                      size: 21,
+                    ),
+                    tooltip: widget.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+                    onPressed: widget.onToggleFavorite,
                   ),
-                ),
-
-                const SizedBox(width: 6),
-
-                // Favorite Button
-                IconButton(
-                  icon: Icon(
-                    widget.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: widget.isFavorite ? const Color(0xFFFFC107) : Colors.white38,
-                    size: 21,
+  
+                  const SizedBox(width: 4),
+  
+                  // Play Icon Button
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: state.highlighted ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
-                  tooltip: widget.isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-                  onPressed: widget.onToggleFavorite,
-                ),
-
-                const SizedBox(width: 4),
-
-                // Play Icon Button
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 120),
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _hovered ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.play_arrow_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1933,8 +1926,6 @@ class _LiveChannelGridCard extends StatefulWidget {
 }
 
 class _LiveChannelGridCardState extends State<_LiveChannelGridCard> {
-  bool _hovered = false;
-
   @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
@@ -1942,23 +1933,22 @@ class _LiveChannelGridCardState extends State<_LiveChannelGridCard> {
     final showLogo = IptvSettings.showStreamLogos.value;
 
     return RepaintBoundary(
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
+      child: FocusableCard(
+        onTap: widget.onTap,
+        builder: (context, state) => CardFocusRing(
+          focused: state.focused,
+          radius: BorderRadius.circular(14),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 140),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _hovered ? const Color(0xFF161A28) : const Color(0xFF0E111A),
+              color: state.highlighted ? const Color(0xFF161A28) : const Color(0xFF0E111A),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: _hovered ? palette.primaryColor.withValues(alpha: 0.8) : const Color(0xFF1B2030),
-                width: _hovered ? 1.5 : 1.0,
+                color: state.highlighted ? palette.primaryColor.withValues(alpha: 0.8) : const Color(0xFF1B2030),
+                width: state.highlighted ? 1.5 : 1.0,
               ),
-              boxShadow: _hovered
+              boxShadow: state.highlighted
                   ? [
                       BoxShadow(
                         color: palette.primaryColor.withValues(alpha: 0.22),
@@ -2021,12 +2011,16 @@ class _LiveChannelGridCardState extends State<_LiveChannelGridCard> {
                         child: const Text('LIVE', style: TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.w900)),
                       ),
 
-                    GestureDetector(
+                    FocusableCard(
                       onTap: widget.onToggleFavorite,
-                      child: Icon(
-                        widget.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-                        color: widget.isFavorite ? const Color(0xFFFFC107) : Colors.white30,
-                        size: 19,
+                      builder: (context, starState) => CardFocusRing(
+                        focused: starState.focused,
+                        radius: BorderRadius.circular(6),
+                        child: Icon(
+                          widget.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                          color: widget.isFavorite ? const Color(0xFFFFC107) : Colors.white30,
+                          size: 19,
+                        ),
                       ),
                     ),
                   ],
@@ -2070,7 +2064,7 @@ class _LiveChannelGridCardState extends State<_LiveChannelGridCard> {
                       width: 26,
                       height: 26,
                       decoration: BoxDecoration(
-                        color: _hovered ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
+                        color: state.highlighted ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -2115,8 +2109,6 @@ class _LiveChannelCompactListRow extends StatefulWidget {
 }
 
 class _LiveChannelCompactListRowState extends State<_LiveChannelCompactListRow> {
-  bool _hovered = false;
-
   @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
@@ -2124,20 +2116,19 @@ class _LiveChannelCompactListRowState extends State<_LiveChannelCompactListRow> 
     final showLogo = IptvSettings.showStreamLogos.value;
 
     return RepaintBoundary(
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
+      child: FocusableCard(
+        onTap: widget.onTap,
+        builder: (context, state) => CardFocusRing(
+          focused: state.focused,
+          radius: BorderRadius.circular(8),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: _hovered ? const Color(0xFF161A28) : const Color(0xFF0E111A),
+              color: state.highlighted ? const Color(0xFF161A28) : const Color(0xFF0E111A),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _hovered ? palette.primaryColor.withValues(alpha: 0.7) : const Color(0xFF1B2030),
+                color: state.highlighted ? palette.primaryColor.withValues(alpha: 0.7) : const Color(0xFF1B2030),
               ),
             ),
             child: Row(
@@ -2185,18 +2176,22 @@ class _LiveChannelCompactListRowState extends State<_LiveChannelCompactListRow> 
                     child: const Text('LIVE', style: TextStyle(color: Colors.greenAccent, fontSize: 9, fontWeight: FontWeight.w900)),
                   ),
                 ],
-                GestureDetector(
+                FocusableCard(
                   onTap: widget.onToggleFavorite,
-                  child: Icon(
-                    widget.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
-                    color: widget.isFavorite ? const Color(0xFFFFC107) : Colors.white30,
-                    size: 18,
+                  builder: (context, starState) => CardFocusRing(
+                    focused: starState.focused,
+                    radius: BorderRadius.circular(6),
+                    child: Icon(
+                      widget.isFavorite ? Icons.star_rounded : Icons.star_outline_rounded,
+                      color: widget.isFavorite ? const Color(0xFFFFC107) : Colors.white30,
+                      size: 18,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Icon(
                   Icons.play_arrow_rounded,
-                  color: _hovered ? palette.primaryColor : Colors.white38,
+                  color: state.highlighted ? palette.primaryColor : Colors.white38,
                   size: 18,
                 ),
               ],
@@ -2229,35 +2224,32 @@ class _VodSeriesCard extends StatefulWidget {
 }
 
 class _VodSeriesCardState extends State<_VodSeriesCard> {
-  bool _hovered = false;
-
   @override
   Widget build(BuildContext context) {
     final s = widget.stream;
 
     return RepaintBoundary(
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        onEnter: (_) => setState(() => _hovered = true),
-        onExit: (_) => setState(() => _hovered = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedScale(
-            duration: const Duration(milliseconds: 140),
-            scale: _hovered ? 1.035 : 1.0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
+      child: FocusableCard(
+        onTap: widget.onTap,
+        builder: (context, state) => AnimatedScale(
+          duration: const Duration(milliseconds: 140),
+          scale: state.highlighted ? 1.035 : 1.0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: CardFocusRing(
+                  focused: state.focused,
+                  radius: BorderRadius.circular(12),
                   child: Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF141824),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: _hovered ? const Color(0xFF7C5CFF) : const Color(0xFF22283A),
-                        width: _hovered ? 1.4 : 1.0,
+                        color: state.highlighted ? const Color(0xFF7C5CFF) : const Color(0xFF22283A),
+                        width: state.highlighted ? 1.4 : 1.0,
                       ),
-                      boxShadow: _hovered
+                      boxShadow: state.highlighted
                           ? [
                               BoxShadow(
                                 color: const Color(0xFF7C5CFF).withValues(alpha: 0.3),
@@ -2284,7 +2276,7 @@ class _VodSeriesCardState extends State<_VodSeriesCard> {
                               : const Center(
                                   child: Icon(Icons.movie_rounded, color: Colors.white38, size: 32),
                                 ),
-                          if (_hovered)
+                          if (state.highlighted)
                             Positioned.fill(
                               child: Container(
                                 color: Colors.black45,
@@ -2326,19 +2318,19 @@ class _VodSeriesCardState extends State<_VodSeriesCard> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  s.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                  ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                s.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -2533,36 +2525,28 @@ class _SeriesEpisodesSheetState extends State<_SeriesEpisodesSheet> {
   }
 }
 
-class _VerticalScrollButton extends StatefulWidget {
+class _VerticalScrollButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
   const _VerticalScrollButton({required this.icon, required this.onTap});
 
   @override
-  State<_VerticalScrollButton> createState() => _VerticalScrollButtonState();
-}
-
-class _VerticalScrollButtonState extends State<_VerticalScrollButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => CardFocusRing(
+        focused: state.focused,
+        radius: BorderRadius.circular(18),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 140),
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: _hovered ? const Color(0xFF7C5CFF) : Colors.black87,
+            color: state.highlighted ? const Color(0xFF7C5CFF) : Colors.black87,
             shape: BoxShape.circle,
             border: Border.all(
-              color: _hovered ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.3),
+              color: state.highlighted ? const Color(0xFF7C5CFF) : Colors.white.withValues(alpha: 0.3),
               width: 1.2,
             ),
             boxShadow: [
@@ -2573,7 +2557,7 @@ class _VerticalScrollButtonState extends State<_VerticalScrollButton> {
             ],
           ),
           child: Icon(
-            widget.icon,
+            icon,
             color: Colors.white,
             size: 22,
           ),

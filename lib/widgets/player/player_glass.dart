@@ -291,9 +291,10 @@ class PlayerToggleChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: disabled ? null : onClick,
-      child: AnimatedOpacity(
+    return FocusableCard(
+      onTap: onClick,
+      enabled: !disabled,
+      builder: (context, _) => AnimatedOpacity(
         duration: const Duration(milliseconds: 150),
         opacity: disabled ? 0.35 : 1.0,
         child: Container(

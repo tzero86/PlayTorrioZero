@@ -7,6 +7,7 @@ import '../../services/home/home_page_settings.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_settings.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../common/focusable_card.dart';
 
 class IptvHeroCarousel extends StatefulWidget {
   final List<HardcodedChannel> channels;
@@ -177,7 +178,7 @@ class _IptvHeroCarouselState extends State<IptvHeroCarousel> {
                       mainAxisSize: MainAxisSize.min,
                       children: List.generate(
                         widget.channels.length,
-                        (index) => GestureDetector(
+                        (index) => FocusableCard(
                           onTap: () {
                             _pageController.animateToPage(
                               index,
@@ -185,25 +186,29 @@ class _IptvHeroCarouselState extends State<IptvHeroCarousel> {
                               curve: Curves.easeOutCubic,
                             );
                           },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 250),
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: _currentIndex == index ? 26 : 7,
-                            height: 7,
-                            decoration: BoxDecoration(
-                              color: _currentIndex == index
-                                  ? primaryColor
-                                  : Colors.white.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(4),
-                              boxShadow: _currentIndex == index
-                                  ? [
-                                      BoxShadow(
-                                        color: primaryColor.withValues(alpha: 0.6),
-                                        blurRadius: 8,
-                                        spreadRadius: 1,
-                                      )
-                                    ]
-                                  : null,
+                          builder: (context, state) => CardFocusRing(
+                            focused: state.focused,
+                            radius: BorderRadius.circular(4),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentIndex == index ? 26 : 7,
+                              height: 7,
+                              decoration: BoxDecoration(
+                                color: _currentIndex == index
+                                    ? primaryColor
+                                    : Colors.white.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(4),
+                                boxShadow: _currentIndex == index
+                                    ? [
+                                        BoxShadow(
+                                          color: primaryColor.withValues(alpha: 0.6),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        )
+                                      ]
+                                    : null,
+                              ),
                             ),
                           ),
                         ),
@@ -427,10 +432,11 @@ class _IptvHeroSlide extends StatelessWidget {
               Row(
                 children: [
                   // Primary Watch Live Button
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: onWatchNow,
+                  FocusableCard(
+                    onTap: onWatchNow,
+                    builder: (context, state) => CardFocusRing(
+                      focused: state.focused,
+                      radius: BorderRadius.circular(14),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         decoration: BoxDecoration(
@@ -469,10 +475,11 @@ class _IptvHeroSlide extends StatelessWidget {
                   const SizedBox(width: 14),
 
                   // Sources / Stream Selector Pill
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: onSourcesTap,
+                  FocusableCard(
+                    onTap: onSourcesTap,
+                    builder: (context, state) => CardFocusRing(
+                      focused: state.focused,
+                      radius: BorderRadius.circular(14),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
                         decoration: BoxDecoration(
@@ -508,7 +515,7 @@ class _IptvHeroSlide extends StatelessWidget {
   }
 }
 
-class _HeroArrowButton extends StatefulWidget {
+class _HeroArrowButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
@@ -518,38 +525,30 @@ class _HeroArrowButton extends StatefulWidget {
   });
 
   @override
-  State<_HeroArrowButton> createState() => _HeroArrowButtonState();
-}
-
-class _HeroArrowButtonState extends State<_HeroArrowButton> {
-  bool _isHovering = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
+    return FocusableCard(
+      onTap: onTap,
+      builder: (context, state) => CardFocusRing(
+        focused: state.focused,
+        radius: BorderRadius.circular(22),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: 44,
           height: 44,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: _isHovering
+            color: state.highlighted
                 ? const Color(0xFF7C5CFF)
                 : Colors.black.withValues(alpha: 0.55),
             border: Border.all(
-              color: _isHovering
+              color: state.highlighted
                   ? const Color(0xFF7C5CFF)
                   : Colors.white.withValues(alpha: 0.2),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: _isHovering
+                color: state.highlighted
                     ? const Color(0xFF7C5CFF).withValues(alpha: 0.45)
                     : Colors.black45,
                 blurRadius: 12,
@@ -558,7 +557,7 @@ class _HeroArrowButtonState extends State<_HeroArrowButton> {
             ],
           ),
           child: Icon(
-            widget.icon,
+            icon,
             color: Colors.white,
             size: 26,
           ),

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/movie/video.dart';
 import 'player_glass.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../common/focusable_card.dart';
 
 /// Ultra-responsive, glassmorphic Episodes Side Panel with season tabs,
 /// auto-scroll to current episode, animated card expansion, and high FPS rendering.
@@ -30,7 +31,6 @@ class _PlayerEpisodesPanelState extends State<PlayerEpisodesPanel> {
   final ScrollController _seasonScrollController = ScrollController();
   late int _selectedSeason;
   String? _selectedEpisodeId;
-  int? _hoveredIndex;
 
   List<int> _seasons = [];
   Map<int, List<Video>> _seasonEpisodes = {};
@@ -549,15 +549,12 @@ class _PlayerEpisodesPanelState extends State<PlayerEpisodesPanel> {
     final epNum = video.episode ?? (index + 1);
     final epTitle = video.title.isNotEmpty ? video.title : 'Episode $epNum';
     final hasOverview = video.overview != null && video.overview!.trim().isNotEmpty;
-    final isHovered = _hoveredIndex == index;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hoveredIndex = index),
-      onExit: (_) => setState(() => _hoveredIndex = null),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () => _handleEpisodeTap(video),
-        child: AnimatedScale(
+    return FocusableCard(
+      onTap: () => _handleEpisodeTap(video),
+      builder: (context, state) {
+        final isHovered = state.highlighted;
+        return AnimatedScale(
           scale: isSelected ? 1.0 : (isHovered ? 1.015 : 1.0),
           duration: const Duration(milliseconds: 180),
           curve: Curves.easeOutCubic,
@@ -837,8 +834,8 @@ class _PlayerEpisodesPanelState extends State<PlayerEpisodesPanel> {
               ],
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

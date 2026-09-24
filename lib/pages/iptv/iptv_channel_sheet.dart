@@ -3,6 +3,7 @@ import '../../models/iptv/iptv_models.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_controller.dart';
 import '../../utils/navigation/route_transitions.dart';
+import '../../widgets/common/focusable_card.dart';
 import 'iptv_player_page.dart';
 
 class IptvChannelSheet extends StatefulWidget {
@@ -422,14 +423,18 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                         ),
                       ),
                       if (isScanning)
-                        GestureDetector(
+                        FocusableCard(
                           onTap: _ctrl.stopChannelSearch,
-                          child: const Text(
-                            'Stop',
-                            style: TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                          builder: (context, state) => CardFocusRing(
+                            focused: state.focused,
+                            radius: BorderRadius.circular(6),
+                            child: const Text(
+                              'Stop',
+                              style: TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
@@ -518,12 +523,13 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                               final isFav = _ctrl.isFavoriteHit(ch.id, hit);
                               final isSelected = _selectedUrls.contains(hit.streamUrl);
 
-                              return MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: GestureDetector(
-                                  onTap: () => _isSelecting
-                                      ? _toggleSelection(hit.streamUrl)
-                                      : _playHit(hit),
+                              return FocusableCard(
+                                onTap: () => _isSelecting
+                                    ? _toggleSelection(hit.streamUrl)
+                                    : _playHit(hit),
+                                builder: (context, state) => CardFocusRing(
+                                  focused: state.focused,
+                                  radius: BorderRadius.circular(16),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                     decoration: BoxDecoration(

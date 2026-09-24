@@ -12,6 +12,7 @@ import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/player/player_settings.dart';
 import '../../services/window/window_service.dart';
 import '../../services/discord/discord_rpc_service.dart';
+import '../../widgets/common/focusable_card.dart';
 import '../../widgets/player/player_aspect_menu.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -1090,10 +1091,11 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                 final isSelected = index == _activeHitIndex;
                                 final numFormatted = (index + 1).toString().padLeft(3, '0');
 
-                                return MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: GestureDetector(
-                                    onTap: () => _switchSource(index),
+                                return FocusableCard(
+                                  onTap: () => _switchSource(index),
+                                  builder: (context, state) => CardFocusRing(
+                                    focused: state.focused,
+                                    radius: BorderRadius.circular(10),
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 120),
                                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

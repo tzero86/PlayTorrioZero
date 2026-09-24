@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zplay/models/subtitle/subtitle_model.dart';
 import 'package:zplay/services/subtitles/subtitle_service.dart';
 import 'player_glass.dart';
+import '../common/focusable_card.dart';
 
 /// Full-featured subtitle selection, search, and timing menu.
 /// Responsive across mobile portrait, mobile landscape, tablet, and desktop screens.
@@ -854,9 +855,9 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
           ),
           const Spacer(),
           if (compact)
-            GestureDetector(
+            FocusableCard(
               onTap: _searchOnline,
-              child: Row(
+              builder: (context, _) => Row(
                 children: [
                   Icon(Icons.search_rounded, size: 13, color: PlayerTheme.accent),
                   const SizedBox(width: 4),
@@ -1273,11 +1274,10 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
+          FocusableCard(
             onTap: _searchOnline,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: Row(
+            builder: (context, _) {
+              return Row(
                 children: [
                   Icon(Icons.search_rounded, size: 13, color: PlayerTheme.accent),
                   const SizedBox(width: 5),
@@ -1290,8 +1290,8 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                     ),
                   ),
                 ],
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),

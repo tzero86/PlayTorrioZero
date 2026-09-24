@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'player_glass.dart';
+import '../common/focusable_card.dart';
 
 class PlayerAudioTrack {
   final int index;
@@ -316,9 +317,9 @@ class PlayerAudioMenu extends StatelessWidget {
                           ),
                           if (delaySec != 0) ...[
                             const SizedBox(width: 6),
-                            GestureDetector(
+                            FocusableCard(
                               onTap: () => onDelayChanged(0.0),
-                              child: const Icon(
+                              builder: (context, _) => const Icon(
                                 Icons.refresh_rounded,
                                 size: 16,
                                 color: Color(0xFF00D2EF),
