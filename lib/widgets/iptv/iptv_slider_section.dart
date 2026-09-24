@@ -146,6 +146,7 @@ class _IptvSliderSectionState extends State<IptvSliderSection> {
           // Section Header matching Home & Anime Pages
           SectionHeader(
             title: widget.title,
+            count: widget.channels.length,
             subtitle: widget.subtitle,
             onSeeAll: widget.onSeeAll,
           ),

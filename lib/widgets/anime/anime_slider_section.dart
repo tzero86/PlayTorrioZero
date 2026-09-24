@@ -99,6 +99,7 @@ class _AnimeSliderSectionState extends State<AnimeSliderSection> {
           // Section Header matching Home Page exactly
           SectionHeader(
             title: widget.title,
+            count: widget.animeList.length,
             subtitle: widget.subtitle,
             onSeeAll: widget.onSeeAll,
           ),

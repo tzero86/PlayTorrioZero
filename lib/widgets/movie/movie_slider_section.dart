@@ -107,6 +107,7 @@ class _MovieSliderSectionState extends State<MovieSliderSection> {
             onPointerDown: (event) => _tapPosition = event.position,
             child: SectionHeader(
               title: widget.section.title,
+              count: widget.section.movies.length,
               subtitle: widget.section.subtitle,
               trailing: widget.showCalendarButton
                   ? InkWell(

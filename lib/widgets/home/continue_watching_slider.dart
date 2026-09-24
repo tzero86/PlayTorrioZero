@@ -14,6 +14,7 @@ import '../../utils/navigation/route_transitions.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
 import '../common/focusable_card.dart';
+import '../common/section_header.dart';
 import '../common/slider_arrow.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -148,57 +149,7 @@ class _ContinueWatchingSliderState extends State<ContinueWatchingSlider> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Section Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        color: palette.primaryColor,
-                        borderRadius: BorderRadius.circular(2),
-                        boxShadow: [
-                          BoxShadow(
-                            color: palette.primaryColor.withValues(alpha: 0.5),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: -0.3,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: palette.primaryColor.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: palette.primaryColor.withValues(alpha: 0.3),
-                          width: 0.8,
-                        ),
-                      ),
-                      child: Text(
-                        '${items.length}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: palette.primaryColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              SectionHeader(title: widget.title, count: items.length),
 
               const SizedBox(height: 12),
 
