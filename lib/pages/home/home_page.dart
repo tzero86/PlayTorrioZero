@@ -1042,10 +1042,15 @@ class _GlassAppBar extends StatelessWidget {
             const Spacer(),
             // All / Movies / Series tabs (wide layouts only)
             if (filterTabs != null) ...[
-              // Flexible, not intrinsic: the bar must be able to shrink the
-              // control rather than let it run off the end and take the icon
-              // buttons with it. The control divides whatever it is given.
-              Flexible(child: filterTabs!),
+              // Intrinsic width, deliberately — NOT Flexible. A Flexible here
+              // also takes flex 1, exactly like the Spacer above it, so the two
+              // split the free space; the tabs then use only their natural width
+              // and strand the remainder *after* themselves, pushing the tabs,
+              // divider and icon buttons 384px short of the right edge at 2042px
+              // wide. Measured, not guessed. Right-alignment is safe because the
+              // tabs only enter the bar above _appBarFilterBreakpoint, where the
+              // bar has room for them and the control's own width clamp applies.
+              filterTabs!,
               Container(
                 width: 1,
                 height: 18,
