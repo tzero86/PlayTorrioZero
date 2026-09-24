@@ -25,8 +25,10 @@ import '../../services/my_list/my_list_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/error_view.dart';
+import '../../widgets/common/rail_skeleton.dart';
 import '../../widgets/common/segmented_tabs.dart';
 import '../../widgets/home/continue_watching_slider.dart';
+import '../../widgets/movie/movie_card.dart';
 import '../../widgets/movie/movie_slider_section.dart';
 import '../search/search_page.dart';
 import '../ai/wewatch_quiz_page.dart';
@@ -719,9 +721,7 @@ class _HomePageState extends State<HomePage> {
         children: [
           // ── Main scrollable content ──
           if (_loading && !_showIntro && _sections.isEmpty)
-            Center(
-              child: CircularProgressIndicator(color: palette.primaryColor),
-            )
+            _HomeSkeleton(topInset: topPadding + _appBarHeight + 8)
           else if (_error != null && _sections.isEmpty)
             ErrorView(error: _error, onRetry: _loadHome)
           else
@@ -933,6 +933,49 @@ const _homeFilterLabels = <(_HomeFilter, String)>[
   (_HomeFilter.series, 'Series'),
   (_HomeFilter.anime, 'Anime'),
 ];
+
+/// What Home looks like while its first load is in flight.
+///
+/// This used to be a single spinner centred on an otherwise empty screen —
+/// which, on a TV, is the entire interface for the first few seconds. The shapes
+/// below are the page's real ones: the hero band, then rails at the geometry the
+/// cards will actually arrive at, so nothing moves when they land.
+class _HomeSkeleton extends StatelessWidget {
+  final double topInset;
+
+  const _HomeSkeleton({required this.topInset});
+
+  @override
+  Widget build(BuildContext context) {
+    final surface = AppThemeService.currentPalette.value.cardBackgroundColor;
+    final sizing = MovieCardSizing.fromWidth(MediaQuery.sizeOf(context).width);
+
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: topInset + 8),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: surface,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+            ),
+          ),
+          RailSkeleton(sizing: sizing, showHeader: true),
+          const SizedBox(height: 28),
+          RailSkeleton(sizing: sizing, showHeader: true, count: 5),
+        ],
+      ),
+    );
+  }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Frosted Glass App Bar

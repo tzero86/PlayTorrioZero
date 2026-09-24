@@ -34,13 +34,11 @@ class _PosterSkeletonState extends State<PosterSkeleton>
 
   @override
   Widget build(BuildContext context) {
-    // FadeTransition is hardware accelerated and bypasses expensive paint/layout 
+    // FadeTransition is hardware accelerated and bypasses expensive paint/layout
     // phases during animation, making it extremely performant for scrolling lists.
     return FadeTransition(
       opacity: _animation,
-      child: Container(
-        color: const Color(0xFF38405A),
-      ),
+      child: ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest),
     );
   }
 }
@@ -51,13 +49,15 @@ class MissingPoster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xFF171A23),
+    final scheme = Theme.of(context).colorScheme;
+
+    return ColoredBox(
+      color: scheme.surface,
       child: Center(
         child: Icon(
           Icons.movie_rounded,
           size: 46,
-          color: Colors.white.withOpacity(0.22),
+          color: scheme.onSurface.withValues(alpha: 0.22),
         ),
       ),
     );
