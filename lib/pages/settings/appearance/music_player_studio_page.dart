@@ -5,6 +5,7 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 import '../../../services/theme/app_theme_service.dart';
 import '../../../services/music/music_settings.dart';
+import '../../../widgets/common/segmented_tabs.dart';
 import '../../../widgets/music/music_interactive_physics_button.dart';
 import '../../../widgets/music/music_waveform_seekbar.dart';
 
@@ -1444,29 +1445,15 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
         ValueListenableBuilder<MusicPlayButtonStyle>(
           valueListenable: MusicSettings.customPlayButtonStyle,
           builder: (context, activeBtnStyle, _) {
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: MusicPlayButtonStyle.values.map((b) {
-                final isSelected = activeBtnStyle == b;
-                return ChoiceChip(
-                  label: Text(b.label),
-                  selected: isSelected,
-                  selectedColor: palette.primaryColor,
-                  backgroundColor: const Color(0xFF121520),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                    fontSize: 12,
-                  ),
-                  side: BorderSide(
-                    color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
-                  ),
-                  onSelected: (val) {
-                    if (val) MusicSettings.setCustomPlayButtonStyle(b);
-                  },
-                );
-              }).toList(),
+            return SegmentedTabs<MusicPlayButtonStyle>(
+              selected: activeBtnStyle,
+              onSelected: (b) {
+                MusicSettings.setCustomPlayButtonStyle(b);
+              },
+              options: [
+                for (final b in MusicPlayButtonStyle.values)
+                  SegmentedTabOption(value: b, label: b.label),
+              ],
             );
           },
         ),
@@ -1492,29 +1479,15 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
         ValueListenableBuilder<MusicHoverEffect>(
           valueListenable: MusicSettings.customHoverEffect,
           builder: (context, activeHover, _) {
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: MusicHoverEffect.values.map((h) {
-                final isSelected = activeHover == h;
-                return ChoiceChip(
-                  label: Text(h.label),
-                  selected: isSelected,
-                  selectedColor: palette.primaryColor,
-                  backgroundColor: const Color(0xFF121520),
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                    fontSize: 12,
-                  ),
-                  side: BorderSide(
-                    color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
-                  ),
-                  onSelected: (val) {
-                    if (val) MusicSettings.setCustomHoverEffect(h);
-                  },
-                );
-              }).toList(),
+            return SegmentedTabs<MusicHoverEffect>(
+              selected: activeHover,
+              onSelected: (h) {
+                MusicSettings.setCustomHoverEffect(h);
+              },
+              options: [
+                for (final h in MusicHoverEffect.values)
+                  SegmentedTabOption(value: h, label: h.label),
+              ],
             );
           },
         ),

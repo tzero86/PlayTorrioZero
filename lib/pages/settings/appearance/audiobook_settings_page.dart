@@ -6,6 +6,7 @@ import '../../../services/home/home_page_settings.dart';
 import '../../../widgets/audiobook/audiobook_interactive_physics_button.dart';
 import '../../../widgets/audiobook/audiobook_waveform_seekbar.dart';
 import '../../../widgets/common/animated_ambient_background.dart';
+import '../../../widgets/common/segmented_tabs.dart';
 import 'audiobook_player_studio_page.dart';
 
 class AudiobookSettingsPage extends StatefulWidget {
@@ -241,29 +242,15 @@ class _AudiobookSettingsPageState extends State<AudiobookSettingsPage> {
           ValueListenableBuilder<AmbientLightPattern>(
             valueListenable: AudiobookSettings.ambientLightPattern,
             builder: (context, currentPattern, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AmbientLightPattern.values.map((p) {
-                  final isSelected = p == currentPattern;
-                  return ChoiceChip(
-                    label: Text(p.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) AudiobookSettings.setAmbientLightPattern(p);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AmbientLightPattern>(
+                selected: currentPattern,
+                onSelected: (p) {
+                  AudiobookSettings.setAmbientLightPattern(p);
+                },
+                options: [
+                  for (final p in AmbientLightPattern.values)
+                    SegmentedTabOption(value: p, label: p.label),
+                ],
               );
             },
           ),
@@ -429,29 +416,15 @@ class _AudiobookSettingsPageState extends State<AudiobookSettingsPage> {
           ValueListenableBuilder<AudiobookCardDensity>(
             valueListenable: AudiobookSettings.cardDensity,
             builder: (context, currentDensity, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AudiobookCardDensity.values.map((d) {
-                  final isSelected = d == currentDensity;
-                  return ChoiceChip(
-                    label: Text(d.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) AudiobookSettings.setCardDensity(d);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AudiobookCardDensity>(
+                selected: currentDensity,
+                onSelected: (d) {
+                  AudiobookSettings.setCardDensity(d);
+                },
+                options: [
+                  for (final d in AudiobookCardDensity.values)
+                    SegmentedTabOption(value: d, label: d.label),
+                ],
               );
             },
           ),
@@ -920,29 +893,15 @@ class _AudiobookSettingsPageState extends State<AudiobookSettingsPage> {
           ValueListenableBuilder<AudiobookSeekbarStyle>(
             valueListenable: AudiobookSettings.customSeekbarStyle,
             builder: (context, currentStyle, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AudiobookSeekbarStyle.values.map((s) {
-                  final isSelected = s == currentStyle;
-                  return ChoiceChip(
-                    label: Text(s.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) AudiobookSettings.setCustomSeekbarStyle(s);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AudiobookSeekbarStyle>(
+                selected: currentStyle,
+                onSelected: (s) {
+                  AudiobookSettings.setCustomSeekbarStyle(s);
+                },
+                options: [
+                  for (final s in AudiobookSeekbarStyle.values)
+                    SegmentedTabOption(value: s, label: s.label),
+                ],
               );
             },
           ),
@@ -955,29 +914,15 @@ class _AudiobookSettingsPageState extends State<AudiobookSettingsPage> {
           ValueListenableBuilder<AudiobookPlayButtonStyle>(
             valueListenable: AudiobookSettings.customPlayButtonStyle,
             builder: (context, currentStyle, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AudiobookPlayButtonStyle.values.map((s) {
-                  final isSelected = s == currentStyle;
-                  return ChoiceChip(
-                    label: Text(s.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) AudiobookSettings.setCustomPlayButtonStyle(s);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AudiobookPlayButtonStyle>(
+                selected: currentStyle,
+                onSelected: (s) {
+                  AudiobookSettings.setCustomPlayButtonStyle(s);
+                },
+                options: [
+                  for (final s in AudiobookPlayButtonStyle.values)
+                    SegmentedTabOption(value: s, label: s.label),
+                ],
               );
             },
           ),
@@ -990,29 +935,15 @@ class _AudiobookSettingsPageState extends State<AudiobookSettingsPage> {
           ValueListenableBuilder<AudiobookArtworkStyle>(
             valueListenable: AudiobookSettings.customArtworkStyle,
             builder: (context, currentStyle, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AudiobookArtworkStyle.values.map((s) {
-                  final isSelected = s == currentStyle;
-                  return ChoiceChip(
-                    label: Text(s.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) AudiobookSettings.setCustomArtworkStyle(s);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AudiobookArtworkStyle>(
+                selected: currentStyle,
+                onSelected: (s) {
+                  AudiobookSettings.setCustomArtworkStyle(s);
+                },
+                options: [
+                  for (final s in AudiobookArtworkStyle.values)
+                    SegmentedTabOption(value: s, label: s.label),
+                ],
               );
             },
           ),
@@ -1025,29 +956,15 @@ class _AudiobookSettingsPageState extends State<AudiobookSettingsPage> {
           ValueListenableBuilder<AudiobookHoverEffect>(
             valueListenable: AudiobookSettings.customHoverEffect,
             builder: (context, currentEffect, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AudiobookHoverEffect.values.map((e) {
-                  final isSelected = e == currentEffect;
-                  return ChoiceChip(
-                    label: Text(e.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) AudiobookSettings.setCustomHoverEffect(e);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AudiobookHoverEffect>(
+                selected: currentEffect,
+                onSelected: (e) {
+                  AudiobookSettings.setCustomHoverEffect(e);
+                },
+                options: [
+                  for (final e in AudiobookHoverEffect.values)
+                    SegmentedTabOption(value: e, label: e.label),
+                ],
               );
             },
           ),

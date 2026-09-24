@@ -17,6 +17,7 @@ import '../../services/discord/discord_rpc_service.dart';
 import '../../services/player/player_settings.dart';
 import '../../widgets/audiobook/audiobook_interactive_physics_button.dart';
 import '../../widgets/audiobook/audiobook_waveform_seekbar.dart';
+import '../../widgets/common/segmented_tabs.dart';
 import '../settings/appearance/audiobook_player_studio_page.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -371,29 +372,17 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
                   ValueListenableBuilder<AudiobookPlayerPreset>(
                     valueListenable: AudiobookSettings.selectedPlayerPreset,
                     builder: (context, currentPreset, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: AudiobookPlayerPreset.values.map((p) {
-                          final isSelected = p == currentPreset;
-                          return ChoiceChip(
-                            label: Text(p.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
+                      return SegmentedTabs<AudiobookPlayerPreset>(
+                        semanticsLabel: 'Audio player design preset',
+                        selected: currentPreset,
+                        onSelected: AudiobookSettings.setSelectedPlayerPreset,
+                        options: [
+                          for (final preset in AudiobookPlayerPreset.values)
+                            SegmentedTabOption(
+                              value: preset,
+                              label: preset.label,
                             ),
-                            side: BorderSide(
-                              color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) AudiobookSettings.setSelectedPlayerPreset(p);
-                            },
-                          );
-                        }).toList(),
+                        ],
                       );
                     },
                   ),
@@ -405,29 +394,17 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
                   ValueListenableBuilder<AudiobookSeekbarStyle>(
                     valueListenable: AudiobookSettings.customSeekbarStyle,
                     builder: (context, currentStyle, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: AudiobookSeekbarStyle.values.map((s) {
-                          final isSelected = s == currentStyle;
-                          return ChoiceChip(
-                            label: Text(s.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
+                      return SegmentedTabs<AudiobookSeekbarStyle>(
+                        semanticsLabel: 'Seek bar scrubber style',
+                        selected: currentStyle,
+                        onSelected: AudiobookSettings.setCustomSeekbarStyle,
+                        options: [
+                          for (final style in AudiobookSeekbarStyle.values)
+                            SegmentedTabOption(
+                              value: style,
+                              label: style.label,
                             ),
-                            side: BorderSide(
-                              color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) AudiobookSettings.setCustomSeekbarStyle(s);
-                            },
-                          );
-                        }).toList(),
+                        ],
                       );
                     },
                   ),
@@ -439,29 +416,17 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
                   ValueListenableBuilder<AudiobookPlayButtonStyle>(
                     valueListenable: AudiobookSettings.customPlayButtonStyle,
                     builder: (context, currentStyle, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: AudiobookPlayButtonStyle.values.map((b) {
-                          final isSelected = b == currentStyle;
-                          return ChoiceChip(
-                            label: Text(b.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
+                      return SegmentedTabs<AudiobookPlayButtonStyle>(
+                        semanticsLabel: 'Play pause button style',
+                        selected: currentStyle,
+                        onSelected: AudiobookSettings.setCustomPlayButtonStyle,
+                        options: [
+                          for (final style in AudiobookPlayButtonStyle.values)
+                            SegmentedTabOption(
+                              value: style,
+                              label: style.label,
                             ),
-                            side: BorderSide(
-                              color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) AudiobookSettings.setCustomPlayButtonStyle(b);
-                            },
-                          );
-                        }).toList(),
+                        ],
                       );
                     },
                   ),

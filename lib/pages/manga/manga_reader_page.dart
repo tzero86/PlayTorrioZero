@@ -11,6 +11,7 @@ import '../../services/manga/manga_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../services/discord/discord_rpc_service.dart';
 import '../../widgets/common/custom_scroll_track.dart';
+import '../../widgets/common/segmented_tabs.dart';
 import '../../services/storage/app_image_cache.dart';
 
 class MangaReaderPage extends StatefulWidget {
@@ -386,33 +387,18 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
                   const Text('Reading Orientation Mode', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: MangaReadingMode.values.map((m) {
-                      final isSelected = m == _readingMode;
-                      return ChoiceChip(
-                        label: Text(m.label),
-                        selected: isSelected,
-                        selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                        backgroundColor: const Color(0xFF0D1017),
-                        labelStyle: TextStyle(
-                          color: isSelected ? palette.primaryColor : Colors.white70,
-                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                          fontSize: 12,
-                        ),
-                        side: BorderSide(
-                          color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                        ),
-                        onSelected: (selected) {
-                          if (selected) {
-                            setState(() => _readingMode = m);
-                            MangaSettings.setDefaultReadingMode(m);
-                            _initPageController();
-                          }
-                        },
-                      );
-                    }).toList(),
+                  SegmentedTabs<MangaReadingMode>(
+                    semanticsLabel: 'Reading orientation mode',
+                    selected: _readingMode,
+                    onSelected: (mode) {
+                      setState(() => _readingMode = mode);
+                      MangaSettings.setDefaultReadingMode(mode);
+                      _initPageController();
+                    },
+                    options: [
+                      for (final mode in MangaReadingMode.values)
+                        SegmentedTabOption(value: mode, label: mode.label),
+                    ],
                   ),
 
                   const SizedBox(height: 14),
@@ -422,29 +408,17 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                   ValueListenableBuilder<MangaReaderMaxWidth>(
                     valueListenable: MangaSettings.readerMaxWidth,
                     builder: (context, width, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: MangaReaderMaxWidth.values.map((w) {
-                          final isSelected = w == width;
-                          return ChoiceChip(
-                            label: Text(w.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
+                      return SegmentedTabs<MangaReaderMaxWidth>(
+                        semanticsLabel: 'Page reading width constraint',
+                        selected: width,
+                        onSelected: MangaSettings.setReaderMaxWidth,
+                        options: [
+                          for (final option in MangaReaderMaxWidth.values)
+                            SegmentedTabOption(
+                              value: option,
+                              label: option.label,
                             ),
-                            side: BorderSide(
-                              color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) MangaSettings.setReaderMaxWidth(w);
-                            },
-                          );
-                        }).toList(),
+                        ],
                       );
                     },
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../services/theme/glass_settings.dart';
 import '../../../services/theme/app_theme_service.dart';
+import '../../../widgets/common/segmented_tabs.dart';
 
 class LiquidGlassSettingsPage extends StatefulWidget {
   const LiquidGlassSettingsPage({super.key});
@@ -497,35 +498,20 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
     return ValueListenableBuilder<GlassPreset>(
       valueListenable: GlassSettings.preset,
       builder: (context, currentPreset, _) {
-        return Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: GlassPreset.values.map((preset) {
-            final isSelected = preset == currentPreset;
-            return ChoiceChip(
-              label: Text(preset.label),
-              selected: isSelected,
-              selectedColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
-              backgroundColor: const Color(0xFF12151E),
-              labelStyle: TextStyle(
-                color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                fontSize: 12.5,
-              ),
-              side: BorderSide(
-                color: isSelected
-                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
-                    : Colors.white.withValues(alpha: 0.08),
-              ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              onSelected: (selected) {
-                if (selected && preset != GlassPreset.custom) {
-                  GlassSettings.applyPreset(preset);
-                  setState(() {});
-                }
-              },
-            );
-          }).toList(),
+        return SegmentedTabs<GlassPreset>(
+          selected: currentPreset,
+          onSelected: (preset) {
+            // applyPreset rewrites every slider from the preset, so re-tapping
+            // the active one must stay a no-op exactly as the chip row was:
+            // only a different, non-custom preset applies.
+            if (preset == currentPreset || preset == GlassPreset.custom) return;
+            GlassSettings.applyPreset(preset);
+            setState(() {});
+          },
+          options: [
+            for (final preset in GlassPreset.values)
+              SegmentedTabOption(value: preset, label: preset.label),
+          ],
         );
       },
     );

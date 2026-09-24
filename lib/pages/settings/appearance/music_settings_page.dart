@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../services/theme/app_theme_service.dart';
 import '../../../services/home/home_page_settings.dart';
 import '../../../services/music/music_settings.dart';
+import '../../../widgets/common/segmented_tabs.dart';
 import '../../../widgets/music/music_waveform_seekbar.dart';
 import 'music_player_studio_page.dart';
 
@@ -231,29 +232,15 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
           ValueListenableBuilder<AmbientLightPattern>(
             valueListenable: MusicSettings.ambientLightPattern,
             builder: (context, currentPattern, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AmbientLightPattern.values.map((p) {
-                  final isSelected = currentPattern == p;
-                  return ChoiceChip(
-                    label: Text(p.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (val) {
-                      if (val) MusicSettings.setAmbientLightPattern(p);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AmbientLightPattern>(
+                selected: currentPattern,
+                onSelected: (p) {
+                  MusicSettings.setAmbientLightPattern(p);
+                },
+                options: [
+                  for (final p in AmbientLightPattern.values)
+                    SegmentedTabOption(value: p, label: p.label),
+                ],
               );
             },
           ),
@@ -339,28 +326,15 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
           ValueListenableBuilder<MusicCardDensity>(
             valueListenable: MusicSettings.cardDensity,
             builder: (context, density, _) {
-              return Wrap(
-                spacing: 8,
-                children: MusicCardDensity.values.map((d) {
-                  final isSelected = density == d;
-                  return ChoiceChip(
-                    label: Text(d.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (val) {
-                      if (val) MusicSettings.setCardDensity(d);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<MusicCardDensity>(
+                selected: density,
+                onSelected: (d) {
+                  MusicSettings.setCardDensity(d);
+                },
+                options: [
+                  for (final d in MusicCardDensity.values)
+                    SegmentedTabOption(value: d, label: d.label),
+                ],
               );
             },
           ),

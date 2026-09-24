@@ -7,6 +7,7 @@ import '../../services/iptv/iptv_controller.dart';
 import '../../services/iptv/iptv_network.dart';
 import '../../services/iptv/iptv_settings.dart';
 import '../../utils/navigation/route_transitions.dart';
+import '../../widgets/common/segmented_tabs.dart';
 import 'iptv_portal_browser_page.dart';
 
 class IptvPortalsModal extends StatefulWidget {
@@ -268,37 +269,15 @@ class _IptvPortalsModalState extends State<IptvPortalsModal>
                   ValueListenableBuilder<PortalCardStyle>(
                     valueListenable: IptvSettings.portalCardStyle,
                     builder: (context, style, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: PortalCardStyle.values.map((s) {
-                          final isSelected = s == style;
-                          return ChoiceChip(
-                            label: Text(s.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(
-                              alpha: 0.25,
-                            ),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected
-                                  ? palette.primaryColor
-                                  : Colors.white70,
-                              fontWeight: isSelected
-                                  ? FontWeight.w800
-                                  : FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? palette.primaryColor.withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) IptvSettings.setPortalCardStyle(s);
-                            },
-                          );
-                        }).toList(),
+                      return SegmentedTabs<PortalCardStyle>(
+                        selected: style,
+                        onSelected: (s) {
+                          IptvSettings.setPortalCardStyle(s);
+                        },
+                        options: [
+                          for (final s in PortalCardStyle.values)
+                            SegmentedTabOption(value: s, label: s.label),
+                        ],
                       );
                     },
                   ),
@@ -353,60 +332,12 @@ class _IptvPortalsModalState extends State<IptvPortalsModal>
                   ValueListenableBuilder<int>(
                     valueListenable: IptvSettings.defaultPortalTab,
                     builder: (context, tabIdx, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          ChoiceChip(
-                            label: const Text('Xtream Panels'),
-                            selected: tabIdx == 0,
-                            selectedColor: palette.primaryColor.withValues(
-                              alpha: 0.25,
-                            ),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: tabIdx == 0
-                                  ? palette.primaryColor
-                                  : Colors.white70,
-                              fontWeight: tabIdx == 0
-                                  ? FontWeight.w800
-                                  : FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                            side: BorderSide(
-                              color: tabIdx == 0
-                                  ? palette.primaryColor.withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) IptvSettings.setDefaultPortalTab(0);
-                            },
-                          ),
-                          ChoiceChip(
-                            label: const Text('M3U Playlists'),
-                            selected: tabIdx == 1,
-                            selectedColor: palette.primaryColor.withValues(
-                              alpha: 0.25,
-                            ),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: tabIdx == 1
-                                  ? palette.primaryColor
-                                  : Colors.white70,
-                              fontWeight: tabIdx == 1
-                                  ? FontWeight.w800
-                                  : FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                            side: BorderSide(
-                              color: tabIdx == 1
-                                  ? palette.primaryColor.withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) IptvSettings.setDefaultPortalTab(1);
-                            },
-                          ),
+                      return SegmentedTabs<int>(
+                        selected: tabIdx,
+                        onSelected: IptvSettings.setDefaultPortalTab,
+                        options: const [
+                          SegmentedTabOption(value: 0, label: 'Xtream Panels'),
+                          SegmentedTabOption(value: 1, label: 'M3U Playlists'),
                         ],
                       );
                     },

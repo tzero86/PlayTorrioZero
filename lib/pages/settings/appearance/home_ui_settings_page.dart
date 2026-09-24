@@ -7,6 +7,7 @@ import '../../../services/my_list/my_list_service.dart';
 import '../../../services/simkl/simkl_service.dart';
 import '../../../services/trakt/trakt_service.dart';
 import '../../../widgets/common/animated_ambient_background.dart';
+import '../../../widgets/common/segmented_tabs.dart';
 import 'custom_background_settings_page.dart';
 
 class HomeUiSettingsPage extends StatefulWidget {
@@ -469,34 +470,16 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                 ValueListenableBuilder<AmbientLightPattern>(
                   valueListenable: HomePageSettings.ambientLightPattern,
                   builder: (context, currentPattern, _) {
-                    return Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: AmbientLightPattern.values.map((pat) {
-                        final isSelected = pat == currentPattern;
-                        return ChoiceChip(
-                          label: Text(pat.label),
-                          selected: isSelected,
-                          selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                          backgroundColor: const Color(0xFF0D1017),
-                          labelStyle: TextStyle(
-                            color: isSelected ? palette.primaryColor : Colors.white70,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                          side: BorderSide(
-                            color: isSelected
-                                ? palette.primaryColor.withValues(alpha: 0.6)
-                                : Colors.white.withValues(alpha: 0.08),
-                          ),
-                          onSelected: (selected) {
-                            if (selected) {
-                              HomePageSettings.setAmbientLightPattern(pat);
-                              setState(() {});
-                            }
-                          },
-                        );
-                      }).toList(),
+                    return SegmentedTabs<AmbientLightPattern>(
+                      selected: currentPattern,
+                      onSelected: (pat) {
+                        HomePageSettings.setAmbientLightPattern(pat);
+                        setState(() {});
+                      },
+                      options: [
+                        for (final pat in AmbientLightPattern.values)
+                          SegmentedTabOption(value: pat, label: pat.label),
+                      ],
                     );
                   },
                 ),
@@ -968,34 +951,16 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
                   ValueListenableBuilder<HeroStyle>(
                     valueListenable: HomePageSettings.heroStyle,
                     builder: (context, currentStyle, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: HeroStyle.values.map((style) {
-                          final isSelected = style == currentStyle;
-                          return ChoiceChip(
-                            label: Text(style.label),
-                            selected: isSelected,
-                            selectedColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) {
-                                HomePageSettings.setHeroStyle(style);
-                                setState(() {});
-                              }
-                            },
-                          );
-                        }).toList(),
+                      return SegmentedTabs<HeroStyle>(
+                        selected: currentStyle,
+                        onSelected: (style) {
+                          HomePageSettings.setHeroStyle(style);
+                          setState(() {});
+                        },
+                        options: [
+                          for (final style in HeroStyle.values)
+                            SegmentedTabOption(value: style, label: style.label),
+                        ],
                       );
                     },
                   ),
@@ -1151,34 +1116,16 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
           ValueListenableBuilder<CardDensity>(
             valueListenable: HomePageSettings.cardDensity,
             builder: (context, currentDensity, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: CardDensity.values.map((density) {
-                  final isSelected = density == currentDensity;
-                  return ChoiceChip(
-                    label: Text(density.label),
-                    selected: isSelected,
-                    selectedColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0D1017),
-                    labelStyle: TextStyle(
-                      color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected
-                          ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        HomePageSettings.setCardDensity(density);
-                        setState(() {});
-                      }
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<CardDensity>(
+                selected: currentDensity,
+                onSelected: (density) {
+                  HomePageSettings.setCardDensity(density);
+                  setState(() {});
+                },
+                options: [
+                  for (final density in CardDensity.values)
+                    SegmentedTabOption(value: density, label: density.label),
+                ],
               );
             },
           ),

@@ -3,6 +3,7 @@ import '../../../services/theme/app_theme_service.dart';
 import '../../../services/home/home_page_settings.dart';
 import '../../../services/manga/manga_settings.dart';
 import '../../../widgets/common/animated_ambient_background.dart';
+import '../../../widgets/common/segmented_tabs.dart';
 
 class MangaSettingsPage extends StatefulWidget {
   const MangaSettingsPage({super.key});
@@ -220,29 +221,15 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           ValueListenableBuilder<AmbientLightPattern>(
             valueListenable: MangaSettings.ambientLightPattern,
             builder: (context, currentPattern, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: AmbientLightPattern.values.map((p) {
-                  final isSelected = p == currentPattern;
-                  return ChoiceChip(
-                    label: Text(p.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) MangaSettings.setAmbientLightPattern(p);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<AmbientLightPattern>(
+                selected: currentPattern,
+                onSelected: (p) {
+                  MangaSettings.setAmbientLightPattern(p);
+                },
+                options: [
+                  for (final p in AmbientLightPattern.values)
+                    SegmentedTabOption(value: p, label: p.label),
+                ],
               );
             },
           ),
@@ -394,29 +381,15 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           ValueListenableBuilder<MangaCardDensity>(
             valueListenable: MangaSettings.cardDensity,
             builder: (context, currentDensity, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: MangaCardDensity.values.map((d) {
-                  final isSelected = d == currentDensity;
-                  return ChoiceChip(
-                    label: Text(d.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) MangaSettings.setCardDensity(d);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<MangaCardDensity>(
+                selected: currentDensity,
+                onSelected: (d) {
+                  MangaSettings.setCardDensity(d);
+                },
+                options: [
+                  for (final d in MangaCardDensity.values)
+                    SegmentedTabOption(value: d, label: d.label),
+                ],
               );
             },
           ),
@@ -497,29 +470,15 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           ValueListenableBuilder<MangaReadingMode>(
             valueListenable: MangaSettings.defaultReadingMode,
             builder: (context, currentMode, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: MangaReadingMode.values.map((m) {
-                  final isSelected = m == currentMode;
-                  return ChoiceChip(
-                    label: Text(m.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) MangaSettings.setDefaultReadingMode(m);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<MangaReadingMode>(
+                selected: currentMode,
+                onSelected: (m) {
+                  MangaSettings.setDefaultReadingMode(m);
+                },
+                options: [
+                  for (final m in MangaReadingMode.values)
+                    SegmentedTabOption(value: m, label: m.label),
+                ],
               );
             },
           ),
@@ -532,29 +491,15 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           ValueListenableBuilder<MangaReaderMaxWidth>(
             valueListenable: MangaSettings.readerMaxWidth,
             builder: (context, currentWidth, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: MangaReaderMaxWidth.values.map((w) {
-                  final isSelected = w == currentWidth;
-                  return ChoiceChip(
-                    label: Text(w.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) MangaSettings.setReaderMaxWidth(w);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<MangaReaderMaxWidth>(
+                selected: currentWidth,
+                onSelected: (w) {
+                  MangaSettings.setReaderMaxWidth(w);
+                },
+                options: [
+                  for (final w in MangaReaderMaxWidth.values)
+                    SegmentedTabOption(value: w, label: w.label),
+                ],
               );
             },
           ),
@@ -611,29 +556,15 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           ValueListenableBuilder<MangaControlBarStyle>(
             valueListenable: MangaSettings.readerControlBarStyle,
             builder: (context, currentStyle, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: MangaControlBarStyle.values.map((s) {
-                  final isSelected = s == currentStyle;
-                  return ChoiceChip(
-                    label: Text(s.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) MangaSettings.setReaderControlBarStyle(s);
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<MangaControlBarStyle>(
+                selected: currentStyle,
+                onSelected: (s) {
+                  MangaSettings.setReaderControlBarStyle(s);
+                },
+                options: [
+                  for (final s in MangaControlBarStyle.values)
+                    SegmentedTabOption(value: s, label: s.label),
+                ],
               );
             },
           ),

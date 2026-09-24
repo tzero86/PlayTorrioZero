@@ -12,6 +12,7 @@ import '../../services/audiobook/audiobook_settings.dart';
 import '../../services/audiobook/paper2audio_service.dart';
 import '../../services/audiobook/custom_audiobook_service.dart';
 import '../../widgets/common/animated_ambient_background.dart';
+import '../../widgets/common/segmented_tabs.dart';
 import '../settings/appearance/audiobook_settings_page.dart';
 import 'audiobook_detail_page.dart';
 import 'audiobook_player_screen.dart';
@@ -214,31 +215,17 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
                   ValueListenableBuilder<AudiobookCardDensity>(
                     valueListenable: AudiobookSettings.cardDensity,
                     builder: (context, density, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: AudiobookCardDensity.values.map((d) {
-                          final isSelected = d == density;
-                          return ChoiceChip(
-                            label: Text(d.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
+                      return SegmentedTabs<AudiobookCardDensity>(
+                        semanticsLabel: 'Audiobook poster card density',
+                        selected: density,
+                        onSelected: AudiobookSettings.setCardDensity,
+                        options: [
+                          for (final option in AudiobookCardDensity.values)
+                            SegmentedTabOption(
+                              value: option,
+                              label: option.label,
                             ),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? palette.primaryColor.withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) AudiobookSettings.setCardDensity(d);
-                            },
-                          );
-                        }).toList(),
+                        ],
                       );
                     },
                   ),

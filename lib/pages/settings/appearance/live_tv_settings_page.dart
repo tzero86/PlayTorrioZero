@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../services/theme/app_theme_service.dart';
 import '../../../services/home/home_page_settings.dart';
 import '../../../services/iptv/iptv_settings.dart';
+import '../../../widgets/common/segmented_tabs.dart';
 
 class LiveTvSettingsPage extends StatefulWidget {
   const LiveTvSettingsPage({super.key});
@@ -200,34 +201,16 @@ class _LiveTvSettingsPageState extends State<LiveTvSettingsPage> {
                 ValueListenableBuilder<HeroStyle>(
                   valueListenable: IptvSettings.heroStyle,
                   builder: (context, currentStyle, _) {
-                    return Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: HeroStyle.values.map((style) {
-                        final isSelected = style == currentStyle;
-                        return ChoiceChip(
-                          label: Text(style.label),
-                          selected: isSelected,
-                          selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                          backgroundColor: const Color(0xFF0D1017),
-                          labelStyle: TextStyle(
-                            color: isSelected ? palette.primaryColor : Colors.white70,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                            fontSize: 12,
-                          ),
-                          side: BorderSide(
-                            color: isSelected
-                                ? palette.primaryColor.withValues(alpha: 0.6)
-                                : Colors.white.withValues(alpha: 0.08),
-                          ),
-                          onSelected: (selected) {
-                            if (selected) {
-                              IptvSettings.setHeroStyle(style);
-                              setState(() {});
-                            }
-                          },
-                        );
-                      }).toList(),
+                    return SegmentedTabs<HeroStyle>(
+                      selected: currentStyle,
+                      onSelected: (style) {
+                        IptvSettings.setHeroStyle(style);
+                        setState(() {});
+                      },
+                      options: [
+                        for (final style in HeroStyle.values)
+                          SegmentedTabOption(value: style, label: style.label),
+                      ],
                     );
                   },
                 ),
@@ -358,34 +341,16 @@ class _LiveTvSettingsPageState extends State<LiveTvSettingsPage> {
           ValueListenableBuilder<CardDensity>(
             valueListenable: IptvSettings.cardDensity,
             builder: (context, currentDensity, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: CardDensity.values.map((density) {
-                  final isSelected = density == currentDensity;
-                  return ChoiceChip(
-                    label: Text(density.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0D1017),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected
-                          ? palette.primaryColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        IptvSettings.setCardDensity(density);
-                        setState(() {});
-                      }
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<CardDensity>(
+                selected: currentDensity,
+                onSelected: (density) {
+                  IptvSettings.setCardDensity(density);
+                  setState(() {});
+                },
+                options: [
+                  for (final density in CardDensity.values)
+                    SegmentedTabOption(value: density, label: density.label),
+                ],
               );
             },
           ),
@@ -627,34 +592,16 @@ class _LiveTvSettingsPageState extends State<LiveTvSettingsPage> {
           ValueListenableBuilder<PortalCardStyle>(
             valueListenable: IptvSettings.portalCardStyle,
             builder: (context, style, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: PortalCardStyle.values.map((s) {
-                  final isSelected = s == style;
-                  return ChoiceChip(
-                    label: Text(s.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0D1017),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected
-                          ? palette.primaryColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        IptvSettings.setPortalCardStyle(s);
-                        setState(() {});
-                      }
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<PortalCardStyle>(
+                selected: style,
+                onSelected: (s) {
+                  IptvSettings.setPortalCardStyle(s);
+                  setState(() {});
+                },
+                options: [
+                  for (final s in PortalCardStyle.values)
+                    SegmentedTabOption(value: s, label: s.label),
+                ],
               );
             },
           ),
@@ -753,47 +700,12 @@ class _LiveTvSettingsPageState extends State<LiveTvSettingsPage> {
           ValueListenableBuilder<int>(
             valueListenable: IptvSettings.defaultPortalTab,
             builder: (context, tabIdx, _) {
-              return Row(
-                children: [
-                  ChoiceChip(
-                    label: const Text('Xtream Panels'),
-                    selected: tabIdx == 0,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0D1017),
-                    labelStyle: TextStyle(
-                      color: tabIdx == 0 ? palette.primaryColor : Colors.white70,
-                      fontWeight: tabIdx == 0 ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: tabIdx == 0
-                          ? palette.primaryColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) IptvSettings.setDefaultPortalTab(0);
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: const Text('M3U Playlists'),
-                    selected: tabIdx == 1,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0D1017),
-                    labelStyle: TextStyle(
-                      color: tabIdx == 1 ? palette.primaryColor : Colors.white70,
-                      fontWeight: tabIdx == 1 ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: tabIdx == 1
-                          ? palette.primaryColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) IptvSettings.setDefaultPortalTab(1);
-                    },
-                  ),
+              return SegmentedTabs<int>(
+                selected: tabIdx,
+                onSelected: IptvSettings.setDefaultPortalTab,
+                options: const [
+                  SegmentedTabOption(value: 0, label: 'Xtream Panels'),
+                  SegmentedTabOption(value: 1, label: 'M3U Playlists'),
                 ],
               );
             },
@@ -826,34 +738,16 @@ class _LiveTvSettingsPageState extends State<LiveTvSettingsPage> {
           ValueListenableBuilder<PortalBrowserLayout>(
             valueListenable: IptvSettings.browserLayout,
             builder: (context, layout, _) {
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: PortalBrowserLayout.values.map((l) {
-                  final isSelected = l == layout;
-                  return ChoiceChip(
-                    label: Text(l.label),
-                    selected: isSelected,
-                    selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0D1017),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
-                    ),
-                    side: BorderSide(
-                      color: isSelected
-                          ? palette.primaryColor.withValues(alpha: 0.6)
-                          : Colors.white.withValues(alpha: 0.08),
-                    ),
-                    onSelected: (selected) {
-                      if (selected) {
-                        IptvSettings.setBrowserLayout(l);
-                        setState(() {});
-                      }
-                    },
-                  );
-                }).toList(),
+              return SegmentedTabs<PortalBrowserLayout>(
+                selected: layout,
+                onSelected: (l) {
+                  IptvSettings.setBrowserLayout(l);
+                  setState(() {});
+                },
+                options: [
+                  for (final l in PortalBrowserLayout.values)
+                    SegmentedTabOption(value: l, label: l.label),
+                ],
               );
             },
           ),

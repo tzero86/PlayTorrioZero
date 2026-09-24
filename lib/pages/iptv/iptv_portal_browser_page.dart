@@ -13,6 +13,7 @@ import '../../services/discord/discord_rpc_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import 'iptv_player_page.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../../widgets/common/segmented_tabs.dart';
 
 class IptvPortalBrowserPage extends StatefulWidget {
   final VerifiedPortal? portal;
@@ -186,31 +187,15 @@ class _IptvPortalBrowserPageState extends State<IptvPortalBrowserPage> {
                   ValueListenableBuilder<PortalBrowserLayout>(
                     valueListenable: IptvSettings.browserLayout,
                     builder: (context, layout, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: PortalBrowserLayout.values.map((l) {
-                          final isSelected = l == layout;
-                          return ChoiceChip(
-                            label: Text(l.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
-                            ),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? palette.primaryColor.withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) IptvSettings.setBrowserLayout(l);
-                            },
-                          );
-                        }).toList(),
+                      return SegmentedTabs<PortalBrowserLayout>(
+                        selected: layout,
+                        onSelected: (l) {
+                          IptvSettings.setBrowserLayout(l);
+                        },
+                        options: [
+                          for (final l in PortalBrowserLayout.values)
+                            SegmentedTabOption(value: l, label: l.label),
+                        ],
                       );
                     },
                   ),

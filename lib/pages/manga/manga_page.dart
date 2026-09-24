@@ -11,6 +11,7 @@ import '../../services/theme/dock_settings.dart';
 import '../../services/manga/manga_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../widgets/common/animated_ambient_background.dart';
+import '../../widgets/common/segmented_tabs.dart';
 import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
 import '../../widgets/common/slider_arrow.dart';
@@ -267,31 +268,17 @@ class _MangaPageState extends State<MangaPage> {
                   ValueListenableBuilder<MangaCardDensity>(
                     valueListenable: MangaSettings.cardDensity,
                     builder: (context, density, _) {
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: MangaCardDensity.values.map((d) {
-                          final isSelected = d == density;
-                          return ChoiceChip(
-                            label: Text(d.label),
-                            selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
+                      return SegmentedTabs<MangaCardDensity>(
+                        semanticsLabel: 'Manga poster card density',
+                        selected: density,
+                        onSelected: MangaSettings.setCardDensity,
+                        options: [
+                          for (final option in MangaCardDensity.values)
+                            SegmentedTabOption(
+                              value: option,
+                              label: option.label,
                             ),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? palette.primaryColor.withValues(alpha: 0.6)
-                                  : Colors.white.withValues(alpha: 0.08),
-                            ),
-                            onSelected: (selected) {
-                              if (selected) MangaSettings.setCardDensity(d);
-                            },
-                          );
-                        }).toList(),
+                        ],
                       );
                     },
                   ),
