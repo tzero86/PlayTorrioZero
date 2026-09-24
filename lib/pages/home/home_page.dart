@@ -598,9 +598,14 @@ class _HomePageState extends State<HomePage> {
   /// (10 top pad + 34 logo + 14 bottom pad).
   static const double _appBarHeight = 58;
 
-  /// Above this width the filter tabs live in the app bar; below it they sit
-  /// inline above the hero, where the bar has no room to spare.
-  static const double _appBarFilterBreakpoint = 700;
+  /// Width at which the filter tabs move into the app bar; below it they sit
+  /// inline above the hero at full width, where the bar has no room to spare.
+  ///
+  /// Measured against the bar's own furniture rather than guessed: the logo is
+  /// ~90px, the divider 17, and six icon buttons ~288, so the control needs
+  /// ~400px plus its own ~330 natural width. At 700 the bar handed it about
+  /// 250, so the labels truncated to "Mo…", "Seri…", "Ani…".
+  static const double _appBarFilterBreakpoint = 1000;
 
   static bool _filtersInAppBar(BuildContext context) =>
       MediaQuery.sizeOf(context).width >= _appBarFilterBreakpoint;

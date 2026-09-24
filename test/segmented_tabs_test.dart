@@ -11,6 +11,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zplay/services/theme/design_tokens.dart';
@@ -224,5 +225,41 @@ void main() {
     // Must be disposed before the test body returns: the framework verifies
     // handles at the end of the body, before tearDown callbacks run.
     handle.dispose();
+  });
+
+  testWidgets('no label is ellipsised when the control sizes to its content',
+      (tester) async {
+    // Content-sized is where the padding budget decides everything: the segment
+    // width is derived from the measured labels, so any shortfall in that
+    // arithmetic truncates the widest one. A bounded host cannot show this,
+    // because there the segments simply divide whatever width they are handed.
+    //
+    // This is the bug it exists for: the budget counted the horizontal padding
+    // but not the inset margin inside the segment, so "Movies" landed 2px short
+    // and rendered as "Movi…" while the shorter labels were fine.
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: Row(
+          children: [
+            const Text('logo'),
+            const Spacer(),
+            SegmentedTabs<String>(
+              options: options,
+              selected: 'all',
+              onSelected: (_) {},
+            ),
+          ],
+        ),
+      ),
+    ));
+    await tester.pump();
+
+    for (final option in options) {
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text(option.label),
+      );
+      expect(paragraph.didExceedMaxLines, isFalse,
+          reason: '"${option.label}" was truncated to fit its segment');
+    }
   });
 }

@@ -172,11 +172,13 @@ class SegmentedTabs<T> extends StatelessWidget {
     return index * 2 / (options.length - 1) - 1;
   }
 
-  /// Equal segment width, driven by the widest label (or count) plus padding.
+  /// Equal segment width, driven by the widest label (or count) plus the space
+  /// the segment itself consumes.
   ///
-  /// The `+ 4` matters: sizing to *exactly* the measured text width leaves no
-  /// slack, and any sub-pixel difference between the [TextPainter] measurement
-  /// and the rendered glyphs then truncates the label ("Mov…").
+  /// The padding **and** the inset both eat into a segment's text width — the
+  /// inset is a margin on the box inside the segment. Budgeting only [_hPad]
+  /// left the widest label 2px short, which is why "Movies" rendered as "Movi…"
+  /// while the shorter labels were fine.
   double _contentSegmentWidth() {
     var widest = 0.0;
     for (final option in options) {
@@ -186,7 +188,7 @@ class SegmentedTabs<T> extends StatelessWidget {
         widest = math.max(widest, _textWidth('$count', _countStyle));
       }
     }
-    return (widest + _hPad * 2 + 4)
+    return (widest + (_hPad + _inset) * 2 + 4)
         .clamp(_minSegmentWidth, _maxSegmentWidth)
         .toDouble();
   }
