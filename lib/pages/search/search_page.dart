@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +11,7 @@ import '../../services/addon/addon_manager.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/home/home_page_settings.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/movie/movie_slider_section.dart';
 import '../../widgets/search/magnet_files_view.dart';
@@ -356,137 +356,138 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       extendBodyBehindAppBar: true,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight + 10),
-        child: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-            child: Container(
-              padding: EdgeInsets.only(top: topPadding, bottom: 8),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFF080A0F).withValues(alpha: 0.90),
-                    const Color(0xFF080A0F).withValues(alpha: 0.60),
-                  ],
-                ),
-                border: Border(
-                  bottom: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.06),
+        // The shell family draws this band as an opaque palette surface with a
+        // bottom hairline, not as a blurred wash over the page.
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: tokens.bg,
+            border: Border(bottom: tokens.hairline),
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: topPadding,
+              bottom: ZplaySpacing.s8,
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: ZplaySpacing.s8),
+                // Search is a shell slot, so it usually has nothing to pop back to
+                // and popping would dismiss the shell itself. Keeping the gate means a
+                // pushed SearchPage still shows the button and neither state shifts
+                // the field, since the inset above is unconditional.
+                if (Navigator.of(context).canPop())
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
+                    color: tokens.textPrimary,
+                    onPressed: () => Navigator.pop(context),
                   ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: 8),
-                  // Search is a shell slot, so it usually has nothing to pop back to
-                  // and popping would dismiss the shell itself. Keeping the gate means a
-                  // pushed SearchPage still shows the button and neither state shifts
-                  // the field, since the inset above is unconditional.
-                  if (Navigator.of(context).canPop())
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
-                      color: Colors.white,
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: Container(
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
-                          ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: ZplaySpacing.s16),
+                    child: Container(
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: tokens.surface,
+                        borderRadius: ZplayRadius.smAll,
+                        border: Border.fromBorderSide(tokens.hairline),
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _focusNode,
+                        autofocus: true,
+                        style: ZplayType.subtitle.toStyle(
+                          color: tokens.textPrimary,
                         ),
-                        child: TextField(
-                          controller: _searchController,
-                          focusNode: _focusNode,
-                          autofocus: true,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
+                        textInputAction: TextInputAction.search,
+                        onChanged: _onSearchChanged,
+                        onSubmitted: _performSearch,
+                        decoration: InputDecoration(
+                          hintText: 'Search movies, series, or paste links',
+                          hintStyle: ZplayType.body.toStyle(
+                            color: tokens.textDisabled,
                           ),
-                          textInputAction: TextInputAction.search,
-                          onChanged: _onSearchChanged,
-                          onSubmitted: _performSearch,
-                          decoration: InputDecoration(
-                            hintText: 'Search movies, series, or paste links',
-                            hintStyle: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.35),
-                              fontSize: 14,
-                            ),
-                            border: InputBorder.none,
-                            prefixIcon: const Icon(
-                              Icons.search_rounded,
-                              size: 19,
-                              color: Colors.white38,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                            suffixIcon: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_searchController.text.isNotEmpty)
-                                  IconButton(
-                                    icon: const Icon(Icons.close_rounded, size: 18),
-                                    color: Colors.white60,
-                                    splashRadius: 18,
-                                    onPressed: () {
-                                      _searchController.clear();
-                                      _onSearchChanged('');
-                                    },
-                                  )
-                                else ...[
-                                  ValueListenableBuilder<bool>(
-                                    valueListenable: HomePageSettings.enableAiQuiz,
-                                    builder: (context, aiQuizEnabled, _) {
-                                      if (!aiQuizEnabled) return const SizedBox.shrink();
-                                      return IconButton(
-                                        icon: Icon(
-                                          Icons.auto_awesome_rounded,
-                                          size: 17,
-                                          color: AppThemeService.currentPalette.value.primaryColor,
-                                        ),
-                                        tooltip: 'AI Taste Quiz',
-                                        splashRadius: 18,
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (_) => const WeWatchQuizPage()),
-                                          );
-                                        },
-                                      );
-                                    },
+                          border: InputBorder.none,
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            size: 19,
+                            color: tokens.textMuted,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: ZplaySpacing.s12,
+                            vertical: ZplaySpacing.s12,
+                          ),
+                          suffixIcon: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_searchController.text.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    size: 18,
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.content_paste_rounded, size: 17),
-                                    tooltip: 'Paste from clipboard',
-                                    color: Colors.white54,
-                                    splashRadius: 18,
-                                    onPressed: _pasteFromClipboard,
+                                  color: tokens.textSecondary,
+                                  splashRadius: 18,
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _onSearchChanged('');
+                                  },
+                                )
+                              else ...[
+                                ValueListenableBuilder<bool>(
+                                  valueListenable: HomePageSettings.enableAiQuiz,
+                                  builder: (context, aiQuizEnabled, _) {
+                                    if (!aiQuizEnabled) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    return IconButton(
+                                      icon: Icon(
+                                        Icons.auto_awesome_rounded,
+                                        size: 17,
+                                        color: AppThemeService
+                                            .currentPalette
+                                            .value
+                                            .primaryColor,
+                                      ),
+                                      tooltip: 'AI Taste Quiz',
+                                      splashRadius: 18,
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const WeWatchQuizPage(),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.content_paste_rounded,
+                                    size: 17,
                                   ),
-                                ],
+                                  tooltip: 'Paste from clipboard',
+                                  color: tokens.textSecondary,
+                                  splashRadius: 18,
+                                  onPressed: _pasteFromClipboard,
+                                ),
                               ],
-                            ),
+                            ],
                           ),
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -510,15 +511,13 @@ class _SearchPageState extends State<SearchPage> {
                   Icon(
                     Icons.search_off_rounded,
                     size: 64,
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: tokens.textDisabled,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: ZplaySpacing.s16),
                   Text(
                     'No results for "$_lastQuery"',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                    style: ZplayType.subtitle.toStyle(
+                      color: tokens.textSecondary,
                     ),
                   ),
                 ],
@@ -528,8 +527,8 @@ class _SearchPageState extends State<SearchPage> {
             ListView.builder(
               clipBehavior: Clip.none,
               padding: EdgeInsets.only(
-                top: topPadding + kToolbarHeight + 40,
-                bottom: 40 + MediaQuery.paddingOf(context).bottom,
+                top: topPadding + kToolbarHeight + ZplaySpacing.s40,
+                bottom: ZplaySpacing.s40 + MediaQuery.paddingOf(context).bottom,
               ),
               physics: const BouncingScrollPhysics(),
               itemCount: _results.length + (_isLoading ? 1 : 0),
@@ -542,7 +541,9 @@ class _SearchPageState extends State<SearchPage> {
                   );
                 }
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 24.0),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: ZplaySpacing.s24,
+                  ),
                   child: Center(
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -555,13 +556,11 @@ class _SearchPageState extends State<SearchPage> {
                             color: AppThemeService.currentPalette.value.primaryColor,
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: ZplaySpacing.s8),
                         Text(
                           'Searching more sources...',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.5),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                          style: ZplayType.bodySmall.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         ),
                       ],
@@ -575,7 +574,7 @@ class _SearchPageState extends State<SearchPage> {
 
           if (_isLoading && _results.isNotEmpty)
             Positioned(
-              top: topPadding + kToolbarHeight + 10,
+              top: topPadding + kToolbarHeight + ZplaySpacing.s8,
               left: 0,
               right: 0,
               child: SizedBox(
@@ -592,91 +591,83 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildDiscoveryEmptyState(double topPadding) {
+    final tokens = context.tokens;
+
     return ListView(
       clipBehavior: Clip.none,
       padding: EdgeInsets.only(
-        top: topPadding + kToolbarHeight + 14,
-        bottom: 40 + MediaQuery.paddingOf(context).bottom,
+        top: topPadding + kToolbarHeight + ZplaySpacing.s12,
+        bottom: ZplaySpacing.s40 + MediaQuery.paddingOf(context).bottom,
       ),
       physics: const BouncingScrollPhysics(),
       children: [
         // Recent Searches
         if (_searchHistory.isNotEmpty) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: ZplaySpacing.s8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'RECENT SEARCHES',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white38,
-                    letterSpacing: 1.1,
-                  ),
+                  style: ZplayType.overline.toStyle(color: tokens.textMuted),
                 ),
                 FocusableCard(
                   onTap: _clearSearchHistory,
-                  builder: (context, state) => const Text(
+                  builder: (context, state) => Text(
                     'Clear All',
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF00E5FF),
-                    ),
+                    style: ZplayType.caption.toStyle(color: tokens.info),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: ZplaySpacing.s8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16),
             child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: ZplaySpacing.s8,
+              runSpacing: ZplaySpacing.s8,
               children: _searchHistory.map((query) {
                 return InputChip(
                   label: Text(query),
-                  labelStyle: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
-                  backgroundColor: Colors.white.withValues(alpha: 0.07),
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                  labelStyle: ZplayType.bodySmall.toStyle(
+                    color: tokens.textPrimary,
+                  ),
+                  backgroundColor: tokens.surface,
+                  side: BorderSide(color: tokens.borderStrong),
                   onPressed: () {
                     _searchController.text = query;
                     _performSearch(query);
                   },
                   onDeleted: () => _removeSearchHistory(query),
-                  deleteIconColor: Colors.white38,
+                  deleteIconColor: tokens.textMuted,
                   deleteIcon: const Icon(Icons.close_rounded, size: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: ZplayRadius.smAll,
+                  ),
                 );
               }).toList(),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: ZplaySpacing.s12),
         ],
 
         // Discover / Trending Content
         if (_suggestedSections.isNotEmpty) ...[
-          const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+          const SizedBox(height: ZplaySpacing.s12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16),
             child: Text(
               'TRENDING & SUGGESTED',
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w800,
-                color: Colors.white38,
-                letterSpacing: 1.1,
-              ),
+              style: ZplayType.overline.toStyle(color: tokens.textMuted),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: ZplaySpacing.s12),
           ..._suggestedSections.map((sec) => MovieSliderSection(section: sec)),
         ] else if (_isLoadingSuggestions) ...[
-          const SizedBox(height: 32),
+          const SizedBox(height: ZplaySpacing.s32),
           Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor)),
         ],
       ],

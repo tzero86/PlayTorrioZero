@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
+
 import '../../services/p2p/p2p_settings_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 class P2pWarningDialog extends StatelessWidget {
   const P2pWarningDialog({super.key});
-
-  static const Color _surfaceColor = Color(0xFF131722);
-  static const Color _backgroundColor = Color(0xFF0A0D14);
-  static const Color _warningColor = Color(0xFFF59E0B);
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     final isSmallScreen = size.width < 500;
+    final tokens = ZplayTokens.of(context);
+    final warning = tokens.warning;
 
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -24,15 +24,15 @@ class P2pWarningDialog extends StatelessWidget {
           ),
           child: Container(
             decoration: BoxDecoration(
-              color: _surfaceColor,
-              borderRadius: BorderRadius.circular(24),
+              color: tokens.surfaceOverlay,
+              borderRadius: ZplayRadius.lgAll,
               border: Border.all(
-                color: _warningColor.withValues(alpha: 0.35),
+                color: warning.withValues(alpha: 0.35),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: _warningColor.withValues(alpha: 0.15),
+                  color: warning.withValues(alpha: 0.15),
                   blurRadius: 40,
                   spreadRadius: 2,
                 ),
@@ -44,46 +44,51 @@ class P2pWarningDialog extends StatelessWidget {
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: ZplayRadius.lgAll,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // 1. Header Banner
                   Container(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 16, 18),
+                    padding: const EdgeInsets.fromLTRB(
+                      ZplaySpacing.s20,
+                      ZplaySpacing.s20,
+                      ZplaySpacing.s16,
+                      ZplaySpacing.s20,
+                    ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          _warningColor.withValues(alpha: 0.22),
-                          _warningColor.withValues(alpha: 0.04),
+                          warning.withValues(alpha: 0.22),
+                          warning.withValues(alpha: 0.04),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       border: Border(
                         bottom: BorderSide(
-                          color: _warningColor.withValues(alpha: 0.15),
+                          color: warning.withValues(alpha: 0.15),
                         ),
                       ),
                     ),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(ZplaySpacing.s12),
                           decoration: BoxDecoration(
-                            color: _warningColor.withValues(alpha: 0.20),
-                            borderRadius: BorderRadius.circular(14),
+                            color: warning.withValues(alpha: 0.20),
+                            borderRadius: ZplayRadius.mdAll,
                             border: Border.all(
-                              color: _warningColor.withValues(alpha: 0.35),
+                              color: warning.withValues(alpha: 0.35),
                             ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.shield_outlined,
-                            color: _warningColor,
+                            color: warning,
                             size: 28,
                           ),
                         ),
-                        const SizedBox(width: 14),
+                        const SizedBox(width: ZplaySpacing.s16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,40 +97,37 @@ class P2pWarningDialog extends StatelessWidget {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                      vertical: 3,
+                                      horizontal: ZplaySpacing.s8,
+                                      vertical: ZplaySpacing.s4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _warningColor.withValues(alpha: 0.20),
-                                      borderRadius: BorderRadius.circular(6),
+                                      color: warning.withValues(alpha: 0.20),
+                                      borderRadius: ZplayRadius.xsAll,
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'PRIVACY & NETWORK ADVISORY',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 1.1,
-                                        color: _warningColor,
+                                      style: ZplayType.overline.toStyle(
+                                        color: warning,
                                       ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 5),
-                              const Text(
+                              const SizedBox(height: ZplaySpacing.s4),
+                              Text(
                                 'P2P Torrent Streaming Notice',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  letterSpacing: -0.2,
+                                style: ZplayType.title.toStyle(
+                                  color: tokens.textPrimary,
                                 ),
                               ),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close_rounded, color: Colors.white60),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: tokens.textSecondary,
+                          ),
                           tooltip: 'Exit',
                           onPressed: () => Navigator.of(context).pop(),
                         ),
@@ -136,49 +138,54 @@ class P2pWarningDialog extends StatelessWidget {
                   // 2. Scrollable Body
                   Flexible(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ZplaySpacing.s24,
+                        vertical: ZplaySpacing.s20,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Main advisory text
                           Text(
                             'P2P (peer-to-peer torrent) streaming connects directly to public torrent swarms to download and seed video pieces. In certain countries and regions, unencrypted torrent activity may be monitored and could result in warning letters or notices from your Internet Service Provider (ISP).',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              color: Colors.white.withValues(alpha: 0.88),
-                              height: 1.45,
+                            style: ZplayType.body.toStyle(
+                              color: tokens.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: ZplaySpacing.s16),
 
                           // Engine Breakdown Box
                           Container(
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.all(ZplaySpacing.s16),
                             decoration: BoxDecoration(
-                              color: _backgroundColor.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(14),
+                              color: tokens.bg.withValues(alpha: 0.7),
+                              borderRadius: ZplayRadius.mdAll,
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.08),
+                                color: tokens.borderDefault,
                               ),
                             ),
                             child: Column(
                               children: [
                                 _buildSourceInfoRow(
+                                  context,
                                   icon: Icons.cloud_done_rounded,
-                                  iconColor: const Color(0xFF10B981),
+                                  iconColor: tokens.success,
                                   title: 'ZPlayHTTP (Direct Stream)',
                                   subtitle: 'Safe direct HTTPS web streams. No torrenting or peer uploading.',
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: ZplaySpacing.s12,
+                                  ),
                                   child: Divider(
                                     height: 1,
-                                    color: Colors.white.withValues(alpha: 0.06),
+                                    color: tokens.borderSubtle,
                                   ),
                                 ),
                                 _buildSourceInfoRow(
+                                  context,
                                   icon: Icons.hub_rounded,
-                                  iconColor: _warningColor,
+                                  iconColor: warning,
                                   title: 'ZPlay (Torrent Engine)',
                                   subtitle: 'P2P swarms (Knaben, TorrentGalaxy). Involves peer data sharing.',
                                 ),
@@ -186,48 +193,43 @@ class P2pWarningDialog extends StatelessWidget {
                             ),
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: ZplaySpacing.s16),
 
                           // Prompt question
                           Container(
-                            padding: const EdgeInsets.all(14),
+                            padding: const EdgeInsets.all(ZplaySpacing.s16),
                             decoration: BoxDecoration(
-                              color: _warningColor.withValues(alpha: 0.10),
-                              borderRadius: BorderRadius.circular(14),
+                              color: warning.withValues(alpha: 0.10),
+                              borderRadius: ZplayRadius.mdAll,
                               border: Border.all(
-                                color: _warningColor.withValues(alpha: 0.25),
+                                color: warning.withValues(alpha: 0.25),
                               ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(
+                                Icon(
                                   Icons.help_outline_rounded,
-                                  color: _warningColor,
+                                  color: warning,
                                   size: 22,
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: ZplaySpacing.s12),
                                 Expanded(
                                   child: Text(
                                     'Would you like to turn off the built-in ZPlay P2P torrent source and use only direct HTTP streaming?',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(alpha: 0.95),
-                                      height: 1.35,
+                                    style: ZplayType.subtitle.toStyle(
+                                      color: tokens.textPrimary,
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: ZplaySpacing.s12),
                           Text(
                             'Note: You can easily toggle the built-in P2P source back on or off anytime in Settings.',
-                            style: TextStyle(
-                              fontSize: 11.5,
-                              color: Colors.white.withValues(alpha: 0.45),
-                              fontStyle: FontStyle.italic,
-                            ),
+                            style: ZplayType.caption
+                                .toStyle(color: tokens.textSecondary)
+                                .copyWith(fontStyle: FontStyle.italic),
                           ),
                         ],
                       ),
@@ -236,13 +238,16 @@ class P2pWarningDialog extends StatelessWidget {
 
                   // 3. Responsive Action Buttons Footer
                   Container(
-                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                    padding: const EdgeInsets.fromLTRB(
+                      ZplaySpacing.s20,
+                      ZplaySpacing.s16,
+                      ZplaySpacing.s20,
+                      ZplaySpacing.s20,
+                    ),
                     decoration: BoxDecoration(
-                      color: _backgroundColor.withValues(alpha: 0.95),
+                      color: tokens.bg.withValues(alpha: 0.95),
                       border: Border(
-                        top: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
+                        top: BorderSide(color: tokens.borderDefault),
                       ),
                     ),
                     child: isSmallScreen
@@ -258,43 +263,40 @@ class P2pWarningDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildSourceInfoRow({
+  Widget _buildSourceInfoRow(
+    BuildContext context, {
     required IconData icon,
     required Color iconColor,
     required String title,
     required String subtitle,
   }) {
+    final tokens = ZplayTokens.of(context);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(7),
+          padding: const EdgeInsets.all(ZplaySpacing.s8),
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(9),
+            borderRadius: ZplayRadius.smAll,
           ),
           child: Icon(icon, color: iconColor, size: 18),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: ZplaySpacing.s12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                style: ZplayType.label.toStyle(color: tokens.textPrimary),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: ZplaySpacing.s2),
               Text(
                 subtitle,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  height: 1.25,
+                style: ZplayType.bodySmall.toStyle(
+                  color: tokens.textSecondary,
                 ),
               ),
             ],
@@ -305,16 +307,21 @@ class P2pWarningDialog extends StatelessWidget {
   }
 
   Widget _buildHorizontalButtons(BuildContext context) {
+    final tokens = ZplayTokens.of(context);
+
     return Row(
       children: [
         // Exit button
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            foregroundColor: Colors.white60,
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s12,
+            ),
+            foregroundColor: tokens.textSecondary,
           ),
-          child: const Text('Exit', style: TextStyle(fontWeight: FontWeight.w600)),
+          child: Text('Exit', style: ZplayType.label.toStyle()),
         ),
         const Spacer(),
 
@@ -325,17 +332,17 @@ class P2pWarningDialog extends StatelessWidget {
             if (context.mounted) Navigator.of(context).pop();
           },
           style: OutlinedButton.styleFrom(
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.20)),
-            foregroundColor: Colors.white70,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            side: BorderSide(color: tokens.borderStrong),
+            foregroundColor: tokens.textEmphasis,
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s12,
+            ),
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
           ),
-          child: const Text(
-            "Don't Show Again",
-            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
-          ),
+          child: Text("Don't Show Again", style: ZplayType.label.toStyle()),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: ZplaySpacing.s12),
 
         // Yes, Turn Off P2P button
         ElevatedButton.icon(
@@ -344,9 +351,9 @@ class P2pWarningDialog extends StatelessWidget {
             await P2pSettingsService.setNeverShowWarning(true);
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('P2P torrent source turned off. ZPlayHTTP will be used.'),
-                  backgroundColor: Color(0xFF10B981),
+                SnackBar(
+                  content: const Text('P2P torrent source turned off. ZPlayHTTP will be used.'),
+                  backgroundColor: tokens.success,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -354,15 +361,15 @@ class P2pWarningDialog extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
-          label: const Text(
-            'Yes, Turn Off P2P',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
-          ),
+          label: Text('Yes, Turn Off P2P', style: ZplayType.label.toStyle()),
           style: ElevatedButton.styleFrom(
-            backgroundColor: _warningColor,
+            backgroundColor: tokens.warning,
             foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s12,
+            ),
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
             elevation: 0,
           ),
         ),
@@ -371,6 +378,8 @@ class P2pWarningDialog extends StatelessWidget {
   }
 
   Widget _buildStackedButtons(BuildContext context) {
+    final tokens = ZplayTokens.of(context);
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -382,9 +391,9 @@ class P2pWarningDialog extends StatelessWidget {
             await P2pSettingsService.setNeverShowWarning(true);
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('P2P torrent source turned off. ZPlayHTTP will be used.'),
-                  backgroundColor: Color(0xFF10B981),
+                SnackBar(
+                  content: const Text('P2P torrent source turned off. ZPlayHTTP will be used.'),
+                  backgroundColor: tokens.success,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -392,19 +401,16 @@ class P2pWarningDialog extends StatelessWidget {
             }
           },
           icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
-          label: const Text(
-            'Yes, Turn Off P2P',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5),
-          ),
+          label: Text('Yes, Turn Off P2P', style: ZplayType.label.toStyle()),
           style: ElevatedButton.styleFrom(
-            backgroundColor: _warningColor,
+            backgroundColor: tokens.warning,
             foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(vertical: 13),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            padding: const EdgeInsets.symmetric(vertical: ZplaySpacing.s12),
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
             elevation: 0,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: ZplaySpacing.s8),
 
         Row(
           children: [
@@ -415,25 +421,32 @@ class P2pWarningDialog extends StatelessWidget {
                   if (context.mounted) Navigator.of(context).pop();
                 },
                 style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.20)),
-                  foregroundColor: Colors.white70,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: BorderSide(color: tokens.borderStrong),
+                  foregroundColor: tokens.textEmphasis,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: ZplaySpacing.s12,
+                  ),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: ZplayRadius.smAll,
+                  ),
                 ),
-                child: const Text(
+                child: Text(
                   "Don't Show Again",
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  style: ZplayType.label.toStyle(),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: ZplaySpacing.s8),
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                foregroundColor: Colors.white60,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s16,
+                  vertical: ZplaySpacing.s12,
+                ),
+                foregroundColor: tokens.textSecondary,
               ),
-              child: const Text('Exit', style: TextStyle(fontWeight: FontWeight.w600)),
+              child: Text('Exit', style: ZplayType.label.toStyle()),
             ),
           ],
         ),

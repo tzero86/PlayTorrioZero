@@ -196,7 +196,7 @@ class _IptvPageState extends State<IptvPage> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final spotlightEnabled = IptvSettings.enableSpotlight.value;
     final visibleCategories = IptvSettings.visibleCategories.value;
 
@@ -268,8 +268,8 @@ class _IptvPageState extends State<IptvPage> {
     };
 
     final listContent = RefreshIndicator(
-      color: palette.primaryColor,
-      backgroundColor: palette.cardBackgroundColor,
+      color: tokens.accent,
+      backgroundColor: tokens.surface,
       onRefresh: () async {
         _ctrl.scrape();
       },
@@ -321,7 +321,7 @@ class _IptvPageState extends State<IptvPage> {
     final backgroundContent = IptvSettings.enableAmbientLights.value
         ? AnimatedAmbientBackground(child: listContent)
         : Container(
-            color: palette.scaffoldBackgroundColor,
+            color: tokens.bg,
             child: listContent,
           );
 
@@ -351,7 +351,7 @@ class _IptvPageState extends State<IptvPage> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       body: ValueListenableBuilder<bool>(
         valueListenable: GlassSettings.enabled,
         builder: (context, enabled, _) {
@@ -369,7 +369,7 @@ class _IptvPageState extends State<IptvPage> {
           }
 
           return Container(
-            color: const Color(0xFF080A0F),
+            color: tokens.bg,
             child: Stack(
               children: [
                 RepaintBoundary(child: backgroundContent),
@@ -401,6 +401,7 @@ class _IptvGlassAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final tokens = context.tokens;
     final isExpanded = screenWidth >= 760;
     final isCompact = screenWidth < 540;
     final isSmall = screenWidth < 420;
@@ -416,17 +417,16 @@ class _IptvGlassAppBar extends StatelessWidget {
         horizontalPadding,
         isSmall ? 8 : 14,
       ),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xCC080A0F),
-            Color(0x77080A0F),
-            Colors.transparent,
-          ],
-          stops: [0.0, 0.6, 1.0],
-        ),
+      // Opaque band, where this was a 76–80% `#080A0F` gradient fading to
+      // transparent. Nothing blurs behind this bar and the shell already draws
+      // the switcher chrome above the slot, so a translucent fill only let the
+      // hero smear through underneath and left the bar's own text on a moving
+      // background. `tokens.bg` over the literal also fixes a palette mismatch:
+      // `#080A0F` is only the ocean palette's background, so the bar stayed
+      // ocean-black under every other palette.
+      decoration: BoxDecoration(
+        color: tokens.bg,
+        border: Border(bottom: tokens.hairline),
       ),
       child: Row(
         children: [
@@ -438,12 +438,12 @@ class _IptvGlassAppBar extends StatelessWidget {
                 padding: EdgeInsets.symmetric(horizontal: isSmall ? 8 : 10, vertical: isSmall ? 4 : 5),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
+                    colors: [tokens.accent, tokens.info],
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   boxShadow: [
                     BoxShadow(
-                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
+                      color: tokens.accent.withValues(alpha: 0.4),
                       blurRadius: 10,
                     ),
                   ],
@@ -451,16 +451,11 @@ class _IptvGlassAppBar extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.live_tv_rounded, color: Colors.white, size: isSmall ? 15 : 18),
+                    Icon(Icons.live_tv_rounded, color: tokens.onAccent, size: isSmall ? 15 : 18),
                     const SizedBox(width: 5),
                     Text(
                       'LIVE TV',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: isSmall ? 11.5 : 13,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0.8,
-                      ),
+                      style: ZplayType.label.toStyle(color: tokens.onAccent),
                     ),
                   ],
                 ),
@@ -468,19 +463,14 @@ class _IptvGlassAppBar extends StatelessWidget {
               if (!isCompact) ...[
                 const SizedBox(width: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(6),
+                    color: tokens.borderDefault,
+                    borderRadius: ZplayRadius.xsAll,
                   ),
-                  child: const Text(
+                  child: Text(
                     '60+ CHANNELS',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
-                    ),
+                    style: ZplayType.overline.toStyle(color: tokens.textEmphasis),
                   ),
                 ),
               ],
@@ -551,6 +541,7 @@ class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final iconSize = (widget.size * 0.48).clamp(16.0, 19.0);
 
     return MouseRegion(
@@ -571,26 +562,26 @@ class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
               gradient: LinearGradient(
                 colors: _hovered
                     ? [
-                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.38),
-                        const Color(0xFF00D2EF).withValues(alpha: 0.28),
+                        tokens.accent.withValues(alpha: 0.38),
+                        tokens.info.withValues(alpha: 0.28),
                       ]
                     : [
-                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.18),
-                        const Color(0xFF00D2EF).withValues(alpha: 0.10),
+                        tokens.accent.withValues(alpha: 0.18),
+                        tokens.info.withValues(alpha: 0.10),
                       ],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: ZplayRadius.smAll,
               border: Border.all(
                 color: _hovered
-                    ? const Color(0xFF00D2EF).withValues(alpha: 0.85)
-                    : AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.45),
+                    ? tokens.info.withValues(alpha: 0.85)
+                    : tokens.accent.withValues(alpha: 0.45),
                 width: 1.2,
               ),
               boxShadow: [
                 BoxShadow(
                   color: _hovered
-                      ? const Color(0xFF00D2EF).withValues(alpha: 0.35)
-                      : AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
+                      ? tokens.info.withValues(alpha: 0.35)
+                      : tokens.accent.withValues(alpha: 0.15),
                   blurRadius: _hovered ? 12 : 6,
                   offset: const Offset(0, 2),
                 ),
@@ -602,36 +593,26 @@ class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
                     children: [
                       Icon(
                         Icons.dashboard_rounded,
-                        color: const Color(0xFF00D2EF),
+                        color: tokens.info,
                         size: iconSize,
                       ),
                       const SizedBox(width: 7),
-                      const Text(
+                      Text(
                         'Multi Streams',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.3,
-                        ),
+                        style: ZplayType.label.toStyle(color: tokens.textPrimary),
                       ),
                       const SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
+                            colors: [tokens.accent, tokens.info],
                           ),
-                          borderRadius: BorderRadius.circular(5),
+                          borderRadius: ZplayRadius.xsAll,
                         ),
-                        child: const Text(
+                        child: Text(
                           'MULTI',
-                          style: TextStyle(
-                            fontSize: 8.5,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.white,
-                            letterSpacing: 0.5,
-                          ),
+                          style: ZplayType.overline.toStyle(color: tokens.onAccent),
                         ),
                       ),
                     ],
@@ -642,7 +623,7 @@ class _MultiStreamsAppBarButtonState extends State<_MultiStreamsAppBarButton> {
                     child: Center(
                       child: Icon(
                         Icons.dashboard_rounded,
-                        color: _hovered ? const Color(0xFF00D2EF) : Colors.white,
+                        color: _hovered ? tokens.info : tokens.textPrimary,
                         size: iconSize,
                       ),
                     ),
@@ -678,6 +659,7 @@ class _GlassActionButtonState extends State<_GlassActionButton> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hovered = true),
@@ -697,19 +679,17 @@ class _GlassActionButtonState extends State<_GlassActionButton> {
             width: widget.size,
             height: widget.size,
             decoration: BoxDecoration(
-              color: _hovered
-                  ? Colors.white.withValues(alpha: 0.16)
-                  : Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
+              color: _hovered ? tokens.borderStrong : tokens.borderDefault,
+              borderRadius: ZplayRadius.smAll,
               border: Border.all(
                 color: _hovered
-                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
-                    : Colors.white.withValues(alpha: 0.12),
+                    ? tokens.accent.withValues(alpha: 0.6)
+                    : tokens.borderStrong,
               ),
               boxShadow: _hovered
                   ? [
                       BoxShadow(
-                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
+                        color: tokens.accent.withValues(alpha: 0.25),
                         blurRadius: 10,
                       )
                     ]
@@ -717,7 +697,7 @@ class _GlassActionButtonState extends State<_GlassActionButton> {
             ),
             child: Icon(
               widget.icon,
-              color: _hovered ? Colors.white : Colors.white70,
+              color: _hovered ? tokens.textPrimary : tokens.textEmphasis,
               size: (widget.size * 0.5).clamp(16.0, 20.0),
             ),
           ),
@@ -795,6 +775,7 @@ class _QuickChannelsSliderState extends State<_QuickChannelsSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final width = MediaQuery.sizeOf(context).width;
     final cardWidth = width < 600 ? 140.0 : width < 1000 ? 160.0 : 180.0;
     final posterH = cardWidth * 1.35;
@@ -805,20 +786,20 @@ class _QuickChannelsSliderState extends State<_QuickChannelsSlider> {
             Theme.of(context).platform == TargetPlatform.linux);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Text(
+              Text(
                 'Quick Channels',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                style: ZplayType.title.toStyle(color: tokens.textPrimary),
               ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.add_circle_outline_rounded, size: 24),
-                color: AppThemeService.currentPalette.value.primaryColor,
+                color: tokens.accent,
                 tooltip: 'Add Quick Channel',
                 onPressed: widget.onAddTap,
               ),
@@ -834,10 +815,10 @@ class _QuickChannelsSliderState extends State<_QuickChannelsSlider> {
                   controller: _scrollController,
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none,
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s4),
                   physics: const BouncingScrollPhysics(),
                   itemCount: widget.channels.length + 1,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s12),
                   itemBuilder: (context, index) {
                     if (index == widget.channels.length) {
                       return SizedBox(
@@ -877,7 +858,7 @@ class _QuickChannelsSliderState extends State<_QuickChannelsSlider> {
                     bottom: 0,
                     child: Center(
                       child: IconButton(
-                        icon: const Icon(Icons.chevron_left_rounded, color: Colors.white70),
+                        icon: Icon(Icons.chevron_left_rounded, color: tokens.textEmphasis),
                         onPressed: _canScrollLeft ? () => _scroll(-1) : null,
                       ),
                     ),
@@ -890,7 +871,7 @@ class _QuickChannelsSliderState extends State<_QuickChannelsSlider> {
                     bottom: 0,
                     child: Center(
                       child: IconButton(
-                        icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+                        icon: Icon(Icons.chevron_right_rounded, color: tokens.textEmphasis),
                         onPressed: _canScrollRight ? () => _scroll(1) : null,
                       ),
                     ),
@@ -918,6 +899,7 @@ class _QuickChannelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return FocusableCard(
       onTap: onTap,
       builder: (context, state) => GestureDetector(
@@ -925,12 +907,12 @@ class _QuickChannelCard extends StatelessWidget {
         onLongPress: onRemove,
         child: CardFocusRing(
           focused: state.focused,
-          radius: BorderRadius.circular(12),
+          radius: ZplayRadius.smAll,
           child: Stack(
             children: [
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: ZplayRadius.smAll,
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -961,14 +943,14 @@ class _QuickChannelCard extends StatelessWidget {
                         children: [
                           Text(
                             channel.name,
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                            style: ZplayType.label.toStyle(color: tokens.textPrimary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 2),
                           Text(
                             channel.category,
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11),
+                            style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                           ),
                         ],
                       ),
@@ -984,11 +966,11 @@ class _QuickChannelCard extends StatelessWidget {
                   onTap: onRemove,
                   builder: (context, closeState) => CardFocusRing(
                     focused: closeState.focused,
-                    radius: BorderRadius.circular(10),
+                    radius: ZplayRadius.smAll,
                     child: Container(
                       padding: const EdgeInsets.all(3),
-                      decoration: const BoxDecoration(color: Color(0xFFCC0000), shape: BoxShape.circle),
-                      child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+                      decoration: BoxDecoration(color: tokens.danger, shape: BoxShape.circle),
+                      child: Icon(Icons.close_rounded, color: tokens.textPrimary, size: 14),
                     ),
                   ),
                 ),
@@ -1007,23 +989,24 @@ class _QuickAddCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return FocusableCard(
       onTap: onTap,
       builder: (context, state) => CardFocusRing(
         focused: state.focused,
-        radius: BorderRadius.circular(12),
+        radius: ZplayRadius.smAll,
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.5), width: 2),
-            color: const Color(0xFF0C0F17),
+            borderRadius: ZplayRadius.smAll,
+            border: Border.all(color: tokens.accent.withValues(alpha: 0.5), width: 2),
+            color: tokens.surface,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.add_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 36),
+              Icon(Icons.add_rounded, color: tokens.accent, size: 36),
               const SizedBox(height: 8),
-              Text('Add Channel', style: TextStyle(color: AppThemeService.currentPalette.value.primaryColor, fontSize: 12, fontWeight: FontWeight.w700)),
+              Text('Add Channel', style: ZplayType.label.toStyle(color: tokens.accent)),
             ],
           ),
         ),
@@ -1040,7 +1023,7 @@ class _QuickChannelIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       short,
-      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 1),
+      style: ZplayType.titleLarge.toStyle(color: context.tokens.textPrimary),
     );
   }
 }
@@ -1088,10 +1071,14 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return AlertDialog(
-      backgroundColor: const Color(0xFF0C0F17),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Add Quick Channel', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      backgroundColor: tokens.surfaceOverlay,
+      shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
+      title: Text(
+        'Add Quick Channel',
+        style: ZplayType.title.toStyle(color: tokens.textPrimary),
+      ),
       content: SizedBox(
         width: 360,
         child: Form(
@@ -1102,12 +1089,12 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
               children: [
                 TextFormField(
                   controller: _nameCtrl,
-                  style: const TextStyle(color: Colors.white),
+                  style: ZplayType.body.toStyle(color: tokens.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Channel Name',
-                    labelStyle: const TextStyle(color: Colors.white70),
+                    labelStyle: ZplayType.body.toStyle(color: tokens.textEmphasis),
                     border: const UnderlineInputBorder(),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: tokens.accent)),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                 ),
@@ -1117,12 +1104,12 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                     Expanded(
                       child: TextFormField(
                         controller: _shortCtrl,
-                        style: const TextStyle(color: Colors.white),
+                        style: ZplayType.body.toStyle(color: tokens.textPrimary),
                         decoration: InputDecoration(
                           labelText: 'Short Code (optional)',
-                          labelStyle: const TextStyle(color: Colors.white70),
+                          labelStyle: ZplayType.body.toStyle(color: tokens.textEmphasis),
                           border: const UnderlineInputBorder(),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
+                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: tokens.accent)),
                         ),
                       ),
                     ),
@@ -1130,15 +1117,23 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                     Expanded(
                       child: DropdownButtonFormField<String>(
                         value: _selectedCategory,
-                        dropdownColor: const Color(0xFF0C0F17),
-                        style: const TextStyle(color: Colors.white),
+                        dropdownColor: tokens.surfaceOverlay,
+                        style: ZplayType.body.toStyle(color: tokens.textPrimary),
                         decoration: InputDecoration(
                           labelText: 'Category',
-                          labelStyle: const TextStyle(color: Colors.white70),
+                          labelStyle: ZplayType.body.toStyle(color: tokens.textEmphasis),
                           border: const UnderlineInputBorder(),
-                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
+                          focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: tokens.accent)),
                         ),
-                        items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(color: Colors.white)))).toList(),
+                        items: _categories
+                            .map((c) => DropdownMenuItem(
+                                  value: c,
+                                  child: Text(
+                                    c,
+                                    style: ZplayType.body.toStyle(color: tokens.textPrimary),
+                                  ),
+                                ))
+                            .toList(),
                         onChanged: (v) => setState(() => _selectedCategory = v!),
                       ),
                     ),
@@ -1147,19 +1142,25 @@ class _AddQuickChannelDialogState extends State<_AddQuickChannelDialog> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _keywordsCtrl,
-                  style: const TextStyle(color: Colors.white),
+                  style: ZplayType.body.toStyle(color: tokens.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Keywords (comma-separated)',
-                    labelStyle: const TextStyle(color: Colors.white70),
+                    labelStyle: ZplayType.body.toStyle(color: tokens.textEmphasis),
                     hintText: 'e.g. cnn, news, international',
-                    hintStyle: const TextStyle(color: Colors.white38),
+                    hintStyle: ZplayType.body.toStyle(color: tokens.textMuted),
                     border: const UnderlineInputBorder(),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: tokens.accent)),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 16),
-                const Align(alignment: Alignment.centerLeft, child: Text('Gradient', style: TextStyle(color: Colors.white70, fontSize: 12))),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Gradient',
+                    style: ZplayType.bodySmall.toStyle(color: tokens.textEmphasis),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 8,
@@ -1169,14 +1170,17 @@ return FocusableCard(
                       onTap: () => setState(() => _gradient = g),
                       builder: (context, state) => CardFocusRing(
                         focused: state.focused,
-                        radius: BorderRadius.circular(8),
+                        radius: ZplayRadius.smAll,
                         child: Container(
                           width: 36,
                           height: 36,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: ZplayRadius.smAll,
                             gradient: LinearGradient(colors: g),
-                            border: Border.all(color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.transparent, width: 2),
+                            border: Border.all(
+                              color: isSelected ? tokens.accent : Colors.transparent,
+                              width: 2,
+                            ),
                           ),
                         ),
                       ),
@@ -1189,9 +1193,19 @@ return FocusableCard(
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel', style: TextStyle(color: Colors.white70))),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(
+            'Cancel',
+            style: ZplayType.label.toStyle(color: tokens.textEmphasis),
+          ),
+        ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppThemeService.currentPalette.value.primaryColor, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: tokens.accent,
+            foregroundColor: tokens.onAccent,
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+          ),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
               final id = 'user_${DateTime.now().millisecondsSinceEpoch}';

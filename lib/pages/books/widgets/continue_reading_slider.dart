@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../models/book/book_result.dart';
 import '../../../models/book/reading_progress.dart';
 import '../../../services/books/continue_reading_service.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../widgets/common/focusable_card.dart';
 import '../epub_reader_page.dart';
 import '../pdf_reader_page.dart';
@@ -118,6 +119,7 @@ class _ContinueReadingSliderState extends State<ContinueReadingSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final isDesktop = _isDesktop();
 
     return ValueListenableBuilder<List<ReadingProgress>>(
@@ -139,30 +141,21 @@ class _ContinueReadingSliderState extends State<ContinueReadingSlider> {
                       width: 4,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF7C3AED),
-                        borderRadius: BorderRadius.circular(2),
+                        color: tokens.accent,
+                        borderRadius: ZplayRadius.xsAll,
                       ),
                     ),
                     const SizedBox(width: 10),
                     Text(
                       widget.title,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 0.2,
+                      style: ZplayType.titleLarge.toStyle(
+                        color: tokens.textPrimary,
                       ),
                     ),
                     const Spacer(),
                     Text(
                       '${items.length} ${items.length == 1 ? 'Book' : 'Books'}',
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white38,
-                      ),
+                      style: ZplayType.label.toStyle(color: tokens.textMuted),
                     ),
                   ],
                 ),
@@ -239,11 +232,12 @@ class _ContinueReadingSliderState extends State<ContinueReadingSlider> {
   }
 
   Widget _buildArrowButton(IconData icon, VoidCallback onPressed) {
+    final tokens = context.tokens;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1C1E26).withValues(alpha: 0.85),
+        color: tokens.surfaceOverlay.withValues(alpha: 0.85),
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white24),
+        border: Border.all(color: tokens.borderStrong),
         boxShadow: const [
           BoxShadow(
             color: Colors.black54,
@@ -253,7 +247,7 @@ class _ContinueReadingSliderState extends State<ContinueReadingSlider> {
         ],
       ),
       child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 26),
+        icon: Icon(icon, color: tokens.textPrimary, size: 26),
         onPressed: onPressed,
       ),
     );
@@ -273,6 +267,7 @@ class _ContinueReadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final percent = (item.progressPercent * 100).round();
 
     return FocusableCard(
@@ -294,15 +289,15 @@ class _ContinueReadingCard extends StatelessWidget {
                     height: 180,
                     width: 140,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
-                        color: state.highlighted ? const Color(0xFF7C3AED) : Colors.white12,
+                        color: state.highlighted ? tokens.accent : tokens.borderStrong,
                         width: state.highlighted ? 2.0 : 1.0,
                       ),
                       boxShadow: [
                         BoxShadow(
                           color: state.highlighted
-                              ? const Color(0xFF7C3AED).withValues(alpha: 0.35)
+                              ? tokens.accent.withValues(alpha: 0.35)
                               : Colors.black54,
                           blurRadius: state.highlighted ? 18 : 10,
                           offset: const Offset(0, 6),
@@ -310,7 +305,7 @@ class _ContinueReadingCard extends StatelessWidget {
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(13),
+                      borderRadius: ZplayRadius.mdAll,
                       child: item.coverUrl.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: item.coverUrl,
@@ -319,21 +314,21 @@ class _ContinueReadingCard extends StatelessWidget {
                               memCacheWidth: 420,
                               fit: BoxFit.cover,
                               placeholder: (_, __) => Container(
-                                color: const Color(0xFF20212C),
-                                child: const Center(
-                                  child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                color: tokens.surface,
+                                child: Center(
+                                  child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                 ),
                               ),
                               errorWidget: (_, __, ___) => Container(
-                                color: const Color(0xFF20212C),
-                                child: const Center(
-                                  child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                color: tokens.surface,
+                                child: Center(
+                                  child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                 ),
                               ))
                           : Container(
-                              color: const Color(0xFF20212C),
-                              child: const Center(
-                                child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                              color: tokens.surface,
+                              child: Center(
+                                child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                               ),
                             ),
                     ),
@@ -347,17 +342,14 @@ class _ContinueReadingCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.75),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: Colors.white24),
+                        borderRadius: ZplayRadius.xsAll,
+                        border: Border.all(color: tokens.borderStrong),
                       ),
                       child: Text(
                         item.fileType.toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 9.5,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        style: ZplayType.overline
+                            .copyWith(weight: FontWeight.w700)
+                            .toStyle(color: tokens.textPrimary),
                       ),
                     ),
                   ),
@@ -375,7 +367,11 @@ class _ContinueReadingCard extends StatelessWidget {
                             color: Colors.black87,
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+                          child: Icon(
+                            Icons.close_rounded,
+                            color: tokens.textPrimary,
+                            size: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -389,15 +385,19 @@ class _ContinueReadingCard extends StatelessWidget {
                       height: 5,
                       decoration: const BoxDecoration(
                         color: Colors.black54,
-                        borderRadius: BorderRadius.vertical(bottom: Radius.circular(13)),
+                        borderRadius: BorderRadius.vertical(
+                          bottom: Radius.circular(ZplayRadius.md),
+                        ),
                       ),
                       child: FractionallySizedBox(
                         alignment: Alignment.centerLeft,
                         widthFactor: item.progressPercent.clamp(0.02, 1.0),
                         child: Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF7C3AED),
-                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(13)),
+                          decoration: BoxDecoration(
+                            color: tokens.accent,
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(ZplayRadius.md),
+                            ),
                           ),
                         ),
                       ),
@@ -410,12 +410,9 @@ class _ContinueReadingCard extends StatelessWidget {
               // Title
               Text(
                 item.title,
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+                style: ZplayType.bodySmall
+                    .copyWith(weight: FontWeight.w600)
+                    .toStyle(color: tokens.textPrimary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -425,11 +422,7 @@ class _ContinueReadingCard extends StatelessWidget {
                 item.fileType == 'pdf'
                     ? 'Page ${item.currentPage} • $percent%'
                     : 'Ch. ${item.chapterIndex + 1} • $percent%',
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 11,
-                  color: Colors.white54,
-                ),
+                style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

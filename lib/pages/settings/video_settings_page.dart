@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/player/player_settings.dart';
 
 class VideoSettingsPage extends StatefulWidget {
@@ -12,20 +12,23 @@ class VideoSettingsPage extends StatefulWidget {
 class _VideoSettingsPageState extends State<VideoSettingsPage> {
   @override
   Widget build(BuildContext context) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque palette band with a
+        // bottom hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Video & Upscaling',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: Center(
@@ -38,18 +41,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      palette.primaryColor.withValues(alpha: 0.12),
-                      AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.04),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: palette.primaryColor.withValues(alpha: 0.20),
-                  ),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.mdAll,
+                  border: Border.fromBorderSide(tokens.hairline),
                 ),
                 child: Row(
                   children: [
@@ -57,12 +51,12 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: palette.primaryColor.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(14),
+                        color: tokens.accentSubtle,
+                        borderRadius: ZplayRadius.mdAll,
                       ),
                       child: Icon(
                         Icons.auto_awesome_rounded,
-                        color: palette.primaryColor,
+                        color: tokens.accent,
                         size: 26,
                       ),
                     ),
@@ -71,21 +65,17 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Anime4K Neural Upscaling',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
+                            style: ZplayType.subtitle.toStyle(
+                              color: tokens.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             'Real-time GLSL anime upscaling and line reconstruction running directly on libmpv GPU shaders.',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: Colors.white.withValues(alpha: 0.6),
-                              height: 1.35,
+                            style: ZplayType.bodySmall.toStyle(
+                              color: tokens.textSecondary,
                             ),
                           ),
                         ],
@@ -100,12 +90,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               // ── Section: Presets ──
               Text(
                 'UPSCALING PRESETS',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 12),
 
@@ -119,10 +104,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Disabled (Off)',
                         subtitle: 'Standard video playback without GLSL neural filters. Lowest GPU overhead.',
                         tag: 'Standard',
-                        tagColor: Colors.white38,
+                        tagColor: tokens.textMuted,
                         icon: Icons.block_rounded,
                         isSelected: currentPreset == Anime4KPreset.off,
-                        palette: palette,
                         onTap: () => PlayerSettings.setAnime4kPreset(Anime4KPreset.off),
                       ),
                       const SizedBox(height: 10),
@@ -131,10 +115,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Mode A — Fast / Balanced',
                         subtitle: 'Sharp line restoration & 2x CNN upscale. Best for 1080p anime and balanced GPU power.',
                         tag: 'Recommended',
-                        tagColor: const Color(0xFF10B981),
+                        tagColor: tokens.success,
                         icon: Icons.speed_rounded,
                         isSelected: currentPreset == Anime4KPreset.modeAFast,
-                        palette: palette,
                         onTap: () => PlayerSettings.setAnime4kPreset(Anime4KPreset.modeAFast),
                       ),
                       const SizedBox(height: 10),
@@ -143,10 +126,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Mode A — High Quality (Ultra)',
                         subtitle: 'Maximum perceptual fidelity using Very Large CNNs. Recommended for discrete GPUs (RTX/Radeon).',
                         tag: 'Ultra Quality',
-                        tagColor: AppThemeService.currentPalette.value.primaryColor,
+                        tagColor: tokens.accent,
                         icon: Icons.diamond_rounded,
                         isSelected: currentPreset == Anime4KPreset.modeAHQ,
-                        palette: palette,
                         onTap: () => PlayerSettings.setAnime4kPreset(Anime4KPreset.modeAHQ),
                       ),
                       const SizedBox(height: 10),
@@ -155,10 +137,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Mode B — Soft / Denoise',
                         subtitle: 'Smooth line reconstruction and artifact reduction. Best for blurry, compressed, or older anime.',
                         tag: 'Denoise',
-                        tagColor: AppThemeService.currentPalette.value.primaryColor,
+                        tagColor: tokens.accent,
                         icon: Icons.blur_linear_rounded,
                         isSelected: currentPreset == Anime4KPreset.modeB,
-                        palette: palette,
                         onTap: () => PlayerSettings.setAnime4kPreset(Anime4KPreset.modeB),
                       ),
                       const SizedBox(height: 10),
@@ -167,10 +148,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Mode C — Deblur & Scale',
                         subtitle: 'Aggressive deblurring and scaling. Best for 480p and 720p low-resolution anime episodes.',
                         tag: 'Deblur',
-                        tagColor: const Color(0xFFF59E0B),
+                        tagColor: tokens.warning,
                         icon: Icons.high_quality_rounded,
                         isSelected: currentPreset == Anime4KPreset.modeC,
-                        palette: palette,
                         onTap: () => PlayerSettings.setAnime4kPreset(Anime4KPreset.modeC),
                       ),
                     ],
@@ -183,21 +163,16 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               // ── Section: Details & Performance Note ──
               Text(
                 'PIPELINE & COMPATIBILITY',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 12),
 
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0E121B),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.mdAll,
+                  border: Border.fromBorderSide(tokens.hairline),
                 ),
                 child: Column(
                   children: [
@@ -206,13 +181,13 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                       title: 'Playback Start Application',
                       description: 'Shaders are configured before playback begins. Changing a preset applies to the next opened stream or video.',
                     ),
-                    const Divider(color: Colors.white10, height: 24),
+                    Divider(color: tokens.borderStrong, height: 24),
                     _buildInfoRow(
                       icon: Icons.memory_rounded,
                       title: 'Hardware Decoder Acceleration',
                       description: 'media_kit uses native auto-safe hardware decoding to feed GPU texture memory directly into the GLSL shader pass.',
                     ),
-                    const Divider(color: Colors.white10, height: 24),
+                    Divider(color: tokens.borderStrong, height: 24),
                     _buildInfoRow(
                       icon: Icons.devices_rounded,
                       title: 'Platform Recommendation',
@@ -228,27 +203,20 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 children: [
                   Text(
                     'HARDWARE ACCELERATION & DECODING',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                      color: palette.primaryColor,
-                    ),
+                    style: ZplayType.overline.toStyle(color: tokens.accent),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: palette.primaryColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
+                      color: tokens.accent.withValues(
+                        alpha: ZplayOpacity.overlayHover,
+                      ),
+                      borderRadius: ZplayRadius.xsAll,
                     ),
                     child: Text(
                       'All Platforms',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: palette.primaryColor,
-                      ),
+                      style: ZplayType.caption.toStyle(color: tokens.accent),
                     ),
                   ),
                 ],
@@ -265,10 +233,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Auto-Safe (Recommended)',
                         subtitle: 'GPU hardware decoding with safe driver fallbacks. Best efficiency for most PCs and devices.',
                         badgeText: 'Default',
-                        badgeColor: palette.primaryColor,
+                        badgeColor: tokens.accent,
                         icon: Icons.speed_rounded,
                         currentMode: currentMode,
-                        palette: palette,
                       ),
                       const SizedBox(height: 8),
                       _buildHwdecCard(
@@ -276,10 +243,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Software Decoding (Crash-Proof)',
                         subtitle: 'Pure CPU decoding via FFmpeg libavcodec. Eliminates black screens and driver lockups on older GPUs or virtual machines.',
                         badgeText: '100% Reliable',
-                        badgeColor: const Color(0xFF10B981),
+                        badgeColor: tokens.success,
                         icon: Icons.memory_rounded,
                         currentMode: currentMode,
-                        palette: palette,
                       ),
                       const SizedBox(height: 8),
                       _buildHwdecCard(
@@ -287,10 +253,9 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         title: 'Direct Hardware',
                         subtitle: 'Direct GPU decoding (Direct3D 11 / MediaCodec / VAAPI). Fastest on modern high-end graphics.',
                         badgeText: 'Max GPU',
-                        badgeColor: Colors.amber,
+                        badgeColor: tokens.warning,
                         icon: Icons.bolt_rounded,
                         currentMode: currentMode,
-                        palette: palette,
                       ),
                     ],
                   );
@@ -307,13 +272,13 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: autoRecover
-                          ? palette.primaryColor.withValues(alpha: 0.08)
-                          : const Color(0xFF0E121B),
-                      borderRadius: BorderRadius.circular(16),
+                          ? tokens.accentSubtle
+                          : tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
                         color: autoRecover
-                            ? palette.primaryColor.withValues(alpha: 0.4)
-                            : Colors.white.withValues(alpha: 0.08),
+                            ? tokens.accent
+                            : tokens.borderDefault,
                         width: autoRecover ? 1.5 : 1.0,
                       ),
                     ),
@@ -324,13 +289,14 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: autoRecover
-                                ? palette.primaryColor.withValues(alpha: 0.20)
-                                : Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
+                                ? tokens.accent
+                                    .withValues(alpha: ZplayOpacity.overlayHover)
+                                : tokens.borderSubtle,
+                            borderRadius: ZplayRadius.smAll,
                           ),
                           child: Icon(
                             Icons.shield_rounded,
-                            color: autoRecover ? palette.primaryColor : Colors.white70,
+                            color: autoRecover ? tokens.accent : tokens.textEmphasis,
                             size: 22,
                           ),
                         ),
@@ -341,28 +307,26 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                             children: [
                               Row(
                                 children: [
-                                  const Expanded(
+                                  Expanded(
                                     child: Text(
                                       'Auto-Recover Black Screens',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
+                                      style: ZplayType.subtitle.toStyle(
+                                        color: tokens.textPrimary,
                                       ),
                                     ),
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(8),
+                                      color: tokens.success.withValues(
+                                        alpha: ZplayOpacity.borderStrong,
+                                      ),
+                                      borderRadius: ZplayRadius.smAll,
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'Active Watchdog',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF10B981),
+                                      style: ZplayType.caption.toStyle(
+                                        color: tokens.success,
                                       ),
                                     ),
                                   ),
@@ -371,10 +335,8 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                               const SizedBox(height: 5),
                               Text(
                                 'Monitors stream startup. If audio plays for 2.5s without video frames (or if GPU decoder errors occur), the player automatically falls back to software decoding in real time.',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  color: Colors.white.withValues(alpha: 0.55),
-                                  height: 1.35,
+                                style: ZplayType.bodySmall.toStyle(
+                                  color: tokens.textSecondary,
                                 ),
                               ),
                             ],
@@ -383,7 +345,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         const SizedBox(width: 8),
                         Switch.adaptive(
                           value: autoRecover,
-                          activeColor: palette.primaryColor,
+                          activeColor: tokens.accent,
                           onChanged: (val) {
                             PlayerSettings.setAutoRecoverBlackScreen(val);
                           },
@@ -400,27 +362,20 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 children: [
                   Text(
                     'ANDROID RENDERING ENGINE',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.2,
-                      color: palette.primaryColor,
-                    ),
+                    style: ZplayType.overline.toStyle(color: tokens.accent),
                   ),
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                     decoration: BoxDecoration(
-                      color: palette.primaryColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(6),
+                      color: tokens.accent.withValues(
+                        alpha: ZplayOpacity.overlayHover,
+                      ),
+                      borderRadius: ZplayRadius.xsAll,
                     ),
                     child: Text(
                       'Android',
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.bold,
-                        color: palette.primaryColor,
-                      ),
+                      style: ZplayType.caption.toStyle(color: tokens.accent),
                     ),
                   ),
                 ],
@@ -433,13 +388,13 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: isSurface
-                          ? palette.primaryColor.withValues(alpha: 0.08)
-                          : const Color(0xFF0E121B),
-                      borderRadius: BorderRadius.circular(16),
+                          ? tokens.accentSubtle
+                          : tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
                         color: isSurface
-                            ? palette.primaryColor
-                            : Colors.white.withValues(alpha: 0.08),
+                            ? tokens.accent
+                            : tokens.borderDefault,
                         width: isSurface ? 1.5 : 1.0,
                       ),
                     ),
@@ -450,13 +405,14 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             color: isSurface
-                                ? palette.primaryColor.withValues(alpha: 0.20)
-                                : Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
+                                ? tokens.accent
+                                    .withValues(alpha: ZplayOpacity.overlayHover)
+                                : tokens.borderSubtle,
+                            borderRadius: ZplayRadius.smAll,
                           ),
                           child: Icon(
                             Icons.layers_rounded,
-                            color: isSurface ? palette.primaryColor : Colors.white70,
+                            color: isSurface ? tokens.accent : tokens.textEmphasis,
                             size: 22,
                           ),
                         ),
@@ -467,28 +423,31 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                             children: [
                               Row(
                                 children: [
-                                  const Expanded(
+                                  Expanded(
                                     child: Text(
                                       'Direct Surface (SurfaceView)',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
+                                      style: ZplayType.subtitle.toStyle(
+                                        color: tokens.textPrimary,
                                       ),
                                     ),
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: (isSurface ? const Color(0xFF10B981) : Colors.amber).withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(8),
+                                      color: (isSurface
+                                              ? tokens.success
+                                              : tokens.warning)
+                                          .withValues(
+                                            alpha: ZplayOpacity.borderStrong,
+                                          ),
+                                      borderRadius: ZplayRadius.smAll,
                                     ),
                                     child: Text(
                                       isSurface ? 'Zero-Copy' : 'Off (TextureView)',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: isSurface ? const Color(0xFF10B981) : Colors.amber,
+                                      style: ZplayType.caption.toStyle(
+                                        color: isSurface
+                                            ? tokens.success
+                                            : tokens.warning,
                                       ),
                                     ),
                                   ),
@@ -497,10 +456,8 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                               const SizedBox(height: 5),
                               Text(
                                 'Uses Flutter SurfaceProducer to render frames directly to hardware surface without texture blitting. Significantly boosts 4K/60fps playback and reduces battery usage on Android. (Keep disabled if your device experiences display glitches).',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  color: Colors.white.withValues(alpha: 0.55),
-                                  height: 1.35,
+                                style: ZplayType.bodySmall.toStyle(
+                                  color: tokens.textSecondary,
                                 ),
                               ),
                             ],
@@ -509,7 +466,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         const SizedBox(width: 8),
                         Switch.adaptive(
                           value: isSurface,
-                          activeColor: palette.primaryColor,
+                          activeColor: tokens.accent,
                           onChanged: (val) {
                             PlayerSettings.setEnableSurfaceProducer(val);
                           },
@@ -536,24 +493,24 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
     required Color tagColor,
     required IconData icon,
     required bool isSelected,
-    required AppThemePalette palette,
     required VoidCallback onTap,
   }) {
+    final tokens = context.tokens;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: ZplayRadius.mdAll,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: ZplayMotion.base,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? palette.primaryColor.withValues(alpha: 0.08)
-              : const Color(0xFF0E121B),
-          borderRadius: BorderRadius.circular(16),
+              ? tokens.accentSubtle
+              : tokens.surface,
+          borderRadius: ZplayRadius.mdAll,
           border: Border.all(
             color: isSelected
-                ? palette.primaryColor
-                : Colors.white.withValues(alpha: 0.08),
+                ? tokens.accent
+                : tokens.borderDefault,
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -564,13 +521,14 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? palette.primaryColor.withValues(alpha: 0.20)
-                    : Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(12),
+                    ? tokens.accent
+                        .withValues(alpha: ZplayOpacity.overlayHover)
+                    : tokens.borderSubtle,
+                borderRadius: ZplayRadius.smAll,
               ),
               child: Icon(
                 icon,
-                color: isSelected ? palette.primaryColor : Colors.white70,
+                color: isSelected ? tokens.accent : tokens.textEmphasis,
                 size: 22,
               ),
             ),
@@ -584,27 +542,22 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                       Expanded(
                         child: Text(
                           title,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
+                          style: ZplayType.subtitle.toStyle(
+                            color: tokens.textPrimary,
                           ),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: tagColor.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: tagColor.withValues(alpha: 0.3)),
+                          color: tagColor.withValues(
+                            alpha: ZplayOpacity.borderStrong,
+                          ),
+                          borderRadius: ZplayRadius.smAll,
                         ),
                         child: Text(
                           tag,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: tagColor,
-                          ),
+                          style: ZplayType.caption.toStyle(color: tagColor),
                         ),
                       ),
                     ],
@@ -612,10 +565,8 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                   const SizedBox(height: 5),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      color: Colors.white.withValues(alpha: 0.55),
-                      height: 1.35,
+                    style: ZplayType.bodySmall.toStyle(
+                      color: tokens.textSecondary,
                     ),
                   ),
                 ],
@@ -626,7 +577,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
               padding: const EdgeInsets.only(top: 2),
               child: Icon(
                 isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
-                color: isSelected ? palette.primaryColor : Colors.white24,
+                color: isSelected ? tokens.accent : tokens.textDisabled,
                 size: 22,
               ),
             ),
@@ -644,27 +595,27 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
     required Color badgeColor,
     required IconData icon,
     required HardwareAccelerationMode currentMode,
-    required dynamic palette,
   }) {
+    final tokens = context.tokens;
     final isSelected = mode == currentMode;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => PlayerSettings.setHwdecMode(mode),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: ZplayRadius.mdAll,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: ZplayMotion.base,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isSelected
-                ? palette.primaryColor.withValues(alpha: 0.10)
-                : const Color(0xFF0E121B),
-            borderRadius: BorderRadius.circular(16),
+                ? tokens.accentSubtle
+                : tokens.surface,
+            borderRadius: ZplayRadius.mdAll,
             border: Border.all(
               color: isSelected
-                  ? palette.primaryColor
-                  : Colors.white.withValues(alpha: 0.08),
+                  ? tokens.accent
+                  : tokens.borderDefault,
               width: isSelected ? 1.5 : 1.0,
             ),
           ),
@@ -675,13 +626,14 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? palette.primaryColor.withValues(alpha: 0.22)
-                      : Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
+                      ? tokens.accent
+                          .withValues(alpha: ZplayOpacity.overlayHover)
+                      : tokens.borderSubtle,
+                  borderRadius: ZplayRadius.smAll,
                 ),
                 child: Icon(
                   icon,
-                  color: isSelected ? palette.primaryColor : Colors.white70,
+                  color: isSelected ? tokens.accent : tokens.textEmphasis,
                   size: 22,
                 ),
               ),
@@ -695,26 +647,22 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                         Expanded(
                           child: Text(
                             title,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.85),
+                            style: ZplayType.subtitle.toStyle(
+                              color: tokens.textPrimary,
                             ),
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                           decoration: BoxDecoration(
-                            color: badgeColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(8),
+                            color: badgeColor.withValues(
+                              alpha: ZplayOpacity.borderStrong,
+                            ),
+                            borderRadius: ZplayRadius.smAll,
                           ),
                           child: Text(
                             badgeText,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: badgeColor,
-                            ),
+                            style: ZplayType.caption.toStyle(color: badgeColor),
                           ),
                         ),
                       ],
@@ -722,10 +670,8 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                     const SizedBox(height: 5),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: Colors.white.withValues(alpha: 0.55),
-                        height: 1.35,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textSecondary,
                       ),
                     ),
                   ],
@@ -739,7 +685,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: isSelected ? palette.primaryColor : Colors.white30,
+                    color: isSelected ? tokens.accent : tokens.textDisabled,
                     width: 2,
                   ),
                 ),
@@ -750,7 +696,7 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
                           height: 10,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: palette.primaryColor,
+                            color: tokens.accent,
                           ),
                         ),
                       )
@@ -768,10 +714,11 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
     required String title,
     required String description,
   }) {
+    final tokens = context.tokens;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
+        Icon(icon, color: tokens.accent, size: 20),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -779,19 +726,13 @@ class _VideoSettingsPageState extends State<VideoSettingsPage> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                style: ZplayType.label.toStyle(color: tokens.textPrimary),
               ),
               const SizedBox(height: 3),
               Text(
                 description,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.55),
-                  height: 1.35,
+                style: ZplayType.bodySmall.toStyle(
+                  color: tokens.textSecondary,
                 ),
               ),
             ],

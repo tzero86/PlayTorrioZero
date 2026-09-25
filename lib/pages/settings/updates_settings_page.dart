@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../../services/updater/app_updater_service.dart';
 import '../../widgets/updater/update_dialog.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 class UpdatesSettingsPage extends StatefulWidget {
   const UpdatesSettingsPage({super.key});
@@ -34,7 +34,7 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('ZPlay is up to date!'),
-            backgroundColor: AppThemeService.currentPalette.value.primaryColor,
+            backgroundColor: context.tokens.accent,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -44,7 +44,7 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error checking updates: $e'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: context.tokens.danger,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -60,36 +60,39 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque band with a bottom
+        // hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'App Updates & System',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s20,
+            ),
             children: [
               // Header description
               Padding(
-                padding: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: ZplaySpacing.s20),
                 child: Text(
                   'Keep ZPlay up to date with the latest features, security patches, and performance improvements.',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    height: 1.4,
-                  ),
+                  style: ZplayType.body.toStyle(color: tokens.textSecondary),
                 ),
               ),
 
@@ -109,12 +112,14 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                   const appName = 'ZPlay';
 
                   return Container(
-                    padding: const EdgeInsets.all(18),
+                    padding: const EdgeInsets.all(ZplaySpacing.s20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF12151E),
-                      borderRadius: BorderRadius.circular(16),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.lgAll,
                       border: Border.all(
-                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
+                        color: tokens.accent.withValues(
+                          alpha: ZplayOpacity.borderStrong,
+                        ),
                       ),
                     ),
                     child: Column(
@@ -126,12 +131,12 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                               width: 44,
                               height: 44,
                               decoration: BoxDecoration(
-                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.14),
-                                borderRadius: BorderRadius.circular(12),
+                                color: tokens.accentSubtle,
+                                borderRadius: ZplayRadius.smAll,
                               ),
                               child: Icon(
                                 Icons.system_update_rounded,
-                                color: AppThemeService.currentPalette.value.primaryColor,
+                                color: tokens.accent,
                                 size: 24,
                               ),
                             ),
@@ -140,20 +145,17 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
+                                  Text(
                                     appName,
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.white,
+                                    style: ZplayType.title.toStyle(
+                                      color: tokens.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     'Installed Version: v$version (Build $buildNumber)',
-                                    style: const TextStyle(
-                                      color: Colors.white54,
-                                      fontSize: 12.5,
+                                    style: ZplayType.bodySmall.toStyle(
+                                      color: tokens.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -169,27 +171,24 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
                                 ? null
                                 : () => _checkForUpdates(context),
                             icon: _isCheckingForUpdates
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 16,
                                     height: 16,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: tokens.onAccent,
                                     ),
                                   )
                                 : const Icon(Icons.refresh_rounded, size: 18),
                             label: Text(
                               _isCheckingForUpdates ? 'Checking for updates...' : 'Check for Updates',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13.5,
-                              ),
+                              style: ZplayType.label.toStyle(),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                              backgroundColor: tokens.accent,
+                              foregroundColor: tokens.onAccent,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: ZplayRadius.smAll,
                               ),
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               elevation: 0,
@@ -207,22 +206,19 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
               // Release Channel Info
               Text(
                 'RELEASE CHANNELS',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 12),
 
               _buildInfoTile(
+                context: context,
                 icon: Icons.verified_rounded,
                 title: 'Official Stable Channel',
                 subtitle: 'Direct GitHub release distribution with automated checksum verification.',
               ),
               const SizedBox(height: 10),
               _buildInfoTile(
+                context: context,
                 icon: Icons.security_rounded,
                 title: 'Seamless In-App Patching',
                 subtitle: 'Downloads and applies executable updates directly without manual file downloads.',
@@ -235,18 +231,18 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
   }
 
   Widget _buildInfoTile({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
   }) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Row(
         children: [
@@ -254,10 +250,10 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(10),
+              color: tokens.borderSubtle,
+              borderRadius: ZplayRadius.smAll,
             ),
-            child: Icon(icon, color: Colors.white70, size: 20),
+            child: Icon(icon, color: tokens.textEmphasis, size: 20),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -266,18 +262,15 @@ class _UpdatesSettingsPageState extends State<UpdatesSettingsPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                  style: ZplayType.subtitle.toStyle(
+                    color: tokens.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.4),
+                  style: ZplayType.bodySmall.toStyle(
+                    color: tokens.textSecondary,
                   ),
                 ),
               ],

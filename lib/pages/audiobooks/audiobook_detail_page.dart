@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/audiobook/audiobook_model.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/audiobook/audiobook_scraper_service.dart';
 import '../../widgets/common/focusable_card.dart';
 import 'audiobook_player_screen.dart';
@@ -95,9 +96,10 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
     final screenW = MediaQuery.sizeOf(context).width;
     final isMobile = screenW < 700;
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           // Background ambient cover blur
@@ -141,20 +143,16 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                        icon: Icon(Icons.arrow_back_ios_new_rounded, color: tokens.textPrimary),
                         style: IconButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.1),
+                          backgroundColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
                           padding: const EdgeInsets.all(12),
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Text(
+                      Text(
                         'Audiobook Details',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
                       ),
                     ],
                   ),
@@ -196,13 +194,9 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
                     children: [
                       Icon(Icons.format_list_bulleted_rounded, color: palette.primaryColor, size: 20),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'Chapters & Audio Files',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: ZplayType.title.toStyle(color: tokens.textPrimary),
                       ),
                     ],
                   ),
@@ -223,17 +217,17 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
                   child: Center(
                     child: Text(
                       _error!,
-                      style: const TextStyle(color: Colors.redAccent),
+                      style: ZplayType.body.toStyle(color: tokens.danger),
                     ),
                   ),
                 )
               else if (_chapters == null || _chapters!.isEmpty)
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   hasScrollBody: false,
                   child: Center(
                     child: Text(
                       'No playable chapters found.',
-                      style: TextStyle(color: Colors.white54, fontSize: 16),
+                      style: ZplayType.subtitle.toStyle(color: tokens.textSecondary),
                     ),
                   ),
                 )
@@ -267,12 +261,13 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
   }
 
   Widget _buildCoverImage(Audiobook book, double width, double height) {
+    final tokens = context.tokens;
     return Container(
       width: width,
       height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [
+      decoration: const BoxDecoration(
+        borderRadius: ZplayRadius.lgAll,
+        boxShadow: [
           BoxShadow(
             color: Colors.black54,
             blurRadius: 20,
@@ -281,20 +276,20 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: ZplayRadius.lgAll,
         child: book.coverImage.isNotEmpty
             ? CachedNetworkImage(
                 imageUrl: book.coverImage,
                 cacheManager: AppImageCache.manager,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: const Color(0xFF161A26)),
+                placeholder: (_, __) => Container(color: tokens.surfaceRaised),
                 errorWidget: (_, __, ___) => Container(
-                  color: const Color(0xFF161A26),
-                  child: const Icon(Icons.headphones_rounded, size: 64, color: Colors.white38),
+                  color: tokens.surfaceRaised,
+                  child: Icon(Icons.headphones_rounded, size: 64, color: tokens.textMuted),
                 ))
             : Container(
-                color: const Color(0xFF161A26),
-                child: const Icon(Icons.headphones_rounded, size: 64, color: Colors.white38),
+                color: tokens.surfaceRaised,
+                child: Icon(Icons.headphones_rounded, size: 64, color: tokens.textMuted),
               ),
       ),
     );
@@ -302,6 +297,7 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
 
   Widget _buildDetails(Audiobook book, bool isMobile, AppThemePalette palette) {
     final isTorrent = book.source.toLowerCase().contains('audiobookbay');
+    final tokens = context.tokens;
 
     return Column(
       crossAxisAlignment: isMobile ? CrossAxisAlignment.center : CrossAxisAlignment.start,
@@ -310,19 +306,17 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
             color: isTorrent
-                ? const Color(0xFFFF9800).withValues(alpha: 0.25)
+                ? tokens.warning.withValues(alpha: 0.25)
                 : palette.primaryColor.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(6),
+            borderRadius: ZplayRadius.xsAll,
             border: isTorrent
-                ? Border.all(color: const Color(0xFFFF9800).withValues(alpha: 0.4), width: 0.8)
+                ? Border.all(color: tokens.warning.withValues(alpha: 0.4), width: 0.8)
                 : null,
           ),
           child: Text(
             isTorrent ? 'AUDIOBOOKBAY (TORRENT)' : book.source.toUpperCase(),
-            style: TextStyle(
-              color: isTorrent ? const Color(0xFFFFB74D) : palette.primaryColor,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+            style: ZplayType.overline.toStyle(
+              color: isTorrent ? tokens.warning : palette.primaryColor,
             ),
           ),
         ),
@@ -332,12 +326,9 @@ class _AudiobookDetailPageState extends State<AudiobookDetailPage> {
           textAlign: isMobile ? TextAlign.center : TextAlign.start,
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: isMobile ? 18 : 24,
-            fontWeight: FontWeight.bold,
-            height: 1.2,
-          ),
+          style: ZplayType.titleLarge
+              .copyWith(size: isMobile ? 18 : 24)
+              .toStyle(color: tokens.textPrimary),
         ),
         const SizedBox(height: 16),
         if (_chapters != null && _chapters!.isNotEmpty)
@@ -361,6 +352,7 @@ class _PlayFirstChapterButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return FocusableCard(
       onTap: onPressed,
       builder: (context, state) {
@@ -381,7 +373,7 @@ class _PlayFirstChapterButton extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: ZplayRadius.mdAll,
               boxShadow: [
                 BoxShadow(
                   color: palette.primaryColor.withValues(alpha: state.highlighted ? 0.6 : 0.35),
@@ -391,19 +383,16 @@ class _PlayFirstChapterButton extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Row(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
-                SizedBox(width: 8),
+                Icon(Icons.play_arrow_rounded, color: tokens.onAccent, size: 24),
+                const SizedBox(width: 8),
                 Text(
                   'Play First Chapter',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.3,
-                  ),
+                  style: ZplayType.body
+                      .copyWith(weight: FontWeight.w700, letterSpacing: 0.3)
+                      .toStyle(color: tokens.onAccent),
                 ),
               ],
             ),
@@ -427,6 +416,7 @@ class _ChapterTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: FocusableCard(
@@ -441,14 +431,12 @@ class _ChapterTile extends StatelessWidget {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
               decoration: BoxDecoration(
-                color: state.highlighted
-                    ? const Color(0xFF1B2030)
-                    : const Color(0xFF12151E).withValues(alpha: 0.7),
-                borderRadius: BorderRadius.circular(14),
+                color: state.highlighted ? tokens.surfaceOverlay : tokens.surface,
+                borderRadius: ZplayRadius.mdAll,
                 border: Border.all(
                   color: state.highlighted
                       ? palette.primaryColor.withValues(alpha: 0.5)
-                      : Colors.white.withValues(alpha: 0.08),
+                      : tokens.borderDefault,
                   width: state.highlighted ? 1.5 : 1.0,
                 ),
                 boxShadow: state.highlighted
@@ -485,7 +473,7 @@ class _ChapterTile extends StatelessWidget {
                       ),
                       child: Icon(
                         Icons.play_arrow_rounded,
-                        color: state.highlighted ? Colors.white : palette.primaryColor,
+                        color: state.highlighted ? tokens.onAccent : palette.primaryColor,
                         size: 24,
                       ),
                     ),
@@ -493,11 +481,9 @@ class _ChapterTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         chapter.title,
-                        style: TextStyle(
-                          color: state.highlighted ? Colors.white : Colors.white.withValues(alpha: 0.9),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: ZplayType.body
+                            .copyWith(weight: FontWeight.w600)
+                            .toStyle(color: tokens.textPrimary),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),

@@ -4,6 +4,7 @@ import '../../models/stream/stream_model.dart';
 import '../../services/anime_arabic/anime_arabic_extractor.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../player/player_screen.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -123,14 +124,13 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = ZplayTokens.of(context);
+
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF11141E),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-          width: 1,
-        ),
+        color: tokens.surfaceOverlay,
+        borderRadius: ZplayRadius.sheetTop,
+        border: Border.fromBorderSide(tokens.hairline),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.6),
@@ -140,10 +140,10 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
         ],
       ),
       padding: EdgeInsets.only(
-        top: 16,
-        left: 20,
-        right: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        top: ZplaySpacing.s16,
+        left: ZplaySpacing.s20,
+        right: ZplaySpacing.s20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + ZplaySpacing.s24,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -155,18 +155,18 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
               width: 44,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(2),
+                color: tokens.textDisabled,
+                borderRadius: ZplayRadius.xsAll,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: ZplaySpacing.s16),
 
           // Header
           Row(
             children: [
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: ZplayRadius.smAll,
                 child: CachedNetworkImage(
                   imageUrl: widget.details.displayCover,
                   cacheManager: AppImageCache.manager,
@@ -178,8 +178,8 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
                   errorWidget: (_, __, ___) => Container(
                     width: 44,
                     height: 60,
-                    color: Colors.white10,
-                    child: const Icon(Icons.movie_rounded, color: Colors.white38),
+                    color: tokens.surfaceRaised,
+                    child: Icon(Icons.movie_rounded, color: tokens.textMuted),
                   )),
               ),
               const SizedBox(width: 14),
@@ -191,33 +191,25 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
                       widget.details.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: ZplayType.title.toStyle(color: tokens.textPrimary),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: ZplaySpacing.s4),
                     Text(
                       _isScraping
                           ? 'جاري فحص السيرفرات...'
                           : '${_allSources.length} سيرفر متاح',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.9),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: ZplayType.label.toStyle(color: AppThemeService.currentPalette.value.primaryColor, opacity: 0.9),
                     ),
                   ],
                 ),
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded, color: Colors.white60),
+                icon: Icon(Icons.close_rounded, color: tokens.textEmphasis),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: ZplaySpacing.s16),
 
           // Sources list
           if (_isScraping && _allSources.isEmpty)
@@ -226,35 +218,32 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
               child: Column(
                 children: [
                   CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: ZplaySpacing.s16),
                   Text(
                     _statusLine,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 13,
-                    ),
+                    style: ZplayType.label.toStyle(color: tokens.textEmphasis),
                   ),
                 ],
               ),
             )
           else if (_error != null && _allSources.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
+              padding: const EdgeInsets.symmetric(vertical: ZplaySpacing.s24),
               child: Column(
                 children: [
-                  const Icon(Icons.info_outline_rounded, color: Colors.orangeAccent, size: 36),
-                  const SizedBox(height: 12),
+                  Icon(Icons.info_outline_rounded, color: tokens.warning, size: 36),
+                  const SizedBox(height: ZplaySpacing.s12),
                   Text(
                     _error!,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
+                    style: ZplayType.label.toStyle(color: tokens.textEmphasis),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: ZplaySpacing.s16),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                      foregroundColor: Colors.white,
+                      foregroundColor: tokens.onAccent,
                     ),
                     onPressed: _startScraping,
                     icon: const Icon(Icons.refresh_rounded, size: 18),
@@ -267,7 +256,7 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
             Flexible(
               child: ListView.builder(
                 shrinkWrap: true,
-                padding: const EdgeInsets.only(bottom: 24),
+                padding: const EdgeInsets.only(bottom: ZplaySpacing.s24),
                 itemCount: _allSources.length,
                 itemBuilder: (context, idx) {
                   final source = _allSources[idx];
@@ -281,20 +270,19 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
   }
 
   Widget _buildSourceTile(StreamSource source) {
+    final tokens = ZplayTokens.of(context);
     final primaryColor = AppThemeService.currentPalette.value.primaryColor;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: 5),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: ZplayRadius.smAll,
         onTap: () => _playSource(source),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: ZplaySpacing.s12),
           decoration: BoxDecoration(
-            color: const Color(0xFF141824),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
+            color: tokens.surface,
+            borderRadius: ZplayRadius.smAll,
+            border: Border.fromBorderSide(tokens.hairline),
           ),
           child: Row(
             children: [
@@ -311,33 +299,26 @@ class _AnimeArabicStreamSheetState extends State<AnimeArabicStreamSheet> {
                   size: 22,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: ZplaySpacing.s12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       source.name ?? 'سيرفر تشغيل',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: ZplayType.body.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: ZplaySpacing.s2),
                     Text(
                       source.description ?? 'تشغيل مباشر • جودة عالية',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 11,
-                      ),
+                      style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_ios_rounded,
-                color: Colors.white30,
+                color: tokens.textDisabled,
                 size: 14,
               ),
             ],

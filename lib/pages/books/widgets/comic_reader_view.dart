@@ -2,7 +2,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../services/books/reader_settings.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../widgets/common/focusable_card.dart';
+import 'reader_design_tokens.dart';
 
 class ComicReaderView extends StatefulWidget {
   final Uint8List imageBytes;
@@ -211,9 +213,9 @@ class _ComicReaderViewState extends State<ComicReaderView> with SingleTickerProv
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141419).withValues(alpha: 0.88),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: Colors.white12),
+                    color: ReaderTokens.surfaceOverlay.withValues(alpha: 0.88),
+                    borderRadius: ReaderTokens.rounded32,
+                    border: Border.all(color: ReaderTokens.borderStrong),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.4),
@@ -239,11 +241,8 @@ class _ComicReaderViewState extends State<ComicReaderView> with SingleTickerProv
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           child: Text(
                             '${(_currentScale * 100).round()}%',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                            style: ZplayType.labelNumeric.toStyle(
+                              color: ReaderTokens.textPrimary,
                             ),
                           ),
                         ),
@@ -257,7 +256,7 @@ class _ComicReaderViewState extends State<ComicReaderView> with SingleTickerProv
                       ),
 
                       const SizedBox(width: 4),
-                      Container(height: 18, width: 1, color: Colors.white12),
+                      Container(height: 18, width: 1, color: ReaderTokens.borderStrong),
                       const SizedBox(width: 4),
 
                       // Reset / Fit
@@ -283,7 +282,7 @@ class _ComicReaderViewState extends State<ComicReaderView> with SingleTickerProv
     required VoidCallback onPressed,
   }) {
     return IconButton(
-      icon: Icon(icon, color: Colors.white70, size: 18),
+      icon: Icon(icon, color: ReaderTokens.textEmphasis, size: 18),
       tooltip: tooltip,
       visualDensity: VisualDensity.compact,
       padding: const EdgeInsets.all(6),

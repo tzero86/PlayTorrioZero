@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_settings.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -22,10 +22,11 @@ class IptvChannelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final ch = channel;
-    final palette = AppThemeService.currentPalette.value;
-    final primaryColor = ch.gradient.isNotEmpty ? ch.gradient.first : palette.primaryColor;
-    final secondaryColor = ch.gradient.length > 1 ? ch.gradient.last : palette.accentColor;
+    final primaryColor = ch.gradient.isNotEmpty ? ch.gradient.first : tokens.accent;
+    // Second stop of a channel's data-driven gradient; falls back to the info hue.
+    final secondaryColor = ch.gradient.length > 1 ? ch.gradient.last : tokens.info;
 
     return FocusableCard(
       onTap: onTap,
@@ -45,17 +46,17 @@ class IptvChannelCard extends StatelessWidget {
                 Expanded(
                   child: CardFocusRing(
                     focused: state.focused,
-                    radius: BorderRadius.circular(16),
+                    radius: ZplayRadius.mdAll,
                     child: Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: ZplayRadius.mdAll,
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
                             primaryColor.withValues(alpha: 0.85),
                             secondaryColor.withValues(alpha: 0.70),
-                            const Color(0xFF0D1017),
+                            tokens.surface,
                           ],
                           stops: const [0.0, 0.55, 1.0],
                         ),
@@ -71,12 +72,12 @@ class IptvChannelCard extends StatelessWidget {
                         border: Border.all(
                           color: state.highlighted
                               ? primaryColor.withValues(alpha: 0.8)
-                              : Colors.white.withValues(alpha: 0.12),
+                              : tokens.borderStrong,
                           width: state.highlighted ? 1.5 : 1.0,
                         ),
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: ZplayRadius.mdAll,
                         child: Stack(
                           fit: StackFit.expand,
                           children: [
@@ -89,7 +90,7 @@ class IptvChannelCard extends StatelessWidget {
                                 height: 100,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
                                 ),
                               ),
                             ),
@@ -114,12 +115,12 @@ class IptvChannelCard extends StatelessWidget {
                                               height: 24,
                                               child: CircularProgressIndicator(
                                                 strokeWidth: 2,
-                                                color: Colors.white.withValues(alpha: 0.3),
+                                                color: tokens.textDisabled,
                                               ),
                                             ),
                                           ),
-                                          errorWidget: (_, _, _) => _buildShortBadge(ch))
-                                      : _buildShortBadge(ch),
+                                          errorWidget: (_, _, _) => _buildShortBadge(context, ch))
+                                      : _buildShortBadge(context, ch),
                                 ),
                               ),
                             ),
@@ -132,10 +133,11 @@ class IptvChannelCard extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.65),
-                                    borderRadius: BorderRadius.circular(6),
+                                    // Live badge scrim over the channel artwork: the alpha stays.
+                                    color: tokens.bg.withValues(alpha: 0.65),
+                                    borderRadius: ZplayRadius.xsAll,
                                     border: Border.all(
-                                      color: const Color(0xFFFF3B30).withValues(alpha: 0.6),
+                                      color: tokens.danger.withValues(alpha: 0.6),
                                       width: 0.8,
                                     ),
                                   ),
@@ -145,26 +147,21 @@ class IptvChannelCard extends StatelessWidget {
                                       Container(
                                         width: 6,
                                         height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFFFF3B30),
+                                        decoration: BoxDecoration(
+                                          color: tokens.danger,
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Color(0xFFFF3B30),
+                                              color: tokens.danger,
                                               blurRadius: 4,
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(width: 4),
-                                      const Text(
+                                      const SizedBox(width: ZplaySpacing.s4),
+                                      Text(
                                         'LIVE',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 9.5,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 0.6,
-                                        ),
+                                        style: ZplayType.overline.toStyle(color: tokens.textPrimary),
                                       ),
                                     ],
                                   ),
@@ -179,16 +176,12 @@ class IptvChannelCard extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(6),
+                                    color: tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
+                                    borderRadius: ZplayRadius.xsAll,
                                   ),
                                   child: Text(
                                     ch.category,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                    style: ZplayType.overline.toStyle(color: tokens.textEmphasis),
                                   ),
                                 ),
                               ),
@@ -202,7 +195,7 @@ class IptvChannelCard extends StatelessWidget {
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
                                       colors: [
-                                        Colors.white.withValues(alpha: 0.12),
+                                        tokens.textPrimary.withValues(alpha: ZplayOpacity.borderStrong),
                                         Colors.transparent,
                                       ],
                                     ),
@@ -217,17 +210,12 @@ class IptvChannelCard extends StatelessWidget {
                 ),
 
                 // Title
-                const SizedBox(height: 8),
+                const SizedBox(height: ZplaySpacing.s8),
                 Text(
                   ch.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.2,
-                    color: Colors.white,
-                  ),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
 
                 // Category & Stream tag
@@ -237,11 +225,7 @@ class IptvChannelCard extends StatelessWidget {
                     if (IptvSettings.showCategoryTag.value) ...[
                       Text(
                         ch.category,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.52),
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -249,7 +233,7 @@ class IptvChannelCard extends StatelessWidget {
                           width: 3.5,
                           height: 3.5,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: tokens.textDisabled,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -257,11 +241,7 @@ class IptvChannelCard extends StatelessWidget {
                     ],
                     Text(
                       'HD Live',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: primaryColor,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: ZplayType.caption.toStyle(color: primaryColor),
                     ),
                   ],
                 ),
@@ -273,25 +253,22 @@ class IptvChannelCard extends StatelessWidget {
     );
   }
 
-  Widget _buildShortBadge(HardcodedChannel ch) {
+  Widget _buildShortBadge(BuildContext context, HardcodedChannel ch) {
+    final tokens = context.tokens;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            // Monogram scrim over the card's gradient: the alpha stays.
+            color: tokens.bg.withValues(alpha: 0.3),
+            borderRadius: ZplayRadius.smAll,
+            border: Border.all(color: tokens.borderStrong),
           ),
           child: Text(
             ch.short,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-            ),
+            style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
           ),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 
 /// Playback speed and sleep timer floating popover menu.
@@ -25,10 +26,11 @@ class _PlayerSpeedMenuState extends State<PlayerSpeedMenu> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final tokens = context.tokens;
 
     return PlayerGlassCard(
       width: (320.0).clamp(240.0, screenWidth - 32),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(ZplaySpacing.s12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,16 +39,16 @@ class _PlayerSpeedMenuState extends State<PlayerSpeedMenu> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s8,
+                  vertical: ZplaySpacing.s4,
+                ),
                 child: Text(
                   'PLAYBACK SPEED',
-                  style: TextStyle(
-                    color: PlayerTheme.inkSubtle,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
-                  ),
+                  style: ZplayType.overline
+                      .copyWith(size: 10.5, weight: FontWeight.w700)
+                      .toStyle(color: PlayerTheme.inkSubtle),
                 ),
               ),
               PlayerIconButton(
@@ -68,17 +70,17 @@ class _PlayerSpeedMenuState extends State<PlayerSpeedMenu> {
               return Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   onTap: () {
                     widget.onRateSelected(rate);
                     widget.onClose();
                   },
                   child: Container(
                     height: 38,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12),
                     decoration: BoxDecoration(
                       color: isSelected ? PlayerTheme.raised : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
                         color: isSelected ? PlayerTheme.edge : Colors.transparent,
                         width: 1,
@@ -91,11 +93,18 @@ class _PlayerSpeedMenuState extends State<PlayerSpeedMenu> {
                           rate == 1.0
                               ? 'Normal (1.0×)'
                               : '${rate.toStringAsFixed(rate == rate.roundToDouble() ? 0 : 2)}×',
-                          style: TextStyle(
-                            color: isSelected ? PlayerTheme.ink : PlayerTheme.inkMuted,
-                            fontSize: 13.5,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          ),
+                          style: ZplayType.label
+                              .copyWith(
+                                size: 13.5,
+                                weight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              )
+                              .toStyle(
+                                color: isSelected
+                                    ? PlayerTheme.ink
+                                    : PlayerTheme.inkMuted,
+                              ),
                         ),
                         if (isSelected)
                           Icon(
@@ -112,23 +121,23 @@ class _PlayerSpeedMenuState extends State<PlayerSpeedMenu> {
           ),
 
           const SizedBox(height: 10),
-          const Divider(color: PlayerTheme.edgeSoft, height: 1),
+          Divider(color: tokens.borderDefault, height: 1),
           const SizedBox(height: 10),
 
           // Sleep Timer Section
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s8,
+              vertical: ZplaySpacing.s4,
+            ),
             child: Text(
               'SLEEP TIMER',
-              style: TextStyle(
-                color: PlayerTheme.inkSubtle,
-                fontSize: 10.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-              ),
+              style: ZplayType.overline
+                  .copyWith(size: 10.5, weight: FontWeight.w700)
+                  .toStyle(color: PlayerTheme.inkSubtle),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: ZplaySpacing.s4),
           Wrap(
             spacing: 6,
             runSpacing: 6,

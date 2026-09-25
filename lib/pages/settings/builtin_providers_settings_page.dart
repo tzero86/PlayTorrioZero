@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/scraper/builtin_providers_settings_service.dart';
 import '../../widgets/common/animated_ambient_background.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 class BuiltinProvidersSettingsPage extends StatefulWidget {
   const BuiltinProvidersSettingsPage({super.key});
@@ -29,6 +29,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 500;
@@ -39,15 +40,17 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017).withValues(alpha: 0.85),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // Opaque palette band with a bottom hairline, matching the settings hub.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Built-in Providers',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
         actions: [
           ListenableBuilder(
@@ -56,37 +59,54 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
               if (!_service.isCustom) return const SizedBox.shrink();
               return TextButton.icon(
                 style: TextButton.styleFrom(
-                  foregroundColor: AppThemeService.currentPalette.value.primaryColor,
+                  foregroundColor: tokens.accent,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
                 icon: const Icon(Icons.restore_rounded, size: 18),
-                label: const Text('Reset', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                label: Text('Reset', style: ZplayType.label.toStyle()),
                 onPressed: () async {
                   final confirm = await showDialog<bool>(
                     context: context,
-                    builder: (ctx) => AlertDialog(
-                      backgroundColor: const Color(0xFF151822),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-                      title: const Text('Reset Providers Order?', style: TextStyle(fontWeight: FontWeight.bold)),
-                      content: const Text(
-                        'This will restore all 45 ZPlayHTTP providers to their default order and re-enable any disabled providers.',
-                        style: TextStyle(fontSize: 13.5, color: Colors.white70),
-                      ),
-                      actions: [
-                        TextButton(
-                          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-                          onPressed: () => Navigator.pop(ctx, false),
+                    builder: (ctx) {
+                      final tokens = ctx.tokens;
+                      return AlertDialog(
+                        backgroundColor: tokens.surfaceOverlay,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: ZplayRadius.lgAll,
                         ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                            foregroundColor: Colors.white,
+                        title: Text(
+                          'Reset Providers Order?',
+                          style: ZplayType.title.toStyle(
+                            color: tokens.textPrimary,
                           ),
-                          child: const Text('Reset'),
-                          onPressed: () => Navigator.pop(ctx, true),
                         ),
-                      ],
-                    ),
+                        content: Text(
+                          'This will restore all 45 ZPlayHTTP providers to their default order and re-enable any disabled providers.',
+                          style: ZplayType.body.toStyle(
+                            color: tokens.textEmphasis,
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            child: Text(
+                              'Cancel',
+                              style: ZplayType.label.toStyle(
+                                color: tokens.textSecondary,
+                              ),
+                            ),
+                            onPressed: () => Navigator.pop(ctx, false),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: tokens.accent,
+                              foregroundColor: tokens.onAccent,
+                            ),
+                            child: const Text('Reset'),
+                            onPressed: () => Navigator.pop(ctx, true),
+                          ),
+                        ],
+                      );
+                    },
                   );
                   if (confirm == true) {
                     await _service.resetToDefault();
@@ -148,12 +168,12 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                           alignment: Alignment.center,
                           child: Column(
                             children: [
-                              Icon(Icons.search_off_rounded, size: 44, color: Colors.white.withValues(alpha: 0.2)),
+                              Icon(Icons.search_off_rounded, size: 44, color: tokens.textDisabled),
                               const SizedBox(height: 12),
                               Text(
                                 'No providers found matching "$_searchQuery"',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.white54, fontSize: 13.5),
+                                style: ZplayType.body.toStyle(color: tokens.textSecondary),
                               ),
                             ],
                           ),
@@ -218,33 +238,34 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
   }
 
   Widget _buildModeSelector(bool isCustom, bool isCompact) {
+    final tokens = context.tokens;
     if (isCompact) {
       return Container(
         padding: const EdgeInsets.all(5),
         decoration: BoxDecoration(
-          color: const Color(0xFF13151C),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          color: tokens.surface,
+          borderRadius: ZplayRadius.mdAll,
+          border: Border.fromBorderSide(tokens.hairline),
         ),
         child: Column(
           children: [
             _buildModeTabItem(
               isSelected: !isCustom,
               icon: Icons.auto_awesome_rounded,
-              iconColor: const Color(0xFF10B981),
+              iconColor: tokens.accent,
               title: 'Default Mode',
               subtitle: 'Standard auto-sorting across all 45 providers',
-              activeColor: const Color(0xFF10B981),
+              activeColor: tokens.accent,
               onTap: () => _service.setMode(BuiltinProvidersMode.defaultMode),
             ),
             const SizedBox(height: 4),
             _buildModeTabItem(
               isSelected: isCustom,
               icon: Icons.tune_rounded,
-              iconColor: AppThemeService.currentPalette.value.primaryColor,
+              iconColor: tokens.accent,
               title: 'Custom Mode',
               subtitle: 'Manual provider order, toggles & priority scraping',
-              activeColor: AppThemeService.currentPalette.value.primaryColor,
+              activeColor: tokens.accent,
               onTap: () => _service.setMode(BuiltinProvidersMode.customMode),
             ),
           ],
@@ -255,9 +276,9 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: const Color(0xFF13151C),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Row(
         children: [
@@ -265,10 +286,10 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
             child: _buildModeTabItem(
               isSelected: !isCustom,
               icon: Icons.auto_awesome_rounded,
-              iconColor: const Color(0xFF10B981),
+              iconColor: tokens.accent,
               title: 'Default',
               subtitle: 'Standard auto-sorting',
-              activeColor: const Color(0xFF10B981),
+              activeColor: tokens.accent,
               onTap: () => _service.setMode(BuiltinProvidersMode.defaultMode),
             ),
           ),
@@ -277,10 +298,10 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
             child: _buildModeTabItem(
               isSelected: isCustom,
               icon: Icons.tune_rounded,
-              iconColor: AppThemeService.currentPalette.value.primaryColor,
+              iconColor: tokens.accent,
               title: 'Custom',
               subtitle: 'Manual order & toggles',
-              activeColor: AppThemeService.currentPalette.value.primaryColor,
+              activeColor: tokens.accent,
               onTap: () => _service.setMode(BuiltinProvidersMode.customMode),
             ),
           ),
@@ -298,17 +319,20 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
     required Color activeColor,
     required VoidCallback onTap,
   }) {
+    final tokens = context.tokens;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: ZplayRadius.smAll,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.20) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? tokens.accentSubtle : Colors.transparent,
+          borderRadius: ZplayRadius.smAll,
           border: Border.all(
-            color: isSelected ? activeColor.withValues(alpha: 0.45) : Colors.transparent,
+            color: isSelected
+                ? activeColor.withValues(alpha: ZplayOpacity.borderStrong)
+                : Colors.transparent,
           ),
         ),
         child: Row(
@@ -316,7 +340,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
             Icon(
               icon,
               size: 20,
-              color: isSelected ? activeColor : Colors.white54,
+              color: isSelected ? activeColor : tokens.textSecondary,
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -326,10 +350,8 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected ? Colors.white : Colors.white70,
+                    style: ZplayType.subtitle.toStyle(
+                      color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
                     ),
                   ),
                   const SizedBox(height: 1),
@@ -337,9 +359,10 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                     subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isSelected ? activeColor.withValues(alpha: 0.9) : Colors.white38,
+                    style: ZplayType.caption.toStyle(
+                      color: isSelected
+                          ? activeColor.withValues(alpha: ZplayOpacity.textPrimary)
+                          : tokens.textMuted,
                     ),
                   ),
                 ],
@@ -354,12 +377,15 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
   }
 
   Widget _buildDefaultModeCard(int totalCount, bool isCompact) {
+    final tokens = context.tokens;
     return Container(
       padding: EdgeInsets.all(isCompact ? 16 : 22),
       decoration: BoxDecoration(
-        color: const Color(0xFF13151C),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.25)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(
+          color: tokens.success.withValues(alpha: ZplayOpacity.borderStrong),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,24 +395,24 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: tokens.success.withValues(alpha: ZplayOpacity.borderStrong),
+                  borderRadius: ZplayRadius.smAll,
                 ),
-                child: const Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 24),
+                child: Icon(Icons.check_circle_rounded, color: tokens.success, size: 24),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Default Mode Active',
-                      style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'All $totalCount ZPlayHTTP providers are active and scraped concurrently.',
-                      style: const TextStyle(fontSize: 12, color: Colors.white54),
+                      style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                     ),
                   ],
                 ),
@@ -394,24 +420,26 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(color: Colors.white10, height: 1),
+          Divider(color: tokens.borderStrong, height: 1),
           const SizedBox(height: 14),
-          const Text(
+          Text(
             'In Default mode, ZPlay uses its native multi-source streaming engine. All providers run simultaneously, and results are smartly sorted by video resolution (4K, 1080p, 720p) and file size.',
-            style: TextStyle(fontSize: 12.5, color: Colors.white70, height: 1.45),
+            style: ZplayType.bodySmall.toStyle(color: tokens.textEmphasis),
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: isCompact ? double.infinity : null,
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppThemeService.currentPalette.value.primaryColor,
-                side: BorderSide(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                foregroundColor: tokens.accent,
+                side: BorderSide(
+                  color: tokens.accent.withValues(alpha: ZplayOpacity.borderStrong),
+                ),
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               ),
               icon: const Icon(Icons.tune_rounded, size: 17),
-              label: const Text('Switch to Custom Mode', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              label: Text('Switch to Custom Mode', style: ZplayType.label.toStyle()),
               onPressed: () => _service.setMode(BuiltinProvidersMode.customMode),
             ),
           ),
@@ -421,19 +449,22 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
   }
 
   Widget _buildPriorityNoticeBanner(bool isCompact) {
+    final tokens = context.tokens;
     return Container(
       padding: EdgeInsets.all(isCompact ? 12 : 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.16),
-            AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.04),
+            tokens.accent.withValues(alpha: ZplayOpacity.overlayHover),
+            tokens.accent.withValues(alpha: ZplayOpacity.borderFaint),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35)),
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(
+          color: tokens.accent.withValues(alpha: ZplayOpacity.borderStrong),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -441,24 +472,24 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(10),
+              color: tokens.accent.withValues(alpha: ZplayOpacity.borderStrong),
+              borderRadius: ZplayRadius.smAll,
             ),
-            child: Icon(Icons.arrow_upward_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 18),
+            child: Icon(Icons.arrow_upward_rounded, color: tokens.accent, size: 18),
           ),
           const SizedBox(width: 12),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Priority Scrape & Result Sorting',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
-                SizedBox(height: 3),
+                const SizedBox(height: 3),
                 Text(
                   'Providers at the top scrape first, and their results strictly display at the top of stream results, no matter the file size or quality.',
-                  style: TextStyle(fontSize: 12, color: Colors.white70, height: 1.35),
+                  style: ZplayType.bodySmall.toStyle(color: tokens.textEmphasis),
                 ),
               ],
             ),
@@ -469,6 +500,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
   }
 
   Widget _buildToolbar(int activeCount, int totalCount, bool isCompact) {
+    final tokens = context.tokens;
     if (isCompact) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,21 +509,21 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
           Container(
             height: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFF13151C),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              color: tokens.surface,
+              borderRadius: ZplayRadius.smAll,
+              border: Border.fromBorderSide(tokens.hairline),
             ),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(fontSize: 13, color: Colors.white),
+              style: ZplayType.body.toStyle(color: tokens.textPrimary),
               onChanged: (val) => setState(() => _searchQuery = val.trim()),
               decoration: InputDecoration(
                 hintText: 'Search providers (e.g. CineSrc)...',
-                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 12.5),
-                prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Colors.white38),
+                hintStyle: ZplayType.bodySmall.toStyle(color: tokens.textDisabled),
+                prefixIcon: Icon(Icons.search_rounded, size: 18, color: tokens.textMuted),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear_rounded, size: 16, color: Colors.white38),
+                        icon: Icon(Icons.clear_rounded, size: 16, color: tokens.textMuted),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _searchQuery = '');
@@ -511,16 +543,14 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF13151C),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.smAll,
+                  border: Border.fromBorderSide(tokens.hairline),
                 ),
                 child: Text(
                   '$activeCount / $totalCount Active',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    color: activeCount > 0 ? const Color(0xFF10B981) : Colors.redAccent,
+                  style: ZplayType.caption.toStyle(
+                    color: activeCount > 0 ? tokens.success : tokens.danger,
                   ),
                 ),
               ),
@@ -529,22 +559,22 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                 children: [
                   TextButton.icon(
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFF10B981),
+                      foregroundColor: tokens.accent,
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       visualDensity: VisualDensity.compact,
                     ),
                     icon: const Icon(Icons.select_all_rounded, size: 15),
-                    label: const Text('Enable All', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                    label: Text('Enable All', style: ZplayType.label.toStyle()),
                     onPressed: () => _service.enableAll(),
                   ),
                   TextButton.icon(
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.white54,
+                      foregroundColor: tokens.textSecondary,
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       visualDensity: VisualDensity.compact,
                     ),
                     icon: const Icon(Icons.deselect_rounded, size: 15),
-                    label: const Text('Disable All', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+                    label: Text('Disable All', style: ZplayType.label.toStyle()),
                     onPressed: () => _service.disableAll(),
                   ),
                 ],
@@ -564,21 +594,21 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
               child: Container(
                 height: 44,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF13151C),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.smAll,
+                  border: Border.fromBorderSide(tokens.hairline),
                 ),
                 child: TextField(
                   controller: _searchController,
-                  style: const TextStyle(fontSize: 13.5, color: Colors.white),
+                  style: ZplayType.body.toStyle(color: tokens.textPrimary),
                   onChanged: (val) => setState(() => _searchQuery = val.trim()),
                   decoration: InputDecoration(
                     hintText: 'Search providers (e.g. CineSrc, Dulo)...',
-                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 13),
-                    prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Colors.white38),
+                    hintStyle: ZplayType.bodySmall.toStyle(color: tokens.textDisabled),
+                    prefixIcon: Icon(Icons.search_rounded, size: 18, color: tokens.textMuted),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear_rounded, size: 16, color: Colors.white38),
+                            icon: Icon(Icons.clear_rounded, size: 16, color: tokens.textMuted),
                             onPressed: () {
                               _searchController.clear();
                               setState(() => _searchQuery = '');
@@ -595,16 +625,14 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
               decoration: BoxDecoration(
-                color: const Color(0xFF13151C),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                color: tokens.surface,
+                borderRadius: ZplayRadius.smAll,
+                border: Border.fromBorderSide(tokens.hairline),
               ),
               child: Text(
                 '$activeCount / $totalCount Active',
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: activeCount > 0 ? const Color(0xFF10B981) : Colors.redAccent,
+                style: ZplayType.caption.toStyle(
+                  color: activeCount > 0 ? tokens.success : tokens.danger,
                 ),
               ),
             ),
@@ -615,28 +643,28 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
           children: [
             TextButton.icon(
               style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFF10B981),
+                foregroundColor: tokens.accent,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
               icon: const Icon(Icons.select_all_rounded, size: 16),
-              label: const Text('Enable All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              label: Text('Enable All', style: ZplayType.label.toStyle()),
               onPressed: () => _service.enableAll(),
             ),
             const SizedBox(width: 6),
             TextButton.icon(
               style: TextButton.styleFrom(
-                foregroundColor: Colors.white54,
+                foregroundColor: tokens.textSecondary,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
               icon: const Icon(Icons.deselect_rounded, size: 16),
-              label: const Text('Disable All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              label: Text('Disable All', style: ZplayType.label.toStyle()),
               onPressed: () => _service.disableAll(),
             ),
             const Spacer(),
             if (_searchQuery.isNotEmpty)
               Text(
                 'Clear search to drag & reorder',
-                style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.4)),
+                style: ZplayType.caption.toStyle(color: tokens.textMuted),
               ),
           ],
         ),
@@ -654,18 +682,21 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
     final isEnabled = _service.isProviderEnabled(provider.id);
     final rank = index + 1;
     final isTop3 = rank <= 3;
+    final tokens = context.tokens;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF13151C).withValues(alpha: isEnabled ? 0.8 : 0.4),
-        borderRadius: BorderRadius.circular(14),
+        color: tokens.surface.withValues(
+          alpha: isEnabled ? ZplayOpacity.textEmphasis : ZplayOpacity.textMuted,
+        ),
+        borderRadius: ZplayRadius.mdAll,
         border: Border.all(
           color: isEnabled
               ? (isTop3
-                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.08))
-              : Colors.white.withValues(alpha: 0.04),
+                  ? tokens.accent.withValues(alpha: ZplayOpacity.borderStrong)
+                  : tokens.borderDefault)
+              : tokens.borderSubtle,
         ),
       ),
       child: Padding(
@@ -687,7 +718,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                   child: Icon(
                     Icons.drag_indicator_rounded,
                     size: isCompact ? 18 : 20,
-                    color: Colors.white.withValues(alpha: isEnabled ? 0.4 : 0.15),
+                    color: isEnabled ? tokens.textMuted : tokens.textDisabled,
                   ),
                 ),
               ),
@@ -699,23 +730,21 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: isTop3 && isEnabled
-                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25)
-                    : Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(8),
+                    ? tokens.accentSubtle
+                    : tokens.borderSubtle,
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(
                   color: isTop3 && isEnabled
-                      ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
+                      ? tokens.accent.withValues(alpha: ZplayOpacity.borderStrong)
                       : Colors.transparent,
                 ),
               ),
               child: Text(
                 '#$rank',
-                style: TextStyle(
-                  fontSize: isCompact ? 11 : 12,
-                  fontWeight: FontWeight.w800,
+                style: ZplayType.caption.toStyle(
                   color: isTop3 && isEnabled
-                      ? const Color(0xFFA78BFA)
-                      : (isEnabled ? Colors.white70 : Colors.white24),
+                      ? tokens.accent
+                      : (isEnabled ? tokens.textEmphasis : tokens.textDisabled),
                 ),
               ),
             ),
@@ -733,10 +762,8 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                         child: Text(
                           provider.name,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: isCompact ? 13.5 : 14.5,
-                            fontWeight: FontWeight.w700,
-                            color: isEnabled ? Colors.white : Colors.white38,
+                          style: ZplayType.subtitle.toStyle(
+                            color: isEnabled ? tokens.textPrimary : tokens.textMuted,
                           ),
                         ),
                       ),
@@ -745,12 +772,12 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.06),
-                            borderRadius: BorderRadius.circular(4),
+                            color: tokens.borderSubtle,
+                            borderRadius: ZplayRadius.xsAll,
                           ),
-                          child: const Text(
+                          child: Text(
                             'Off',
-                            style: TextStyle(fontSize: 9.5, color: Colors.white38, fontWeight: FontWeight.bold),
+                            style: ZplayType.caption.toStyle(color: tokens.textMuted),
                           ),
                         ),
                       ],
@@ -761,9 +788,8 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                     provider.description,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: isCompact ? 10.5 : 11.5,
-                      color: isEnabled ? Colors.white.withValues(alpha: 0.5) : Colors.white24,
+                    style: ZplayType.caption.toStyle(
+                      color: isEnabled ? tokens.textSecondary : tokens.textDisabled,
                     ),
                   ),
                 ],
@@ -780,7 +806,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                   width: isCompact ? 28 : 34,
                   height: isCompact ? 28 : 34,
                 ),
-                color: isEnabled && index > 0 ? Colors.white70 : Colors.white12,
+                color: isEnabled && index > 0 ? tokens.textEmphasis : tokens.textDisabled,
                 tooltip: 'Move Up',
                 onPressed: isEnabled && index > 0
                     ? () => _service.moveProvider(provider.id, -1)
@@ -794,7 +820,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
                   width: isCompact ? 28 : 34,
                   height: isCompact ? 28 : 34,
                 ),
-                color: isEnabled ? Colors.white70 : Colors.white12,
+                color: isEnabled ? tokens.textEmphasis : tokens.textDisabled,
                 tooltip: 'Move Down',
                 onPressed: isEnabled
                     ? () => _service.moveProvider(provider.id, 1)
@@ -809,7 +835,7 @@ class _BuiltinProvidersSettingsPageState extends State<BuiltinProvidersSettingsP
               scale: isCompact ? 0.82 : 0.95,
               child: Switch.adaptive(
                 value: isEnabled,
-                activeColor: AppThemeService.currentPalette.value.primaryColor,
+                activeColor: tokens.accent,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 onChanged: (val) => _service.toggleProvider(provider.id, val),
               ),

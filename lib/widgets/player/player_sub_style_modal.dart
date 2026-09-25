@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 import '../../services/player/player_settings.dart';
+import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 
 /// Responsive, rich Subtitle Customization Modal with live preview,
@@ -23,6 +25,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  // User's subtitle colours (player content), not app-palette chrome — each 'hex' is written into the subtitle style, so the swatches keep rendering those exact colours.
   static const List<Map<String, dynamic>> _textColorPalette = [
     {'name': 'White', 'hex': '#FFFFFFFF', 'color': Color(0xFFFFFFFF)},
     {'name': 'Cinema Yellow', 'hex': '#FFFFEB3B', 'color': Color(0xFFFFEB3B)},
@@ -109,7 +112,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
             child: PlayerGlassCard(
               width: cardWidth,
               height: cardHeight,
-              borderRadius: 22,
+              borderRadius: ZplayRadius.lg,
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
@@ -152,9 +155,14 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context, bool isSmall) {
+    final tokens = context.tokens;
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: isSmall ? 8 : 12),
-      decoration: const BoxDecoration(
+      padding: EdgeInsets.symmetric(
+        horizontal: ZplaySpacing.s16,
+        vertical: isSmall ? ZplaySpacing.s8 : ZplaySpacing.s12,
+      ),
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: PlayerTheme.edgeSoft)),
       ),
       child: Row(
@@ -167,7 +175,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                 height: isSmall ? 28 : 34,
                 decoration: BoxDecoration(
                   color: PlayerTheme.accentSoft,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                 ),
                 child: Icon(
                   Icons.subtitles_rounded,
@@ -181,19 +189,16 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                 children: [
                   Text(
                     'Subtitle Appearance',
-                    style: TextStyle(
-                      color: PlayerTheme.ink,
-                      fontSize: isSmall ? 13.5 : 15.5,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: ZplayType.subtitle
+                        .copyWith(
+                          size: isSmall ? 13.5 : 15.5,
+                          weight: FontWeight.w800,
+                        )
+                        .toStyle(color: PlayerTheme.ink),
                   ),
-                  const Text(
+                  Text(
                     'libass / libmpv hardware-rendered subtitles',
-                    style: TextStyle(
-                      color: PlayerTheme.inkSubtle,
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: ZplayType.caption.toStyle(color: PlayerTheme.inkSubtle),
                   ),
                 ],
               ),
@@ -203,13 +208,13 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
             children: [
               // Reset Button
               IconButton(
-                icon: const Icon(Icons.restart_alt_rounded, size: 19, color: PlayerTheme.inkMuted),
+                icon: Icon(Icons.restart_alt_rounded, size: 19, color: PlayerTheme.inkMuted),
                 tooltip: 'Reset Subtitle Defaults',
                 onPressed: () => PlayerSettings.resetSubtitleDefaults(player: widget.player),
               ),
               // Close Button
               IconButton(
-                icon: const Icon(Icons.close_rounded, size: 20, color: Colors.white),
+                icon: Icon(Icons.close_rounded, size: 20, color: tokens.textPrimary),
                 tooltip: 'Close',
                 onPressed: widget.onClose,
               ),
@@ -225,6 +230,8 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildLivePreview(bool isLandscapeMobile) {
+    final tokens = context.tokens;
+
     if (isLandscapeMobile) return const SizedBox.shrink();
 
     final textColor = _parseColorFromHex(PlayerSettings.subColor.value);
@@ -244,15 +251,21 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
       margin: const EdgeInsets.fromLTRB(14, 10, 14, 6),
       height: 74,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: ZplayRadius.mdAll,
         gradient: const LinearGradient(
           colors: [Color(0xFF0F172A), Color(0xFF020617), Color(0xFF1E1B4B)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        boxShadow: const [
-          BoxShadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 3)),
+        border: Border.all(
+          color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: tokens.bg.withValues(alpha: 0.45),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -271,10 +284,10 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
 
           // Live Subtitle Text
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: ZplaySpacing.s4),
             decoration: BoxDecoration(
               color: boxColor,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: ZplayRadius.xsAll,
             ),
             child: Text(
               'ZPlay • Sample Subtitle Preview',
@@ -312,11 +325,12 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildPresetsBar() {
+    final tokens = context.tokens;
     final activePreset = PlayerSettings.subStylePreset.value;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: PlayerTheme.edgeSoft)),
       ),
       child: SingleChildScrollView(
@@ -326,16 +340,16 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
           children: SubtitleStylePreset.values.map((preset) {
             final isSelected = activePreset == preset;
             return Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: ZplaySpacing.s8),
               child: InkWell(
                 onTap: () => PlayerSettings.setSubStylePreset(preset, player: widget.player),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: ZplayRadius.smAll,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: isSelected ? PlayerTheme.accent : PlayerTheme.raised,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: ZplayRadius.smAll,
                     border: Border.all(
                       color: isSelected ? PlayerTheme.accentGlow : PlayerTheme.edgeSoft,
                     ),
@@ -351,16 +365,18 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                           decoration: BoxDecoration(
                             color: _parseColorFromHex(preset.textColor),
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white30, width: 0.8),
+                            border: Border.all(color: tokens.textPrimary.withValues(alpha: 0.30), width: 0.8),
                           ),
                         ),
                       Text(
                         preset.label,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : PlayerTheme.inkMuted,
-                          fontSize: 11.5,
-                          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                        ),
+                        style: ZplayType.caption
+                            .copyWith(
+                              weight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                            )
+                            .toStyle(
+                              color: isSelected ? tokens.textPrimary : PlayerTheme.inkMuted,
+                            ),
                       ),
                     ],
                   ),
@@ -378,9 +394,11 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildTabBar() {
+    final tokens = context.tokens;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0x18000000),
+      decoration: BoxDecoration(
+        color: tokens.bg.withValues(alpha: 0.09),
         border: Border(bottom: BorderSide(color: PlayerTheme.edgeSoft)),
       ),
       child: TabBar(
@@ -389,10 +407,10 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
         tabAlignment: TabAlignment.start,
         indicatorColor: PlayerTheme.accent,
         indicatorWeight: 2.5,
-        labelColor: Colors.white,
+        labelColor: tokens.textPrimary,
         unselectedLabelColor: PlayerTheme.inkSubtle,
-        labelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-        unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        labelStyle: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(),
+        unselectedLabelStyle: ZplayType.bodySmall.copyWith(weight: FontWeight.w500).toStyle(),
         tabs: const [
           Tab(text: 'Typography', icon: Icon(Icons.text_fields_rounded, size: 16)),
           Tab(text: 'Colors & Box', icon: Icon(Icons.palette_rounded, size: 16)),
@@ -409,18 +427,20 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildTypographyTab() {
+    final tokens = context.tokens;
+
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(ZplaySpacing.s16),
       physics: const BouncingScrollPhysics(),
       children: [
         // Font Family Selector
         _buildSectionTitle('FONT FAMILY'),
-        const SizedBox(height: 8),
+        const SizedBox(height: ZplaySpacing.s8),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: ZplaySpacing.s4),
           decoration: BoxDecoration(
             color: PlayerTheme.raised,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: ZplayRadius.smAll,
             border: Border.all(color: PlayerTheme.edgeSoft),
           ),
           child: DropdownButtonHideUnderline(
@@ -429,20 +449,20 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                   ? PlayerSettings.subFont.value
                   : 'subfont',
               isExpanded: true,
-              dropdownColor: const Color(0xFF131826),
-              icon: const Icon(Icons.arrow_drop_down_rounded, color: Colors.white70),
+              dropdownColor: tokens.surfaceOverlay,
+              icon: Icon(Icons.arrow_drop_down_rounded, color: tokens.textEmphasis),
               items: PlayerSettings.popularFonts.map((f) {
                 final label = f == 'subfont' ? 'Default (ZPlay Subfont)' : f;
                 return DropdownMenuItem<String>(
                   value: f,
                   child: Text(
                     label,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: f == 'subfont' ? 'Poppins' : f,
-                    ),
+                    style: ZplayType.label
+                        .toStyle(color: tokens.textPrimary)
+                        .copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontFamily: f == 'subfont' ? 'Poppins' : f,
+                        ),
                   ),
                 );
               }).toList(),
@@ -460,7 +480,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.remove_circle_outline_rounded, size: 20, color: Colors.white70),
+              icon: Icon(Icons.remove_circle_outline_rounded, size: 20, color: tokens.textEmphasis),
               onPressed: () => PlayerSettings.setSubFontSize(PlayerSettings.subFontSize.value - 2, player: widget.player),
             ),
             Expanded(
@@ -476,7 +496,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.add_circle_outline_rounded, size: 20, color: Colors.white70),
+              icon: Icon(Icons.add_circle_outline_rounded, size: 20, color: tokens.textEmphasis),
               onPressed: () => PlayerSettings.setSubFontSize(PlayerSettings.subFontSize.value + 2, player: widget.player),
             ),
           ],
@@ -510,7 +530,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                 onChanged: (val) => PlayerSettings.setSubBold(val, player: widget.player),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: ZplaySpacing.s12),
             Expanded(
               child: _buildToggleTile(
                 title: 'Italic Text',
@@ -530,11 +550,12 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildColorsAndBoxTab() {
+    final tokens = context.tokens;
     final activeColor = PlayerSettings.subColor.value;
     final activeBox = PlayerSettings.subBackColor.value;
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(ZplaySpacing.s16),
       physics: const BouncingScrollPhysics(),
       children: [
         // Text Color Palette
@@ -547,12 +568,12 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
             final isSelected = activeColor.toLowerCase() == (item['hex'] as String).toLowerCase();
             return InkWell(
               onTap: () => PlayerSettings.setSubColor(item['hex'], player: widget.player),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: ZplayRadius.smAll,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
                   color: isSelected ? PlayerTheme.accent : PlayerTheme.raised,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   border: Border.all(
                     color: isSelected ? PlayerTheme.accentGlow : PlayerTheme.edgeSoft,
                   ),
@@ -566,17 +587,20 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                       decoration: BoxDecoration(
                         color: item['color'] as Color,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white38, width: 0.8),
+                        border: Border.all(
+                          color: tokens.textPrimary.withValues(alpha: 0.38),
+                          width: 0.8,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: ZplaySpacing.s8),
                     Text(
                       item['name'] as String,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : PlayerTheme.inkMuted,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: ZplayType.caption
+                          .copyWith(weight: FontWeight.w600)
+                          .toStyle(
+                            color: isSelected ? tokens.textPrimary : PlayerTheme.inkMuted,
+                          ),
                     ),
                   ],
                 ),
@@ -597,12 +621,12 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
               padding: const EdgeInsets.only(bottom: 6),
               child: InkWell(
                 onTap: () => PlayerSettings.setSubBackColor(opt['hex'], player: widget.player),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: ZplayRadius.smAll,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
                     color: isSelected ? PlayerTheme.accentSoft : PlayerTheme.raised,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: ZplayRadius.smAll,
                     border: Border.all(
                       color: isSelected ? PlayerTheme.accent : PlayerTheme.edgeSoft,
                     ),
@@ -617,24 +641,20 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                             height: 20,
                             decoration: BoxDecoration(
                               color: _parseColorFromHex(opt['hex']),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.white30),
+                              borderRadius: ZplayRadius.xsAll,
+                              border: Border.all(color: tokens.textPrimary.withValues(alpha: 0.30)),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: ZplaySpacing.s12),
                           Text(
                             opt['name'] as String,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: ZplayType.label.copyWith(weight: FontWeight.w600).toStyle(color: tokens.textPrimary),
                           ),
                         ],
                       ),
                       Text(
                         opt['desc'] as String,
-                        style: const TextStyle(color: PlayerTheme.inkSubtle, fontSize: 11.5),
+                        style: ZplayType.caption.toStyle(color: PlayerTheme.inkSubtle),
                       ),
                     ],
                   ),
@@ -652,15 +672,16 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildOutlinesAndShadowsTab() {
+    final tokens = context.tokens;
     final activeBorderColor = PlayerSettings.subBorderColor.value;
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(ZplaySpacing.s16),
       physics: const BouncingScrollPhysics(),
       children: [
         // Outline Color Selector
         _buildSectionTitle('OUTLINE / BORDER COLOR'),
-        const SizedBox(height: 8),
+        const SizedBox(height: ZplaySpacing.s8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -668,12 +689,12 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
             final isSelected = activeBorderColor.toLowerCase() == (item['hex'] as String).toLowerCase();
             return InkWell(
               onTap: () => PlayerSettings.setSubBorderColor(item['hex'], player: widget.player),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: ZplayRadius.smAll,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                 decoration: BoxDecoration(
                   color: isSelected ? PlayerTheme.accent : PlayerTheme.raised,
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   border: Border.all(
                     color: isSelected ? PlayerTheme.accentGlow : PlayerTheme.edgeSoft,
                   ),
@@ -687,17 +708,20 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                       decoration: BoxDecoration(
                         color: item['color'] as Color,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white38, width: 0.8),
+                        border: Border.all(
+                          color: tokens.textPrimary.withValues(alpha: 0.38),
+                          width: 0.8,
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: ZplaySpacing.s8),
                     Text(
                       item['name'] as String,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : PlayerTheme.inkMuted,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: ZplayType.caption
+                          .copyWith(weight: FontWeight.w600)
+                          .toStyle(
+                            color: isSelected ? tokens.textPrimary : PlayerTheme.inkMuted,
+                          ),
                     ),
                   ],
                 ),
@@ -745,23 +769,23 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
 
   Widget _buildPositionAndLayoutTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(ZplaySpacing.s16),
       physics: const BouncingScrollPhysics(),
       children: [
         // Horizontal Alignment
         _buildSectionTitle('HORIZONTAL ALIGNMENT'),
-        const SizedBox(height: 8),
+        const SizedBox(height: ZplaySpacing.s8),
         Row(
           children: [
             _buildAlignButton('Left', 'left', Icons.format_align_left_rounded),
-            const SizedBox(width: 8),
+            const SizedBox(width: ZplaySpacing.s8),
             _buildAlignButton('Center', 'center', Icons.format_align_center_rounded),
-            const SizedBox(width: 8),
+            const SizedBox(width: ZplaySpacing.s8),
             _buildAlignButton('Right', 'right', Icons.format_align_right_rounded),
           ],
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: ZplaySpacing.s20),
 
         // Bottom Margin
         _buildSectionTitle('BOTTOM MARGIN / OFFSET (${PlayerSettings.subMarginY.value.round()}px)'),
@@ -776,7 +800,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
           ),
         ),
 
-        const SizedBox(height: 20),
+        const SizedBox(height: ZplaySpacing.s20),
 
         // Vertical Screen Position
         _buildSectionTitle('VERTICAL POSITION (${PlayerSettings.subPos.value.round()}%)'),
@@ -795,16 +819,17 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   }
 
   Widget _buildAlignButton(String title, String alignVal, IconData icon) {
+    final tokens = context.tokens;
     final isSelected = PlayerSettings.subAlignX.value == alignVal;
     return Expanded(
       child: InkWell(
         onTap: () => PlayerSettings.setSubAlignX(alignVal, player: widget.player),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: ZplayRadius.smAll,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: isSelected ? PlayerTheme.accent : PlayerTheme.raised,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: ZplayRadius.smAll,
             border: Border.all(
               color: isSelected ? PlayerTheme.accentGlow : PlayerTheme.edgeSoft,
             ),
@@ -812,15 +837,19 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: isSelected ? Colors.white : PlayerTheme.inkSubtle, size: 18),
-              const SizedBox(height: 4),
+              Icon(
+                icon,
+                color: isSelected ? tokens.onAccent : PlayerTheme.inkSubtle,
+                size: 18,
+              ),
+              const SizedBox(height: ZplaySpacing.s4),
               Text(
                 title,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : PlayerTheme.inkMuted,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: ZplayType.caption
+                    .copyWith(weight: FontWeight.w600)
+                    .toStyle(
+                      color: isSelected ? tokens.textPrimary : PlayerTheme.inkMuted,
+                    ),
               ),
             ],
           ),
@@ -834,6 +863,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildAdvancedTab() {
+    final tokens = context.tokens;
     final activeOverride = PlayerSettings.subAssOverride.value;
 
     final overrideModes = [
@@ -862,7 +892,7 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
     final useLibass = PlayerSettings.useLibass.value;
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(ZplaySpacing.s16),
       physics: const BouncingScrollPhysics(),
       children: [
         _buildSectionTitle('SUBTITLE RENDERING ENGINE'),
@@ -870,15 +900,15 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
         
         // Flutter Engine Option
         Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: ZplaySpacing.s8),
           child: InkWell(
             onTap: () => PlayerSettings.setUseLibass(false, player: widget.player),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: ZplayRadius.smAll,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(ZplaySpacing.s12),
               decoration: BoxDecoration(
                 color: !useLibass ? PlayerTheme.accentSoft : PlayerTheme.raised,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(
                   color: !useLibass ? PlayerTheme.accent : PlayerTheme.edgeSoft,
                 ),
@@ -894,27 +924,19 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                       if (val != null) PlayerSettings.setUseLibass(val, player: widget.player);
                     },
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
+                  const SizedBox(width: ZplaySpacing.s8),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Flutter Subtitle Engine (Recommended)',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                         ),
-                        SizedBox(height: 3),
+                        const SizedBox(height: 3),
                         Text(
                           '100% reliable hardware-accelerated subtitle overlay across Android, iOS, Windows, Mac, and Linux with full styling support.',
-                          style: TextStyle(
-                            color: PlayerTheme.inkSubtle,
-                            fontSize: 11,
-                            height: 1.3,
-                          ),
+                          style: ZplayType.caption.toStyle(color: PlayerTheme.inkSubtle),
                         ),
                       ],
                     ),
@@ -927,15 +949,15 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
 
         // Native libass Option
         Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: ZplaySpacing.s16),
           child: InkWell(
             onTap: () => PlayerSettings.setUseLibass(true, player: widget.player),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: ZplayRadius.smAll,
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(ZplaySpacing.s12),
               decoration: BoxDecoration(
                 color: useLibass ? PlayerTheme.accentSoft : PlayerTheme.raised,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(
                   color: useLibass ? PlayerTheme.accent : PlayerTheme.edgeSoft,
                 ),
@@ -951,27 +973,19 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                       if (val != null) PlayerSettings.setUseLibass(val, player: widget.player);
                     },
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
+                  const SizedBox(width: ZplaySpacing.s8),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Native MPV libass Engine',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                         ),
-                        SizedBox(height: 3),
+                        const SizedBox(height: 3),
                         Text(
                           'Direct GPU video texture rendering powered by libass with bundled Poppins font and SSA/ASS script layout support.',
-                          style: TextStyle(
-                            color: PlayerTheme.inkSubtle,
-                            fontSize: 11,
-                            height: 1.3,
-                          ),
+                          style: ZplayType.caption.toStyle(color: PlayerTheme.inkSubtle),
                         ),
                       ],
                     ),
@@ -987,15 +1001,15 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
         ...overrideModes.map((m) {
           final isSelected = activeOverride == m['val'];
           return Padding(
-            padding: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.only(bottom: ZplaySpacing.s8),
             child: InkWell(
               onTap: () => PlayerSettings.setSubAssOverride(m['val']!, player: widget.player),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: ZplayRadius.smAll,
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(ZplaySpacing.s12),
                 decoration: BoxDecoration(
                   color: isSelected ? PlayerTheme.accentSoft : PlayerTheme.raised,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: ZplayRadius.smAll,
                   border: Border.all(
                     color: isSelected ? PlayerTheme.accent : PlayerTheme.edgeSoft,
                   ),
@@ -1011,27 +1025,19 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
                         if (val != null) PlayerSettings.setSubAssOverride(val, player: widget.player);
                       },
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: ZplaySpacing.s8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             m['title']!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             m['subtitle']!,
-                            style: const TextStyle(
-                              color: PlayerTheme.inkSubtle,
-                              fontSize: 11,
-                              height: 1.3,
-                            ),
+                            style: ZplayType.caption.toStyle(color: PlayerTheme.inkSubtle),
                           ),
                         ],
                       ),
@@ -1053,12 +1059,9 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 10.5,
-        fontWeight: FontWeight.w700,
-        color: PlayerTheme.inkSubtle,
-        letterSpacing: 1.1,
-      ),
+      style: ZplayType.overline
+          .copyWith(weight: FontWeight.w700, letterSpacing: 1.1)
+          .toStyle(color: PlayerTheme.inkSubtle),
     );
   }
 
@@ -1068,11 +1071,16 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
+    final tokens = context.tokens;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: ZplaySpacing.s12,
+        vertical: ZplaySpacing.s8,
+      ),
       decoration: BoxDecoration(
         color: PlayerTheme.raised,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: ZplayRadius.smAll,
         border: Border.all(color: PlayerTheme.edgeSoft),
       ),
       child: Row(
@@ -1080,11 +1088,11 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: Colors.white70),
-              const SizedBox(width: 8),
+              Icon(icon, size: 18, color: tokens.textEmphasis),
+              const SizedBox(width: ZplaySpacing.s8),
               Text(
                 title,
-                style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
+                style: ZplayType.label.copyWith(weight: FontWeight.w600).toStyle(color: tokens.textPrimary),
               ),
             ],
           ),
@@ -1099,13 +1107,15 @@ class _PlayerSubStyleModalState extends State<PlayerSubStyleModal>
   }
 
   SliderThemeData _sliderTheme() {
+    final tokens = context.tokens;
+
     return SliderTheme.of(context).copyWith(
       trackHeight: 3.5,
       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
       overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
       activeTrackColor: PlayerTheme.accent,
-      inactiveTrackColor: Colors.white12,
-      thumbColor: Colors.white,
+      inactiveTrackColor: tokens.borderStrong,
+      thumbColor: tokens.textPrimary,
     );
   }
 }
@@ -1114,7 +1124,7 @@ class _VideoGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white24
+      ..color = AppThemeService.currentTokens.textPrimary.withValues(alpha: 0.24)
       ..strokeWidth = 0.5;
 
     for (double i = 0; i < size.width; i += 20) {

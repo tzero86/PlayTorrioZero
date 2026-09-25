@@ -3,56 +3,90 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../common/focusable_card.dart';
 
-/// Design tokens and glass styling for the modern video player UI.
+/// The player family's colour vocabulary, bridged onto the contract token layer.
+///
+/// The player was written against a private palette — a violet accent, a
+/// near-black panel, 12% and 7% white edges — none of which followed the user's
+/// [AppThemePalette], so every preset rendered the same player. Each member now
+/// resolves through [AppThemeService.currentTokens], which memoises one
+/// [ZplayTokens] per palette value and re-derives it when [AppThemeService]
+/// switches palette; a palette change therefore reaches all ~15 player widgets
+/// without renaming anything they read.
+///
+/// The member names stay because those widgets spell them. The player family
+/// will take `context.tokens` directly in a later pass; this bridge keeps a
+/// single vocabulary until then. Nothing below is `const` any more — a
+/// token-backed colour has no compile-time value, so a call site that needs a
+/// constant must inline a literal instead.
 class PlayerTheme {
+  /// Memoised per palette value by [AppThemeService].
+  static ZplayTokens get _tokens => AppThemeService.currentTokens;
+
   // Backgrounds & Surfaces
-  static const Color canvas = Color(0xFF080C12);
-  static const Color elevated = Color(0xF0101622);
-  static const Color raised = Color(0x1AFFFFFF); // 10% white
-  static const Color surfaceHover = Color(0x22FFFFFF); // 13% white
+  /// Page background behind the video.
+  static Color get canvas => _tokens.bg;
+
+  /// Glass panel over the video: the palette's overlay surface, kept at the
+  /// original 94% alpha so the backdrop blur still shows the picture through.
+  static Color get elevated => _tokens.surfaceOverlay.withValues(alpha: 0.94);
+
+  /// The 10% white pill/chip fill — the audit's [ZplayOpacity.borderMedium] step
+  /// used as a fill rather than a border.
+  static Color get raised =>
+      _tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium);
+
+  /// Hover / pressed wash on an interactive surface.
+  static Color get surfaceHover =>
+      _tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover);
 
   // Borders
-  static const Color edge = Color(0x1FFFFFFF); // 12% white
-  static const Color edgeSoft = Color(0x12FFFFFF); // 7% white
+  /// The strong hairline: raised surfaces that must stay separated over video.
+  static Color get edge => _tokens.borderStrong;
 
-  // Accents. Sourced from the user's palette rather than a literal: these were
-  // pinned to a hard-coded violet, which is only one palette's primary, so
-  // choosing any other palette left the whole player UI purple regardless.
-  static Color get accent => AppThemeService.currentPalette.value.primaryColor;
-  static Color get accentSoft => accent.withValues(alpha: 0.20);
-  static Color get accentGlow => accent.withValues(alpha: 0.40);
-  static const Color danger = Color(0xFFEF4444);
-  static const Color success = Color(0xFF10B981);
-  static const Color warning = Color(0xFFF59E0B);
+  /// The default hairline on panels and menus.
+  static Color get edgeSoft => _tokens.borderDefault;
+
+  // Accents. Sourced from the palette rather than a literal: these were pinned
+  // to a hard-coded violet, which is only one palette's primary, so choosing any
+  // other palette left the whole player UI purple regardless.
+  static Color get accent => _tokens.accent;
+  static Color get accentSoft => _tokens.accent.withValues(alpha: 0.20);
+  static Color get accentGlow => _tokens.accent.withValues(alpha: 0.40);
+  static Color get danger => _tokens.danger;
+  static Color get success => _tokens.success;
+  static Color get warning => _tokens.warning;
 
   // Typography / Text Colors
-  static const Color ink = Colors.white;
-  static const Color inkMuted = Color(0xB3FFFFFF); // 70% white
-  static const Color inkSubtle = Color(0x66FFFFFF); // 40% white
-  static const Color inkDisabled = Color(0x33FFFFFF); // 20% white
+  static Color get ink => _tokens.textPrimary;
+  static Color get inkMuted => _tokens.textEmphasis;
+  static Color get inkSubtle => _tokens.textMuted;
+  static Color get inkDisabled => _tokens.textDisabled;
 
-  // Shadows
-  static const List<BoxShadow> menuShadow = [
+  // Shadows. The alphas are the original ones — a shadow over video is a scrim,
+  // not a surface — but the hue is the palette background, so a warm palette no
+  // longer casts a cold black shadow.
+  static List<BoxShadow> get menuShadow => [
     BoxShadow(
-      color: Color(0xCC000000),
-      offset: Offset(0, 24),
+      color: _tokens.bg.withValues(alpha: 0.80),
+      offset: const Offset(0, 24),
       blurRadius: 60,
       spreadRadius: -18,
     ),
     BoxShadow(
-      color: Color(0x40000000),
-      offset: Offset(0, 10),
+      color: _tokens.bg.withValues(alpha: 0.25),
+      offset: const Offset(0, 10),
       blurRadius: 30,
       spreadRadius: -5,
     ),
   ];
 
-  static const List<BoxShadow> buttonShadow = [
+  static List<BoxShadow> get buttonShadow => [
     BoxShadow(
-      color: Color(0x4D000000),
-      offset: Offset(0, 4),
+      color: _tokens.bg.withValues(alpha: 0.30),
+      offset: const Offset(0, 4),
       blurRadius: 16,
     ),
   ];
@@ -74,7 +108,7 @@ class PlayerGlassCard extends StatelessWidget {
     required this.child,
     this.width,
     this.height,
-    this.borderRadius = 20,
+    this.borderRadius = ZplayRadius.lg,
     this.padding = EdgeInsets.zero,
     this.border,
     this.shadows,
@@ -139,7 +173,7 @@ class PlayerIconButton extends StatelessWidget {
     this.showActiveBadge = false,
     this.badgeColor,
     this.backgroundColor,
-    this.borderRadius = 9999,
+    this.borderRadius = ZplayRadius.full,
     this.focusNode,
   });
 
@@ -162,13 +196,17 @@ class PlayerIconButton extends StatelessWidget {
             return ValueListenableBuilder<int>(
               valueListenable: GlassSettings.styleRevision,
               builder: (context, _, __) {
+                final tokens = context.tokens;
                 final hoverScaleVal = glassEnabled ? GlassSettings.hoverScale.value : 1.0;
                 final effectiveScale = highlighted ? hoverScaleVal : 1.0;
 
+                // Two washes, both off the text token: the active fill is
+                // deliberately stronger than the focus/hover one, because on a TV
+                // this highlight is the only signal of which control is live.
                 final bg = active
-                    ? (activeColor ?? Colors.white.withValues(alpha: 0.22))
+                    ? (activeColor ?? tokens.textPrimary.withValues(alpha: 0.22))
                     : (highlighted
-                        ? (backgroundColor ?? Colors.white.withValues(alpha: 0.12))
+                        ? (backgroundColor ?? tokens.textPrimary.withValues(alpha: 0.12))
                         : (backgroundColor ?? Colors.transparent));
 
                 final iconContent = Stack(
@@ -176,7 +214,9 @@ class PlayerIconButton extends StatelessWidget {
                   children: [
                     IconTheme(
                       data: IconThemeData(
-                        color: active ? Colors.white : (highlighted ? Colors.white : PlayerTheme.inkMuted),
+                        color: active
+                            ? tokens.textPrimary
+                            : (highlighted ? tokens.textPrimary : PlayerTheme.inkMuted),
                         size: iconSize,
                       ),
                       child: icon,
@@ -210,7 +250,9 @@ class PlayerIconButton extends StatelessWidget {
                     cornerRadius: borderRadius.clamp(0, size / 2),
                     customColor: active
                         ? (activeColor?.withValues(alpha: 0.35) ?? PlayerTheme.accent.withValues(alpha: 0.35))
-                        : (highlighted ? const Color(0x38FFFFFF) : const Color(0x18FFFFFF)),
+                        : (highlighted
+                            ? tokens.textPrimary.withValues(alpha: 0.22)
+                            : tokens.textPrimary.withValues(alpha: 0.094)),
                   );
 
                   buttonBody = RepaintBoundary(
@@ -249,14 +291,12 @@ class PlayerIconButton extends StatelessWidget {
                     message: tooltip!,
                     waitDuration: const Duration(milliseconds: 400),
                     decoration: BoxDecoration(
-                      color: const Color(0xE6080C12),
-                      borderRadius: BorderRadius.circular(8),
+                      color: PlayerTheme.elevated,
+                      borderRadius: BorderRadius.circular(ZplayRadius.sm),
                       border: Border.all(color: PlayerTheme.edgeSoft),
                     ),
-                    textStyle: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                    textStyle: ZplayType.bodySmall.toStyle(
+                      color: tokens.textPrimary,
                     ),
                     child: button,
                   );
@@ -302,7 +342,7 @@ class PlayerToggleChip extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
             color: active ? PlayerTheme.raised : Colors.transparent,
-            borderRadius: BorderRadius.circular(9999),
+            borderRadius: ZplayRadius.fullAll,
             border: Border.all(
               color: active ? PlayerTheme.edge : Colors.transparent,
               width: 1,
@@ -313,20 +353,17 @@ class PlayerToggleChip extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  color: active ? PlayerTheme.ink : PlayerTheme.inkMuted,
-                  fontSize: 11.5,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.w500,
-                ),
+                style: ZplayType.caption
+                    .copyWith(weight: active ? FontWeight.w600 : FontWeight.w500)
+                    .toStyle(color: active ? PlayerTheme.ink : PlayerTheme.inkMuted),
               ),
               if (count != null) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: ZplaySpacing.s4),
                 Text(
                   count!,
-                  style: const TextStyle(
+                  style: ZplayType.caption.toStyle(
                     color: PlayerTheme.inkSubtle,
-                    fontSize: 11,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    tabular: true,
                   ),
                 ),
               ],

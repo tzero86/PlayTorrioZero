@@ -8,30 +8,13 @@ import '../../models/anime/anime_media.dart';
 import '../../services/anime/anilist_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/anime/extractors/anidb_extractor.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/slider_arrow.dart';
 import 'anime_stream_sheet.dart';
 import '../../services/storage/app_image_cache.dart';
-
-class _Space {
-  static const xs = 8.0;
-  static const sm = 12.0;
-  static const md = 16.0;
-  static const lg = 24.0;
-  static const xl = 32.0;
-  static const xxl = 48.0;
-}
-
-class _Palette {
-  static Color get bg => AppThemeService.currentPalette.value.scaffoldBackgroundColor;
-  static Color get surface => AppThemeService.currentPalette.value.cardBackgroundColor;
-  static Color get accent => AppThemeService.currentPalette.value.primaryColor;
-  static Color get accentDim => AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.7);
-  static const gold = Color(0xFFFFC107);
-}
 
 class AnimeDetailsPage extends StatefulWidget {
   final AnimeMedia anime;
@@ -274,6 +257,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
     final posterUrl = _anime.coverUrl;
     final isDesktop = _isDesktop();
     final screenSize = MediaQuery.sizeOf(context);
+    final tokens = ZplayTokens.of(context);
 
     final heroHeight =
         (screenSize.height * (isDesktop ? 0.46 : 0.4)).clamp(320.0, 520.0);
@@ -299,7 +283,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                       opacity: _fadeAnimation,
                       child: Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: isDesktop ? _Space.xxl : _Space.lg,
+                          horizontal: isDesktop ? ZplaySpacing.s48 : ZplaySpacing.s24,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,31 +292,31 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                             isDesktop
                                 ? _buildDesktopLayout(posterUrl)
                                 : _buildMobileLayout(posterUrl),
-                            const SizedBox(height: _Space.xl),
+                            const SizedBox(height: ZplaySpacing.s32),
 
                             // Characters & Voice Cast Row
                             if (_anime.characters.isNotEmpty) ...[
                               _buildCharactersRow(),
-                              const SizedBox(height: _Space.xl),
+                              const SizedBox(height: ZplaySpacing.s32),
                             ],
 
                             // Episodes Section with 50-Chunking & Jump Input
                             _buildEpisodesSection(),
-                            const SizedBox(height: _Space.xl),
+                            const SizedBox(height: ZplaySpacing.s32),
 
                             // Franchise & Relations Row
                             if (_anime.relations.isNotEmpty) ...[
                               _buildRelationsRow(),
-                              const SizedBox(height: _Space.xl),
+                              const SizedBox(height: ZplaySpacing.s32),
                             ],
 
                             // You May Also Like / Recommendations Row
                             if (_anime.recommendations.isNotEmpty) ...[
                               _buildRecommendationsRow(),
-                              const SizedBox(height: _Space.xl),
+                              const SizedBox(height: ZplaySpacing.s32),
                             ],
 
-                            const SizedBox(height: _Space.xxl),
+                            const SizedBox(height: ZplaySpacing.s48),
                           ],
                         ),
                       ),
@@ -345,24 +329,22 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
           // Floating Frosted Back Button (Top Left)
           Positioned(
-            top: _Space.lg,
-            left: isDesktop ? _Space.xxl : _Space.md,
+            top: ZplaySpacing.s24,
+            left: isDesktop ? ZplaySpacing.s48 : ZplaySpacing.s16,
             child: ClipOval(
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white,
+                    color: tokens.textPrimary,
                     size: 20,
                   ),
                   onPressed: () => Navigator.pop(context),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    padding: const EdgeInsets.all(12),
-                    side: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.14),
-                    ),
+                    backgroundColor: tokens.borderDefault,
+                    padding: const EdgeInsets.all(ZplaySpacing.s12),
+                    side: BorderSide(color: tokens.borderStrong),
                   ),
                 ),
               ),
@@ -376,6 +358,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
   // ─── Persistent Cinematic Backdrop ─────────────────────────────
   Widget _buildBackdrop(String bgUrl, Size screenSize) {
+    final tokens = ZplayTokens.of(context);
     return Positioned(
       top: 0,
       left: 0,
@@ -392,7 +375,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
               memCacheWidth: 1280,
               fit: BoxFit.cover,
               alignment: Alignment.topCenter,
-              errorWidget: (_, __, ___) => ColoredBox(color: _Palette.surface),
+              errorWidget: (_, __, ___) => ColoredBox(color: tokens.surface),
             ),
             // Horizontal wash: darkens where the title sits
             DecoratedBox(
@@ -400,7 +383,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [_Palette.bg, const Color(0x991A1D26), Colors.transparent],
+                  colors: [tokens.bg, tokens.bg.withValues(alpha: 0.6), Colors.transparent],
                   stops: const [0.0, 0.42, 0.82],
                 ),
               ),
@@ -411,7 +394,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, const Color(0x661A1D26), _Palette.bg],
+                  colors: [Colors.transparent, tokens.bg.withValues(alpha: 0.4), tokens.bg],
                   stops: const [0.0, 0.62, 0.94],
                 ),
               ),
@@ -435,6 +418,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
   // ─── Desktop 2-Column Layout ───────────────────────────────────
   Widget _buildDesktopLayout(String posterUrl) {
+    final tokens = ZplayTokens.of(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -446,10 +430,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
               if (posterUrl.isNotEmpty)
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: ZplayRadius.mdAll,
                     boxShadow: [
                       BoxShadow(
-                        color: _Palette.accent.withValues(alpha: 0.22),
+                        color: tokens.accent.withValues(alpha: 0.22),
                         blurRadius: 46,
                         spreadRadius: -6,
                       ),
@@ -461,7 +445,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: ZplayRadius.mdAll,
                     child: AspectRatio(
                       aspectRatio: 2 / 3,
                       child: CachedNetworkImage(
@@ -470,32 +454,32 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                         memCacheWidth: 512,
                         fit: BoxFit.cover,
                         errorWidget: (_, __, ___) =>
-                            ColoredBox(color: _Palette.surface),
+                            ColoredBox(color: tokens.surface),
                       ),
                     ),
                   ),
                 ),
-              const SizedBox(height: _Space.lg),
+              const SizedBox(height: ZplaySpacing.s24),
               _buildPlayButton(fullWidth: true),
-              const SizedBox(height: _Space.sm),
+              const SizedBox(height: ZplaySpacing.s12),
               _buildLibraryButton(fullWidth: true),
             ],
           ),
         ),
-        const SizedBox(width: _Space.xl),
+        const SizedBox(width: ZplaySpacing.s32),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildTitle(isDesktop: true),
-              const SizedBox(height: _Space.md),
+              const SizedBox(height: ZplaySpacing.s16),
               _buildMetadataRow(),
               if (_anime.description.isNotEmpty) ...[
-                const SizedBox(height: _Space.lg),
+                const SizedBox(height: ZplaySpacing.s24),
                 _buildSynopsis(_anime.description),
               ],
               if (_anime.genres.isNotEmpty) ...[
-                const SizedBox(height: _Space.lg),
+                const SizedBox(height: ZplaySpacing.s24),
                 _buildGenreChips(_anime.genres),
               ],
             ],
@@ -507,6 +491,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
   // ─── Mobile / Compact Single Column Layout ─────────────────────
   Widget _buildMobileLayout(String posterUrl) {
+    final tokens = ZplayTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -516,10 +501,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
             if (posterUrl.isNotEmpty)
               DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   boxShadow: [
                     BoxShadow(
-                      color: _Palette.accent.withValues(alpha: 0.20),
+                      color: tokens.accent.withValues(alpha: 0.20),
                       blurRadius: 28,
                       spreadRadius: -4,
                     ),
@@ -531,7 +516,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   child: CachedNetworkImage(
                     imageUrl: posterUrl,
                     cacheManager: AppImageCache.manager,
@@ -541,26 +526,26 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                   ),
                 ),
               ),
-            const SizedBox(width: _Space.md),
+            const SizedBox(width: ZplaySpacing.s16),
             Expanded(child: _buildTitle(isDesktop: false)),
           ],
         ),
-        const SizedBox(height: _Space.lg),
+        const SizedBox(height: ZplaySpacing.s24),
         _buildMetadataRow(),
-        const SizedBox(height: _Space.lg),
+        const SizedBox(height: ZplaySpacing.s24),
         Row(
           children: [
             Expanded(child: _buildPlayButton(fullWidth: true)),
-            const SizedBox(width: _Space.sm),
+            const SizedBox(width: ZplaySpacing.s12),
             _buildLibraryButton(fullWidth: false),
           ],
         ),
         if (_anime.description.isNotEmpty) ...[
-          const SizedBox(height: _Space.lg),
+          const SizedBox(height: ZplaySpacing.s24),
           _buildSynopsis(_anime.description),
         ],
         if (_anime.genres.isNotEmpty) ...[
-          const SizedBox(height: _Space.md),
+          const SizedBox(height: ZplaySpacing.s16),
           _buildGenreChips(_anime.genres),
         ],
       ],
@@ -568,25 +553,28 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
   }
 
   Widget _buildTitle({required bool isDesktop}) {
+    final tokens = ZplayTokens.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           _anime.displayTitle,
-          style: TextStyle(
-            fontSize: isDesktop ? 38 : 26,
-            fontWeight: FontWeight.w900,
-            height: 1.12,
-            letterSpacing: -0.8,
-            color: Colors.white,
-            shadows: [
-              Shadow(
-                color: Colors.black.withValues(alpha: 0.7),
-                blurRadius: 20,
-                offset: const Offset(0, 6),
+          style: ZplayType.display
+              .copyWith(
+                size: isDesktop ? 38 : 26,
+                weight: FontWeight.w900,
+                letterSpacing: -0.8,
+              )
+              .toStyle(color: tokens.textPrimary)
+              .copyWith(
+                shadows: [
+                  Shadow(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    blurRadius: 20,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-            ],
-          ),
         ),
         if (_anime.titleNative.isNotEmpty &&
             _anime.titleNative != _anime.displayTitle)
@@ -594,11 +582,12 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
             padding: const EdgeInsets.only(top: 6),
             child: Text(
               _anime.titleNative,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
-                fontSize: isDesktop ? 14 : 12,
-                fontWeight: FontWeight.w500,
-              ),
+              style: ZplayType.bodySmall
+                  .copyWith(
+                    size: isDesktop ? 14 : 12,
+                    weight: FontWeight.w500,
+                  )
+                  .toStyle(color: tokens.textSecondary),
             ),
           ),
       ],
@@ -606,17 +595,14 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
   }
 
   Widget _buildMetadataRow() {
+    final tokens = ZplayTokens.of(context);
     final List<Widget> items = [];
 
     if (_anime.seasonYear > 0) {
       items.add(
         Text(
           '${_anime.seasonYear}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-          ),
+          style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
         ),
       );
     }
@@ -625,7 +611,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
       items.add(
         Text(
           _anime.formattedFormat,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: ZplayType.body.toStyle(color: tokens.textEmphasis),
         ),
       );
     }
@@ -635,7 +621,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
       items.add(
         Text(
           '$totalEps Ep${totalEps > 1 ? "s" : ""}',
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: ZplayType.body.toStyle(color: tokens.textEmphasis),
         ),
       );
     }
@@ -645,22 +631,20 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+            color: tokens.borderStrong,
+            borderRadius: ZplayRadius.xsAll,
+            border: Border.all(color: tokens.textDisabled),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.star_rounded, color: _Palette.gold, size: 14),
-              const SizedBox(width: 4),
+              Icon(Icons.star_rounded, color: tokens.warning, size: 14),
+              const SizedBox(width: ZplaySpacing.s4),
               Text(
                 _anime.formattedScore,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: ZplayType.bodySmall
+                    .copyWith(weight: FontWeight.w700)
+                    .toStyle(color: tokens.textPrimary),
               ),
             ],
           ),
@@ -672,7 +656,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
       items.add(
         Text(
           _anime.studioName,
-          style: const TextStyle(color: Colors.white70, fontSize: 14),
+          style: ZplayType.body.toStyle(color: tokens.textEmphasis),
         ),
       );
     }
@@ -682,9 +666,12 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
       spaced.add(items[i]);
       if (i < items.length - 1) {
         spaced.add(
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: _Space.sm),
-            child: Text('•', style: TextStyle(color: Colors.white30, fontSize: 16)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12),
+            child: Text(
+              '•',
+              style: ZplayType.body.toStyle(color: tokens.textDisabled),
+            ),
           ),
         );
       }
@@ -701,20 +688,21 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
     final library = AnimeLibraryService.instance;
     final watchItem = library.getWatchlistItem(_anime.id);
     final resumeEp = watchItem?.lastWatchedEpisode ?? 1;
+    final tokens = ZplayTokens.of(context);
 
     return _HoverScale(
       onTap: () => _playEpisode(resumeEp),
       child: Container(
         width: fullWidth ? double.infinity : null,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s24, vertical: 14),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [_Palette.accent, _Palette.accentDim],
+            colors: [tokens.accent, tokens.accentPressed],
           ),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: ZplayRadius.smAll,
           boxShadow: [
             BoxShadow(
-              color: _Palette.accent.withValues(alpha: 0.35),
+              color: tokens.accent.withValues(alpha: 0.35),
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
@@ -724,18 +712,15 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
           mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+            Icon(Icons.play_arrow_rounded, color: tokens.onAccent, size: 24),
             const SizedBox(width: 6),
             Text(
               watchItem != null && watchItem.lastWatchedEpisode > 0
                   ? 'Resume Ep $resumeEp'
                   : 'Play Ep 1',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.3,
-              ),
+              style: ZplayType.subtitle
+                  .copyWith(weight: FontWeight.w800, letterSpacing: 0.3)
+                  .toStyle(color: tokens.onAccent),
             ),
           ],
         ),
@@ -746,46 +731,47 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
   Widget _buildLibraryButton({required bool fullWidth}) {
     final library = AnimeLibraryService.instance;
     final watchItem = library.getWatchlistItem(_anime.id);
+    final tokens = ZplayTokens.of(context);
 
     return PopupMenuButton<AnimeWatchStatus>(
       onSelected: (status) {
         library.setWatchlistStatus(_anime, status);
         setState(() {});
       },
-      color: const Color(0xFF161A26),
+      color: tokens.surfaceOverlay,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        borderRadius: ZplayRadius.mdAll,
+        side: BorderSide(color: tokens.borderStrong),
       ),
       itemBuilder: (context) => [
-        const PopupMenuItem(
+        PopupMenuItem(
           value: AnimeWatchStatus.watching,
-          child: Text('Watching', style: TextStyle(color: Colors.white)),
+          child: Text('Watching', style: ZplayType.body.toStyle(color: tokens.textPrimary)),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: AnimeWatchStatus.planToWatch,
-          child: Text('Plan to Watch', style: TextStyle(color: Colors.white)),
+          child: Text('Plan to Watch', style: ZplayType.body.toStyle(color: tokens.textPrimary)),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: AnimeWatchStatus.completed,
-          child: Text('Completed', style: TextStyle(color: Colors.white)),
+          child: Text('Completed', style: ZplayType.body.toStyle(color: tokens.textPrimary)),
         ),
-        const PopupMenuItem(
+        PopupMenuItem(
           value: AnimeWatchStatus.dropped,
-          child: Text('Dropped', style: TextStyle(color: Colors.white54)),
+          child: Text('Dropped', style: ZplayType.body.toStyle(color: tokens.textSecondary)),
         ),
       ],
       child: _HoverScale(
         child: Container(
           width: fullWidth ? double.infinity : null,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
+          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s20, vertical: 13),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(10),
+            color: tokens.borderDefault,
+            borderRadius: ZplayRadius.smAll,
             border: Border.all(
               color: watchItem != null
-                  ? const Color(0xFF00D294)
-                  : Colors.white.withValues(alpha: 0.15),
+                  ? tokens.success
+                  : tokens.borderStrong,
             ),
           ),
           child: Row(
@@ -797,28 +783,27 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                     ? Icons.check_circle_rounded
                     : Icons.bookmark_outline_rounded,
                 color: watchItem != null
-                    ? const Color(0xFF00D294)
-                    : Colors.white70,
+                    ? tokens.success
+                    : tokens.textEmphasis,
                 size: 18,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: ZplaySpacing.s8),
               Text(
                 watchItem != null
                     ? watchItem.status.name.toUpperCase()
                     : 'ADD TO LIST',
-                style: TextStyle(
-                  color: watchItem != null
-                      ? const Color(0xFF00D294)
-                      : Colors.white70,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.3,
-                ),
+                style: ZplayType.label
+                    .copyWith(weight: FontWeight.w800, letterSpacing: 0.3)
+                    .toStyle(
+                      color: watchItem != null
+                          ? tokens.success
+                          : tokens.textEmphasis,
+                    ),
               ),
-              const SizedBox(width: 4),
-              const Icon(
+              const SizedBox(width: ZplaySpacing.s4),
+              Icon(
                 Icons.arrow_drop_down_rounded,
-                color: Colors.white54,
+                color: tokens.textSecondary,
                 size: 18,
               ),
             ],
@@ -829,6 +814,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
   }
 
   Widget _buildSynopsis(String description) {
+    final tokens = ZplayTokens.of(context);
     return FocusableCard(
       onTap: () => setState(() => _isSynopsisExpanded = !_isSynopsisExpanded),
       builder: (_, state) => AnimatedCrossFade(
@@ -837,19 +823,15 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
           description,
           maxLines: 4,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14.5,
-            height: 1.55,
-          ),
+          style: ZplayType.body
+              .copyWith(height: 1.55)
+              .toStyle(color: tokens.textEmphasis),
         ),
         secondChild: Text(
           description,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14.5,
-            height: 1.55,
-          ),
+          style: ZplayType.body
+              .copyWith(height: 1.55)
+              .toStyle(color: tokens.textEmphasis),
         ),
         crossFadeState: _isSynopsisExpanded
             ? CrossFadeState.showSecond
@@ -859,25 +841,24 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
   }
 
   Widget _buildGenreChips(List<String> genres) {
+    final tokens = ZplayTokens.of(context);
     return Wrap(
-      spacing: _Space.xs,
-      runSpacing: _Space.xs,
+      spacing: ZplaySpacing.s8,
+      runSpacing: ZplaySpacing.s8,
       children: genres
           .map(
             (g) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                color: tokens.borderSubtle,
+                borderRadius: ZplayRadius.lgAll,
+                border: Border.all(color: tokens.borderStrong),
               ),
               child: Text(
                 g,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: ZplayType.bodySmall
+                    .copyWith(weight: FontWeight.w600)
+                    .toStyle(color: tokens.textEmphasis),
               ),
             ),
           )
@@ -887,13 +868,14 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
   // ─── Characters & Voice Cast Row ───────────────────────────────
   Widget _buildCharactersRow() {
+    final tokens = ZplayTokens.of(context);
     final isDesktop = _isDesktop();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Characters & Cast'),
-        const SizedBox(height: _Space.md),
+        const SizedBox(height: ZplaySpacing.s16),
         MouseRegion(
           onEnter: (_) => setState(() => _isHoveringCast = true),
           onExit: (_) => setState(() => _isHoveringCast = false),
@@ -908,7 +890,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   itemCount: _anime.characters.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: _Space.md),
+                  separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s16),
                   itemBuilder: (context, index) {
                     final char = _anime.characters[index];
                     return SizedBox(
@@ -918,7 +900,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                         children: [
                           _HoverScale(
                             child: ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: ZplayRadius.smAll,
                               child: CachedNetworkImage(
                                 imageUrl: char.imageLarge,
                                 cacheManager: AppImageCache.manager,
@@ -929,10 +911,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                 errorWidget: (_, __, ___) => Container(
                                   width: 100,
                                   height: 110,
-                                  color: _Palette.surface,
-                                  child: const Icon(
+                                  color: tokens.surface,
+                                  child: Icon(
                                     Icons.person_rounded,
-                                    color: Colors.white24,
+                                    color: tokens.textDisabled,
                                   ),
                                 ),
                               ),
@@ -941,20 +923,15 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                           const SizedBox(height: 6),
                           Text(
                             char.nameFull,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: ZplayType.bodySmall
+                                .copyWith(weight: FontWeight.w700)
+                                .toStyle(color: tokens.textPrimary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             char.role,
-                            style: const TextStyle(
-                              color: Colors.white38,
-                              fontSize: 10,
-                            ),
+                            style: ZplayType.overline.toStyle(color: tokens.textMuted),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -1003,6 +980,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
   // ─── Episodes Section (50-Chunking, Jump Input, SUB/DUB) ────────
   Widget _buildEpisodesSection() {
+    final tokens = ZplayTokens.of(context);
     final library = AnimeLibraryService.instance;
     final watchItem = library.getWatchlistItem(_anime.id);
     final totalEps = _computedTotalEpisodes;
@@ -1014,7 +992,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
       children: [
         // Episodes Header & Controls
         Wrap(
-          spacing: 12,
+          spacing: ZplaySpacing.s12,
           runSpacing: 10,
           crossAxisAlignment: WrapCrossAlignment.center,
           alignment: WrapAlignment.spaceBetween,
@@ -1023,10 +1001,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildSectionHeader('Episodes'),
-                const SizedBox(width: 8),
+                const SizedBox(width: ZplaySpacing.s8),
                 Text(
                   '($totalEps total)',
-                  style: const TextStyle(color: Colors.white54, fontSize: 14),
+                  style: ZplayType.body.toStyle(color: tokens.textSecondary),
                 ),
               ],
             ),
@@ -1038,9 +1016,9 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                 Container(
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141724),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white12),
+                    color: tokens.surface,
+                    borderRadius: ZplayRadius.smAll,
+                    border: Border.all(color: tokens.borderStrong),
                   ),
                   child: Row(
                     children: [
@@ -1052,16 +1030,18 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: !_isDub ? _Palette.accent : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
+                            color: !_isDub ? tokens.accent : Colors.transparent,
+                            borderRadius: ZplayRadius.smAll,
                           ),
-                          child: const Text(
+                          child: Text(
                             'SUB',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                            ),
+                            style: ZplayType.caption
+                                .copyWith(weight: FontWeight.w900)
+                                .toStyle(
+                                  color: !_isDub
+                                      ? tokens.onAccent
+                                      : tokens.textEmphasis,
+                                ),
                           ),
                         ),
                       ),
@@ -1073,16 +1053,18 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: _isDub ? _Palette.accent : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
+                            color: _isDub ? tokens.accent : Colors.transparent,
+                            borderRadius: ZplayRadius.smAll,
                           ),
-                          child: const Text(
+                          child: Text(
                             'DUB',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                            ),
+                            style: ZplayType.caption
+                                .copyWith(weight: FontWeight.w900)
+                                .toStyle(
+                                  color: _isDub
+                                      ? tokens.onAccent
+                                      : tokens.textEmphasis,
+                                ),
                           ),
                         ),
                       ),
@@ -1090,36 +1072,36 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                   ),
                 ),
 
-                const SizedBox(width: 12),
+                const SizedBox(width: ZplaySpacing.s12),
 
                 // Jump to Ep Input
                 Container(
                   width: 130,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF141724),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.white12),
+                    color: tokens.surface,
+                    borderRadius: ZplayRadius.smAll,
+                    border: Border.all(color: tokens.borderStrong),
                   ),
                   child: TextField(
                     controller: _jumpEpController,
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.go,
                     onSubmitted: _jumpToEpisode,
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                    style: ZplayType.bodySmall.toStyle(color: tokens.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Jump to ep #',
-                      hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                      hintStyle: ZplayType.caption.toStyle(color: tokens.textMuted),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8,
+                        horizontal: ZplaySpacing.s8,
                         vertical: 10,
                       ),
                       suffixIcon: IconButton(
                         padding: EdgeInsets.zero,
                         icon: Icon(
                           Icons.arrow_forward_rounded,
-                          color: _Palette.accent,
+                          color: tokens.accent,
                           size: 16,
                         ),
                         onPressed: () =>
@@ -1129,32 +1111,30 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                   ),
                 ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: ZplaySpacing.s8),
 
                 // 50-Chunk Dropdown
                 if (totalBatches > 1)
                   Container(
                     height: 34,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF141724),
-                      borderRadius: BorderRadius.circular(8),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
-                        color: _Palette.accent.withValues(alpha: 0.4),
+                        color: tokens.accent.withValues(alpha: 0.4),
                       ),
                     ),
                     child: DropdownButton<int>(
                       value: currentBatchSafe,
                       underline: const SizedBox.shrink(),
-                      dropdownColor: const Color(0xFF141724),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      dropdownColor: tokens.surfaceOverlay,
+                      style: ZplayType.bodySmall
+                          .copyWith(weight: FontWeight.w700)
+                          .toStyle(color: tokens.textPrimary),
                       icon: Icon(
                         Icons.expand_more_rounded,
-                        color: _Palette.accent,
+                        color: tokens.accent,
                         size: 16,
                       ),
                       items: List.generate(
@@ -1180,7 +1160,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
           ],
         ),
 
-        const SizedBox(height: _Space.md),
+        const SizedBox(height: ZplaySpacing.s16),
 
         // Episode Grid
         _buildEpisodeGrid(
@@ -1200,6 +1180,8 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
     int? lastWatchedEp,
   ) {
     final count = endIndex - startIndex;
+
+    final tokens = ZplayTokens.of(context);
     if (count <= 0) return const SizedBox.shrink();
 
     return GridView.builder(
@@ -1224,38 +1206,42 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: isHighlighted
-                  ? const Color(0xFFEF4444).withValues(alpha: 0.30)
+                  ? tokens.danger.withValues(alpha: 0.30)
                   : isCurrent
-                      ? _Palette.accent.withValues(alpha: 0.35)
+                      ? tokens.accent.withValues(alpha: 0.35)
                       : (isWatched
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : const Color(0xFF141724)),
-              borderRadius: BorderRadius.circular(10),
+                          ? tokens.borderDefault
+                          : tokens.surface),
+              borderRadius: ZplayRadius.smAll,
               border: Border.all(
                 color: isHighlighted
-                    ? const Color(0xFFEF4444)
+                    ? tokens.danger
                     : isCurrent
-                        ? _Palette.accent
+                        ? tokens.accent
                         : (isWatched
-                            ? Colors.white24
-                            : Colors.white.withValues(alpha: 0.08)),
+                            ? tokens.textDisabled
+                            : tokens.borderDefault),
                 width: (isCurrent || isHighlighted) ? 1.5 : 1,
               ),
             ),
             child: Center(
               child: Text(
                 '$epNum',
-                style: TextStyle(
-                  color: isHighlighted
-                      ? const Color(0xFFEF4444)
-                      : isCurrent
-                          ? _Palette.accent
-                          : (isWatched ? Colors.white70 : Colors.white),
-                  fontSize: 13.5,
-                  fontWeight: (isCurrent || isHighlighted)
-                      ? FontWeight.w900
-                      : FontWeight.bold,
-                ),
+                style: ZplayType.label
+                    .copyWith(
+                      weight: (isCurrent || isHighlighted)
+                          ? FontWeight.w900
+                          : FontWeight.w700,
+                    )
+                    .toStyle(
+                      color: isHighlighted
+                          ? tokens.danger
+                          : isCurrent
+                              ? tokens.accent
+                              : (isWatched
+                                    ? tokens.textEmphasis
+                                    : tokens.textPrimary),
+                    ),
               ),
             ),
           ),
@@ -1266,6 +1252,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
   // ─── Franchise & Relations Row ─────────────────────────────────
   Widget _buildRelationsRow() {
+    final tokens = ZplayTokens.of(context);
     final isDesktop = _isDesktop();
     final cardWidth = isDesktop ? 165.0 : 135.0;
     final cardHeight = cardWidth * 1.5 + 68.0;
@@ -1274,7 +1261,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionHeader('Franchise & Relations'),
-        const SizedBox(height: _Space.md),
+        const SizedBox(height: ZplaySpacing.s16),
         MouseRegion(
           onEnter: (_) => setState(() => _isHoveringRelations = true),
           onExit: (_) => setState(() => _isHoveringRelations = false),
@@ -1289,7 +1276,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   itemCount: _anime.relations.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: _Space.md),
+                  separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s16),
                   itemBuilder: (context, index) {
                     final rel = _anime.relations[index];
                     return SizedBox(
@@ -1307,10 +1294,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                           children: [
                             DecoratedBox(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: ZplayRadius.smAll,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: _Palette.accent.withValues(alpha: 0.15),
+                                    color: tokens.accent.withValues(alpha: 0.15),
                                     blurRadius: 18,
                                     spreadRadius: -4,
                                   ),
@@ -1322,7 +1309,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                 ],
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: ZplayRadius.smAll,
                                 child: AspectRatio(
                                   aspectRatio: 2 / 3,
                                   child: CachedNetworkImage(
@@ -1331,10 +1318,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                     memCacheWidth: 330,
                                     fit: BoxFit.cover,
                                     errorWidget: (_, __, ___) => Container(
-                                      color: _Palette.surface,
-                                      child: const Icon(
+                                      color: tokens.surface,
+                                      child: Icon(
                                         Icons.movie_creation_outlined,
-                                        color: Colors.white24,
+                                        color: tokens.textDisabled,
                                         size: 32,
                                       ),
                                     ),
@@ -1342,37 +1329,34 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: ZplaySpacing.s8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
-                                vertical: 2,
+                                vertical: ZplaySpacing.s2,
                               ),
                               decoration: BoxDecoration(
-                                color: _Palette.accent.withValues(alpha: 0.18),
-                                borderRadius: BorderRadius.circular(4),
+                                color: tokens.accent.withValues(alpha: 0.18),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
                               child: Text(
                                 rel.relationType.replaceAll('_', ' '),
-                                style: TextStyle(
-                                  color: _Palette.accent,
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 0.2,
-                                ),
+                                style: ZplayType.overline
+                                    .copyWith(
+                                      weight: FontWeight.w900,
+                                      letterSpacing: 0.2,
+                                    )
+                                    .toStyle(color: tokens.accent),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: ZplaySpacing.s4),
                             Text(
                               rel.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                height: 1.2,
-                              ),
+                              style: ZplayType.label
+                                  .copyWith(weight: FontWeight.w700)
+                                  .toStyle(color: tokens.textPrimary),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -1422,17 +1406,18 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
 
   // ─── Recommendations Row ───────────────────────────────────────
   Widget _buildRecommendationsRow() {
+    final tokens = ZplayTokens.of(context);
     final isDesktop = _isDesktop();
     final cardWidth = isDesktop ? 165.0 : 135.0;
     final cardHeight = cardWidth * 1.5 + 68.0;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: ZplaySpacing.s24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader('You May Also Like'),
-          const SizedBox(height: _Space.md),
+          const SizedBox(height: ZplaySpacing.s16),
           MouseRegion(
             onEnter: (_) => setState(() => _isHoveringRecs = true),
             onExit: (_) => setState(() => _isHoveringRecs = false),
@@ -1447,7 +1432,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     itemCount: _anime.recommendations.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: _Space.md),
+                    separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s16),
                     itemBuilder: (context, index) {
                       final rec = _anime.recommendations[index];
                       return SizedBox(
@@ -1459,10 +1444,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                             children: [
                               DecoratedBox(
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: ZplayRadius.smAll,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: _Palette.accent.withValues(alpha: 0.15),
+                                      color: tokens.accent.withValues(alpha: 0.15),
                                       blurRadius: 18,
                                       spreadRadius: -4,
                                     ),
@@ -1474,7 +1459,7 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                   ],
                                 ),
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: ZplayRadius.smAll,
                                   child: AspectRatio(
                                     aspectRatio: 2 / 3,
                                     child: CachedNetworkImage(
@@ -1483,10 +1468,10 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                       memCacheWidth: 330,
                                       fit: BoxFit.cover,
                                       errorWidget: (_, __, ___) => Container(
-                                        color: _Palette.surface,
-                                        child: const Icon(
+                                        color: tokens.surface,
+                                        child: Icon(
                                           Icons.movie_creation_outlined,
-                                          color: Colors.white24,
+                                          color: tokens.textDisabled,
                                           size: 32,
                                         ),
                                       ),
@@ -1494,28 +1479,21 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: ZplaySpacing.s8),
                               Text(
                                 rec.displayTitle,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.25,
-                                ),
+                                style: ZplayType.label
+                                    .copyWith(weight: FontWeight.w700)
+                                    .toStyle(color: tokens.textPrimary),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               if (rec.formattedFormat.isNotEmpty)
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 2),
+                                  padding: const EdgeInsets.only(top: ZplaySpacing.s2),
                                   child: Text(
                                     rec.formattedFormat,
-                                    style: const TextStyle(
-                                      color: Colors.white38,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: ZplayType.caption.toStyle(color: tokens.textMuted),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -1566,14 +1544,12 @@ class _AnimeDetailsPageState extends State<AnimeDetailsPage>
   }
 
   Widget _buildSectionHeader(String title) {
+    final tokens = ZplayTokens.of(context);
     return Text(
       title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.4,
-        color: Colors.white,
-      ),
+      style: ZplayType.titleLarge
+          .copyWith(weight: FontWeight.w800)
+          .toStyle(color: tokens.textPrimary),
     );
   }
 }

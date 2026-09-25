@@ -19,7 +19,7 @@ import '../../models/stream/stream_model.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
 import '../../services/debrid/debrid_service.dart';
 import '../../services/stream/torrent_stream_service.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/trakt/trakt_service.dart';
 import '../../services/simkl/simkl_service.dart';
@@ -1912,6 +1912,7 @@ class _PlayerScreenState extends State<PlayerScreen>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return PopScope(
       canPop: !_isLocked,
       onPopInvokedWithResult: (didPop, _) {
@@ -1923,16 +1924,16 @@ class _PlayerScreenState extends State<PlayerScreen>
           setState(() => _showUnlockButton = true);
           _startUnlockButtonTimer();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Screen is locked. Tap the lock icon to unlock.'),
-              duration: Duration(seconds: 2),
-              backgroundColor: Color(0xFF131722),
+            SnackBar(
+              content: const Text('Screen is locked. Tap the lock icon to unlock.'),
+              duration: const Duration(seconds: 2),
+              backgroundColor: tokens.surfaceOverlay,
             ),
           );
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: tokens.bg,
         body: Focus(
           focusNode: _pageFocusNode,
           autofocus: true,
@@ -2044,6 +2045,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildBackgroundStack() {
+    final tokens = context.tokens;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -2102,15 +2104,17 @@ class _PlayerScreenState extends State<PlayerScreen>
             ),
           Positioned.fill(
             child: Container(
-              color: widget.backdropUrl != null ? Colors.black54 : Colors.black,
+              color: widget.backdropUrl != null
+                  ? tokens.bg.withValues(alpha: 0.54)
+                  : tokens.bg,
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_streamStalled)
-                      const Icon(
+                      Icon(
                         Icons.error_outline_rounded,
-                        color: Colors.white70,
+                        color: tokens.textEmphasis,
                         size: 56,
                       )
                     else if (widget.logoUrl != null)
@@ -2135,15 +2139,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                       )
                     else
                       CircularProgressIndicator(color: PlayerTheme.accent),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: ZplaySpacing.s32),
                     Text(
                       _statusMessage,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                        letterSpacing: 1.2,
-                      ),
+                      style: ZplayType.body
+                          .copyWith(letterSpacing: 1.2)
+                          .toStyle(color: tokens.textEmphasis),
                     ),
                     if (_streamStalled) ...[
                       const SizedBox(height: 22),
@@ -2241,27 +2243,32 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _handleCopyStreamUrl() {
+    final tokens = context.tokens;
     final url = _activeStreamUrl ?? _currentSource.url;
     if (url != null && url.isNotEmpty) {
       Clipboard.setData(ClipboardData(text: url));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(
+            content: Row(
               children: [
-                Icon(Icons.link_rounded, color: Colors.greenAccent, size: 18),
-                SizedBox(width: 8),
+                Icon(Icons.link_rounded, color: tokens.success, size: 18),
+                const SizedBox(width: ZplaySpacing.s8),
                 Text(
                   'Stream URL copied to clipboard',
-                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                  style: ZplayType.label.toStyle(color: tokens.textPrimary),
                 ),
               ],
             ),
-            backgroundColor: const Color(0xFF1E2028),
+            backgroundColor: tokens.surfaceOverlay,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
             duration: const Duration(seconds: 2),
-            margin: const EdgeInsets.only(bottom: 24, left: 24, right: 24),
+            margin: const EdgeInsets.only(
+              bottom: ZplaySpacing.s24,
+              left: ZplaySpacing.s24,
+              right: ZplaySpacing.s24,
+            ),
           ),
         );
       }
@@ -2278,6 +2285,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildControlsOverlay() {
+    final tokens = context.tokens;
     final buffered = _buffered;
 
     final isColl = widget.detail?.isCollection == true;
@@ -2310,14 +2318,20 @@ class _PlayerScreenState extends State<PlayerScreen>
             right: 24,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s16,
+                  vertical: ZplaySpacing.s8,
+                ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF131722).withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.amber.withValues(alpha: 0.7), width: 1.5),
+                  color: tokens.surfaceOverlay.withValues(alpha: 0.95),
+                  borderRadius: ZplayRadius.mdAll,
+                  border: Border.all(
+                    color: tokens.warning.withValues(alpha: 0.7),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.4),
+                      color: tokens.bg.withValues(alpha: 0.40),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -2326,16 +2340,14 @@ class _PlayerScreenState extends State<PlayerScreen>
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.shield_rounded, color: Colors.amber, size: 18),
-                    const SizedBox(width: 8),
+                    Icon(Icons.shield_rounded, color: tokens.warning, size: 18),
+                    const SizedBox(width: ZplaySpacing.s8),
                     Flexible(
                       child: Text(
                         _fallbackNoticeText!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: ZplayType.label
+                            .copyWith(weight: FontWeight.w600)
+                            .toStyle(color: tokens.textPrimary),
                       ),
                     ),
                   ],
@@ -2643,9 +2655,11 @@ class _PlayerScreenState extends State<PlayerScreen>
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _activeMenu = null),
                 child: Container(
-                  color: Colors.black54,
+                  color: tokens.bg.withValues(alpha: 0.54),
                   alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ZplaySpacing.s16,
+                  ),
                   child: GestureDetector(
                     onTap: () {}, // Prevent tap through
                     child: PlayerSubStyleModal(
@@ -2687,7 +2701,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _showEpisodesPanel = false),
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.45),
+                  color: tokens.bg.withValues(alpha: 0.45),
                   child: GestureDetector(
                     onTap: () {},
                     child: PlayerEpisodesPanel(
@@ -2708,7 +2722,7 @@ class _PlayerScreenState extends State<PlayerScreen>
                 behavior: HitTestBehavior.opaque,
                 onTap: () => setState(() => _showSourcesPanel = false),
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.45),
+                  color: tokens.bg.withValues(alpha: 0.45),
                   child: GestureDetector(
                     onTap: () {},
                     child: PlayerSourcesPanel(
@@ -2815,12 +2829,13 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildVolumeHud() {
+    final tokens = context.tokens;
     final effectiveVol = _isMuted ? 0.0 : _volume;
     final isBoosting = !_isMuted && _volume > 1.001;
     final pct = (effectiveVol * 100).round();
     final boostColor = _volume > 1.75
-        ? const Color(0xFFFF3D00)
-        : (_volume > 1.0 ? const Color(0xFFFF8A00) : Colors.white);
+        ? tokens.danger
+        : (_volume > 1.0 ? tokens.warning : tokens.textPrimary);
 
     IconData volIcon;
     if (_isMuted || _volume == 0) {
@@ -2835,19 +2850,24 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     return Center(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: ZplaySpacing.s24,
+          vertical: ZplaySpacing.s16,
+        ),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1117).withValues(alpha: 0.88),
-          borderRadius: BorderRadius.circular(20),
+          color: tokens.surfaceOverlay.withValues(alpha: 0.88),
+          borderRadius: ZplayRadius.lgAll,
           border: Border.all(
             color: isBoosting
                 ? boostColor.withValues(alpha: 0.45)
-                : Colors.white.withValues(alpha: 0.15),
+                : tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: isBoosting ? boostColor.withValues(alpha: 0.28) : Colors.black54,
+              color: isBoosting
+                  ? boostColor.withValues(alpha: 0.28)
+                  : tokens.bg.withValues(alpha: 0.54),
               blurRadius: 30,
               spreadRadius: 2,
             ),
@@ -2861,41 +2881,41 @@ class _PlayerScreenState extends State<PlayerScreen>
               children: [
                 Icon(
                   volIcon,
-                  color: isBoosting ? boostColor : Colors.white,
+                  color: isBoosting ? boostColor : tokens.textPrimary,
                   size: 28,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: ZplaySpacing.s12),
                 Text(
                   _isMuted ? 'Muted' : '$pct%',
-                  style: TextStyle(
-                    color: isBoosting ? boostColor : Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+                  style: ZplayType.titleLarge.toStyle(
+                    color: isBoosting ? boostColor : tokens.textPrimary,
                   ),
                 ),
                 if (isBoosting) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: ZplaySpacing.s8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ZplaySpacing.s8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: boostColor.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(color: boostColor.withValues(alpha: 0.4), width: 0.8),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.bolt_rounded, size: 13, color: boostColor),
-                        const SizedBox(width: 2),
+                        const SizedBox(width: ZplaySpacing.s2),
                         Text(
                           _volume > 1.75 ? 'MAX BOOST' : 'BOOST',
-                          style: TextStyle(
-                            color: boostColor,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
+                          style: ZplayType.caption
+                              .copyWith(
+                                weight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              )
+                              .toStyle(color: boostColor),
                         ),
                       ],
                     ),
@@ -2903,15 +2923,19 @@ class _PlayerScreenState extends State<PlayerScreen>
                 ],
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: ZplaySpacing.s12),
             SizedBox(
               width: 140,
               height: 6,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: ZplayRadius.xsAll,
                 child: Stack(
                   children: [
-                    Container(color: Colors.white.withValues(alpha: 0.15)),
+                    Container(
+                      color: tokens.textPrimary.withValues(
+                        alpha: ZplayOpacity.overlayHover,
+                      ),
+                    ),
                     FractionallySizedBox(
                       alignment: Alignment.centerLeft,
                       widthFactor: (effectiveVol / PlayerVolumeControl.maxVolume).clamp(0.0, 1.0),
@@ -2920,13 +2944,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                           gradient: isBoosting
                               ? LinearGradient(
                                   colors: [
-                                    Colors.white,
-                                    const Color(0xFFFF8A00),
-                                    if (_volume > 1.75) const Color(0xFFFF3D00),
+                                    tokens.textPrimary,
+                                    tokens.warning,
+                                    if (_volume > 1.75) tokens.danger,
                                   ],
                                 )
                               : null,
-                          color: isBoosting ? null : Colors.white,
+                          color: isBoosting ? null : tokens.textPrimary,
                         ),
                       ),
                     ),
@@ -2941,11 +2965,12 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildBrightnessHud() {
+    final tokens = context.tokens;
     final pct = (_brightness * 100).round();
     final isBoosting = _brightness > 1.001;
     final boostColor = _brightness > 1.35
-        ? const Color(0xFFFFD600)
-        : const Color(0xFF00E5FF);
+        ? tokens.warning
+        : tokens.info;
 
     IconData bIcon;
     if (_brightness <= 0.05) {
@@ -2958,19 +2983,24 @@ class _PlayerScreenState extends State<PlayerScreen>
 
     return Center(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: ZplaySpacing.s24,
+          vertical: ZplaySpacing.s16,
+        ),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1117).withValues(alpha: 0.88),
-          borderRadius: BorderRadius.circular(20),
+          color: tokens.surfaceOverlay.withValues(alpha: 0.88),
+          borderRadius: ZplayRadius.lgAll,
           border: Border.all(
             color: isBoosting
                 ? boostColor.withValues(alpha: 0.45)
-                : Colors.white.withValues(alpha: 0.15),
+                : tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: isBoosting ? boostColor.withValues(alpha: 0.25) : Colors.black54,
+              color: isBoosting
+                  ? boostColor.withValues(alpha: 0.25)
+                  : tokens.bg.withValues(alpha: 0.54),
               blurRadius: 30,
               spreadRadius: 2,
             ),
@@ -2984,41 +3014,41 @@ class _PlayerScreenState extends State<PlayerScreen>
               children: [
                 Icon(
                   bIcon,
-                  color: isBoosting ? boostColor : Colors.white,
+                  color: isBoosting ? boostColor : tokens.textPrimary,
                   size: 28,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: ZplaySpacing.s12),
                 Text(
                   '$pct%',
-                  style: TextStyle(
-                    color: isBoosting ? boostColor : Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+                  style: ZplayType.titleLarge.toStyle(
+                    color: isBoosting ? boostColor : tokens.textPrimary,
                   ),
                 ),
                 if (isBoosting) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: ZplaySpacing.s8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ZplaySpacing.s8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: boostColor.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(color: boostColor.withValues(alpha: 0.4), width: 0.8),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.bolt_rounded, size: 13, color: boostColor),
-                        const SizedBox(width: 2),
+                        const SizedBox(width: ZplaySpacing.s2),
                         Text(
                           'BOOST',
-                          style: TextStyle(
-                            color: boostColor,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
+                          style: ZplayType.caption
+                              .copyWith(
+                                weight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              )
+                              .toStyle(color: boostColor),
                         ),
                       ],
                     ),
@@ -3026,15 +3056,19 @@ class _PlayerScreenState extends State<PlayerScreen>
                 ],
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: ZplaySpacing.s12),
             SizedBox(
               width: 140,
               height: 6,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(3),
+                borderRadius: ZplayRadius.xsAll,
                 child: Stack(
                   children: [
-                    Container(color: Colors.white.withValues(alpha: 0.15)),
+                    Container(
+                      color: tokens.textPrimary.withValues(
+                        alpha: ZplayOpacity.overlayHover,
+                      ),
+                    ),
                     FractionallySizedBox(
                       alignment: Alignment.centerLeft,
                       widthFactor: (_brightness / 1.5).clamp(0.0, 1.0),
@@ -3043,13 +3077,13 @@ class _PlayerScreenState extends State<PlayerScreen>
                           gradient: isBoosting
                               ? LinearGradient(
                                   colors: [
-                                    Colors.white,
-                                    const Color(0xFF00E5FF),
-                                    if (_brightness > 1.35) const Color(0xFFFFD600),
+                                    tokens.textPrimary,
+                                    tokens.info,
+                                    if (_brightness > 1.35) tokens.warning,
                                   ],
                                 )
                               : null,
-                          color: isBoosting ? null : Colors.white,
+                          color: isBoosting ? null : tokens.textPrimary,
                         ),
                       ),
                     ),
@@ -3064,45 +3098,49 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildFastForwardHud() {
+    final tokens = context.tokens;
     return Positioned(
       top: 54,
       left: 0,
       right: 0,
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
+          padding: const EdgeInsets.symmetric(
+            horizontal: ZplaySpacing.s20,
+            vertical: 9,
+          ),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F1117).withValues(alpha: 0.92),
-            borderRadius: BorderRadius.circular(24),
+            color: tokens.surfaceOverlay.withValues(alpha: 0.92),
+            borderRadius: ZplayRadius.lgAll,
             border: Border.all(
-              color: const Color(0xFF00E5FF).withValues(alpha: 0.55),
+              color: tokens.info.withValues(alpha: 0.55),
               width: 1.4,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF00E5FF).withValues(alpha: 0.28),
+                color: tokens.info.withValues(alpha: 0.28),
                 blurRadius: 20,
                 spreadRadius: 1,
               ),
-              const BoxShadow(
-                color: Colors.black54,
+              BoxShadow(
+                color: tokens.bg.withValues(alpha: 0.54),
                 blurRadius: 16,
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.fast_forward_rounded, color: Color(0xFF00E5FF), size: 22),
-              SizedBox(width: 8),
+              Icon(Icons.fast_forward_rounded, color: tokens.info, size: 22),
+              const SizedBox(width: ZplaySpacing.s8),
               Text(
                 '2X Speed',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.6,
-                ),
+                style: ZplayType.subtitle
+                    .copyWith(
+                      weight: FontWeight.w700,
+                      letterSpacing: 0.6,
+                    )
+                    .toStyle(color: tokens.textPrimary),
               ),
             ],
           ),
@@ -3112,6 +3150,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildMobileLeftLockButton() {
+    final tokens = context.tokens;
     return Positioned(
       left: 28,
       top: 0,
@@ -3126,28 +3165,28 @@ class _PlayerScreenState extends State<PlayerScreen>
               color: Colors.transparent,
               child: InkWell(
                 onTap: _lockPlayer,
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: ZplayRadius.fullAll,
                 child: Container(
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F1117).withValues(alpha: 0.80),
+                    color: tokens.surfaceOverlay.withValues(alpha: 0.80),
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.25),
+                      color: tokens.textPrimary.withValues(alpha: 0.25),
                       width: 1.2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.45),
+                        color: tokens.bg.withValues(alpha: 0.45),
                         blurRadius: 16,
                         offset: const Offset(0, 2),
                       ),
                     ],
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.lock_outline_rounded,
-                    color: Colors.white,
+                    color: tokens.textPrimary,
                     size: 22,
                   ),
                 ),
@@ -3160,6 +3199,7 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildMobileUnlockButton() {
+    final tokens = context.tokens;
     return Positioned(
       left: 28,
       top: 0,
@@ -3174,45 +3214,48 @@ class _PlayerScreenState extends State<PlayerScreen>
               color: Colors.transparent,
               child: InkWell(
                 onTap: _unlockPlayer,
-                borderRadius: BorderRadius.circular(28),
+                borderRadius: ZplayRadius.xlAll,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ZplaySpacing.s20,
+                    vertical: ZplaySpacing.s12,
+                  ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F1117).withValues(alpha: 0.92),
-                    borderRadius: BorderRadius.circular(28),
+                    color: tokens.surfaceOverlay.withValues(alpha: 0.92),
+                    borderRadius: ZplayRadius.xlAll,
                     border: Border.all(
-                      color: const Color(0xFF00E5FF).withValues(alpha: 0.8),
+                      color: tokens.info.withValues(alpha: 0.8),
                       width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF00E5FF).withValues(alpha: 0.35),
+                        color: tokens.info.withValues(alpha: 0.35),
                         blurRadius: 24,
                         spreadRadius: 2,
                       ),
-                      const BoxShadow(
-                        color: Colors.black87,
+                      BoxShadow(
+                        color: tokens.bg.withValues(alpha: 0.87),
                         blurRadius: 20,
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.lock_open_rounded,
-                        color: Color(0xFF00E5FF),
+                        color: tokens.info,
                         size: 22,
                       ),
-                      SizedBox(width: 10),
+                      const SizedBox(width: 10),
                       Text(
                         'Unlock',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
-                        ),
+                        style: ZplayType.subtitle
+                            .copyWith(
+                              weight: FontWeight.w700,
+                              letterSpacing: 0.4,
+                            )
+                            .toStyle(color: tokens.textPrimary),
                       ),
                     ],
                   ),
@@ -3237,19 +3280,20 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildAudioHud() {
+    final tokens = context.tokens;
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1117).withValues(alpha: 0.90),
-          borderRadius: BorderRadius.circular(16),
+          color: tokens.surfaceOverlay.withValues(alpha: 0.90),
+          borderRadius: ZplayRadius.mdAll,
           border: Border.all(
-            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.5),
+            color: tokens.accent.withValues(alpha: 0.5),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25),
+              color: tokens.accent.withValues(alpha: 0.25),
               blurRadius: 24,
               spreadRadius: 2,
             ),
@@ -3258,20 +3302,16 @@ class _PlayerScreenState extends State<PlayerScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.audiotrack_rounded,
-              color: Color(0xFF00D2EF),
-              size: 24,
-            ),
+            Icon(Icons.audiotrack_rounded, color: tokens.info, size: 24),
             const SizedBox(width: 10),
             Text(
               _audioHudText,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
+              style: ZplayType.subtitle
+                  .copyWith(
+                    weight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  )
+                  .toStyle(color: tokens.textPrimary),
             ),
           ],
         ),
@@ -3306,19 +3346,20 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   Widget _buildAspectHud() {
+    final tokens = context.tokens;
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1117).withValues(alpha: 0.90),
-          borderRadius: BorderRadius.circular(16),
+          color: tokens.surfaceOverlay.withValues(alpha: 0.90),
+          borderRadius: ZplayRadius.mdAll,
           border: Border.all(
-            color: const Color(0xFFFFB300).withValues(alpha: 0.5),
+            color: tokens.warning.withValues(alpha: 0.5),
             width: 1.2,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFFB300).withValues(alpha: 0.25),
+              color: tokens.warning.withValues(alpha: 0.25),
               blurRadius: 24,
               spreadRadius: 2,
             ),
@@ -3327,20 +3368,16 @@ class _PlayerScreenState extends State<PlayerScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.aspect_ratio_rounded,
-              color: Color(0xFFFFB300),
-              size: 24,
-            ),
+            Icon(Icons.aspect_ratio_rounded, color: tokens.warning, size: 24),
             const SizedBox(width: 10),
             Text(
               _aspectHudText,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.5,
-              ),
+              style: ZplayType.subtitle
+                  .copyWith(
+                    weight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  )
+                  .toStyle(color: tokens.textPrimary),
             ),
           ],
         ),

@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/custom_background_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/home/home_page_settings.dart';
 import '../../services/storage/app_image_cache.dart';
 
@@ -96,82 +97,82 @@ class _AnimatedAmbientBackgroundState extends State<AnimatedAmbientBackground>
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<AppThemePalette>(
-      valueListenable: AppThemeService.currentPalette,
-      builder: (context, palette, _) {
-        return ValueListenableBuilder<CustomBackgroundData>(
-          valueListenable: CustomBackgroundService.notifier,
-          builder: (context, customBg, _) {
-            final hasWallpaper = customBg.hasCustomBackground;
+    // The glow is chrome, so it takes the semantic set rather than the raw
+    // palette: one accent (the palette's second hue was the competing accent the
+    // design audit flagged) and the page background.
+    final tokens = ZplayTokens.of(context);
 
-            return ValueListenableBuilder<bool>(
-              valueListenable: HomePageSettings.enableAmbientLights,
-              builder: (context, lightsEnabled, _) {
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    // 1. Base solid scaffold background color
-                    Container(color: palette.scaffoldBackgroundColor),
+    return ValueListenableBuilder<CustomBackgroundData>(
+      valueListenable: CustomBackgroundService.notifier,
+      builder: (context, customBg, _) {
+        final hasWallpaper = customBg.hasCustomBackground;
 
-                    // 2. Custom Background Wallpaper (if active)
-                    if (hasWallpaper) ...[
-                      Positioned.fill(
-                        child: _buildWallpaperImage(customBg),
+        return ValueListenableBuilder<bool>(
+          valueListenable: HomePageSettings.enableAmbientLights,
+          builder: (context, lightsEnabled, _) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                // 1. Base solid scaffold background color
+                Container(color: tokens.bg),
+
+                // 2. Custom Background Wallpaper (if active)
+                if (hasWallpaper) ...[
+                  Positioned.fill(
+                    child: _buildWallpaperImage(customBg),
+                  ),
+                  // Theme color tint layer blending over the photo
+                  Positioned.fill(
+                    child: Container(
+                      color: tokens.bg.withValues(
+                        alpha: customBg.themeTintOpacity,
                       ),
-                      // Theme color tint layer blending over the photo
-                      Positioned.fill(
-                        child: Container(
-                          color: palette.scaffoldBackgroundColor.withValues(
-                            alpha: customBg.themeTintOpacity,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                  ),
+                ],
 
-                    // 3. Moving Ambient Lights & Glows (GPU Canvas)
-                    if (lightsEnabled && (!hasWallpaper || customBg.blendThemeLights))
-                      Positioned.fill(
-                        // This painter animates for as long as the page is alive.
-                        // Without a boundary it shares a layer with everything in
-                        // the Stack below, so every one of its ~60 fps frames
-                        // invalidated the whole page subtree — lists, cards and
-                        // glass panels re-rasterized continuously. Isolating it
-                        // keeps the animation on its own layer.
-                        child: RepaintBoundary(
-                          child: AnimatedBuilder(
-                            animation: _controller,
-                            builder: (context, _) {
-                              final speed = HomePageSettings.ambientLightSpeed.value;
-                              final intensity = HomePageSettings.ambientLightIntensity.value;
-                              final pattern = HomePageSettings.ambientLightPattern.value;
-                              final t = (_controller.value * speed) % 1.0;
+                // 3. Moving Ambient Lights & Glows (GPU Canvas)
+                if (lightsEnabled && (!hasWallpaper || customBg.blendThemeLights))
+                  Positioned.fill(
+                    // This painter animates for as long as the page is alive.
+                    // Without a boundary it shares a layer with everything in
+                    // the Stack below, so every one of its ~60 fps frames
+                    // invalidated the whole page subtree — lists, cards and
+                    // glass panels re-rasterized continuously. Isolating it
+                    // keeps the animation on its own layer.
+                    child: RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        builder: (context, _) {
+                          final speed = HomePageSettings.ambientLightSpeed.value;
+                          final intensity = HomePageSettings.ambientLightIntensity.value;
+                          final pattern = HomePageSettings.ambientLightPattern.value;
+                          final t = (_controller.value * speed) % 1.0;
 
-                              return CustomPaint(
-                                isComplex: true,
-                                willChange: true,
-                                painter: _AmbientBackgroundPainter(
-                                  t: t,
-                                  palette: palette,
-                                  pattern: pattern,
-                                  intensity: intensity,
-                                  isOverlay: hasWallpaper,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                          return CustomPaint(
+                            isComplex: true,
+                            willChange: true,
+                            painter: _AmbientBackgroundPainter(
+                              t: t,
+                              tokens: tokens,
+                              pattern: pattern,
+                              intensity: intensity,
+                              isOverlay: hasWallpaper,
+                            ),
+                          );
+                        },
                       ),
+                    ),
+                  ),
 
-                    // 4. Foreground Content
-                    if (widget.child != null)
-                      Positioned.fill(
-                        // Keeps scrolling/paging inside the page from re-rasterizing
-                        // the animated layers above it, and vice versa.
-                        child: RepaintBoundary(child: widget.child!),
-                      ),
-                  ],
-                );
-              },
+                // 4. Foreground Content
+                if (widget.child != null)
+                  Positioned.fill(
+                    // Keeps scrolling/paging inside the page from re-rasterizing
+                    // the animated layers above it, and vice versa.
+                    child: RepaintBoundary(child: widget.child!),
+                  ),
+              ],
             );
           },
         );
@@ -182,14 +183,14 @@ class _AnimatedAmbientBackgroundState extends State<AnimatedAmbientBackground>
 
 class _AmbientBackgroundPainter extends CustomPainter {
   final double t;
-  final AppThemePalette palette;
+  final ZplayTokens tokens;
   final AmbientLightPattern pattern;
   final double intensity;
   final bool isOverlay;
 
   _AmbientBackgroundPainter({
     required this.t,
-    required this.palette,
+    required this.tokens,
     required this.pattern,
     required this.intensity,
     this.isOverlay = false,
@@ -201,31 +202,30 @@ class _AmbientBackgroundPainter extends CustomPainter {
 
     // If not acting as an overlay on top of a wallpaper, draw base deep background
     if (!isOverlay) {
-      final bgPaint = Paint()..color = palette.scaffoldBackgroundColor;
+      final bgPaint = Paint()..color = tokens.bg;
       canvas.drawRect(rect, bgPaint);
     }
 
     final angle = t * 2 * math.pi;
-    final primary = palette.primaryColor;
-    final accent = palette.accentColor;
+    final accent = tokens.accent;
 
     switch (pattern) {
       case AmbientLightPattern.dualOrbs:
-        _drawDualOrbs(canvas, size, angle, primary, accent);
+        _drawDualOrbs(canvas, size, angle, accent);
         break;
       case AmbientLightPattern.topAurora:
-        _drawTopAurora(canvas, size, angle, primary, accent);
+        _drawTopAurora(canvas, size, angle, accent);
         break;
       case AmbientLightPattern.fullMesh:
-        _drawFullMesh(canvas, size, angle, primary, accent);
+        _drawFullMesh(canvas, size, angle, accent);
         break;
       case AmbientLightPattern.centerPulse:
-        _drawCenterPulse(canvas, size, angle, primary, accent);
+        _drawCenterPulse(canvas, size, angle, accent);
         break;
     }
   }
 
-  void _drawDualOrbs(Canvas canvas, Size size, double angle, Color primary, Color accent) {
+  void _drawDualOrbs(Canvas canvas, Size size, double angle, Color accent) {
     // Orb 1 (Top-Left drifting diagonally)
     final cx1 = size.width * (0.22 + 0.12 * math.sin(angle));
     final cy1 = size.height * (0.18 + 0.10 * math.cos(angle * 0.8));
@@ -234,8 +234,8 @@ class _AmbientBackgroundPainter extends CustomPainter {
     final paint1 = Paint()
       ..shader = RadialGradient(
         colors: [
-          primary.withValues(alpha: intensity * 0.95),
-          primary.withValues(alpha: intensity * 0.40),
+          accent.withValues(alpha: intensity * 0.95),
+          accent.withValues(alpha: intensity * 0.40),
           Colors.transparent,
         ],
         stops: const [0.0, 0.45, 1.0],
@@ -261,7 +261,7 @@ class _AmbientBackgroundPainter extends CustomPainter {
     canvas.drawCircle(Offset(cx2, cy2), r2, paint2);
   }
 
-  void _drawTopAurora(Canvas canvas, Size size, double angle, Color primary, Color accent) {
+  void _drawTopAurora(Canvas canvas, Size size, double angle, Color accent) {
     final wave1 = math.sin(angle) * 0.15;
     final wave2 = math.cos(angle * 1.3) * 0.12;
 
@@ -271,7 +271,7 @@ class _AmbientBackgroundPainter extends CustomPainter {
     final p1 = Paint()
       ..shader = RadialGradient(
         colors: [
-          primary.withValues(alpha: intensity * 1.1),
+          accent.withValues(alpha: intensity * 1.1),
           accent.withValues(alpha: intensity * 0.45),
           Colors.transparent,
         ],
@@ -287,7 +287,7 @@ class _AmbientBackgroundPainter extends CustomPainter {
       ..shader = RadialGradient(
         colors: [
           accent.withValues(alpha: intensity * 0.90),
-          primary.withValues(alpha: intensity * 0.30),
+          accent.withValues(alpha: intensity * 0.30),
           Colors.transparent,
         ],
         stops: const [0.0, 0.50, 1.0],
@@ -296,7 +296,7 @@ class _AmbientBackgroundPainter extends CustomPainter {
     canvas.drawCircle(c2, r2, p2);
   }
 
-  void _drawFullMesh(Canvas canvas, Size size, double angle, Color primary, Color accent) {
+  void _drawFullMesh(Canvas canvas, Size size, double angle, Color accent) {
     final cx = size.width * 0.5;
     final cy = size.height * 0.45;
     final r = math.max(size.width, size.height) * 0.70;
@@ -305,9 +305,9 @@ class _AmbientBackgroundPainter extends CustomPainter {
       ..shader = RadialGradient(
         center: Alignment(math.sin(angle) * 0.3, math.cos(angle * 0.7) * 0.25),
         colors: [
-          primary.withValues(alpha: intensity * 0.85),
+          accent.withValues(alpha: intensity * 0.85),
           accent.withValues(alpha: intensity * 0.40),
-          palette.scaffoldBackgroundColor.withValues(alpha: 0.0),
+          Colors.transparent,
         ],
         stops: const [0.0, 0.40, 1.0],
       ).createShader(Rect.fromCircle(center: Offset(cx, cy), radius: r));
@@ -315,7 +315,7 @@ class _AmbientBackgroundPainter extends CustomPainter {
     canvas.drawRect(Offset.zero & size, p1);
   }
 
-  void _drawCenterPulse(Canvas canvas, Size size, double angle, Color primary, Color accent) {
+  void _drawCenterPulse(Canvas canvas, Size size, double angle, Color accent) {
     final pulse = 0.85 + 0.15 * math.sin(angle);
     final cx = size.width * 0.5;
     final cy = size.height * 0.38;
@@ -324,7 +324,7 @@ class _AmbientBackgroundPainter extends CustomPainter {
     final p = Paint()
       ..shader = RadialGradient(
         colors: [
-          primary.withValues(alpha: intensity * 1.25),
+          accent.withValues(alpha: intensity * 1.25),
           accent.withValues(alpha: intensity * 0.50),
           Colors.transparent,
         ],
@@ -337,7 +337,7 @@ class _AmbientBackgroundPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _AmbientBackgroundPainter oldDelegate) {
     return oldDelegate.t != t ||
-        oldDelegate.palette != palette ||
+        oldDelegate.tokens != tokens ||
         oldDelegate.pattern != pattern ||
         oldDelegate.intensity != intensity ||
         oldDelegate.isOverlay != isOverlay;

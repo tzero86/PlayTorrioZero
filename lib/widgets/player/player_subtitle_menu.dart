@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:zplay/models/subtitle/subtitle_model.dart';
 import 'package:zplay/services/subtitles/subtitle_service.dart';
+import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 import '../common/focusable_card.dart';
 
@@ -240,6 +242,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
     final headerPaddingV = (isLandscapeMobile || isCompact) ? 8.0 : 12.0;
     final buttonSize = (isLandscapeMobile || isCompact) ? 30.0 : 34.0;
     final iconSize = (isLandscapeMobile || isCompact) ? 15.0 : 17.0;
+    final tokens = context.tokens;
 
     return PlayerGlassCard(
       width: cardWidth,
@@ -250,9 +253,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
           // 1. Header Bar
           Container(
             padding: EdgeInsets.symmetric(horizontal: 14, vertical: headerPaddingV),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: PlayerTheme.edgeSoft)),
-            ),
+            decoration: BoxDecoration(border: Border(bottom: tokens.hairline)),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -261,29 +262,25 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'Subtitles',
-                        style: TextStyle(
-                          color: PlayerTheme.ink,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: ZplayType.subtitle
+                            .copyWith(size: 14.5, weight: FontWeight.w700)
+                            .toStyle(color: PlayerTheme.ink),
                       ),
                       if (totalVariantsCount > 0) ...[
-                        const SizedBox(width: 8),
+                        const SizedBox(width: ZplaySpacing.s8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: PlayerTheme.raised,
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius: ZplayRadius.fullAll,
                           ),
                           child: Text(
                             '$totalVariantsCount',
-                            style: const TextStyle(
-                              color: PlayerTheme.inkSubtle,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: ZplayType.overline
+                                .copyWith(size: 10.5, weight: FontWeight.w700)
+                                .toStyle(color: PlayerTheme.inkSubtle),
                           ),
                         ),
                       ],
@@ -355,7 +352,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                           widget.onOpenTextSync();
                         },
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                     ],
 
                     // Close Button
@@ -415,11 +412,12 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
   }
 
   Widget _buildHorizontalLanguageBar(bool isOff, int totalVariantsCount) {
+    final tokens = AppThemeService.currentTokens;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: const BoxDecoration(
-        color: Color(0x20000000),
-        border: Border(bottom: BorderSide(color: PlayerTheme.edgeSoft)),
+      decoration: BoxDecoration(
+        color: tokens.bg.withValues(alpha: 0.125),
+        border: Border(bottom: tokens.hairline),
       ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -433,7 +431,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
               icon: Icon(
                 Icons.block_rounded,
                 size: 13,
-                color: isOff ? Colors.white : PlayerTheme.inkSubtle,
+                color: isOff ? tokens.textPrimary : PlayerTheme.inkSubtle,
               ),
               onTap: () {
                 widget.onToggleOff();
@@ -494,16 +492,17 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
+    final tokens = AppThemeService.currentTokens;
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: ZplayRadius.lgAll,
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
             color: isSelected ? PlayerTheme.accent.withValues(alpha: 0.35) : PlayerTheme.raised,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: ZplayRadius.lgAll,
             border: Border.all(
               color: isSelected ? PlayerTheme.accent : PlayerTheme.edgeSoft,
               width: 1,
@@ -516,16 +515,19 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                 icon,
                 const SizedBox(width: 5),
               ] else if (emoji != null) ...[
-                Text(emoji, style: const TextStyle(fontSize: 11)),
+                Text(emoji, style: ZplayType.caption.toStyle()),
                 const SizedBox(width: 5),
               ],
               Text(
                 label,
-                style: TextStyle(
-                  color: isSelected ? PlayerTheme.ink : PlayerTheme.inkMuted,
-                  fontSize: 11.5,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                ),
+                style: ZplayType.caption
+                    .copyWith(
+                      size: 11.5,
+                      weight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    )
+                    .toStyle(
+                      color: isSelected ? PlayerTheme.ink : PlayerTheme.inkMuted,
+                    ),
               ),
               if (count != null) ...[
                 const SizedBox(width: 5),
@@ -533,15 +535,15 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
                     color: isSelected ? PlayerTheme.accent : PlayerTheme.surfaceHover,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: ZplayRadius.fullAll,
                   ),
                   child: Text(
                     '$count',
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : PlayerTheme.inkSubtle,
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: ZplayType.overline
+                        .copyWith(size: 9.5, weight: FontWeight.w700)
+                        .toStyle(
+                          color: isSelected ? tokens.onAccent : PlayerTheme.inkSubtle,
+                        ),
                   ),
                 ),
               ],
@@ -564,6 +566,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
     bool isLandscapeMobile,
   ) {
     final sidebarWidth = isLandscapeMobile ? 138.0 : 155.0;
+    final tokens = AppThemeService.currentTokens;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -571,9 +574,9 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
         // Left Language Sidebar
         Container(
           width: sidebarWidth,
-          decoration: const BoxDecoration(
-            color: Color(0x22000000),
-            border: Border(right: BorderSide(color: PlayerTheme.edgeSoft)),
+          decoration: BoxDecoration(
+            color: tokens.bg.withValues(alpha: 0.133),
+            border: Border(right: tokens.hairline),
           ),
           child: ListView(
             padding: const EdgeInsets.all(7),
@@ -583,7 +586,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: ZplayRadius.smAll,
                   onTap: () {
                     widget.onToggleOff();
                     widget.onClose();
@@ -592,7 +595,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
                     decoration: BoxDecoration(
                       color: isOff ? PlayerTheme.raised : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
                         color: isOff ? PlayerTheme.edge : Colors.transparent,
                         width: 1,
@@ -609,17 +612,19 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                           ),
                           alignment: Alignment.center,
                           child: isOff
-                              ? const Icon(Icons.check_rounded, size: 9.5, color: Colors.white)
+                              ? Icon(
+                                  Icons.check_rounded,
+                                  size: 9.5,
+                                  color: tokens.onAccent,
+                                )
                               : null,
                         ),
                         const SizedBox(width: 7),
-                        const Text(
+                        Text(
                           'Off',
-                          style: TextStyle(
-                            color: PlayerTheme.inkMuted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: ZplayType.bodySmall
+                              .copyWith(size: 12, weight: FontWeight.w600)
+                              .toStyle(color: PlayerTheme.inkMuted),
                         ),
                       ],
                     ),
@@ -629,29 +634,30 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
 
               // Embedded Subtitles Category
               if (widget.embeddedSubtitles.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(left: 8, top: 10, bottom: 4),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: ZplaySpacing.s8,
+                    top: 10,
+                    bottom: ZplaySpacing.s4,
+                  ),
                   child: Text(
                     'EMBEDDED',
-                    style: TextStyle(
-                      color: PlayerTheme.inkSubtle,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
+                    style: ZplayType.overline
+                        .copyWith(size: 9, weight: FontWeight.w700)
+                        .toStyle(color: PlayerTheme.inkSubtle),
                   ),
                 ),
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: ZplayRadius.smAll,
                     onTap: () => setState(() => _selectedLanguage = '__embedded__'),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
                       margin: const EdgeInsets.only(bottom: 2),
                       decoration: BoxDecoration(
                         color: _selectedLanguage == '__embedded__' ? PlayerTheme.raised : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: ZplayRadius.smAll,
                         border: Border.all(
                           color: _selectedLanguage == '__embedded__' ? PlayerTheme.edge : Colors.transparent,
                           width: 1,
@@ -659,16 +665,14 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                       ),
                       child: Row(
                         children: [
-                          const Text('⚡', style: TextStyle(fontSize: 11.5)),
+                          Text('⚡', style: ZplayType.caption.toStyle()),
                           const SizedBox(width: 7),
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'Embedded',
-                              style: TextStyle(
-                                color: PlayerTheme.ink,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: ZplayType.caption
+                                  .copyWith(size: 11.5, weight: FontWeight.w600)
+                                  .toStyle(color: PlayerTheme.ink),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -677,15 +681,13 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                             decoration: BoxDecoration(
                               color: PlayerTheme.accent.withValues(alpha: 0.35),
-                              borderRadius: BorderRadius.circular(999),
+                              borderRadius: ZplayRadius.fullAll,
                             ),
                             child: Text(
                               '${widget.embeddedSubtitles.length}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: ZplayType.overline
+                                  .copyWith(size: 9, weight: FontWeight.w700)
+                                  .toStyle(color: tokens.onAccent),
                             ),
                           ),
                         ],
@@ -696,16 +698,17 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
               ],
 
               if (_dynamicGroups.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.only(left: 8, top: 10, bottom: 4),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    left: ZplaySpacing.s8,
+                    top: 10,
+                    bottom: ZplaySpacing.s4,
+                  ),
                   child: Text(
                     'LANGUAGES',
-                    style: TextStyle(
-                      color: PlayerTheme.inkSubtle,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
+                    style: ZplayType.overline
+                        .copyWith(size: 9, weight: FontWeight.w700)
+                        .toStyle(color: PlayerTheme.inkSubtle),
                   ),
                 ),
 
@@ -713,14 +716,14 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: ZplayRadius.smAll,
                     onTap: () => setState(() => _selectedLanguage = '__all__'),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
                       margin: const EdgeInsets.only(bottom: 2),
                       decoration: BoxDecoration(
                         color: _selectedLanguage == '__all__' ? PlayerTheme.raised : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: ZplayRadius.smAll,
                         border: Border.all(
                           color: _selectedLanguage == '__all__' ? PlayerTheme.edge : Colors.transparent,
                           width: 1,
@@ -728,26 +731,23 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                       ),
                       child: Row(
                         children: [
-                          const Text('🌐', style: TextStyle(fontSize: 11.5)),
+                          Text('🌐', style: ZplayType.caption.toStyle()),
                           const SizedBox(width: 7),
-                          const Expanded(
+                          Expanded(
                             child: Text(
                               'All Languages',
-                              style: TextStyle(
-                                color: PlayerTheme.inkMuted,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: ZplayType.caption
+                                  .copyWith(size: 11.5)
+                                  .toStyle(color: PlayerTheme.inkMuted),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Text(
                             '$totalVariantsCount',
-                            style: const TextStyle(
-                              color: PlayerTheme.inkSubtle,
-                              fontSize: 9.5,
-                            ),
+                            style: ZplayType.overline
+                                .copyWith(size: 9.5)
+                                .toStyle(color: PlayerTheme.inkSubtle),
                           ),
                         ],
                       ),
@@ -761,14 +761,14 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                   return Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ZplayRadius.smAll,
                       onTap: () => setState(() => _selectedLanguage = g.language),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6.5),
                         margin: const EdgeInsets.only(bottom: 2),
                         decoration: BoxDecoration(
                           color: isSelected ? PlayerTheme.raised : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: ZplayRadius.smAll,
                           border: Border.all(
                             color: isSelected ? PlayerTheme.edge : Colors.transparent,
                             width: 1,
@@ -776,26 +776,35 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                         ),
                         child: Row(
                           children: [
-                            Text(_getLanguageEmoji(g.language), style: const TextStyle(fontSize: 11.5)),
+                            Text(
+                              _getLanguageEmoji(g.language),
+                              style: ZplayType.caption.toStyle(),
+                            ),
                             const SizedBox(width: 7),
                             Expanded(
                               child: Text(
                                 g.language,
-                                style: TextStyle(
-                                  color: isSelected ? PlayerTheme.ink : PlayerTheme.inkMuted,
-                                  fontSize: 11.5,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                ),
+                                style: ZplayType.caption
+                                    .copyWith(
+                                      size: 11.5,
+                                      weight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                    )
+                                    .toStyle(
+                                      color: isSelected
+                                          ? PlayerTheme.ink
+                                          : PlayerTheme.inkMuted,
+                                    ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             Text(
                               '${g.variants.length}',
-                              style: const TextStyle(
-                                color: PlayerTheme.inkSubtle,
-                                fontSize: 9.5,
-                              ),
+                              style: ZplayType.overline
+                                  .copyWith(size: 9.5)
+                                  .toStyle(color: PlayerTheme.inkSubtle),
                             ),
                           ],
                         ),
@@ -829,11 +838,10 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildFilterToolbar({required bool compact}) {
+    final tokens = AppThemeService.currentTokens;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10, vertical: compact ? 6 : 7),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: PlayerTheme.edgeSoft)),
-      ),
+      decoration: BoxDecoration(border: Border(bottom: tokens.hairline)),
       child: Row(
         children: [
           PlayerToggleChip(
@@ -860,14 +868,12 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
               builder: (context, _) => Row(
                 children: [
                   Icon(Icons.search_rounded, size: 13, color: PlayerTheme.accent),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: ZplaySpacing.s4),
                   Text(
                     'Search Online',
-                    style: TextStyle(
-                      color: PlayerTheme.accent,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: ZplayType.caption
+                        .copyWith(weight: FontWeight.w600)
+                        .toStyle(color: PlayerTheme.accent),
                   ),
                 ],
               ),
@@ -887,23 +893,24 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
       physics: const BouncingScrollPhysics(),
       itemCount: widget.embeddedSubtitles.length,
       itemBuilder: (context, i) {
+        final tokens = context.tokens;
         final track = widget.embeddedSubtitles[i];
         final isSelected = widget.isSubtitleEnabled && widget.selectedEmbeddedIndex == track.index;
 
         return Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: ZplayRadius.smAll,
             onTap: () {
               widget.onSelectEmbedded(track);
               widget.onClose();
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              margin: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
+              margin: const EdgeInsets.only(bottom: ZplaySpacing.s4),
               decoration: BoxDecoration(
                 color: isSelected ? PlayerTheme.raised : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(
                   color: isSelected ? PlayerTheme.edge : Colors.transparent,
                   width: 1,
@@ -920,7 +927,11 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                     ),
                     alignment: Alignment.center,
                     child: isSelected
-                        ? const Icon(Icons.check_rounded, size: 10.5, color: Colors.white)
+                        ? Icon(
+                            Icons.check_rounded,
+                            size: 10.5,
+                            color: tokens.onAccent,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 9),
@@ -933,18 +944,24 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                             if (track.language != null && track.language!.isNotEmpty) ...[
                               Text(
                                 _getLanguageEmoji(track.language!),
-                                style: const TextStyle(fontSize: 12),
+                                style: ZplayType.bodySmall.toStyle(),
                               ),
                               const SizedBox(width: 6),
                             ],
                             Expanded(
                               child: Text(
                                 track.title,
-                                style: TextStyle(
-                                  color: isSelected ? PlayerTheme.ink : PlayerTheme.inkMuted,
-                                  fontSize: 12,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                ),
+                                style: ZplayType.bodySmall
+                                    .copyWith(
+                                      weight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                    )
+                                    .toStyle(
+                                      color: isSelected
+                                          ? PlayerTheme.ink
+                                          : PlayerTheme.inkMuted,
+                                    ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -958,45 +975,39 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                               decoration: BoxDecoration(
                                 color: PlayerTheme.accent.withValues(alpha: 0.18),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
                               child: Text(
                                 'EMBEDDED',
-                                style: TextStyle(
-                                  color: PlayerTheme.accent,
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: ZplayType.overline
+                                    .copyWith(size: 8.5, weight: FontWeight.w700)
+                                    .toStyle(color: PlayerTheme.accent),
                               ),
                             ),
                             if (track.language != null && track.language!.isNotEmpty) ...[
                               const SizedBox(width: 5),
                               Text(
                                 track.language!.toUpperCase(),
-                                style: const TextStyle(
-                                  color: PlayerTheme.inkSubtle,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: ZplayType.overline
+                                    .copyWith(size: 9)
+                                    .toStyle(color: PlayerTheme.inkSubtle),
                               ),
                             ],
                             if (track.codec != null && track.codec!.isNotEmpty) ...[
                               const SizedBox(width: 5),
                               Text(
                                 track.codec!.toUpperCase(),
-                                style: const TextStyle(
-                                  color: PlayerTheme.inkSubtle,
-                                  fontSize: 9,
-                                ),
+                                style: ZplayType.overline
+                                    .copyWith(size: 9, weight: FontWeight.w400)
+                                    .toStyle(color: PlayerTheme.inkSubtle),
                               ),
                             ],
                             const SizedBox(width: 5),
                             Text(
                               '#${track.index + 1}',
-                              style: const TextStyle(
-                                color: PlayerTheme.inkDisabled,
-                                fontSize: 9,
-                              ),
+                              style: ZplayType.overline
+                                  .copyWith(size: 9, weight: FontWeight.w400)
+                                  .toStyle(color: PlayerTheme.inkDisabled),
                             ),
                           ],
                         ),
@@ -1017,6 +1028,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildVariantList(List<SubtitleVariant> filteredVariants, {required bool compact}) {
+    final tokens = AppThemeService.currentTokens;
     if (_isLoadingSearch && filteredVariants.isEmpty) {
       return Center(
         child: Column(
@@ -1027,9 +1039,9 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
               strokeWidth: 2.5,
             ),
             const SizedBox(height: 10),
-            const Text(
+            Text(
               'Searching subtitles...',
-              style: TextStyle(color: PlayerTheme.inkMuted, fontSize: 12),
+              style: ZplayType.bodySmall.toStyle(color: PlayerTheme.inkMuted),
             ),
           ],
         ),
@@ -1039,35 +1051,40 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
     if (filteredVariants.isEmpty) {
       return Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(ZplaySpacing.s16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.subtitles_off_rounded,
                 size: 30,
                 color: PlayerTheme.inkSubtle,
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: ZplaySpacing.s8),
+              Text(
                 'No subtitles available.',
-                style: TextStyle(
-                  color: PlayerTheme.inkMuted,
-                  fontSize: 12.5,
-                ),
+                style: ZplayType.bodySmall
+                    .copyWith(size: 12.5)
+                    .toStyle(color: PlayerTheme.inkMuted),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: ZplaySpacing.s12),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: PlayerTheme.accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                  foregroundColor: tokens.onAccent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: ZplaySpacing.s8,
+                  ),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: ZplayRadius.smAll,
                   ),
                 ),
                 icon: const Icon(Icons.search_rounded, size: 15),
-                label: const Text('Search Online Providers', style: TextStyle(fontSize: 11.5)),
+                label: Text(
+                  'Search Online Providers',
+                  style: ZplayType.caption.copyWith(size: 11.5).toStyle(),
+                ),
                 onPressed: _searchOnline,
               ),
             ],
@@ -1090,7 +1107,7 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
               color: PlayerTheme.accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: ZplayRadius.smAll,
               border: Border.all(color: PlayerTheme.accent.withValues(alpha: 0.3)),
             ),
             child: Row(
@@ -1100,10 +1117,10 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                   height: 12,
                   child: CircularProgressIndicator(strokeWidth: 2, color: PlayerTheme.accent),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: ZplaySpacing.s8),
                 Text(
                   'Searching additional subtitles online...',
-                  style: TextStyle(color: PlayerTheme.accent, fontSize: 11, fontWeight: FontWeight.w500),
+                  style: ZplayType.caption.toStyle(color: PlayerTheme.accent),
                 ),
               ],
             ),
@@ -1120,17 +1137,17 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
         return Material(
           color: Colors.transparent,
           child: InkWell(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: ZplayRadius.smAll,
             onTap: () {
               widget.onSelectVariant(variant);
               widget.onClose();
             },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7.5),
-              margin: const EdgeInsets.only(bottom: 4),
+              margin: const EdgeInsets.only(bottom: ZplaySpacing.s4),
               decoration: BoxDecoration(
                 color: isSelected ? PlayerTheme.raised : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(
                   color: isSelected ? PlayerTheme.edge : Colors.transparent,
                   width: 1,
@@ -1148,7 +1165,11 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                     ),
                     alignment: Alignment.center,
                     child: isSelected
-                        ? const Icon(Icons.check_rounded, size: 10.5, color: Colors.white)
+                        ? Icon(
+                            Icons.check_rounded,
+                            size: 10.5,
+                            color: tokens.onAccent,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 9),
@@ -1161,18 +1182,24 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                             if (variant.language.isNotEmpty) ...[
                               Text(
                                 _getLanguageEmoji(variant.language),
-                                style: const TextStyle(fontSize: 12),
+                                style: ZplayType.bodySmall.toStyle(),
                               ),
                               const SizedBox(width: 5),
                             ],
                             Expanded(
                               child: Text(
                                 variant.title,
-                                style: TextStyle(
-                                  color: isSelected ? PlayerTheme.ink : PlayerTheme.inkMuted,
-                                  fontSize: 12,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                ),
+                                style: ZplayType.bodySmall
+                                    .copyWith(
+                                      weight: isSelected
+                                          ? FontWeight.w600
+                                          : FontWeight.w500,
+                                    )
+                                    .toStyle(
+                                      color: isSelected
+                                          ? PlayerTheme.ink
+                                          : PlayerTheme.inkMuted,
+                                    ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1189,62 +1216,55 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                               decoration: BoxDecoration(
                                 color: PlayerTheme.raised,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
                               child: Text(
                                 variant.providerName.toUpperCase(),
-                                style: const TextStyle(
-                                  color: PlayerTheme.inkSubtle,
-                                  fontSize: 8.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: ZplayType.overline
+                                    .copyWith(size: 8.5, weight: FontWeight.w700)
+                                    .toStyle(color: PlayerTheme.inkSubtle),
                               ),
                             ),
                             if (variant.format.isNotEmpty)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s4, vertical: 1),
                                 decoration: BoxDecoration(
-                                  color: const Color(0x15FFFFFF),
-                                  borderRadius: BorderRadius.circular(3),
+                                  color: tokens.borderDefault,
+                                  borderRadius: ZplayRadius.xsAll,
                                 ),
                                 child: Text(
                                   variant.format.toUpperCase(),
-                                  style: const TextStyle(
-                                    color: PlayerTheme.inkSubtle,
-                                    fontSize: 8.5,
-                                  ),
+                                  style: ZplayType.overline
+                                      .copyWith(size: 8.5, weight: FontWeight.w400)
+                                      .toStyle(color: PlayerTheme.inkSubtle),
                                 ),
                               ),
                             if (isHI)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s4, vertical: 1),
                                 decoration: BoxDecoration(
-                                  color: const Color(0x2210B981),
-                                  borderRadius: BorderRadius.circular(3),
+                                  color: tokens.success.withValues(alpha: 0.133),
+                                  borderRadius: ZplayRadius.xsAll,
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'HI / CC',
-                                  style: TextStyle(
-                                    color: Color(0xFF10B981),
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                  style: ZplayType.overline
+                                      .copyWith(size: 8.5, weight: FontWeight.w700)
+                                      .toStyle(color: tokens.success),
                                 ),
                               ),
                             if (isForced)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s4, vertical: 1),
                                 decoration: BoxDecoration(
-                                  color: const Color(0x22F59E0B),
-                                  borderRadius: BorderRadius.circular(3),
+                                  color: tokens.warning.withValues(alpha: 0.133),
+                                  borderRadius: ZplayRadius.xsAll,
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'FORCED',
-                                  style: TextStyle(
-                                    color: Color(0xFFF59E0B),
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                                  style: ZplayType.overline
+                                      .copyWith(size: 8.5, weight: FontWeight.w700)
+                                      .toStyle(color: tokens.warning),
                                 ),
                               ),
                           ],
@@ -1266,11 +1286,13 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildBottomSearchBar({required bool compact}) {
+    final tokens = AppThemeService.currentTokens;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: PlayerTheme.edgeSoft)),
+      padding: const EdgeInsets.symmetric(
+        horizontal: ZplaySpacing.s12,
+        vertical: 7,
       ),
+      decoration: BoxDecoration(border: Border(top: tokens.hairline)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -1281,13 +1303,11 @@ class _PlayerSubtitleMenuState extends State<PlayerSubtitleMenu> {
                 children: [
                   Icon(Icons.search_rounded, size: 13, color: PlayerTheme.accent),
                   const SizedBox(width: 5),
-                  const Text(
+                  Text(
                     'Find more subtitles',
-                    style: TextStyle(
-                      color: PlayerTheme.inkMuted,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: ZplayType.caption
+                        .copyWith(size: 11.5, weight: FontWeight.w600)
+                        .toStyle(color: PlayerTheme.inkMuted),
                   ),
                 ],
               );

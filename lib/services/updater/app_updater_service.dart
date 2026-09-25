@@ -302,7 +302,11 @@ class UpdateInfo {
   final String currentVersion;
   final String latestVersion;
   final String downloadUrl;
+
+  /// The release body exactly as published on GitHub: Markdown, and for older
+  /// releases the licence block and GitHub's generated commit list as well.
   final String releaseNotes;
+
   final DateTime publishedAt;
   final bool isMacOS;
   final bool isIOS;
@@ -316,4 +320,84 @@ class UpdateInfo {
     required this.isMacOS,
     this.isIOS = false,
   });
+
+  /// Ends the changelog in a release body. `.github/workflows/build.yml` writes
+  /// it as an HTML comment; only the inner text is matched so the comment syntax
+  /// can change without the app losing its cut-off point.
+  static const String _changelogEndMarker = 'zplay:changelog-end';
+
+  /// Opens the licence block that build.yml appends below the changelog, and
+  /// that release bodies published before the marker existed led with.
+  static const String _forkTrailerMarker = 'is a modified fork of PlayTorrio V3';
+
+  /// `**Full Changelog**: https://…` — the commit-diff line GitHub appends to
+  /// generated notes, which is a link and not a changelog entry.
+  static final RegExp _fullChangelogLine = RegExp(
+    r'^\s*\**full changelog\**\s*:',
+    caseSensitive: false,
+  );
+
+  static final RegExp _htmlComment = RegExp(r'<!--[\s\S]*?-->');
+  static final RegExp _headingMarker = RegExp(r'^\s*#{1,6}\s+');
+  static final RegExp _bulletMarker = RegExp(r'^(\s*)[-*]\s+');
+  static final RegExp _boldAsterisk = RegExp(r'\*\*(.+?)\*\*');
+  static final RegExp _boldUnderscore = RegExp(r'__(.+?)__');
+
+  /// [releaseNotes] shaped for a plain `Text`: only the changelog section, with
+  /// the Markdown a `Text` would print literally removed.
+  String get releaseNotesForDisplay {
+    final stripped = _stripMarkdown(_changelogSection(releaseNotes));
+    // A body that was nothing but markers and licence text is still better shown
+    // raw than as an empty box.
+    return stripped.isEmpty ? releaseNotes.trim() : stripped;
+  }
+
+  /// Everything above the changelog end marker, or — for releases published
+  /// before the marker existed — everything above the licence block, minus the
+  /// generated commit list's trailing `Full Changelog` link.
+  static String _changelogSection(String body) {
+    final lines = body.replaceAll('\r\n', '\n').split('\n');
+
+    final markerIndex = lines.indexWhere(
+      (line) => line.contains(_changelogEndMarker),
+    );
+    if (markerIndex != -1) return lines.take(markerIndex).join('\n');
+
+    final forkIndex = lines.indexWhere(
+      (line) => line.contains(_forkTrailerMarker),
+    );
+    final section = forkIndex == -1 ? lines : lines.sublist(0, forkIndex);
+
+    var end = section.length;
+    while (end > 0) {
+      final line = section[end - 1].trim();
+      if (line.isEmpty || _fullChangelogLine.hasMatch(line)) {
+        end--;
+      } else {
+        break;
+      }
+    }
+    return section.take(end).join('\n');
+  }
+
+  /// Drops the Markdown a `Text` widget cannot interpret. Bullets become `•`
+  /// so a list still reads as a list once the markers are gone.
+  static String _stripMarkdown(String text) {
+    final withoutComments = text.replaceAll(_htmlComment, '');
+    final unmarked = withoutComments
+        .split('\n')
+        .map(
+          (line) => line
+              .replaceFirst(_headingMarker, '')
+              .replaceFirstMapped(_bulletMarker, (match) => '${match[1]}• '),
+        )
+        .join('\n');
+
+    return unmarked
+        .replaceAllMapped(_boldAsterisk, (match) => match[1]!)
+        .replaceAllMapped(_boldUnderscore, (match) => match[1]!)
+        .replaceAll('`', '')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n')
+        .trim();
+  }
 }

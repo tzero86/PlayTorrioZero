@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/iptv/iptv_models.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_controller.dart';
 import '../../utils/navigation/route_transitions.dart';
@@ -88,7 +88,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
         SnackBar(
           content: Text('Removed $count stream feed${count == 1 ? "" : "s"}'),
           duration: const Duration(seconds: 2),
-          backgroundColor: const Color(0xFF1E2235),
+          backgroundColor: context.tokens.surfaceOverlay,
         ),
       );
     }
@@ -96,9 +96,11 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final ch = widget.channel;
-    final primaryColor = ch.gradient.isNotEmpty ? ch.gradient.first : AppThemeService.currentPalette.value.primaryColor;
-    final secondaryColor = ch.gradient.length > 1 ? ch.gradient.last : const Color(0xFF00D2EF);
+    final primaryColor = ch.gradient.isNotEmpty ? ch.gradient.first : tokens.accent;
+    // Second stop of a channel's data-driven gradient; falls back to the info hue.
+    final secondaryColor = ch.gradient.length > 1 ? ch.gradient.last : tokens.info;
 
     return AnimatedBuilder(
       animation: _ctrl,
@@ -123,9 +125,9 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
             maxHeight: MediaQuery.sizeOf(context).height * 0.82,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFF0C0E15),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            color: tokens.surface,
+            borderRadius: ZplayRadius.sheetTop,
+            border: Border.all(color: tokens.borderStrong),
             boxShadow: const [
               BoxShadow(
                 color: Colors.black87,
@@ -141,12 +143,15 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
               // Drag Handle
               Center(
                 child: Container(
-                  margin: const EdgeInsets.only(top: 12, bottom: 8),
+                  margin: const EdgeInsets.only(
+                    top: ZplaySpacing.s12,
+                    bottom: ZplaySpacing.s8,
+                  ),
                   width: 44,
                   height: 4.5,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(3),
+                    color: tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
+                    borderRadius: ZplayRadius.xsAll,
                   ),
                 ),
               ),
@@ -161,7 +166,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: ZplayRadius.mdAll,
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
@@ -177,11 +182,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                       child: Center(
                         child: Text(
                           ch.short,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                          ),
+                          style: ZplayType.title.toStyle(color: tokens.textPrimary),
                         ),
                       ),
                     ),
@@ -198,38 +199,25 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFFF3B30),
-                                  borderRadius: BorderRadius.circular(4),
+                                  color: tokens.danger,
+                                  borderRadius: ZplayRadius.xsAll,
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'LIVE',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                  style: ZplayType.overline.toStyle(color: tokens.textPrimary),
                                 ),
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 ch.category,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                               ),
                             ],
                           ),
                           const SizedBox(height: 3),
                           Text(
                             ch.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.3,
-                            ),
+                            style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
                           ),
                         ],
                       ),
@@ -240,7 +228,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                       IconButton(
                         icon: Icon(
                           _isSelecting ? Icons.edit_off_rounded : Icons.edit_rounded,
-                          color: _isSelecting ? const Color(0xFF00D2EF) : Colors.white70,
+                          color: _isSelecting ? tokens.info : tokens.textEmphasis,
                           size: 22,
                         ),
                         tooltip: _isSelecting ? 'Cancel Selection' : 'Manage / Delete Channels',
@@ -254,7 +242,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
 
                     // Close Button
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white54),
+                      icon: Icon(Icons.close_rounded, color: tokens.textMuted),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -268,35 +256,30 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                   child: Container(
                     height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(12),
+                      color: tokens.borderSubtle,
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
                         color: _searchQuery.isNotEmpty
-                            ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
-                            : Colors.white.withValues(alpha: 0.1),
+                            ? tokens.accent.withValues(alpha: 0.6)
+                            : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
                         width: 1,
                       ),
                     ),
                     child: TextField(
                       controller: _searchController,
-                      style: const TextStyle(color: Colors.white, fontSize: 13.5),
-                      cursorColor: AppThemeService.currentPalette.value.primaryColor,
+                      style: ZplayType.label.toStyle(color: tokens.textPrimary),
+                      cursorColor: tokens.accent,
                       decoration: InputDecoration(
                         hintText: 'Search ${results.length} channels (e.g. 1080p, 4K, feed name)...',
-                        hintStyle: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          fontSize: 13,
-                        ),
+                        hintStyle: ZplayType.label.toStyle(color: tokens.textMuted),
                         prefixIcon: Icon(
                           Icons.search_rounded,
-                          color: _searchQuery.isNotEmpty
-                              ? AppThemeService.currentPalette.value.primaryColor
-                              : Colors.white.withValues(alpha: 0.4),
+                          color: _searchQuery.isNotEmpty ? tokens.accent : tokens.textMuted,
                           size: 20,
                         ),
                         suffixIcon: _searchQuery.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 18),
+                                icon: Icon(Icons.close_rounded, color: tokens.textEmphasis, size: 18),
                                 onPressed: () {
                                   _searchController.clear();
                                   setState(() => _searchQuery = '');
@@ -319,16 +302,16 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                   margin: const EdgeInsets.fromLTRB(22, 0, 22, 10),
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)),
+                    color: tokens.accent.withValues(alpha: 0.12),
+                    borderRadius: ZplayRadius.smAll,
+                    border: Border.all(color: tokens.accent.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
                       // Select All / Deselect All
                       TextButton.icon(
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
+                          foregroundColor: tokens.textPrimary,
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -336,11 +319,11 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                         icon: Icon(
                           allSelected ? Icons.deselect_rounded : Icons.select_all_rounded,
                           size: 18,
-                          color: const Color(0xFF00D2EF),
+                          color: tokens.info,
                         ),
                         label: Text(
                           allSelected ? 'Deselect All' : 'Select All',
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                          style: ZplayType.label.toStyle(),
                         ),
                         onPressed: () {
                           setState(() {
@@ -356,28 +339,24 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                       const SizedBox(width: 8),
                       Text(
                         '(${_selectedUrls.length}/${results.length})',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: ZplayType.caption.toStyle(color: tokens.textEmphasis),
                       ),
                       const Spacer(),
                       // Delete Selected
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
+                          backgroundColor: tokens.danger,
+                          foregroundColor: tokens.onAccent,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: 7),
+                          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         icon: const Icon(Icons.delete_rounded, size: 15),
                         label: Text(
                           'Delete (${_selectedUrls.length})',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: ZplayType.caption.toStyle(),
                         ),
                         onPressed: _selectedUrls.isEmpty ? null : _deleteSelectedStreams,
                       ),
@@ -391,9 +370,9 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                    borderRadius: ZplayRadius.smAll,
+                    border: Border.all(color: tokens.borderDefault),
                   ),
                   child: Row(
                     children: [
@@ -403,11 +382,11 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                           height: 14,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: AppThemeService.currentPalette.value.primaryColor,
+                            color: tokens.accent,
                           ),
                         )
                       else
-                        const Icon(Icons.check_circle_outline_rounded, color: Colors.greenAccent, size: 16),
+                        Icon(Icons.check_circle_outline_rounded, color: tokens.success, size: 16),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -416,11 +395,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                               : (_searchQuery.trim().isNotEmpty
                                   ? 'Found ${filteredResults.length} of ${results.length} feeds'
                                   : '${results.length} live stream feeds available'),
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.75),
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: ZplayType.label.toStyle(color: tokens.textEmphasis),
                         ),
                       ),
                       if (isScanning)
@@ -428,14 +403,10 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                           onTap: _ctrl.stopChannelSearch,
                           builder: (context, state) => CardFocusRing(
                             focused: state.focused,
-                            radius: BorderRadius.circular(6),
-                            child: const Text(
+                            radius: ZplayRadius.xsAll,
+                            child: Text(
                               'Stop',
-                              style: TextStyle(
-                                color: Colors.redAccent,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: ZplayType.caption.toStyle(color: tokens.danger),
                             ),
                           ),
                         ),
@@ -456,23 +427,23 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (isScanning) ...[
-                                CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
-                                const SizedBox(height: 16),
-                                const Text(
+                                CircularProgressIndicator(color: tokens.accent),
+                                const SizedBox(height: ZplaySpacing.s16),
+                                Text(
                                   'Scanning all verified portals in parallel…',
-                                  style: TextStyle(color: Colors.white70, fontSize: 14),
+                                  style: ZplayType.body.toStyle(color: tokens.textEmphasis),
                                 ),
                               ] else ...[
-                                const Icon(Icons.tv_off_rounded, color: Colors.white38, size: 48),
-                                const SizedBox(height: 12),
-                                const Text(
+                                Icon(Icons.tv_off_rounded, color: tokens.textMuted, size: 48),
+                                const SizedBox(height: ZplaySpacing.s12),
+                                Text(
                                   'No alive streams discovered yet.',
-                                  style: TextStyle(color: Colors.white70, fontSize: 15, fontWeight: FontWeight.bold),
+                                  style: ZplayType.subtitle.toStyle(color: tokens.textEmphasis),
                                 ),
                                 const SizedBox(height: 6),
-                                const Text(
+                                Text(
                                   'Tap "Scan More Portals" to discover fresh feeds.',
-                                  style: TextStyle(color: Colors.white38, fontSize: 13),
+                                  style: ZplayType.label.toStyle(color: tokens.textMuted),
                                 ),
                               ],
                             ],
@@ -486,17 +457,13 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.search_off_rounded, color: Colors.white38, size: 48),
-                                  const SizedBox(height: 12),
+                                  Icon(Icons.search_off_rounded, color: tokens.textMuted, size: 48),
+                                  const SizedBox(height: ZplaySpacing.s12),
                                   Text(
                                     'No feeds match "$_searchQuery"',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: ZplayType.subtitle.toStyle(color: tokens.textEmphasis),
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: ZplaySpacing.s8),
                                   TextButton(
                                     onPressed: () {
                                       _searchController.clear();
@@ -504,10 +471,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                     },
                                     child: Text(
                                       'Clear Search',
-                                      style: TextStyle(
-                                        color: AppThemeService.currentPalette.value.primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: ZplayType.label.toStyle(color: tokens.accent),
                                     ),
                                   ),
                                 ],
@@ -530,20 +494,23 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                     : _playHit(hit),
                                 builder: (context, state) => CardFocusRing(
                                   focused: state.focused,
-                                  radius: BorderRadius.circular(16),
+                                  radius: ZplayRadius.mdAll,
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: ZplaySpacing.s16,
+                                      vertical: ZplaySpacing.s12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: isSelected
-                                          ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15)
-                                          : Colors.white.withValues(alpha: 0.05),
-                                      borderRadius: BorderRadius.circular(16),
+                                          ? tokens.accent.withValues(alpha: 0.15)
+                                          : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                                      borderRadius: ZplayRadius.mdAll,
                                       border: Border.all(
                                         color: isSelected
-                                            ? AppThemeService.currentPalette.value.primaryColor
+                                            ? tokens.accent
                                             : (isFav
-                                                ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
-                                                : Colors.white.withValues(alpha: 0.08)),
+                                                ? tokens.accent.withValues(alpha: 0.6)
+                                                : tokens.borderDefault),
                                         width: isSelected || isFav ? 1.6 : 1.0,
                                       ),
                                     ),
@@ -556,18 +523,18 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                             height: 32,
                                             decoration: BoxDecoration(
                                               color: isSelected
-                                                  ? AppThemeService.currentPalette.value.primaryColor
-                                                  : Colors.white.withValues(alpha: 0.06),
+                                                  ? tokens.accent
+                                                  : tokens.borderSubtle,
                                               shape: BoxShape.circle,
                                               border: Border.all(
                                                 color: isSelected
-                                                    ? AppThemeService.currentPalette.value.primaryColor
-                                                    : Colors.white38,
+                                                    ? tokens.accent
+                                                    : tokens.textMuted,
                                                 width: 2,
                                               ),
                                             ),
                                             child: isSelected
-                                                ? const Icon(Icons.check_rounded, color: Colors.white, size: 18)
+                                                ? Icon(Icons.check_rounded, color: tokens.onAccent, size: 18)
                                                 : null,
                                           )
                                         else
@@ -575,12 +542,12 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                             width: 36,
                                             height: 36,
                                             decoration: BoxDecoration(
-                                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
+                                              color: tokens.accent.withValues(alpha: 0.2),
                                               shape: BoxShape.circle,
                                             ),
                                             child: Icon(
                                               Icons.play_arrow_rounded,
-                                              color: AppThemeService.currentPalette.value.primaryColor,
+                                              color: tokens.accent,
                                               size: 22,
                                             ),
                                           ),
@@ -597,12 +564,13 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                                   Container(
                                                     width: 7,
                                                     height: 7,
-                                                    decoration: const BoxDecoration(
-                                                      color: Colors.greenAccent,
+                                                    decoration: BoxDecoration(
+                                                      // Alive indicator: glow keeps its shape, hue is the success token.
+                                                      color: tokens.success,
                                                       shape: BoxShape.circle,
                                                       boxShadow: [
                                                         BoxShadow(
-                                                          color: Colors.greenAccent,
+                                                          color: tokens.success,
                                                           blurRadius: 4,
                                                         ),
                                                       ],
@@ -614,11 +582,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                                       hit.stream.name,
                                                       maxLines: 1,
                                                       overflow: TextOverflow.ellipsis,
-                                                      style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 14.5,
-                                                        fontWeight: FontWeight.w800,
-                                                      ),
+                                                      style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                                                     ),
                                                   ),
                                                 ],
@@ -634,11 +598,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                                           : 'Server ${index + 1}'),
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    color: Colors.white.withValues(alpha: 0.5),
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
+                                                  style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                                                 ),
                                               ),
                                             ],
@@ -649,16 +609,12 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withValues(alpha: 0.1),
-                                            borderRadius: BorderRadius.circular(4),
+                                            color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
+                                            borderRadius: ZplayRadius.xsAll,
                                           ),
                                           child: Text(
                                             hit.stream.containerExt.toUpperCase(),
-                                            style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w800,
-                                            ),
+                                            style: ZplayType.overline.toStyle(color: tokens.textEmphasis),
                                           ),
                                         ),
 
@@ -668,7 +624,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                                         IconButton(
                                           icon: Icon(
                                             isFav ? Icons.star_rounded : Icons.star_outline_rounded,
-                                            color: isFav ? const Color(0xFFFFC107) : Colors.white38,
+                                            color: isFav ? tokens.warning : tokens.textMuted,
                                             size: 22,
                                           ),
                                           onPressed: () => _ctrl.toggleFavoriteHit(hit),
@@ -686,7 +642,7 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
               Container(
                 padding: const EdgeInsets.fromLTRB(22, 12, 22, 24),
                 decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
+                  border: Border(top: BorderSide(color: tokens.borderSubtle)),
                 ),
                 child: Row(
                   children: [
@@ -695,14 +651,14 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                       Expanded(
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppThemeService.currentPalette.value.primaryColor,
+                            backgroundColor: tokens.accent,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
                           ),
-                          icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-                          label: const Text(
+                          icon: Icon(Icons.play_arrow_rounded, color: tokens.onAccent),
+                          label: Text(
                             'Watch Live',
-                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                            style: ZplayType.subtitle.toStyle(color: tokens.onAccent),
                           ),
                           onPressed: filteredResults.isNotEmpty
                               ? () => _playHit(filteredResults.first)
@@ -715,13 +671,13 @@ class _IptvChannelSheetState extends State<IptvChannelSheet> {
                     // Scan More
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        foregroundColor: tokens.textPrimary,
+                        side: BorderSide(color: tokens.borderStrong),
+                        padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: 14),
+                        shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
                       ),
                       icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('Scan More', style: TextStyle(fontWeight: FontWeight.w700)),
+                      label: Text('Scan More', style: ZplayType.label.toStyle()),
                       onPressed: isScanning ? null : () => _ctrl.getMoreChannels(),
                     ),
                   ],

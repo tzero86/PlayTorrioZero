@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
+import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
 
 /// Reusable styles keep the package render object from receiving a new
@@ -25,19 +26,27 @@ class PerformanceLiquidLens extends StatelessWidget {
     this.visible = true,
   });
 
-  BoxDecoration get _fallbackDecoration {
-    return const BoxDecoration(
-      borderRadius: BorderRadius.all(Radius.circular(24)),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xF01A1D27), Color(0xF012151E)],
-      ),
-    );
-  }
+  /// The lens is chrome, so its fallback is two semantic surfaces rather than
+  /// the fork's near-blacks. The 0.94 keeps the panel reading as glass — the page
+  /// behind it still shows through, which is what the real lens does.
+  static const double _fallbackAlpha = 0.94;
+
+  BoxDecoration _fallbackDecoration(ZplayTokens tokens) => BoxDecoration(
+        borderRadius: ZplayRadius.lgAll,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            tokens.surfaceOverlay.withValues(alpha: _fallbackAlpha),
+            tokens.surface.withValues(alpha: _fallbackAlpha),
+          ],
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
+    final tokens = ZplayTokens.of(context);
+
     return ValueListenableBuilder<bool>(
       valueListenable: GlassSettings.enabled,
       child: child,
@@ -45,7 +54,7 @@ class PerformanceLiquidLens extends StatelessWidget {
         if (!enabled) {
           return Container(
             clipBehavior: Clip.antiAlias,
-            decoration: _fallbackDecoration,
+            decoration: _fallbackDecoration(tokens),
             child: cachedChild,
           );
         }

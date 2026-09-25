@@ -501,6 +501,43 @@ jobs:
         with:
           merge-multiple: true
 
+      # The release body IS the changelog: the in-app updater renders this text in
+      # its update dialog, so the first thing a user reads on update has to be what
+      # changed. GitHub's generated commit list is noise there, and the licence
+      # block used to lead the body, which is why the dialog announced the fork
+      # lineage instead of the release. The body is therefore composed here, from
+      # CHANGELOG.md, with the licence material kept below the machine-readable
+      # `<!-- zplay:changelog-end -->` marker so the app can stop reading there.
+      - name: Compose release notes from CHANGELOG.md
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '
+            index($0, "## [" v "]") == 1 { inside = 1; next }
+            inside && index($0, "## [") == 1 { exit }
+            inside { print }
+          ' CHANGELOG.md | cat -s > changelog-entry.md
+
+          {
+            printf '## What changed in %s\n' "${GITHUB_REF_NAME}"
+            if [ -s changelog-entry.md ]; then
+              cat changelog-entry.md
+            else
+              printf '\nNo changelog entry was written for this tag. See CHANGELOG.md in the repository.\n'
+            fi
+            printf '\n<!-- zplay:changelog-end -->\n\n'
+            printf '## Downloads\n\n'
+            printf -- '- **Windows** `ZPlay-Windows-Setup.exe` or `ZPlay-Windows-x64-Portable.zip`\n'
+            printf -- '- **Android** `app-arm64-v8a-release.apk` or `app-armeabi-v7a-release.apk` (Android TV included)\n'
+            printf -- '- **Linux** `ZPlay-Linux-x86_64.AppImage` or `ZPlay-Linux-x86_64.tar.gz`\n'
+            printf -- '- **macOS** `ZPlay-macOS-arm64.dmg` or `ZPlay-macOS-intel.dmg`\n'
+            printf -- '- **iOS** `ZPlay-iOS.ipa` (unsigned, sideload only)\n\n'
+            printf 'ZPlay is a modified fork of PlayTorrio V3, © 2026 Ayman, distributed under the GNU GPL v3.0.\n'
+            printf 'Corresponding source for this release: https://github.com/%s (tag %s)\n' "$GITHUB_REPOSITORY" "${GITHUB_REF_NAME}"
+            printf 'Upstream project and source: https://github.com/ayman708-UX/PlayTorrioV3\n'
+            printf 'This program comes with ABSOLUTELY NO WARRANTY.\n'
+          } > release_notes.md
+
       - name: Publish Release with Assets
         # v3 runs on Node 24. v2 is the final v2 release and pins the Node 20
         # runtime that GitHub Actions has deprecated.
@@ -511,19 +548,15 @@ jobs:
           # endpoint, and that endpoint EXCLUDES drafts, so a draft release makes
           # the updater report "up to date" forever. This is why the app has 16
           # inherited tags and 0 releases and no one has ever been offered an
-          # update. The release is still reviewed through its generated notes.
+          # update.
           draft: false
           prerelease: false
-          generate_release_notes: true
+          # The hand-composed notes above replace GitHub's generated commit list.
+          generate_release_notes: false
           # GPLv3 §6d requires offering the Corresponding Source alongside a
-          # published binary, and §5a requires upstream's notices to survive.
-          # When generate_release_notes is set, this body is prepended to the
-          # generated notes rather than replacing them.
-          body: |
-            ZPlay is a modified fork of PlayTorrio V3, © 2026 Ayman, distributed under the GNU GPL v3.0.
-            Corresponding source for this release: https://github.com/tzero86/ZPlay (tag ${{ github.ref_name }})
-            Upstream project and source: https://github.com/ayman708-UX/PlayTorrioV3
-            This program comes with ABSOLUTELY NO WARRANTY.
+          # published binary, and §5a requires upstream's notices to survive. Both
+          # live in the composed body, below the changelog.
+          body_path: release_notes.md
           files: |
             *.exe
             *.zip

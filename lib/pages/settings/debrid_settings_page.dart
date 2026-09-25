@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/debrid/debrid_service.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 class DebridSettingsPage extends StatefulWidget {
   const DebridSettingsPage({super.key});
@@ -225,14 +225,15 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
 
   void _showSnack(String msg, {bool isError = false}) {
     if (!mounted) return;
+    final tokens = context.tokens;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
+        content: Text(msg, style: ZplayType.subtitle.toStyle()),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? Colors.red.shade700 : AppThemeService.currentPalette.value.primaryColor,
+        backgroundColor: isError ? tokens.danger : tokens.accent,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.black,
+          textColor: tokens.onAccent,
           onPressed: () {},
         ),
       ),
@@ -250,18 +251,22 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
       'Debrid-Link',
     ];
 
+    final tokens = context.tokens;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // Opaque palette band with a bottom hairline, matching the settings hub.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Debrid & Cloud Streaming',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: Center(
@@ -275,11 +280,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                 padding: const EdgeInsets.only(bottom: 20),
                 child: Text(
                   'Stream torrents and magnet links instantly through high-speed cloud debrid providers without local peer-to-peer downloading.',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    height: 1.4,
-                  ),
+                  style: ZplayType.body.toStyle(color: tokens.textSecondary),
                 ),
               ),
 
@@ -287,12 +288,12 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF12151E),
-                  borderRadius: BorderRadius.circular(16),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.mdAll,
                   border: Border.all(
                     color: _useDebrid
-                        ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35)
-                        : Colors.white.withValues(alpha: 0.08),
+                        ? tokens.accent.withValues(alpha: ZplayOpacity.borderStrong)
+                        : tokens.borderDefault,
                   ),
                 ),
                 child: Column(
@@ -304,33 +305,31 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
+                            color: tokens.accent.withValues(alpha: ZplayOpacity.borderStrong),
+                            borderRadius: ZplayRadius.smAll,
                           ),
                           child: Icon(
                             Icons.cloud_download_rounded,
-                            color: AppThemeService.currentPalette.value.primaryColor,
+                            color: tokens.accent,
                             size: 24,
                           ),
                         ),
                         const SizedBox(width: 14),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Use Debrid for Streams',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
+                                style: ZplayType.subtitle.toStyle(
+                                  color: tokens.textPrimary,
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              const SizedBox(height: 4),
                               Text(
                                 'Route torrent links through cloud servers',
-                                style: TextStyle(
-                                  color: Colors.white54,
-                                  fontSize: 12.5,
+                                style: ZplayType.bodySmall.toStyle(
+                                  color: tokens.textSecondary,
                                 ),
                               ),
                             ],
@@ -339,7 +338,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                         const SizedBox(width: 12),
                         Switch.adaptive(
                           value: _useDebrid,
-                          activeColor: AppThemeService.currentPalette.value.primaryColor,
+                          activeColor: tokens.accent,
                           onChanged: (val) async {
                             setState(() => _useDebrid = val);
                             await _debrid.saveUseDebridForStreams(val);
@@ -371,10 +370,8 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     const SizedBox(height: 14),
                     Text(
                       'When enabled, all torrents from ZPlay and Stremio addons are resolved exclusively through your active Debrid provider without touching the local torrent engine.',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.45),
-                        fontSize: 12,
-                        height: 1.35,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textSecondary,
                       ),
                     ),
                   ],
@@ -386,65 +383,53 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
               // Active Provider Selector
               Text(
                 'ACTIVE PROVIDER',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 10),
 
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF12151E),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.mdAll,
+                  border: Border.fromBorderSide(tokens.hairline),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Select Default Debrid Provider',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'ZPlay will send requests to this provider when streaming.',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.45),
-                        fontSize: 12,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       value: services.contains(_selectedService) ? _selectedService : 'None',
-                      dropdownColor: const Color(0xFF151822),
+                      dropdownColor: tokens.surfaceOverlay,
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: const Color(0xFF0D1017),
+                        fillColor: tokens.bg,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                          borderRadius: ZplayRadius.smAll,
+                          borderSide: BorderSide(color: tokens.borderDefault),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                          borderRadius: ZplayRadius.smAll,
+                          borderSide: BorderSide(color: tokens.borderDefault),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
+                          borderRadius: ZplayRadius.smAll,
+                          borderSide: BorderSide(color: tokens.accent),
                         ),
                       ),
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                      style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                       items: services.map((s) {
                         return DropdownMenuItem<String>(
                           value: s,
@@ -453,7 +438,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                               Icon(
                                 s == 'None' ? Icons.block_rounded : Icons.flash_on_rounded,
                                 size: 16,
-                                color: s == 'None' ? Colors.white38 : AppThemeService.currentPalette.value.primaryColor,
+                                color: s == 'None' ? tokens.textMuted : tokens.accent,
                               ),
                               const SizedBox(width: 8),
                               Text(s),
@@ -487,12 +472,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
               // Provider API Keys
               Text(
                 'PROVIDER CREDENTIALS',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 10),
 
@@ -503,7 +483,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ? 'Logged in as ${_statusMap['Real-Debrid']}'
                     : 'Get token from real-debrid.com/apitoken',
                 statusBadge: _statusMap['Real-Debrid'],
-                badgeColor: const Color(0xFF10B981),
+                badgeColor: tokens.success,
                 controller: _rdKeyCtrl,
                 isLoading: _loadingMap['Real-Debrid'] == true,
                 isActive: _selectedService == 'Real-Debrid',
@@ -518,7 +498,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ? 'Account: ${_statusMap['TorBox']}'
                     : 'Get key from torbox.app/settings',
                 statusBadge: _statusMap['TorBox'],
-                badgeColor: const Color(0xFF10B981),
+                badgeColor: tokens.success,
                 controller: _torboxKeyCtrl,
                 isLoading: _loadingMap['TorBox'] == true,
                 isActive: _selectedService == 'TorBox',
@@ -533,7 +513,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ? 'Account: ${_statusMap['AllDebrid']}'
                     : 'Get key from alldebrid.com/apikeys',
                 statusBadge: _statusMap['AllDebrid'],
-                badgeColor: const Color(0xFF10B981),
+                badgeColor: tokens.success,
                 controller: _alldebridKeyCtrl,
                 isLoading: _loadingMap['AllDebrid'] == true,
                 isActive: _selectedService == 'AllDebrid',
@@ -548,7 +528,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ? 'Account: Connected'
                     : 'Get key from premiumize.me/account',
                 statusBadge: _statusMap['Premiumize'],
-                badgeColor: const Color(0xFF10B981),
+                badgeColor: tokens.success,
                 controller: _premiumizeKeyCtrl,
                 isLoading: _loadingMap['Premiumize'] == true,
                 isActive: _selectedService == 'Premiumize',
@@ -563,7 +543,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                     ? 'Account: ${_statusMap['Debrid-Link']}'
                     : 'Get key from debrid-link.com/webapp/apikey',
                 statusBadge: _statusMap['Debrid-Link'],
-                badgeColor: const Color(0xFF10B981),
+                badgeColor: tokens.success,
                 controller: _debridlinkKeyCtrl,
                 isLoading: _loadingMap['Debrid-Link'] == true,
                 isActive: _selectedService == 'Debrid-Link',
@@ -587,17 +567,18 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
     String? statusBadge,
     Color? badgeColor,
   }) {
+    final tokens = context.tokens;
     final isObscured = _obscuredMap[name] ?? true;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
         border: Border.all(
           color: isActive
-              ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)
-              : Colors.white.withValues(alpha: 0.06),
+              ? tokens.accent.withValues(alpha: ZplayOpacity.borderStrong)
+              : tokens.borderSubtle,
         ),
       ),
       child: Column(
@@ -610,41 +591,33 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
             children: [
               Text(
                 name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
               ),
               if (isActive)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
+                    color: tokens.accent.withValues(alpha: ZplayOpacity.borderStrong),
+                    borderRadius: ZplayRadius.xsAll,
                   ),
                   child: Text(
                     'ACTIVE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: AppThemeService.currentPalette.value.primaryColor,
-                    ),
+                    style: ZplayType.caption.toStyle(color: tokens.accent),
                   ),
                 ),
               if (statusBadge != null)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: (badgeColor ?? const Color(0xFF10B981)).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(6),
+                    color: (badgeColor ?? tokens.success).withValues(
+                      alpha: ZplayOpacity.borderStrong,
+                    ),
+                    borderRadius: ZplayRadius.xsAll,
                   ),
                   child: Text(
                     statusBadge,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: badgeColor ?? const Color(0xFF10B981),
+                    style: ZplayType.caption.toStyle(
+                      color: badgeColor ?? tokens.success,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -655,10 +628,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
           const SizedBox(height: 3),
           Text(
             subtitle,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.45),
-              fontSize: 11.5,
-            ),
+            style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -669,35 +639,34 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                 child: TextField(
                   controller: controller,
                   obscureText: isObscured,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: ZplayType.label.toStyle(color: tokens.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Paste API Key / Token',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.25),
-                      fontSize: 12,
+                    hintStyle: ZplayType.bodySmall.toStyle(
+                      color: tokens.textDisabled,
                     ),
                     filled: true,
-                    fillColor: const Color(0xFF0D1017),
+                    fillColor: tokens.bg,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                      borderRadius: ZplayRadius.smAll,
+                      borderSide: BorderSide(color: tokens.borderDefault),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                      borderRadius: ZplayRadius.smAll,
+                      borderSide: BorderSide(color: tokens.borderDefault),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
+                      borderRadius: ZplayRadius.smAll,
+                      borderSide: BorderSide(color: tokens.accent),
                     ),
                     suffixIcon: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (controller.text.isNotEmpty)
                           IconButton(
-                            icon: const Icon(Icons.clear_rounded, color: Colors.white38, size: 16),
+                            icon: Icon(Icons.clear_rounded, color: tokens.textMuted, size: 16),
                             padding: const EdgeInsets.all(4),
                             constraints: const BoxConstraints(),
                             tooltip: 'Clear',
@@ -709,7 +678,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                         IconButton(
                           icon: Icon(
                             isObscured ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                            color: Colors.white38,
+                            color: tokens.textMuted,
                             size: 16,
                           ),
                           padding: const EdgeInsets.all(4),
@@ -722,7 +691,7 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
                           },
                         ),
                         IconButton(
-                          icon: Icon(Icons.content_paste_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 16),
+                          icon: Icon(Icons.content_paste_rounded, color: tokens.accent, size: 16),
                           padding: const EdgeInsets.all(4),
                           constraints: const BoxConstraints(),
                           tooltip: 'Paste from Clipboard',
@@ -738,21 +707,21 @@ class _DebridSettingsPageState extends State<DebridSettingsPage> {
               ElevatedButton(
                 onPressed: isLoading ? null : onSave,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                  foregroundColor: Colors.black,
+                  backgroundColor: tokens.accent,
+                  foregroundColor: tokens.onAccent,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                   elevation: 0,
                 ),
                 child: isLoading
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 16,
                         height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: tokens.onAccent),
                       )
-                    : const Text(
+                    : Text(
                         'Save',
-                        style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800),
+                        style: ZplayType.label.toStyle(),
                       ),
               ),
             ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 
 class AspectOption {
@@ -35,10 +36,11 @@ class PlayerAspectMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
+    final tokens = context.tokens;
 
     return PlayerGlassCard(
       width: (320.0).clamp(240.0, screenWidth - 32),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(ZplaySpacing.s12),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,16 +49,16 @@ class PlayerAspectMenu extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s8,
+                  vertical: ZplaySpacing.s4,
+                ),
                 child: Text(
                   'ASPECT RATIO',
-                  style: TextStyle(
-                    color: PlayerTheme.inkSubtle,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
-                  ),
+                  style: ZplayType.overline
+                      .copyWith(size: 10.5, weight: FontWeight.w700)
+                      .toStyle(color: PlayerTheme.inkSubtle),
                 ),
               ),
               PlayerIconButton(
@@ -78,17 +80,17 @@ class PlayerAspectMenu extends StatelessWidget {
               return Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   onTap: () {
                     onFitSelected(opt.fit);
                     onClose();
                   },
                   child: Container(
                     height: 38,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12),
                     decoration: BoxDecoration(
                       color: isSelected ? PlayerTheme.raised : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
                         color: isSelected ? PlayerTheme.edge : Colors.transparent,
                         width: 1,
@@ -99,11 +101,18 @@ class PlayerAspectMenu extends StatelessWidget {
                       children: [
                         Text(
                           opt.label,
-                          style: TextStyle(
-                            color: isSelected ? PlayerTheme.ink : PlayerTheme.inkMuted,
-                            fontSize: 13.5,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                          ),
+                          style: ZplayType.label
+                              .copyWith(
+                                size: 13.5,
+                                weight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                              )
+                              .toStyle(
+                                color: isSelected
+                                    ? PlayerTheme.ink
+                                    : PlayerTheme.inkMuted,
+                              ),
                         ),
                         if (isSelected)
                           Icon(
@@ -119,32 +128,27 @@ class PlayerAspectMenu extends StatelessWidget {
             }).toList(),
           ),
 
-          const SizedBox(height: 12),
-          const Divider(color: PlayerTheme.edgeSoft, height: 1),
-          const SizedBox(height: 12),
+          const SizedBox(height: ZplaySpacing.s12),
+          Divider(color: tokens.borderDefault, height: 1),
+          const SizedBox(height: ZplaySpacing.s12),
 
           // Subtitle Size Scaling Slider
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Subtitle Size Scale',
-                  style: TextStyle(
-                    color: PlayerTheme.inkMuted,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: ZplayType.bodySmall
+                      .copyWith(size: 12.5, weight: FontWeight.w500)
+                      .toStyle(color: PlayerTheme.inkMuted),
                 ),
                 Text(
                   '${subtitleScale.toStringAsFixed(1)}×',
-                  style: const TextStyle(
-                    color: PlayerTheme.ink,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w700,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
+                  style: ZplayType.bodySmall
+                      .copyWith(size: 12.5, weight: FontWeight.w700)
+                      .toStyle(color: PlayerTheme.ink, tabular: true),
                 ),
               ],
             ),
@@ -152,8 +156,8 @@ class PlayerAspectMenu extends StatelessWidget {
           SliderTheme(
             data: SliderThemeData(
               activeTrackColor: PlayerTheme.accent,
-              inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
-              thumbColor: Colors.white,
+              inactiveTrackColor: tokens.textPrimary.withValues(alpha: 0.15),
+              thumbColor: tokens.textPrimary,
               overlayColor: PlayerTheme.accent.withValues(alpha: 0.2),
               trackHeight: 4,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),

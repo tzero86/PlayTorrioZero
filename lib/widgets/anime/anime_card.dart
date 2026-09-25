@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/anime/anime_media.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../common/poster_skeleton.dart';
 import '../common/focusable_card.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -21,6 +21,8 @@ class AnimeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return FocusableCard(
       onTap: onTap,
       builder: (context, state) => AnimatedScale(
@@ -38,7 +40,7 @@ class AnimeCard extends StatelessWidget {
               Expanded(
                 child: CardFocusRing(
                   focused: state.focused,
-                  radius: BorderRadius.circular(18),
+                  radius: ZplayRadius.mdAll,
                   child: _AnimePosterFrame(
                     anime: anime,
                     hovered: state.highlighted,
@@ -47,40 +49,34 @@ class AnimeCard extends StatelessWidget {
               ),
 
               // Title
-              const SizedBox(height: 9),
+              const SizedBox(height: ZplaySpacing.s8),
               Text(
                 anime.displayTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 15.5,
-                  height: 1.15,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.25,
-                  color: Colors.white,
-                ),
+                style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
               ),
 
               // Year / Format / Genre
-              const SizedBox(height: 4),
+              const SizedBox(height: ZplaySpacing.s4),
               Row(
                 children: [
                   if (anime.seasonYear > 0) ...[
                     Text(
                       '${anime.seasonYear}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.52),
-                        fontWeight: FontWeight.w600,
+                      style: ZplayType.label.toStyle(
+                        color: tokens.textSecondary,
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ZplaySpacing.s8,
+                      ),
                       child: Container(
                         width: 4,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.26),
+                          color: tokens.textDisabled,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -93,11 +89,7 @@ class AnimeCard extends StatelessWidget {
                           : anime.formattedFormat,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.42),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: ZplayType.label.toStyle(color: tokens.textMuted),
                     ),
                   ),
                 ],
@@ -121,6 +113,7 @@ class _AnimePosterFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final posterUrl = anime.coverUrl;
     final hasPoster = posterUrl.isNotEmpty;
 
@@ -128,7 +121,7 @@ class _AnimePosterFrame extends StatelessWidget {
       duration: const Duration(milliseconds: 170),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: ZplayRadius.mdAll,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: hovered ? 0.60 : 0.34),
@@ -137,7 +130,7 @@ class _AnimePosterFrame extends StatelessWidget {
           ),
           if (hovered)
             BoxShadow(
-              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.28),
+              color: tokens.accent.withValues(alpha: 0.28),
               blurRadius: 34,
               spreadRadius: 1,
               offset: const Offset(0, 8),
@@ -145,11 +138,11 @@ class _AnimePosterFrame extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: ZplayRadius.mdAll,
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: Color(0xFF171A23)),
+            ColoredBox(color: tokens.surface),
 
             // Poster Image (decode bounded to ~3x display width)
             if (hasPoster)
@@ -182,7 +175,7 @@ class _AnimePosterFrame extends StatelessWidget {
                     colors: [
                       Colors.transparent,
                       Colors.transparent,
-                      Colors.black.withValues(alpha: 0.20),
+                      tokens.bg.withValues(alpha: 0.20),
                     ],
                   ),
                 ),
@@ -192,34 +185,33 @@ class _AnimePosterFrame extends StatelessWidget {
             // Top Left Rating Badge
             if (anime.averageScore > 0)
               Positioned(
-                top: 9,
-                left: 9,
+                top: ZplaySpacing.s8,
+                left: ZplaySpacing.s8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ZplaySpacing.s8,
+                    vertical: ZplaySpacing.s4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(8),
+                    color: tokens.bg.withValues(alpha: 0.72),
+                    borderRadius: ZplayRadius.smAll,
                     border: Border.all(
-                      color: const Color(0xFFFFD700).withValues(alpha: 0.35),
+                      color: tokens.warning.withValues(alpha: 0.35),
                       width: 1,
                     ),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.star_rounded,
                         size: 13,
-                        color: Color(0xFFFFD700),
+                        color: tokens.warning,
                       ),
-                      const SizedBox(width: 3),
+                      const SizedBox(width: ZplaySpacing.s4),
                       Text(
                         anime.formattedScore,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFFFFD700),
-                        ),
+                        style: ZplayType.caption.toStyle(color: tokens.warning),
                       ),
                     ],
                   ),
@@ -228,21 +220,21 @@ class _AnimePosterFrame extends StatelessWidget {
 
             // Top Right Format Pill
             Positioned(
-              top: 9,
-              right: 9,
+              top: ZplaySpacing.s8,
+              right: ZplaySpacing.s8,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s8,
+                  vertical: ZplaySpacing.s4,
+                ),
                 decoration: BoxDecoration(
-                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.90),
-                  borderRadius: BorderRadius.circular(8),
+                  color: tokens.accent.withValues(alpha: 0.90),
+                  borderRadius: ZplayRadius.smAll,
                 ),
                 child: Text(
                   anime.formattedFormat.toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
+                  style: ZplayType.overline.toStyle(
+                    color: tokens.textPrimary,
                   ),
                 ),
               ),
@@ -251,20 +243,21 @@ class _AnimePosterFrame extends StatelessWidget {
             // Bottom Overlay with Episode Count
             if (anime.totalEpisodes > 0)
               Positioned(
-                bottom: 9,
-                left: 9,
+                bottom: ZplaySpacing.s8,
+                left: ZplaySpacing.s8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: ZplaySpacing.s8,
+                    vertical: ZplaySpacing.s4,
+                  ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.72),
-                    borderRadius: BorderRadius.circular(7),
+                    color: tokens.bg.withValues(alpha: 0.72),
+                    borderRadius: ZplayRadius.xsAll,
                   ),
                   child: Text(
                     '${anime.totalEpisodes} EPS',
-                    style: const TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white70,
+                    style: ZplayType.overline.toStyle(
+                      color: tokens.textEmphasis,
                     ),
                   ),
                 ),
@@ -273,17 +266,17 @@ class _AnimePosterFrame extends StatelessWidget {
             // Hover Play Glow Icon
             if (hovered)
               Positioned(
-                bottom: 9,
-                right: 9,
+                bottom: ZplaySpacing.s8,
+                right: ZplaySpacing.s8,
                 child: Container(
-                  padding: const EdgeInsets.all(7),
+                  padding: const EdgeInsets.all(ZplaySpacing.s8),
                   decoration: BoxDecoration(
-                    color: AppThemeService.currentPalette.value.primaryColor,
+                    color: tokens.accent,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.play_arrow_rounded,
-                    color: Colors.white,
+                    color: tokens.textPrimary,
                     size: 16,
                   ),
                 ),

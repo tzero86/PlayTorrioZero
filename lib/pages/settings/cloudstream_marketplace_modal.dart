@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/cloudstream/marketplace/cloudstream_marketplace_service.dart';
 import 'cloudstream_repo_modal.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/zplay_sheet.dart';
 
@@ -125,6 +125,9 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
     }
   }
 
+  /// Categorical hues: each language group keeps its own colour so the chip
+  /// legends stay readable at a glance. These encode category identity the way a
+  /// per-format badge does, so they stay outside the palette layer.
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Turkish':
@@ -148,11 +151,12 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
       case 'Anime / Cartoons':
         return const Color(0xFFA855F7);
       default:
-        return AppThemeService.currentPalette.value.primaryColor;
+        return context.tokens.accent;
     }
   }
 
   Future<void> _addRepo(CloudStreamMarketplaceRepo repo) async {
+    final tokens = context.tokens;
     setState(() => _addingRepoUrls.add(repo.url));
 
     try {
@@ -163,12 +167,12 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+              Icon(Icons.check_circle_rounded, color: tokens.onAccent, size: 18),
               const SizedBox(width: 8),
               Expanded(child: Text('${repo.name} added successfully!')),
             ],
           ),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: tokens.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -177,28 +181,34 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
       final shouldInstallAll = await showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
-          backgroundColor: const Color(0xFF151822),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: tokens.surfaceOverlay,
+          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
           title: Text('Install ${repo.name} Plugins?'),
           content: Text(
             repo.plugins.isNotEmpty
                 ? 'This repository includes ${repo.plugins.length} plugins (${repo.plugins.take(3).join(', ')}...). Install all plugins now so their stream sources appear immediately?'
                 : 'Would you like to install plugins from this repository now?',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13.5),
+            style: ZplayType.body.toStyle(color: tokens.textEmphasis),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text('Later', style: TextStyle(color: Colors.white.withValues(alpha: 0.5))),
+              child: Text(
+                'Later',
+                style: ZplayType.label.toStyle(color: tokens.textSecondary),
+              ),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                backgroundColor: tokens.accent,
+                foregroundColor: tokens.onAccent,
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
               ),
-              child: const Text('Install All Now', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(
+                'Install All Now',
+                style: ZplayType.label.toStyle(),
+              ),
             ),
           ],
         ),
@@ -212,7 +222,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: tokens.danger,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -224,25 +234,29 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
   }
 
   Future<void> _installAllPlugins(String repoUrl) async {
+    final tokens = context.tokens;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF151822),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Installing Repository Plugins', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          backgroundColor: tokens.surfaceOverlay,
+          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
+          title: Text(
+            'Installing Repository Plugins',
+            style: ZplayType.title.toStyle(color: tokens.textPrimary),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
-              CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
+              CircularProgressIndicator(color: tokens.accent),
               const SizedBox(height: 16),
               ValueListenableBuilder<String>(
                 valueListenable: _manager.busyMessage,
                 builder: (context, msg, _) => Text(
                   msg.isEmpty ? 'Installing extensions...' : msg,
-                  style: const TextStyle(fontSize: 13, color: Colors.white70),
+                  style: ZplayType.label.toStyle(color: tokens.textEmphasis),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -260,7 +274,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$count plugins installed and ready!'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: tokens.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -271,7 +285,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Installation error: $e'),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: tokens.danger,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -280,32 +294,30 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return ZplaySheet(
       heightFactor: 0.88,
-      // The header mark stays. The "N Repos" pill does not: the count moves into
-      // the subtitle, which removes a hand-written colour (0xFF9D84FF) and one
-      // more container for the eye to parse.
+      // The header mark stays, as a flat accent tile: the two-stop indigo gradient
+      // that used to fill it was a hand-written colour, and the "N Repos" pill is
+      // gone too, its count moved into the subtitle (which removed the second
+      // hand-written colour, 0xFF9D84FF) along with one container for the eye.
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppThemeService.currentPalette.value.primaryColor,
-              const Color(0xFF6366F1),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
+          color: tokens.accentSubtle,
+          borderRadius: ZplayRadius.smAll,
           boxShadow: [
             BoxShadow(
-              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
+              color: tokens.accent.withValues(
+                alpha: ZplayOpacity.textDisabled,
+              ),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: const Icon(Icons.hub_rounded, color: Colors.white, size: 20),
+        child: Icon(Icons.hub_rounded, color: tokens.accent, size: 20),
       ),
       title: 'Marketplace',
       subtitle:
@@ -321,18 +333,18 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: AppThemeService.currentPalette.value.primaryColor,
+                      color: tokens.accent,
                     ),
                   )
                 : Icon(
                     Icons.refresh_rounded,
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: tokens.textSecondary,
                   ),
             onPressed:
                 _isRefreshing ? null : () => _loadRepos(forceRefresh: true),
           ),
           IconButton(
-            icon: const Icon(Icons.close_rounded, color: Colors.white70),
+            icon: Icon(Icons.close_rounded, color: tokens.textEmphasis),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -345,24 +357,29 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
             child: Container(
               height: 42,
               decoration: BoxDecoration(
-                color: const Color(0xFF151822),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                color: tokens.surfaceOverlay,
+                borderRadius: ZplayRadius.smAll,
+                border: Border.all(color: tokens.borderDefault),
               ),
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(color: Colors.white, fontSize: 13.5),
+                style: ZplayType.body.toStyle(color: tokens.textPrimary),
                 onChanged: (val) => setState(() => _searchQuery = val),
                 decoration: InputDecoration(
                   hintText: 'Search repository or plugin (e.g. Turkish, 3rabi, DiziBox, Shahid)...',
-                  hintStyle: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    fontSize: 12.5,
+                  hintStyle: ZplayType.bodySmall.toStyle(color: tokens.textDisabled),
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    size: 18,
+                    color: tokens.textMuted,
                   ),
-                  prefixIcon: Icon(Icons.search_rounded, size: 18, color: Colors.white.withValues(alpha: 0.4)),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.close_rounded, size: 16, color: Colors.white54),
+                          icon: Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            color: tokens.textSecondary,
+                          ),
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _searchQuery = '');
@@ -386,7 +403,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: ZplayRadius.lgAll,
                     onTap: () {
                       if (_categoryScrollController.hasClients) {
                         final target = (_categoryScrollController.offset - 180).clamp(
@@ -404,14 +421,14 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: tokens.surfaceOverlay,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                        border: Border.all(color: tokens.borderDefault),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_left_rounded,
                         size: 18,
-                        color: Colors.white70,
+                        color: tokens.textEmphasis,
                       ),
                     ),
                   ),
@@ -435,45 +452,53 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                           child: FocusableCard(
                             onTap: () => setState(() => _selectedCategory = cat),
                             builder: (_, state) => AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
+                              duration: ZplayMotion.base,
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: isSelected
-                                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.22)
-                                    : const Color(0xFF151822),
-                                borderRadius: BorderRadius.circular(10),
+                                color: isSelected ? tokens.accentSubtle : tokens.surfaceOverlay,
+                                borderRadius: ZplayRadius.smAll,
                                 border: Border.all(
                                   color: isSelected
-                                      ? AppThemeService.currentPalette.value.primaryColor
-                                      : Colors.white.withValues(alpha: 0.08),
+                                      ? tokens.accent
+                                      : tokens.borderDefault,
                                 ),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(emoji, style: const TextStyle(fontSize: 12)),
+                                  Text(emoji, style: ZplayType.bodySmall.toStyle()),
                                   const SizedBox(width: 6),
                                   Text(
                                     cat,
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                      color: isSelected ? Colors.white : Colors.white60,
-                                    ),
+                                    style: ZplayType.bodySmall
+                                        .toStyle(
+                                          color: isSelected
+                                              ? tokens.textPrimary
+                                              : tokens.textSecondary,
+                                        )
+                                        .copyWith(
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                        ),
                                   ),
                                   const SizedBox(width: 6),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: isSelected ? 0.2 : 0.08),
-                                      borderRadius: BorderRadius.circular(5),
+                                      color: Colors.white.withValues(
+                                        alpha: isSelected
+                                            ? ZplayOpacity.overlayHover
+                                            : ZplayOpacity.borderDefault,
+                                      ),
+                                      borderRadius: ZplayRadius.xsAll,
                                     ),
                                     child: Text(
                                       '$count',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected ? Colors.white : Colors.white54,
+                                      style: ZplayType.caption.toStyle(
+                                        color: isSelected
+                                            ? tokens.textPrimary
+                                            : tokens.textSecondary,
                                       ),
                                     ),
                                   ),
@@ -490,7 +515,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: ZplayRadius.lgAll,
                     onTap: () {
                       if (_categoryScrollController.hasClients) {
                         final target = (_categoryScrollController.offset + 180).clamp(
@@ -508,14 +533,14 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: tokens.surfaceOverlay,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                        border: Border.all(color: tokens.borderDefault),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.chevron_right_rounded,
                         size: 18,
-                        color: Colors.white70,
+                        color: tokens.textEmphasis,
                       ),
                     ),
                   ),
@@ -530,22 +555,22 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
           Expanded(
             child: _isLoading
                 ? Center(
-                    child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
+                    child: CircularProgressIndicator(color: tokens.accent),
                   )
                 : _filteredRepos.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.search_off_rounded, size: 48, color: Colors.white.withValues(alpha: 0.2)),
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 48,
+                              color: tokens.textDisabled,
+                            ),
                             const SizedBox(height: 12),
                             Text(
                               'No repositories found for "$_searchQuery"',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.white.withValues(alpha: 0.5),
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: ZplayType.body.toStyle(color: tokens.textSecondary),
                             ),
                           ],
                         ),
@@ -570,12 +595,14 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF141721),
-                              borderRadius: BorderRadius.circular(16),
+                              color: tokens.surface,
+                              borderRadius: ZplayRadius.mdAll,
                               border: Border.all(
                                 color: isInstalled
-                                    ? const Color(0xFF10B981).withValues(alpha: 0.35)
-                                    : Colors.white.withValues(alpha: 0.07),
+                                    ? tokens.success.withValues(
+                                        alpha: ZplayOpacity.borderStrong,
+                                      )
+                                    : tokens.borderDefault,
                               ),
                             ),
                             child: Padding(
@@ -593,12 +620,7 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                           children: [
                                             Text(
                                               repo.name,
-                                              style: const TextStyle(
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white,
-                                                letterSpacing: 0.1,
-                                              ),
+                                              style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                                             ),
                                             const SizedBox(height: 6),
                                             Wrap(
@@ -608,22 +630,27 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                                   decoration: BoxDecoration(
-                                                    color: catColor.withValues(alpha: 0.15),
-                                                    borderRadius: BorderRadius.circular(6),
-                                                    border: Border.all(color: catColor.withValues(alpha: 0.3)),
+                                                    color: catColor.withValues(
+                                                      alpha: ZplayOpacity.overlayHover,
+                                                    ),
+                                                    borderRadius: ZplayRadius.xsAll,
+                                                    border: Border.all(
+                                                      color: catColor.withValues(
+                                                        alpha: ZplayOpacity.textDisabled,
+                                                      ),
+                                                    ),
                                                   ),
                                                   child: Row(
                                                     mainAxisSize: MainAxisSize.min,
                                                     children: [
-                                                      Text(_getCategoryEmoji(repo.category), style: const TextStyle(fontSize: 11)),
+                                                      Text(
+                                                        _getCategoryEmoji(repo.category),
+                                                        style: ZplayType.caption.toStyle(),
+                                                      ),
                                                       const SizedBox(width: 4),
                                                       Text(
                                                         repo.category,
-                                                        style: TextStyle(
-                                                          fontSize: 10.5,
-                                                          fontWeight: FontWeight.w700,
-                                                          color: catColor,
-                                                        ),
+                                                        style: ZplayType.caption.toStyle(color: catColor),
                                                       ),
                                                     ],
                                                   ),
@@ -632,15 +659,13 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                                   Container(
                                                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.white.withValues(alpha: 0.08),
-                                                      borderRadius: BorderRadius.circular(6),
+                                                      color: tokens.borderDefault,
+                                                      borderRadius: ZplayRadius.xsAll,
                                                     ),
                                                     child: Text(
                                                       '${repo.plugins.length} Plugins',
-                                                      style: TextStyle(
-                                                        fontSize: 10.5,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: Colors.white.withValues(alpha: 0.7),
+                                                      style: ZplayType.caption.toStyle(
+                                                        color: tokens.textEmphasis,
                                                       ),
                                                     ),
                                                   ),
@@ -654,21 +679,29 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                                            color: tokens.success.withValues(
+                                              alpha: ZplayOpacity.borderStrong,
+                                            ),
+                                            borderRadius: ZplayRadius.smAll,
+                                            border: Border.all(
+                                              color: tokens.success.withValues(
+                                                alpha: ZplayOpacity.textDisabled,
+                                              ),
+                                            ),
                                           ),
-                                          child: const Row(
+                                          child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 14),
-                                              SizedBox(width: 4),
+                                              Icon(
+                                                Icons.check_circle_rounded,
+                                                color: tokens.success,
+                                                size: 14,
+                                              ),
+                                              const SizedBox(width: 4),
                                               Text(
                                                 'Added',
-                                                style: TextStyle(
-                                                  fontSize: 11.5,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: Color(0xFF10B981),
+                                                style: ZplayType.caption.toStyle(
+                                                  color: tokens.success,
                                                 ),
                                               ),
                                             ],
@@ -683,22 +716,20 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF0B0D13),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                                      color: tokens.bg,
+                                      borderRadius: ZplayRadius.smAll,
+                                      border: Border.all(color: tokens.borderSubtle),
                                     ),
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.link_rounded, size: 14, color: Colors.white38),
+                                        Icon(Icons.link_rounded, size: 14, color: tokens.textMuted),
                                         const SizedBox(width: 6),
                                         Expanded(
                                           child: Text(
                                             repo.url,
-                                            style: TextStyle(
-                                              fontFamily: 'monospace',
-                                              fontSize: 11,
-                                              color: Colors.white.withValues(alpha: 0.45),
-                                            ),
+                                            style: ZplayType.caption
+                                              .toStyle(color: tokens.textSecondary)
+                                              .copyWith(fontFamily: 'monospace'),
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
@@ -717,10 +748,14 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                           builder: (_, state) => Container(
                                             padding: const EdgeInsets.all(4),
                                             decoration: BoxDecoration(
-                                              color: Colors.white.withValues(alpha: 0.08),
-                                              borderRadius: BorderRadius.circular(4),
+                                              color: tokens.borderDefault,
+                                              borderRadius: ZplayRadius.xsAll,
                                             ),
-                                            child: const Icon(Icons.copy_rounded, size: 12, color: Colors.white70),
+                                            child: Icon(
+                                              Icons.copy_rounded,
+                                              size: 12,
+                                              color: tokens.textEmphasis,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -733,21 +768,17 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(6),
+                                        color: tokens.accentSubtle,
+                                        borderRadius: ZplayRadius.xsAll,
                                       ),
                                       child: Row(
                                         children: [
-                                          const Icon(Icons.auto_awesome_rounded, size: 12, color: Color(0xFF9D84FF)),
+                                          Icon(Icons.auto_awesome_rounded, size: 12, color: tokens.accent),
                                           const SizedBox(width: 6),
                                           Expanded(
                                             child: Text(
                                               'Contains: ${matchingPlugins.join(', ')}',
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
-                                                color: Color(0xFF9D84FF),
-                                              ),
+                                              style: ZplayType.caption.toStyle(color: tokens.accent),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
@@ -769,24 +800,23 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                           }
                                         });
                                       },
-                                      borderRadius: BorderRadius.circular(6),
+                                      borderRadius: ZplayRadius.xsAll,
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(vertical: 3),
                                         child: Row(
                                           children: [
                                             Text(
                                               isExpanded ? 'Hide plugins' : 'View all ${repo.plugins.length} plugins',
-                                              style: TextStyle(
-                                                fontSize: 11.5,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.9),
+                                              style: ZplayType.caption.toStyle(
+                                                color: tokens.accent,
+                                                opacity: ZplayOpacity.textPrimary,
                                               ),
                                             ),
                                             const SizedBox(width: 4),
                                             Icon(
                                               isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
                                               size: 16,
-                                              color: AppThemeService.currentPalette.value.primaryColor,
+                                              color: tokens.accent,
                                             ),
                                           ],
                                         ),
@@ -803,22 +833,30 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                             decoration: BoxDecoration(
                                               color: isMatched
-                                                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)
-                                                  : Colors.white.withValues(alpha: 0.05),
-                                              borderRadius: BorderRadius.circular(6),
+                                                  ? tokens.accent.withValues(
+                                                      alpha: ZplayOpacity.textDisabled,
+                                                    )
+                                                  : tokens.borderSubtle,
+                                              borderRadius: ZplayRadius.xsAll,
                                               border: Border.all(
                                                 color: isMatched
-                                                    ? AppThemeService.currentPalette.value.primaryColor
-                                                    : Colors.white.withValues(alpha: 0.08),
+                                                    ? tokens.accent
+                                                    : tokens.borderDefault,
                                               ),
                                             ),
                                             child: Text(
                                               plugin,
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: isMatched ? Colors.white : Colors.white70,
-                                                fontWeight: isMatched ? FontWeight.bold : FontWeight.normal,
-                                              ),
+                                              style: ZplayType.caption
+                                                  .toStyle(
+                                                    color: isMatched
+                                                        ? tokens.textPrimary
+                                                        : tokens.textEmphasis,
+                                                  )
+                                                  .copyWith(
+                                                    fontWeight: isMatched
+                                                        ? FontWeight.w700
+                                                        : FontWeight.w400,
+                                                  ),
                                             ),
                                           );
                                         }).toList(),
@@ -836,23 +874,26 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                           child: ElevatedButton.icon(
                                             onPressed: isAdding ? null : () => _addRepo(repo),
                                             icon: isAdding
-                                                ? const SizedBox(
+                                                ? SizedBox(
                                                     width: 14,
                                                     height: 14,
-                                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                                    child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: tokens.onAccent,
+                                                    ),
                                                   )
                                                 : const Icon(Icons.add_circle_outline_rounded, size: 16),
                                             label: Text(
                                               isAdding ? 'Adding Repository...' : 'Install Repository',
-                                              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+                                              style: ZplayType.label.toStyle(),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                                              foregroundColor: Colors.white,
+                                              backgroundColor: tokens.accent,
+                                              foregroundColor: tokens.onAccent,
                                               padding: const EdgeInsets.symmetric(vertical: 10),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                                             ),
                                           ),
                                         )
@@ -861,17 +902,17 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                           child: ElevatedButton.icon(
                                             onPressed: () => _installAllPlugins(repo.url),
                                             icon: const Icon(Icons.download_for_offline_rounded, size: 16),
-                                            label: const Text(
+                                            label: Text(
                                               'Install All Plugins',
-                                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+                                              style: ZplayType.label.toStyle(),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFF10B981),
-                                              foregroundColor: Colors.white,
+                                              backgroundColor: tokens.accent,
+                                              foregroundColor: tokens.onAccent,
                                               padding: const EdgeInsets.symmetric(vertical: 9),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                                              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                                             ),
                                           ),
                                         ),
@@ -882,12 +923,17 @@ class _CloudStreamMarketplaceModalState extends State<CloudStreamMarketplaceModa
                                             CloudStreamRepoModal.show(context);
                                           },
                                           icon: const Icon(Icons.manage_search_rounded, size: 16),
-                                          label: const Text('Browse', style: TextStyle(fontSize: 12), maxLines: 1, overflow: TextOverflow.ellipsis),
+                                          label: Text(
+                                            'Browse',
+                                            style: ZplayType.bodySmall.toStyle(),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
                                           style: OutlinedButton.styleFrom(
-                                            foregroundColor: Colors.white70,
-                                            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                                            foregroundColor: tokens.textEmphasis,
+                                            side: BorderSide(color: tokens.borderStrong),
                                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                                            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                                           ),
                                         ),
                                       ],

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../models/player/skip_segment_model.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 
 /// Ultra-sleek, responsive glassmorphism Skip Button with dynamic hover effects
@@ -63,12 +64,13 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 640;
 
     final isCredits = widget.segment.type == 'credits';
-    final accentColor = isCredits ? const Color(0xFF10B981) : PlayerTheme.accent;
-    final accentGlow = isCredits ? const Color(0xFF34D399) : const Color(0xFF9D84FF);
+    final accentColor = isCredits ? tokens.success : PlayerTheme.accent;
+    final accentGlow = isCredits ? tokens.success : tokens.accent;
 
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -91,17 +93,17 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(isCompact ? 12 : 16),
+            borderRadius: isCompact ? ZplayRadius.smAll : ZplayRadius.mdAll,
             border: Border.all(
               color: _isHovered
                   ? accentGlow.withValues(alpha: 0.85)
-                  : Colors.white.withValues(alpha: 0.20),
+                  : tokens.borderStrong,
               width: _isHovered ? 1.5 : 1.0,
             ),
             boxShadow: [
               // Deep ambient drop shadow
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.75),
+                color: tokens.bg.withValues(alpha: 0.75),
                 offset: const Offset(0, 8),
                 blurRadius: 28,
               ),
@@ -121,13 +123,13 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(isCompact ? 12 : 16),
+            borderRadius: isCompact ? ZplayRadius.smAll : ZplayRadius.mdAll,
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
               child: Container(
                 color: _isHovered
-                    ? const Color(0xF20F1420)
-                    : const Color(0xD9080C14),
+                    ? tokens.surfaceOverlay.withValues(alpha: 0.95)
+                    : tokens.surfaceOverlay.withValues(alpha: 0.85),
                 child: Stack(
                   children: [
                     // Dynamic Sweep Gradient Shimmer that follows countdown
@@ -154,7 +156,9 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
                               ).createShader(bounds);
                             },
                             blendMode: BlendMode.srcOver,
-                            child: Container(color: Colors.white.withValues(alpha: 0.04)),
+                            child: Container(
+                              color: tokens.textPrimary.withValues(alpha: 0.04),
+                            ),
                           );
                         },
                       ),
@@ -199,19 +203,19 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
                                     // Action Label
                                     Text(
                                       widget.segment.label,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: isCompact ? 12.5 : 14.0,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -0.2,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black.withValues(alpha: 0.8),
-                                            offset: const Offset(0, 1),
-                                            blurRadius: 4,
+                                      style: (isCompact ? ZplayType.label : ZplayType.body)
+                                          .toStyle(color: tokens.textPrimary)
+                                          .copyWith(
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: -0.2,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withValues(alpha: 0.8),
+                                                offset: const Offset(0, 1),
+                                                blurRadius: 4,
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
                                     ),
                                   ],
                                 ),
@@ -223,7 +227,7 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
                           Container(
                             width: 1,
                             margin: const EdgeInsets.symmetric(vertical: 6),
-                            color: Colors.white.withValues(alpha: 0.14),
+                            color: tokens.borderStrong,
                           ),
 
                           // '✕' Dismiss Button
@@ -234,8 +238,9 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
                               color: Colors.transparent,
                               child: InkWell(
                                 onTap: widget.onDismiss,
-                                hoverColor: Colors.white.withValues(alpha: 0.15),
-                                splashColor: Colors.white.withValues(alpha: 0.25),
+                                hoverColor: tokens.textPrimary
+                                    .withValues(alpha: ZplayOpacity.overlayHover),
+                                splashColor: tokens.textPrimary.withValues(alpha: 0.25),
                                 child: Tooltip(
                                   message: 'Dismiss (✕)',
                                   child: Container(
@@ -251,8 +256,8 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
                                         Icons.close_rounded,
                                         size: isCompact ? 15 : 17,
                                         color: _isDismissHovered
-                                            ? Colors.white
-                                            : Colors.white.withValues(alpha: 0.60),
+                                            ? tokens.textPrimary
+                                            : tokens.textSecondary,
                                       ),
                                     ),
                                   ),
@@ -280,12 +285,12 @@ class _PlayerSkipButtonState extends State<PlayerSkipButton>
                             widthFactor: sweepProgress,
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(999),
+                                borderRadius: ZplayRadius.fullAll,
                                 gradient: LinearGradient(
                                   colors: [
                                     accentColor.withValues(alpha: 0.5),
                                     accentGlow,
-                                    Colors.white,
+                                    tokens.textPrimary,
                                   ],
                                   stops: const [0.0, 0.85, 1.0],
                                 ),

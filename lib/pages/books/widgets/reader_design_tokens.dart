@@ -1,44 +1,104 @@
 import 'package:flutter/material.dart';
 
-/// Design tokens for the ZPlay Reader.
-/// Enforces consistent 4pt-based spacing, standard radii, custom soft shadows,
-/// named motion curves/durations, and typography scales across all reader components.
+import '../../../services/theme/app_theme_service.dart';
+import '../../../services/theme/design_tokens.dart';
+
+/// Reader chrome vocabulary for the ZPlay Reader.
+///
+/// The reader family draws two different things: the *page* — paper surface, book
+/// text metrics, the light/sepia/dark/amoled swatches — and the *chrome* around
+/// it — bars, drawer, customisation sheet, zoom and focus controls. Page values
+/// are product data and stay on `ReaderSettingsData`; chrome follows the app
+/// palette through the shared contract tokens, so a palette switch restyles the
+/// reader with the rest of the shell.
+///
+/// This class is the reader's chrome bridge: the numeric scales are aliases of
+/// [ZplaySpacing]/[ZplayRadius], and the colour members are getters over
+/// [AppThemeService.currentTokens] — the same derivation as `context.tokens`,
+/// memoised on palette identity, so a reader helper without a `BuildContext` (an
+/// `IconButton` factory, a shadow, a `const` list) still resolves the active
+/// palette.
 class ReaderTokens {
   ReaderTokens._();
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 1. SPACING SCALE (4pt Base)
+  // 1. PALETTE-FOLLOWING CHROME COLOURS
   // ──────────────────────────────────────────────────────────────────────────
-  static const double space4 = 4.0;
-  static const double space8 = 8.0;
-  static const double space12 = 12.0;
-  static const double space16 = 16.0;
-  static const double space24 = 24.0;
-  static const double space32 = 32.0;
-  static const double space48 = 48.0;
-  static const double space64 = 64.0;
+  /// The contract set for the active palette. Re-derived once per palette switch.
+  static ZplayTokens get _tokens => AppThemeService.currentTokens;
+
+  /// Page background of reader chrome scrims and the comic/AMOLED backdrop.
+  static Color get bg => _tokens.bg;
+
+  /// Recessed tiles inside chrome: chips, control fills, cover placeholders.
+  static Color get surface => _tokens.surface;
+
+  /// Bars sitting on top of the page (reader top/bottom chrome, drawer).
+  static Color get surfaceRaised => _tokens.surfaceRaised;
+
+  /// Floating chrome above the page: focus pills, zoom bar, customisation sheet.
+  static Color get surfaceOverlay => _tokens.surfaceOverlay;
+
+  static Color get borderSubtle => _tokens.borderSubtle;
+  static Color get borderDefault => _tokens.borderDefault;
+  static Color get borderStrong => _tokens.borderStrong;
+
+  static Color get textPrimary => _tokens.textPrimary;
+  static Color get textEmphasis => _tokens.textEmphasis;
+  static Color get textSecondary => _tokens.textSecondary;
+  static Color get textMuted => _tokens.textMuted;
+  static Color get textDisabled => _tokens.textDisabled;
+
+  static Color get accent => _tokens.accent;
+  static Color get accentSubtle => _tokens.accentSubtle;
+  static Color get onAccent => _tokens.onAccent;
+
+  static Color get success => _tokens.success;
+  static Color get danger => _tokens.danger;
+
+  /// 1px hairline in the default border role, for `Border`/`Divider` sides.
+  static BorderSide get hairline => _tokens.hairline;
+
+  /// 1px hairline in the strong divider role.
+  static BorderSide get hairlineStrong => _tokens.hairlineStrong;
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 2. RADIUS SCALE
+  // 2. SPACING SCALE (4pt base, aliases of [ZplaySpacing])
   // ──────────────────────────────────────────────────────────────────────────
-  static const double radius4 = 4.0;
-  static const double radius8 = 8.0;
-  static const double radius12 = 12.0;
-  static const double radius16 = 16.0;
-  static const double radius24 = 24.0;
-  static const double radius32 = 32.0;
-
-  static const BorderRadius rounded4 = BorderRadius.all(Radius.circular(radius4));
-  static const BorderRadius rounded8 = BorderRadius.all(Radius.circular(radius8));
-  static const BorderRadius rounded12 = BorderRadius.all(Radius.circular(radius12));
-  static const BorderRadius rounded16 = BorderRadius.all(Radius.circular(radius16));
-  static const BorderRadius rounded24 = BorderRadius.all(Radius.circular(radius24));
-  static const BorderRadius rounded32 = BorderRadius.all(Radius.circular(radius32));
+  static const double space4 = ZplaySpacing.s4;
+  static const double space8 = ZplaySpacing.s8;
+  static const double space12 = ZplaySpacing.s12;
+  static const double space16 = ZplaySpacing.s16;
+  static const double space24 = ZplaySpacing.s24;
+  static const double space32 = ZplaySpacing.s32;
+  static const double space48 = ZplaySpacing.s48;
+  static const double space64 = ZplaySpacing.s64;
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 3. ELEVATION & CUSTOM SOFT SHADOWS
+  // 3. RADIUS SCALE (aliases of [ZplayRadius], legacy buckets 4→xs, 8/12→sm,
+  //    16→md, 24→lg, 32→xl)
   // ──────────────────────────────────────────────────────────────────────────
-  /// Subtle shadow for small floating elements, exit pills, and list cards
+  static const double radius4 = ZplayRadius.xs;
+  static const double radius8 = ZplayRadius.sm;
+  static const double radius12 = ZplayRadius.sm;
+  static const double radius16 = ZplayRadius.md;
+  static const double radius24 = ZplayRadius.lg;
+  static const double radius32 = ZplayRadius.xl;
+
+  static const BorderRadius rounded4 = ZplayRadius.xsAll;
+  static const BorderRadius rounded8 = ZplayRadius.smAll;
+  static const BorderRadius rounded12 = ZplayRadius.smAll;
+  static const BorderRadius rounded16 = ZplayRadius.mdAll;
+  static const BorderRadius rounded24 = ZplayRadius.lgAll;
+  static const BorderRadius rounded32 = ZplayRadius.xlAll;
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 4. ELEVATION & CUSTOM SOFT SHADOWS
+  // ──────────────────────────────────────────────────────────────────────────
+  /// Subtle shadow for small floating elements, exit pills, and list cards.
+  ///
+  /// The reader keeps its own elevation scale: the contract layer carries no
+  /// shadow token, and callers place these in `const` shadow lists.
   static const BoxShadow shadowSm = BoxShadow(
     color: Color(0x0F000000), // alpha 0.06
     blurRadius: 8.0,
@@ -54,7 +114,8 @@ class ReaderTokens {
     offset: Offset(0, 4),
   );
 
-  /// Ambient spotlight glow for the Focus Mode active line box
+  /// Ambient spotlight glow for the Focus Mode active line box, tinted with the
+  /// active accent so the highlight matches the chrome it sits in.
   static BoxShadow shadowGlow(Color accentColor) {
     return BoxShadow(
       color: accentColor.withValues(alpha: 0.22),
@@ -65,8 +126,12 @@ class ReaderTokens {
   }
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 4. MOTION TOKENS
+  // 5. MOTION TOKENS
   // ──────────────────────────────────────────────────────────────────────────
+  // The reader's timings are its own choreography — chrome fade, focus-line
+  // slide, per-line dim, sheet and theme crossfade lag each other deliberately —
+  // so they stay off the contract's 120/200/320 steps.
+
   /// Micro feedback (button press, chip select)
   static const Duration motionFast = Duration(milliseconds: 120);
   static const Curve curveFast = Curves.easeOut;
@@ -92,27 +157,18 @@ class ReaderTokens {
   static const Curve curveThemeSwitch = Curves.easeInOut;
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 5. TYPOGRAPHY CONSTANTS & UI SCALES
+  // 6. TYPOGRAPHY
   // ──────────────────────────────────────────────────────────────────────────
+  /// Reader UI font keys. Chrome text follows the shared type scale and the
+  /// ambient theme family; these keys are the reader's own font vocabulary for
+  /// book content (`ReaderSettingsData.fontFamily`).
   static const String uiFont = 'Poppins';
   static const String defaultSerifFont = 'Georgia';
 
-  static const TextStyle caption = TextStyle(
-    fontFamily: uiFont,
-    fontSize: 13.0,
-    fontWeight: FontWeight.w400,
-  );
+  /// Chrome type roles — the shared scale, so reader chrome reads like the shell.
+  static TextStyle get caption => ZplayType.body.toStyle();
 
-  static const TextStyle primaryLabel = TextStyle(
-    fontFamily: uiFont,
-    fontSize: 15.0,
-    fontWeight: FontWeight.w600,
-  );
+  static TextStyle get primaryLabel => ZplayType.subtitle.toStyle();
 
-  static const TextStyle tabLabel = TextStyle(
-    fontFamily: uiFont,
-    fontSize: 13.0,
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.2,
-  );
+  static TextStyle get tabLabel => ZplayType.label.toStyle();
 }

@@ -7,7 +7,6 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/iptv/iptv_controller.dart';
@@ -298,44 +297,48 @@ if (mounted) {
     final hits = cell.availableHits;
     if (hits == null || hits.isEmpty) return;
 
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0C0F17),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      backgroundColor: tokens.surfaceOverlay,
+      shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.sheetTop),
       builder: (context) {
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(ZplaySpacing.s16),
           itemCount: hits.length,
           itemBuilder: (context, i) {
             final hit = hits[i];
             final isSelected = cell.currentHitIndex == i;
             return Container(
-              margin: const EdgeInsets.only(bottom: 8),
+              margin: const EdgeInsets.only(bottom: ZplaySpacing.s8),
               decoration: BoxDecoration(
-                color: isSelected ? palette.primaryColor.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(10),
+                color: isSelected ? tokens.accentSubtle : tokens.borderSubtle,
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(
-                  color: isSelected ? palette.primaryColor : Colors.white10,
+                  color: isSelected ? tokens.accent : tokens.borderDefault,
                   width: isSelected ? 1.5 : 1,
                 ),
               ),
               child: ListTile(
-                leading: const Icon(Icons.live_tv_rounded, color: Colors.white70, size: 20),
+                leading: Icon(Icons.live_tv_rounded, color: tokens.textEmphasis, size: 20),
                 title: Text(
                   hit.portal.name,
-                  style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                  style: ZplayType.label
+                      .copyWith(weight: FontWeight.w700)
+                      .toStyle(color: tokens.textPrimary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
                   hit.stream.name,
-                  style: TextStyle(color: palette.accentColor.withValues(alpha: 0.6), fontSize: 11),
+                  style: ZplayType.caption.toStyle(
+                    color: tokens.accent.withValues(alpha: 0.6),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 trailing: isSelected
-                    ? Icon(Icons.check_circle_rounded, color: palette.primaryColor, size: 18)
+                    ? Icon(Icons.check_circle_rounded, color: tokens.accent, size: 18)
                     : null,
                 onTap: () {
                   Navigator.pop(context);
@@ -418,6 +421,7 @@ if (mounted) {
 
   void _showChannelPicker(int index) {
     if (index >= _cells.length) return;
+    final tokens = context.tokens;
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -429,39 +433,38 @@ if (mounted) {
           child: SafeArea(
             child: Container(
               height: MediaQuery.of(context).size.height * 0.85,
-              decoration: const BoxDecoration(
-                color: Color(0xFF0C0F17),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              decoration: BoxDecoration(
+                color: tokens.surfaceOverlay,
+                borderRadius: ZplayRadius.sheetTop,
               ),
               child: Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(top: 12),
+                    margin: const EdgeInsets.only(top: ZplaySpacing.s12),
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(2),
+                      color: tokens.borderStrong,
+                      borderRadius: ZplayRadius.xsAll,
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ZplaySpacing.s16,
+                      vertical: ZplaySpacing.s12,
+                    ),
                     child: Text(
                       'Select Channel',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: ZplayType.title.toStyle(color: tokens.textPrimary),
                     ),
                   ),
                   Container(
                     height: 48,
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8),
                     child: TabBar(
-                      labelColor: AppThemeService.currentPalette.value.primaryColor,
-                      unselectedLabelColor: Colors.white60,
-                      indicatorColor: AppThemeService.currentPalette.value.primaryColor,
+                      labelColor: tokens.accent,
+                      unselectedLabelColor: tokens.textSecondary,
+                      indicatorColor: tokens.accent,
                       tabs: const [
                         Tab(text: 'Xtreme'),
                         Tab(text: 'M3U'),
@@ -502,14 +505,14 @@ if (mounted) {
   }
 
   Widget _buildHardcodedChannelsTab(int index) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     const channels = HardcodedChannels.all;
     return FutureBuilder<List<QuickChannel>>(
       future: IptvQuickChannelStore.load(),
       builder: (context, snapshot) {
         final quickChannels = snapshot.data ?? const <QuickChannel>[];
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(ZplaySpacing.s16),
           itemCount: channels.length + quickChannels.length,
           itemBuilder: (context, i) {
 if (i < quickChannels.length) {
@@ -524,20 +527,20 @@ if (i < quickChannels.length) {
                 iconUrl: qc.iconUrl,
               );
               return Container(
-                margin: const EdgeInsets.only(bottom: 8),
+                margin: const EdgeInsets.only(bottom: ZplaySpacing.s8),
                 decoration: BoxDecoration(
-                  color: palette.primaryColor.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: palette.primaryColor.withValues(alpha: 0.2)),
+                  color: tokens.accent.withValues(alpha: 0.06),
+                  borderRadius: ZplayRadius.smAll,
+                  border: Border.all(color: tokens.accent.withValues(alpha: 0.2)),
                 ),
                 child: ListTile(
                   leading: qc.iconUrl != null
                       ? CachedNetworkImage(imageUrl: qc.iconUrl!, cacheManager: AppImageCache.manager,
- memCacheWidth: 96, width: 32, height: 32, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white70))
-                      : const Icon(Icons.tv, color: Colors.white70),
-                  title: Text(qc.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                  subtitle: Text(qc.category, style: TextStyle(color: palette.accentColor.withValues(alpha: 0.6), fontSize: 11)),
-                  trailing: const Icon(Icons.add_rounded, color: Colors.white60),
+ memCacheWidth: 96, width: 32, height: 32, errorWidget: (_, __, ___) => Icon(Icons.tv, color: tokens.textEmphasis))
+                      : Icon(Icons.tv, color: tokens.textEmphasis),
+                  title: Text(qc.name, style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
+                  subtitle: Text(qc.category, style: ZplayType.caption.toStyle(color: tokens.accent.withValues(alpha: 0.6))),
+                  trailing: Icon(Icons.add_rounded, color: tokens.textSecondary),
                   onTap: () {
                     Navigator.pop(context);
                     _loadStreamInCell(index, ch);
@@ -547,19 +550,19 @@ if (i < quickChannels.length) {
             }
             final ch = channels[i - quickChannels.length];
             return Container(
-              margin: const EdgeInsets.only(bottom: 8),
+              margin: const EdgeInsets.only(bottom: ZplaySpacing.s8),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(10),
+                color: tokens.borderSubtle,
+                borderRadius: ZplayRadius.smAll,
               ),
               child: ListTile(
                 leading: ch.iconUrl != null
                     ? CachedNetworkImage(imageUrl: ch.iconUrl!, cacheManager: AppImageCache.manager,
- memCacheWidth: 96, width: 32, height: 32, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white70))
-                    : const Icon(Icons.tv, color: Colors.white70),
-                title: Text(ch.name, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-                subtitle: Text(ch.category, style: TextStyle(color: palette.accentColor.withValues(alpha: 0.6), fontSize: 11)),
-                trailing: const Icon(Icons.add_rounded, color: Colors.white60),
+ memCacheWidth: 96, width: 32, height: 32, errorWidget: (_, __, ___) => Icon(Icons.tv, color: tokens.textEmphasis))
+                    : Icon(Icons.tv, color: tokens.textEmphasis),
+                title: Text(ch.name, style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
+                subtitle: Text(ch.category, style: ZplayType.caption.toStyle(color: tokens.accent.withValues(alpha: 0.6))),
+                trailing: Icon(Icons.add_rounded, color: tokens.textSecondary),
                 onTap: () {
                   Navigator.pop(context);
                   _loadStreamInCell(index, ch);
@@ -573,21 +576,32 @@ if (i < quickChannels.length) {
   }
 
   Widget _buildCustomUrlTab(int index) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(ZplaySpacing.s24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Stream Details', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
+          Text(
+            'Stream Details',
+            style: ZplayType.subtitle
+                .copyWith(weight: FontWeight.w700)
+                .toStyle(color: tokens.textPrimary),
+          ),
+          const SizedBox(height: ZplaySpacing.s16),
           TextField(
-            style: const TextStyle(color: Colors.white),
+            style: ZplayType.body.toStyle(color: tokens.textPrimary),
             decoration: InputDecoration(
               labelText: 'Stream Name',
-              labelStyle: const TextStyle(color: Colors.white60),
-              enabledBorder: OutlineInputBorder(borderSide: const BorderSide(color: Colors.white30), borderRadius: BorderRadius.circular(10)),
-              focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: palette.primaryColor), borderRadius: BorderRadius.circular(10)),
+              labelStyle: ZplayType.body.toStyle(color: tokens.textSecondary),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: tokens.borderStrong),
+                borderRadius: ZplayRadius.smAll,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: tokens.accent),
+                borderRadius: ZplayRadius.smAll,
+              ),
             ),
             onSubmitted: (nameVal) {
               _promptForUrl(index, nameVal);
@@ -687,30 +701,40 @@ if (i < quickChannels.length) {
   void _promptForUrl(int index, String name) {
     if (index >= _cells.length) return;
     Navigator.pop(context);
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     
     showDialog(
       context: context,
       builder: (context) {
         final ctrl = TextEditingController();
         return AlertDialog(
-          backgroundColor: const Color(0xFF0C0F17),
-          title: Text('Stream URL for $name', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+          backgroundColor: tokens.surfaceOverlay,
+          title: Text(
+            'Stream URL for $name',
+            style: ZplayType.title.toStyle(color: tokens.textPrimary),
+          ),
           content: TextField(
             controller: ctrl,
             autofocus: true,
-            style: const TextStyle(color: Colors.white),
+            style: ZplayType.body.toStyle(color: tokens.textPrimary),
             decoration: InputDecoration(
               hintText: 'http://example.com/stream.m3u8',
-              hintStyle: const TextStyle(color: Colors.white30),
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: palette.primaryColor.withValues(alpha: 0.5))),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: palette.primaryColor)),
+              hintStyle: ZplayType.body.toStyle(color: tokens.textDisabled),
+              enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: tokens.accent.withValues(alpha: 0.5)),
+              ),
+              focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: tokens.accent),
+              ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+              child: Text(
+                'Cancel',
+                style: ZplayType.label.toStyle(color: tokens.textSecondary),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -720,8 +744,11 @@ if (i < quickChannels.length) {
                   _loadCustomUrlInCell(index, name, url);
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: palette.primaryColor),
-              child: const Text('Add', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: tokens.accent,
+                foregroundColor: tokens.onAccent,
+              ),
+              child: Text('Add', style: ZplayType.label.toStyle(color: tokens.onAccent)),
             ),
           ],
         );
@@ -751,12 +778,12 @@ if (i < quickChannels.length) {
 
   Widget _buildRearrangeGrid(int crossAxisCount, double childAspectRatio, double topPadding) {
     return ListView.builder(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: topPadding + 88),
+      padding: EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: topPadding + 88),
       physics: const ClampingScrollPhysics(),
       itemCount: _activeCells,
       itemBuilder: (context, index) {
         return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: ZplaySpacing.s8),
           child: DragTarget<int>(
             builder: (context, accepted, rejected) {
               return Draggable<int>(
@@ -829,6 +856,7 @@ if (i < quickChannels.length) {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final tokens = context.tokens;
     // Determine grid rows & columns based on layout
     int crossAxisCount;
     double childAspectRatio;
@@ -874,11 +902,16 @@ final gridContent = _fullscreenIndex != null
             ? _buildRearrangeGrid(crossAxisCount, childAspectRatio, topPadding)
             : GridView.builder(
                 // The 96 px bottom was dock clearance; the shell reserves its own space now.
-                padding: EdgeInsets.fromLTRB(16, topPadding + 88, 16, ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom),
+                padding: EdgeInsets.fromLTRB(
+                  ZplaySpacing.s16,
+                  topPadding + 88,
+                  ZplaySpacing.s16,
+                  ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom,
+                ),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
+                  crossAxisSpacing: ZplaySpacing.s12,
+                  mainAxisSpacing: ZplaySpacing.s12,
                   childAspectRatio: childAspectRatio,
                 ),
                 itemCount: _activeCells,
@@ -908,7 +941,7 @@ final gridContent = _fullscreenIndex != null
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF080A0F),
+        backgroundColor: tokens.bg,
         body: ValueListenableBuilder<bool>(
           valueListenable: GlassSettings.enabled,
           builder: (context, enabled, _) {
@@ -925,7 +958,7 @@ final gridContent = _fullscreenIndex != null
               );
             }
             return Container(
-              color: const Color(0xFF080A0F),
+              color: tokens.bg,
               child: Stack(
                 children: [
                   RepaintBoundary(child: backgroundContent),
@@ -940,16 +973,16 @@ final gridContent = _fullscreenIndex != null
   }
 
   Widget _buildPlayerCell(MultiStreamCell cell, bool isFullscreen, {bool isRearrangeMode = false}) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF0C0F17),
-        borderRadius: BorderRadius.circular(16),
+        color: tokens.surfaceOverlay,
+        borderRadius: ZplayRadius.mdAll,
         border: Border.all(
           color: cell.channelName != null
-              ? (cell.isMuted ? Colors.white24 : palette.primaryColor)
-              : Colors.white10,
+              ? (cell.isMuted ? tokens.borderStrong : tokens.accent)
+              : tokens.borderDefault,
           width: cell.channelName != null && !cell.isMuted ? 2 : 1,
         ),
       ),
@@ -976,12 +1009,16 @@ final gridContent = _fullscreenIndex != null
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(AppThemeService.currentPalette.value.primaryColor)),
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(tokens.accent),
+                      ),
                       if (cell.statusText != null) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: ZplaySpacing.s12),
                         Text(
                           cell.statusText!,
-                          style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                          style: ZplayType.caption
+                              .copyWith(weight: FontWeight.w700)
+                              .toStyle(color: tokens.textEmphasis),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1001,15 +1038,24 @@ final gridContent = _fullscreenIndex != null
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(ZplaySpacing.s12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: tokens.borderSubtle,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.add_rounded, color: Colors.white60, size: 28),
+                      child: Icon(
+                        Icons.add_rounded,
+                        color: tokens.textSecondary,
+                        size: 28,
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text('Add Live Stream Feed', style: TextStyle(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: ZplaySpacing.s8),
+                    Text(
+                      'Add Live Stream Feed',
+                      style: ZplayType.bodySmall
+                          .copyWith(weight: FontWeight.w700)
+                          .toStyle(color: tokens.textSecondary),
+                    ),
                   ],
                 ),
               ),
@@ -1025,14 +1071,18 @@ final gridContent = _fullscreenIndex != null
                 children: [
                   Flexible(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ZplaySpacing.s8,
+                        vertical: ZplaySpacing.s4,
+                      ),
                       decoration: BoxDecoration(
+                        // HUD chip over live video: the black scrim stays.
                         color: Colors.black.withValues(alpha: 0.7),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: ZplayRadius.xsAll,
                       ),
                       child: Text(
                         cell.channelName ?? 'Live Stream',
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: ZplayType.overline.toStyle(color: tokens.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1045,7 +1095,7 @@ final gridContent = _fullscreenIndex != null
                     children: [
                       _buildMiniHudButton(
                         icon: cell.isMuted ? Icons.volume_off_rounded : (cell.volume < 0.5 ? Icons.volume_down_rounded : Icons.volume_up_rounded),
-                        color: cell.isMuted ? Colors.white70 : palette.primaryColor,
+                        color: cell.isMuted ? tokens.textEmphasis : tokens.accent,
                         onTap: () => _onCellVolumeToggle(cell.index),
                       ),
                       const SizedBox(width: 4),
@@ -1057,10 +1107,10 @@ final gridContent = _fullscreenIndex != null
                             trackHeight: 3,
                             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
                             overlayShape: const RoundSliderOverlayShape(overlayRadius: 8),
-                            activeTrackColor: palette.primaryColor,
-                            inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
-                            thumbColor: palette.primaryColor,
-                            overlayColor: palette.primaryColor.withValues(alpha: 0.2),
+                            activeTrackColor: tokens.accent,
+                            inactiveTrackColor: tokens.borderStrong,
+                            thumbColor: tokens.accent,
+                            overlayColor: tokens.accent.withValues(alpha: 0.2),
                           ),
                           child: Slider(
                             value: cell.volume,
@@ -1096,8 +1146,8 @@ final gridContent = _fullscreenIndex != null
                         ? Icons.swap_horiz_rounded
                         : Icons.swap_horiz_outlined,
                     color: (cell.availableHits?.length ?? 0) > 1
-                        ? palette.primaryColor
-                        : Colors.white70,
+                        ? tokens.accent
+                        : tokens.textEmphasis,
                     onTap: (cell.availableHits?.length ?? 0) > 1
                         ? () => _showStreamPicker(cell.index)
                         : null,
@@ -1105,7 +1155,7 @@ final gridContent = _fullscreenIndex != null
                   const SizedBox(width: 6),
                   _buildMiniHudButton(
                     icon: Icons.close_rounded,
-                    color: Colors.redAccent,
+                    color: tokens.danger,
                     onTap: () => _onCellRemove(cell.index),
                   ),
                 ],
@@ -1116,25 +1166,27 @@ final gridContent = _fullscreenIndex != null
     );
   }
 
-  Widget _buildMiniHudButton({required IconData icon, Color color = Colors.white70, VoidCallback? onTap}) {
+  Widget _buildMiniHudButton({required IconData icon, Color? color, VoidCallback? onTap}) {
+    final tokens = context.tokens;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(6),
+      borderRadius: ZplayRadius.xsAll,
       child: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(
+          // HUD button over live video: the black scrim stays.
           color: Colors.black.withValues(alpha: 0.7),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white10),
+          borderRadius: ZplayRadius.smAll,
+          border: Border.all(color: tokens.borderDefault),
         ),
-        child: Icon(icon, color: color, size: 20),
+        child: Icon(icon, color: color ?? tokens.textEmphasis, size: 20),
       ),
     );
   }
 
   Widget _buildSlidingMenuBars({required double topPadding}) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1142,8 +1194,19 @@ final gridContent = _fullscreenIndex != null
         // Top bar - layout controls
         Container(
           padding: EdgeInsets.symmetric(horizontal: 28, vertical: topPadding + 14),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0xCC080A0F), Color(0x77080A0F), Colors.transparent], stops: [0.0, 0.6, 1.0]),
+          decoration: BoxDecoration(
+            // HUD band over live video: the scrim and its stops stay, only the
+            // colour becomes the page background so it follows the palette.
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                tokens.bg.withValues(alpha: 0.80),
+                tokens.bg.withValues(alpha: 0.47),
+                Colors.transparent,
+              ],
+              stops: const [0.0, 0.6, 1.0],
+            ),
           ),
           child: Row(
             children: [
@@ -1161,23 +1224,37 @@ final gridContent = _fullscreenIndex != null
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)]),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [BoxShadow(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4), blurRadius: 10)],
+                    gradient: LinearGradient(colors: [tokens.accent, tokens.info]),
+                    borderRadius: ZplayRadius.smAll,
+                    boxShadow: [
+                      BoxShadow(
+                        color: tokens.accent.withValues(alpha: 0.4),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
-                  child: const Row(mainAxisSize: MainAxisSize.min, children: [
-                    Icon(Icons.dashboard_rounded, color: Colors.white, size: 18),
-                    SizedBox(width: 6),
-                    Text('MULTI STREAMS', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w900, letterSpacing: 0.8)),
-                  ]),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.dashboard_rounded, color: tokens.onAccent, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'MULTI STREAMS',
+                        style: ZplayType.label.toStyle(color: tokens.onAccent),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                  padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: tokens.borderDefault,
+                    borderRadius: ZplayRadius.xsAll,
+                  ),
                   child: Text(
                     _currentLayout.label.toUpperCase(),
-                    style: const TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                    style: ZplayType.overline.toStyle(color: tokens.textEmphasis),
                   ),
                 ),
               ]),
@@ -1192,40 +1269,42 @@ final gridContent = _fullscreenIndex != null
                     children: [
                       if (_fullscreenIndex == null) ...[
                         IconButton(
-                          icon: const Icon(Icons.chevron_left_rounded, color: Colors.white70),
+                          icon: Icon(Icons.chevron_left_rounded, color: tokens.textEmphasis),
                           onPressed: _navigateLayoutBackward,
                           tooltip: 'Previous Layout',
                         ),
                         IconButton(
-                          icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+                          icon: Icon(Icons.chevron_right_rounded, color: tokens.textEmphasis),
                           onPressed: _navigateLayoutForward,
                           tooltip: 'Next Layout',
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: ZplaySpacing.s12),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: palette.primaryColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: palette.primaryColor.withValues(alpha: 0.5)),
+                            color: tokens.accentSubtle,
+                            borderRadius: ZplayRadius.lgAll,
+                            border: Border.all(color: tokens.accent.withValues(alpha: 0.5)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.view_comfy_rounded, color: palette.primaryColor, size: 16),
+                              Icon(Icons.view_comfy_rounded, color: tokens.accent, size: 16),
                               const SizedBox(width: 6),
                               Text(
                                 '$_activeCells Stream${_activeCells > 1 ? "s" : ""}',
-                                style: TextStyle(color: palette.primaryColor, fontSize: 12, fontWeight: FontWeight.bold),
+                                style: ZplayType.bodySmall
+                                    .copyWith(weight: FontWeight.w700)
+                                    .toStyle(color: tokens.accent),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Container(width: 1, height: 24, color: Colors.white24),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: ZplaySpacing.s16),
+                        Container(width: 1, height: 24, color: tokens.borderStrong),
+                        const SizedBox(width: ZplaySpacing.s16),
                       ],
-                      const SizedBox(width: 16),
+                      const SizedBox(width: ZplaySpacing.s16),
                       _buildGlassButton(
                         icon: _isRearrangeMode ? Icons.check_rounded : Icons.swap_vert_rounded,
                         isSelected: _isRearrangeMode,
@@ -1262,7 +1341,7 @@ final gridContent = _fullscreenIndex != null
   }
 
   Widget _buildGlassButton({required IconData icon, required bool isSelected, required String tooltip, VoidCallback? onTap}) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Tooltip(
       message: tooltip,
@@ -1272,11 +1351,17 @@ final gridContent = _fullscreenIndex != null
           duration: const Duration(milliseconds: 160),
           width: 40, height: 40,
           decoration: BoxDecoration(
-            color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.12)),
+            color: isSelected ? tokens.accent : tokens.borderDefault,
+            borderRadius: ZplayRadius.smAll,
+            border: Border.all(
+              color: isSelected ? tokens.accent : tokens.borderStrong,
+            ),
           ),
-          child: Icon(icon, color: Colors.white70, size: 20),
+          child: Icon(
+            icon,
+            color: isSelected ? tokens.onAccent : tokens.textEmphasis,
+            size: 20,
+          ),
         ),
       ),
     );

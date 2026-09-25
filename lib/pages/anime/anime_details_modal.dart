@@ -9,6 +9,7 @@ import '../../services/anime/anilist_service.dart';
 import '../../services/anime/anime_library_service.dart';
 import '../../services/anime/extractors/anidb_extractor.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -141,6 +142,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
     final library = AnimeLibraryService.instance;
     final watchItem = library.getWatchlistItem(_anime.id);
     final size = MediaQuery.sizeOf(context);
+    final tokens = ZplayTokens.of(context);
     final isMobile = size.width < 750;
 
     final modalWidth = isMobile ? size.width - 16 : math.min(size.width * 0.94, 980.0);
@@ -171,9 +173,9 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                   width: modalWidth,
                   height: modalHeight,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0D0F18),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                    color: tokens.surfaceOverlay,
+                    borderRadius: ZplayRadius.sheetTop,
+                    border: Border.all(color: tokens.borderStrong),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.75),
@@ -183,7 +185,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: ZplayRadius.sheetTop,
                     child: Column(
                       children: [
                         // Top Backdrop Header
@@ -198,7 +200,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                 fit: BoxFit.cover,
                                 alignment: Alignment.topCenter,
                                 errorWidget: (_, __, ___) => Container(
-                                  color: const Color(0xFF141724),
+                                  color: tokens.surface,
                                 )),
                             ),
                             Positioned.fill(
@@ -209,8 +211,10 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                     end: Alignment.bottomCenter,
                                     colors: [
                                       Colors.black.withValues(alpha: 0.25),
-                                      const Color(0xFF0D0F18).withValues(alpha: 0.75),
-                                      const Color(0xFF0D0F18),
+                                      tokens.surfaceOverlay.withValues(
+                                        alpha: 0.75,
+                                      ),
+                                      tokens.surfaceOverlay,
                                     ],
                                     stops: const [0.0, 0.65, 1.0],
                                   ),
@@ -265,10 +269,18 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                           decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              colors: [Color(0xFFFFB300), Color(0xFFFF8F00)],
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                tokens.warning,
+                                                Color.lerp(
+                                                      tokens.warning,
+                                                      Colors.black,
+                                                      0.15,
+                                                    ) ??
+                                                    tokens.warning,
+                                              ],
                                             ),
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: ZplayRadius.smAll,
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -277,11 +289,13 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                               const SizedBox(width: 3),
                                               Text(
                                                 _anime.formattedScore,
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w900,
-                                                ),
+                                                style: ZplayType.caption
+                                                    .copyWith(
+                                                      weight: FontWeight.w900,
+                                                    )
+                                                    .toStyle(
+                                                      color: Colors.black,
+                                                    ),
                                               ),
                                             ],
                                           ),
@@ -290,69 +304,55 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                         decoration: BoxDecoration(
                                           color: AppThemeService.currentPalette.value.primaryColor,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: ZplayRadius.smAll,
                                         ),
                                         child: Text(
                                           _anime.formattedFormat.toUpperCase(),
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w900,
-                                          ),
+                                          style: ZplayType.overline.copyWith(weight: FontWeight.w900).toStyle(color: tokens.onAccent),
                                         ),
                                       ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.12),
-                                          borderRadius: BorderRadius.circular(8),
+                                          color: tokens.borderStrong,
+                                          borderRadius: ZplayRadius.smAll,
                                         ),
                                         child: Text(
                                           _anime.formattedStatus,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                                          style: ZplayType.overline.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                                         ),
                                       ),
                                       if (_anime.seasonYear > 0)
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withValues(alpha: 0.08),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: tokens.borderDefault,
+                                            borderRadius: ZplayRadius.smAll,
                                           ),
                                           child: Text(
                                             '${_anime.seasonYear}',
-                                            style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            style: ZplayType.overline.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textEmphasis),
                                           ),
                                         ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: ZplaySpacing.s8),
                                   Text(
                                     _anime.displayTitle,
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: isMobile ? 20 : 26,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -0.5,
-                                    ),
+                                    style: ZplayType.display
+                                        .copyWith(
+                                          size: isMobile ? 20 : 26,
+                                          weight: FontWeight.w900,
+                                          letterSpacing: -0.5,
+                                        )
+                                        .toStyle(color: tokens.textPrimary),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   if (_anime.titleNative.isNotEmpty)
                                     Text(
                                       _anime.titleNative,
-                                      style: const TextStyle(
-                                        color: Colors.white38,
-                                        fontSize: 12,
-                                      ),
+                                      style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -366,8 +366,10 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                         Expanded(
                           child: ListView(
                             padding: EdgeInsets.symmetric(
-                              horizontal: isMobile ? 16 : 24,
-                              vertical: 12,
+                              horizontal: isMobile
+                                  ? ZplaySpacing.s16
+                                  : ZplaySpacing.s24,
+                              vertical: ZplaySpacing.s12,
                             ),
                             physics: const BouncingScrollPhysics(),
                             children: [
@@ -380,7 +382,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                       widget.onPlayEpisode(_anime, epToPlay, _isDub);
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s20, vertical: ZplaySpacing.s12),
                                       decoration: BoxDecoration(
                                         gradient: LinearGradient(
                                           colors: [
@@ -392,7 +394,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                             )!,
                                           ],
                                         ),
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: ZplayRadius.mdAll,
                                         boxShadow: [
                                           BoxShadow(
                                             color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35),
@@ -404,23 +406,19 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
+                                          Icon(Icons.play_arrow_rounded, color: tokens.onAccent, size: 22),
                                           const SizedBox(width: 6),
                                           Text(
                                             watchItem != null && watchItem.lastWatchedEpisode > 0
                                                 ? 'Resume Ep ${watchItem.lastWatchedEpisode}'
                                                 : 'Play Ep 1',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 14,
-                                            ),
+                                            style: ZplayType.body.copyWith(weight: FontWeight.w800).toStyle(color: tokens.onAccent),
                                           ),
                                         ],
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: ZplaySpacing.s12),
 
                                   // Watchlist Status Popup
                                   PopupMenuButton<AnimeWatchStatus>(
@@ -428,39 +426,59 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                       library.setWatchlistStatus(_anime, status);
                                       setState(() {});
                                     },
-                                    color: const Color(0xFF161A26),
+                                    color: tokens.surfaceOverlay,
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                                      borderRadius: ZplayRadius.mdAll,
+                                      side: BorderSide(color: tokens.borderStrong),
                                     ),
                                     itemBuilder: (context) => [
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: AnimeWatchStatus.watching,
-                                        child: Text('Watching', style: TextStyle(color: Colors.white)),
+                                        child: Text(
+                                          'Watching',
+                                          style: ZplayType.body.toStyle(
+                                            color: tokens.textPrimary,
+                                          ),
+                                        ),
                                       ),
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: AnimeWatchStatus.planToWatch,
-                                        child: Text('Plan to Watch', style: TextStyle(color: Colors.white)),
+                                        child: Text(
+                                          'Plan to Watch',
+                                          style: ZplayType.body.toStyle(
+                                            color: tokens.textPrimary,
+                                          ),
+                                        ),
                                       ),
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: AnimeWatchStatus.completed,
-                                        child: Text('Completed', style: TextStyle(color: Colors.white)),
+                                        child: Text(
+                                          'Completed',
+                                          style: ZplayType.body.toStyle(
+                                            color: tokens.textPrimary,
+                                          ),
+                                        ),
                                       ),
-                                      const PopupMenuItem(
+                                      PopupMenuItem(
                                         value: AnimeWatchStatus.dropped,
-                                        child: Text('Dropped', style: TextStyle(color: Colors.white54)),
+                                        child: Text(
+                                          'Dropped',
+                                          style: ZplayType.body.toStyle(
+                                            color: tokens.textSecondary,
+                                          ),
+                                        ),
                                       ),
                                     ],
                                     child: _HoverScale(
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                                         decoration: BoxDecoration(
-                                          color: Colors.white.withValues(alpha: 0.08),
-                                          borderRadius: BorderRadius.circular(14),
+                                          color: tokens.borderDefault,
+                                          borderRadius: ZplayRadius.mdAll,
                                           border: Border.all(
                                             color: watchItem != null
-                                                ? const Color(0xFF00D294)
-                                                : Colors.white12,
+                                                ? tokens.success
+                                                : tokens.borderStrong,
                                           ),
                                         ),
                                         child: Row(
@@ -471,8 +489,8 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                                   ? Icons.check_circle_rounded
                                                   : Icons.bookmark_outline_rounded,
                                               color: watchItem != null
-                                                  ? const Color(0xFF00D294)
-                                                  : Colors.white70,
+                                                  ? tokens.success
+                                                  : tokens.textEmphasis,
                                               size: 16,
                                             ),
                                             const SizedBox(width: 6),
@@ -480,18 +498,20 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                               watchItem != null
                                                   ? watchItem.status.name.toUpperCase()
                                                   : 'ADD TO LIST',
-                                              style: TextStyle(
-                                                color: watchItem != null
-                                                    ? const Color(0xFF00D294)
-                                                    : Colors.white70,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w800,
-                                              ),
+                                              style: ZplayType.caption
+                                                  .copyWith(
+                                                    weight: FontWeight.w800,
+                                                  )
+                                                  .toStyle(
+                                                    color: watchItem != null
+                                                        ? tokens.success
+                                                        : tokens.textEmphasis,
+                                                  ),
                                             ),
-                                            const SizedBox(width: 4),
-                                            const Icon(
+                                            const SizedBox(width: ZplaySpacing.s4),
+                                            Icon(
                                               Icons.arrow_drop_down_rounded,
-                                              color: Colors.white54,
+                                              color: tokens.textSecondary,
                                               size: 18,
                                             ),
                                           ],
@@ -506,9 +526,9 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                   Container(
                                     padding: const EdgeInsets.all(3),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF141724),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                      color: tokens.surface,
+                                      borderRadius: ZplayRadius.smAll,
+                                      border: Border.all(color: tokens.borderStrong),
                                     ),
                                     child: Row(
                                       children: [
@@ -516,18 +536,22 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                           onTap: () => setState(() => _isDub = false),
                                           builder: (_, state) => AnimatedContainer(
                                             duration: const Duration(milliseconds: 180),
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: 6),
                                             decoration: BoxDecoration(
                                               color: !_isDub ? AppThemeService.currentPalette.value.primaryColor : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(9),
+                                              borderRadius: ZplayRadius.smAll,
                                             ),
-                                            child: const Text(
+                                            child: Text(
                                               'SUB',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w900,
-                                              ),
+                                              style: ZplayType.caption
+                                                  .copyWith(
+                                                    weight: FontWeight.w900,
+                                                  )
+                                                  .toStyle(
+                                                    color: !_isDub
+                                                        ? tokens.onAccent
+                                                        : tokens.textEmphasis,
+                                                  ),
                                             ),
                                           ),
                                         ),
@@ -535,18 +559,22 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                           onTap: () => setState(() => _isDub = true),
                                           builder: (_, state) => AnimatedContainer(
                                             duration: const Duration(milliseconds: 180),
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: 6),
                                             decoration: BoxDecoration(
                                               color: _isDub ? AppThemeService.currentPalette.value.primaryColor : Colors.transparent,
-                                              borderRadius: BorderRadius.circular(9),
+                                              borderRadius: ZplayRadius.smAll,
                                             ),
-                                            child: const Text(
+                                            child: Text(
                                               'DUB',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w900,
-                                              ),
+                                              style: ZplayType.caption
+                                                  .copyWith(
+                                                    weight: FontWeight.w900,
+                                                  )
+                                                  .toStyle(
+                                                    color: _isDub
+                                                        ? tokens.onAccent
+                                                        : tokens.textEmphasis,
+                                                  ),
                                             ),
                                           ),
                                         ),
@@ -561,11 +589,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                 const SizedBox(height: 18),
                                 Text(
                                   _anime.description,
-                                  style: const TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 13,
-                                    height: 1.5,
-                                  ),
+                                  style: ZplayType.body.copyWith(height: 1.5).toStyle(color: tokens.textEmphasis),
                                 ),
                               ],
 
@@ -578,15 +602,15 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                   children: _anime.genres
                                       .map(
                                         (g) => Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s4),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withValues(alpha: 0.06),
-                                            borderRadius: BorderRadius.circular(14),
-                                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                            color: tokens.borderSubtle,
+                                            borderRadius: ZplayRadius.mdAll,
+                                            border: Border.all(color: tokens.borderStrong),
                                           ),
                                           child: Text(
                                             g,
-                                            style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                            style: ZplayType.caption.toStyle(color: tokens.textEmphasis),
                                           ),
                                         ),
                                       )
@@ -594,8 +618,8 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                 ),
                               ],
 
-                              const SizedBox(height: 24),
-                              const Divider(color: Colors.white10),
+                              const SizedBox(height: ZplaySpacing.s24),
+                              Divider(color: tokens.borderDefault),
                               const SizedBox(height: 14),
 
                               // ─── EPISODES HEADER & 50-CHUNK PAGINATION + JUMP FIELD ───
@@ -608,18 +632,16 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Text(
+                                      Text(
                                         'Episodes',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w900,
-                                        ),
+                                        style: ZplayType.title
+                                            .copyWith(weight: FontWeight.w900)
+                                            .toStyle(color: tokens.textPrimary),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: ZplaySpacing.s8),
                                       Text(
                                         '($totalEps total)',
-                                        style: const TextStyle(color: Colors.white54, fontSize: 13),
+                                        style: ZplayType.label.toStyle(color: tokens.textSecondary),
                                       ),
                                     ],
                                   ),
@@ -633,21 +655,21 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                         width: 130,
                                         height: 34,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF141724),
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(color: Colors.white12),
+                                          color: tokens.surface,
+                                          borderRadius: ZplayRadius.smAll,
+                                          border: Border.all(color: tokens.borderStrong),
                                         ),
                                         child: TextField(
                                           controller: _jumpEpController,
                                           keyboardType: TextInputType.number,
                                           textInputAction: TextInputAction.go,
                                           onSubmitted: _jumpToEpisode,
-                                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                                          style: ZplayType.bodySmall.toStyle(color: tokens.textPrimary),
                                           decoration: InputDecoration(
                                             hintText: 'Jump to ep #',
-                                            hintStyle: const TextStyle(color: Colors.white38, fontSize: 11),
+                                            hintStyle: ZplayType.caption.toStyle(color: tokens.textMuted),
                                             border: InputBorder.none,
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 10),
                                             suffixIcon: IconButton(
                                               padding: EdgeInsets.zero,
                                               icon: Icon(Icons.arrow_forward_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 16),
@@ -661,7 +683,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
 
                                       // Prev Batch Arrow
                                       IconButton(
-                                        icon: const Icon(Icons.chevron_left_rounded, color: Colors.white70, size: 20),
+                                        icon: Icon(Icons.chevron_left_rounded, color: tokens.textEmphasis, size: 20),
                                         onPressed: currentBatchSafe > 0
                                             ? () => setState(() => _selectedEpisodeBatch = currentBatchSafe - 1)
                                             : null,
@@ -671,21 +693,17 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                       if (totalBatches > 1)
                                         Container(
                                           height: 34,
-                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8),
                                           decoration: BoxDecoration(
-                                            color: const Color(0xFF141724),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: tokens.surface,
+                                            borderRadius: ZplayRadius.smAll,
                                             border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4)),
                                           ),
                                           child: DropdownButton<int>(
                                             value: currentBatchSafe,
                                             underline: const SizedBox.shrink(),
-                                            dropdownColor: const Color(0xFF141724),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                                            dropdownColor: tokens.surfaceOverlay,
+                                            style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                                             icon: Icon(Icons.expand_more_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 16),
                                             items: List.generate(
                                               totalBatches,
@@ -708,7 +726,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
 
                                       // Next Batch Arrow
                                       IconButton(
-                                        icon: const Icon(Icons.chevron_right_rounded, color: Colors.white70, size: 20),
+                                        icon: Icon(Icons.chevron_right_rounded, color: tokens.textEmphasis, size: 20),
                                         onPressed: currentBatchSafe < totalBatches - 1
                                             ? () => setState(() => _selectedEpisodeBatch = currentBatchSafe + 1)
                                             : null,
@@ -730,14 +748,12 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
 
                               // Characters & Voice Cast
                               if (_anime.characters.isNotEmpty) ...[
-                                const SizedBox(height: 32),
-                                const Text(
+                                const SizedBox(height: ZplaySpacing.s32),
+                                Text(
                                   'Characters & Voice Cast',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                  style: ZplayType.title
+                                      .copyWith(weight: FontWeight.w900)
+                                      .toStyle(color: tokens.textPrimary),
                                 ),
                                 const SizedBox(height: 14),
                                 SizedBox(
@@ -755,7 +771,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                           child: Column(
                                             children: [
                                               ClipRRect(
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius: ZplayRadius.smAll,
                                                 child: CachedNetworkImage(
                                                   imageUrl: char.imageLarge,
                                                   cacheManager: AppImageCache.manager,
@@ -764,25 +780,21 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                                   height: 85,
                                                   fit: BoxFit.cover,
                                                   errorWidget: (_, __, ___) => Container(
-                                                    color: const Color(0xFF1A1D2B),
-                                                    child: const Icon(Icons.person_rounded, color: Colors.white24),
+                                                    color: tokens.surfaceRaised,
+                                                    child: Icon(Icons.person_rounded, color: tokens.textDisabled),
                                                   )),
                                               ),
                                               const SizedBox(height: 6),
                                               Text(
                                                 char.nameFull,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                style: ZplayType.caption.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 textAlign: TextAlign.center,
                                               ),
                                               Text(
                                                 char.role,
-                                                style: const TextStyle(color: Colors.white38, fontSize: 9),
+                                                style: ZplayType.overline.toStyle(color: tokens.textMuted),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 textAlign: TextAlign.center,
@@ -798,14 +810,12 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
 
                               // Franchise & Relations (Clickable with Hover Scale)
                               if (_anime.relations.isNotEmpty) ...[
-                                const SizedBox(height: 32),
-                                const Text(
+                                const SizedBox(height: ZplaySpacing.s32),
+                                Text(
                                   'Franchise & Relations',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                  style: ZplayType.title
+                                      .copyWith(weight: FontWeight.w900)
+                                      .toStyle(color: tokens.textPrimary),
                                 ),
                                 const SizedBox(height: 14),
                                 SizedBox(
@@ -830,7 +840,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               ClipRRect(
-                                                borderRadius: BorderRadius.circular(10),
+                                                borderRadius: ZplayRadius.smAll,
                                                 child: CachedNetworkImage(
                                                   imageUrl: rel.coverUrl,
                                                   cacheManager: AppImageCache.manager,
@@ -839,28 +849,29 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                                   height: 125,
                                                   fit: BoxFit.cover,
                                                   errorWidget: (_, __, ___) => Container(
-                                                    color: const Color(0xFF1A1D2B),
-                                                    child: const Icon(Icons.movie_creation_outlined, color: Colors.white24),
+                                                    color: tokens.surfaceRaised,
+                                                    child: Icon(Icons.movie_creation_outlined, color: tokens.textDisabled),
                                                   )),
                                               ),
-                                              const SizedBox(height: 4),
+                                              const SizedBox(height: ZplaySpacing.s4),
                                               Text(
                                                 rel.relationType.replaceAll('_', ' '),
-                                                style: TextStyle(
-                                                  color: AppThemeService.currentPalette.value.primaryColor,
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.w900,
-                                                ),
+                                                style: ZplayType.overline
+                                                    .copyWith(
+                                                      weight: FontWeight.w900,
+                                                    )
+                                                    .toStyle(
+                                                      color: AppThemeService
+                                                          .currentPalette
+                                                          .value
+                                                          .primaryColor,
+                                                    ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
                                               Text(
                                                 rel.title,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                style: ZplayType.caption.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -875,14 +886,12 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
 
                               // Recommendations / You May Also Like (Clickable with Hover Scale)
                               if (_anime.recommendations.isNotEmpty) ...[
-                                const SizedBox(height: 32),
-                                const Text(
+                                const SizedBox(height: ZplaySpacing.s32),
+                                Text(
                                   'You May Also Like',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w900,
-                                  ),
+                                  style: ZplayType.title
+                                      .copyWith(weight: FontWeight.w900)
+                                      .toStyle(color: tokens.textPrimary),
                                 ),
                                 const SizedBox(height: 14),
                                 SizedBox(
@@ -902,7 +911,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
                                               ClipRRect(
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius: ZplayRadius.smAll,
                                                 child: CachedNetworkImage(
                                                   imageUrl: rec.coverUrl,
                                                   cacheManager: AppImageCache.manager,
@@ -911,18 +920,14 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                                   height: 140,
                                                   fit: BoxFit.cover,
                                                   errorWidget: (_, __, ___) => Container(
-                                                    color: const Color(0xFF1A1D2B),
-                                                    child: const Icon(Icons.movie_creation_outlined, color: Colors.white24),
+                                                    color: tokens.surfaceRaised,
+                                                    child: Icon(Icons.movie_creation_outlined, color: tokens.textDisabled),
                                                   )),
                                               ),
                                               const SizedBox(height: 6),
                                               Text(
                                                 rec.displayTitle,
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                style: ZplayType.caption.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -934,7 +939,7 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
                                   ),
                                 ),
                               ],
-                              const SizedBox(height: 24),
+                              const SizedBox(height: ZplaySpacing.s24),
                             ],
                           ),
                         ),
@@ -951,20 +956,21 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
   }
 
   Widget _buildHeaderIconButton({required IconData icon, required VoidCallback onTap}) {
+    final tokens = ZplayTokens.of(context);
     return _HoverScale(
       onTap: onTap,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: ZplayRadius.lgAll,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(ZplaySpacing.s8),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.55),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white24),
+              border: Border.all(color: tokens.textDisabled),
             ),
-            child: Icon(icon, color: Colors.white, size: 20),
+            child: Icon(icon, color: tokens.textPrimary, size: 20),
           ),
         ),
       ),
@@ -978,6 +984,8 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
     int? lastWatchedEp,
   ) {
     final count = endIndex - startIndex;
+
+    final tokens = ZplayTokens.of(context);
     if (count <= 0) return const SizedBox.shrink();
 
     return GridView.builder(
@@ -1002,36 +1010,45 @@ class _AnimeDetailsModalState extends State<AnimeDetailsModal> {
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
               color: isHighlighted
-                  ? const Color(0xFFEF4444).withValues(alpha: 0.30)
+                  ? tokens.danger.withValues(alpha: 0.30)
                   : isCurrent
                       ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.35)
                       : (isWatched
-                          ? Colors.white.withValues(alpha: 0.08)
-                          : const Color(0xFF141724)),
-              borderRadius: BorderRadius.circular(10),
+                          ? tokens.borderDefault
+                          : tokens.surface),
+              borderRadius: ZplayRadius.smAll,
               border: Border.all(
                 color: isHighlighted
-                    ? const Color(0xFFEF4444)
+                    ? tokens.danger
                     : isCurrent
                         ? AppThemeService.currentPalette.value.primaryColor
                         : (isWatched
-                            ? Colors.white24
-                            : Colors.white.withValues(alpha: 0.08)),
+                            ? tokens.textDisabled
+                            : tokens.borderDefault),
                 width: (isCurrent || isHighlighted) ? 1.5 : 1,
               ),
             ),
             child: Center(
               child: Text(
                 '$epNum',
-                style: TextStyle(
-                  color: isHighlighted
-                      ? const Color(0xFFEF4444)
-                      : isCurrent
-                          ? AppThemeService.currentPalette.value.primaryColor
-                          : (isWatched ? Colors.white70 : Colors.white),
-                  fontSize: 13,
-                  fontWeight: (isCurrent || isHighlighted) ? FontWeight.w900 : FontWeight.bold,
-                ),
+                style: ZplayType.label
+                    .copyWith(
+                      weight: (isCurrent || isHighlighted)
+                          ? FontWeight.w900
+                          : FontWeight.w700,
+                    )
+                    .toStyle(
+                      color: isHighlighted
+                          ? tokens.danger
+                          : isCurrent
+                              ? AppThemeService
+                                    .currentPalette
+                                    .value
+                                    .primaryColor
+                              : (isWatched
+                                    ? tokens.textEmphasis
+                                    : tokens.textPrimary),
+                    ),
               ),
             ),
           ),

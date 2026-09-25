@@ -9,7 +9,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/updater/app_updater_service.dart';
 
 class UpdateDialog extends StatefulWidget {
@@ -26,9 +26,6 @@ class _UpdateDialogState extends State<UpdateDialog> {
   double _downloadProgress = 0.0;
   StreamSubscription? _otaSub;
 
-  static const Color _surfaceColor = Color(0xFF12151E);
-  static const Color _backgroundColor = Color(0xFF080A0F);
-
   @override
   void dispose() {
     _otaSub?.cancel();
@@ -38,6 +35,10 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    // Already reduced to the changelog section and stripped of Markdown by the
+    // service; this is the last empty-body guard before the box renders.
+    final releaseNotes = widget.updateInfo.releaseNotesForDisplay.trim();
     return PopScope(
       canPop: !_isDownloading,
       onPopInvokedWithResult: (didPop, result) {
@@ -50,15 +51,15 @@ class _UpdateDialogState extends State<UpdateDialog> {
         child: Container(
           constraints: const BoxConstraints(maxWidth: 500),
           decoration: BoxDecoration(
-            color: _surfaceColor,
-            borderRadius: BorderRadius.circular(20),
+            color: tokens.surfaceOverlay,
+            borderRadius: ZplayRadius.lgAll,
             border: Border.all(
-              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
+              color: tokens.accent.withValues(alpha: ZplayOpacity.textDisabled),
               width: 1.5,
             ),
           boxShadow: [
             BoxShadow(
-              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
+              color: tokens.accent.withValues(alpha: ZplayOpacity.overlayHover),
               blurRadius: 40,
               spreadRadius: 5,
             ),
@@ -69,54 +70,44 @@ class _UpdateDialogState extends State<UpdateDialog> {
           children: [
             // Header with gradient
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(ZplaySpacing.s24),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
-                    AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.05),
+                    tokens.accent.withValues(alpha: ZplayOpacity.overlayHover),
+                    tokens.accent.withValues(alpha: ZplayOpacity.borderFaint),
                   ],
                 ),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
+                borderRadius: ZplayRadius.sheetTop,
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(ZplaySpacing.s12),
                     decoration: BoxDecoration(
-                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      color: tokens.accent.withValues(alpha: ZplayOpacity.overlayHover),
+                      borderRadius: ZplayRadius.smAll,
                     ),
                     child: Icon(
                       Icons.system_update_rounded,
-                      color: AppThemeService.currentPalette.value.primaryColor,
+                      color: tokens.accent,
                       size: 32,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: ZplaySpacing.s16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'UPDATE AVAILABLE',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 2,
-                            color: AppThemeService.currentPalette.value.primaryColor,
-                          ),
+                          style: ZplayType.overline.toStyle(color: tokens.accent),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: ZplaySpacing.s4),
                         Text(
                           'Version ${widget.updateInfo.latestVersion}',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          style: ZplayType.titleLarge.toStyle(
+                            color: tokens.textPrimary,
                           ),
                         ),
                       ],
@@ -128,19 +119,17 @@ class _UpdateDialogState extends State<UpdateDialog> {
 
             // Content
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(ZplaySpacing.s24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Version details container
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(ZplaySpacing.s16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
+                      color: tokens.borderSubtle,
+                      borderRadius: ZplayRadius.smAll,
+                      border: Border.fromBorderSide(tokens.hairline),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,47 +137,39 @@ class _UpdateDialogState extends State<UpdateDialog> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Current',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.white38,
-                                fontWeight: FontWeight.bold,
+                              style: ZplayType.caption.toStyle(
+                                color: tokens.textMuted,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: ZplaySpacing.s4),
                             Text(
                               widget.updateInfo.currentVersion,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white70,
+                              style: ZplayType.subtitle.toStyle(
+                                color: tokens.textEmphasis,
                               ),
                             ),
                           ],
                         ),
                         Icon(
                           Icons.arrow_forward_rounded,
-                          color: AppThemeService.currentPalette.value.primaryColor,
+                          color: tokens.accent,
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            const Text(
+                            Text(
                               'Latest',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.white38,
-                                fontWeight: FontWeight.bold,
+                              style: ZplayType.caption.toStyle(
+                                color: tokens.textMuted,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: ZplaySpacing.s4),
                             Text(
                               widget.updateInfo.latestVersion,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppThemeService.currentPalette.value.primaryColor,
+                              style: ZplayType.subtitle.toStyle(
+                                color: tokens.accent,
                               ),
                             ),
                           ],
@@ -197,68 +178,62 @@ class _UpdateDialogState extends State<UpdateDialog> {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: ZplaySpacing.s20),
 
                   // Release notes header & box
-                  const Text(
+                  Text(
                     "WHAT'S NEW",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                      color: Colors.white38,
-                    ),
+                    style: ZplayType.overline.toStyle(color: tokens.textMuted),
                   ),
                   const SizedBox(height: 10),
                   Container(
                     constraints: const BoxConstraints(maxHeight: 180),
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(ZplaySpacing.s16),
                     decoration: BoxDecoration(
-                      color: _backgroundColor.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.08),
-                      ),
+                      color: tokens.bg.withValues(alpha: ZplayOpacity.textSecondary),
+                      borderRadius: ZplayRadius.smAll,
+                      border: Border.fromBorderSide(tokens.hairline),
                     ),
                     child: SingleChildScrollView(
                       child: Text(
-                        widget.updateInfo.releaseNotes,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.white70,
-                          height: 1.5,
+                        releaseNotes.isEmpty
+                            ? 'No release notes were published for this version.'
+                            : releaseNotes,
+                        style: ZplayType.body.toStyle(
+                          color: releaseNotes.isEmpty
+                              ? tokens.textMuted
+                              : tokens.textEmphasis,
                         ),
                       ),
                     ),
                   ),
 
                   if (widget.updateInfo.isMacOS || widget.updateInfo.isIOS) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: ZplaySpacing.s16),
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(ZplaySpacing.s12),
                       decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: tokens.warning.withValues(alpha: ZplayOpacity.borderMedium),
+                        borderRadius: ZplayRadius.smAll,
                         border: Border.all(
-                          color: Colors.orange.withValues(alpha: 0.3),
+                          color: tokens.warning.withValues(alpha: ZplayOpacity.textDisabled),
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.info_outline,
-                            color: Colors.orange.shade300,
+                            color: tokens.warning,
                             size: 20,
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: ZplaySpacing.s12),
                           Expanded(
                             child: Text(
                               widget.updateInfo.isIOS
                                   ? "iOS: You'll be redirected to GitHub to download the IPA"
                                   : "macOS: You'll be redirected to GitHub to download",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.orange.shade200,
+                              style: ZplayType.bodySmall.toStyle(
+                                color: tokens.warning,
                               ),
                             ),
                           ),
@@ -268,7 +243,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
                   ],
 
                   if (_isDownloading) ...[
-                    const SizedBox(height: 20),
+                    const SizedBox(height: ZplaySpacing.s20),
                     Column(
                       children: [
                         Row(
@@ -276,32 +251,24 @@ class _UpdateDialogState extends State<UpdateDialog> {
                           children: [
                             Text(
                               'Downloading...',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: AppThemeService.currentPalette.value.primaryColor,
-                              ),
+                              style: ZplayType.label.toStyle(color: tokens.accent),
                             ),
                             Text(
                               '${(_downloadProgress * 100).toStringAsFixed(0)}%',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white70,
+                              style: ZplayType.labelNumeric.toStyle(
+                                color: tokens.textEmphasis,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: ZplaySpacing.s8),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: ZplayRadius.smAll,
                           child: LinearProgressIndicator(
                             value: _downloadProgress,
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.1,
-                            ),
+                            backgroundColor: tokens.borderStrong,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              AppThemeService.currentPalette.value.primaryColor,
+                              tokens.accent,
                             ),
                             minHeight: 8,
                           ),
@@ -316,7 +283,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
             // Buttons
             if (!_isDownloading)
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                padding: const EdgeInsets.fromLTRB(
+                  ZplaySpacing.s24,
+                  ZplaySpacing.s0,
+                  ZplaySpacing.s24,
+                  ZplaySpacing.s24,
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -326,50 +298,47 @@ class _UpdateDialogState extends State<UpdateDialog> {
                           Navigator.of(context).pop();
                         },
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: ZplaySpacing.s16,
+                          ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.15),
-                            ),
+                            borderRadius: ZplayRadius.smAll,
+                            side: tokens.hairlineStrong,
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Later',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white70,
+                          style: ZplayType.label.toStyle(
+                            color: tokens.textEmphasis,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: ZplaySpacing.s12),
                     Expanded(
                       flex: 2,
                       child: ElevatedButton(
                         onPressed: _handleUpdate,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          backgroundColor: tokens.accent,
+                          foregroundColor: tokens.onAccent,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: ZplaySpacing.s16,
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: ZplayRadius.smAll,
                           ),
                           elevation: 0,
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               'Update Now',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: ZplayType.label.toStyle(),
                             ),
-                            SizedBox(width: 8),
-                            Icon(Icons.download_rounded, size: 20),
+                            const SizedBox(width: ZplaySpacing.s8),
+                            const Icon(Icons.download_rounded, size: 20),
                           ],
                         ),
                       ),
@@ -438,12 +407,12 @@ class _UpdateDialogState extends State<UpdateDialog> {
                       _isDownloading = false;
                       WakelockPlus.disable();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
+                        SnackBar(
+                          content: const Text(
                             'Please enable "Install unknown apps" permission for ZPlay in Android settings.',
                           ),
-                          duration: Duration(seconds: 5),
-                          backgroundColor: Colors.orange,
+                          duration: const Duration(seconds: 5),
+                          backgroundColor: context.tokens.warning,
                         ),
                       );
                       Navigator.of(context).pop();
@@ -454,11 +423,8 @@ class _UpdateDialogState extends State<UpdateDialog> {
                     case OtaStatus.CHECKSUM_ERROR:
                       _isDownloading = false;
                       WakelockPlus.disable();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Update failed: ${event.status}'),
-                          backgroundColor: Colors.redAccent,
-                        ),
+                      _reportAndroidInstallFailure(
+                        'Update failed: ${event.status}',
                       );
                       Navigator.of(context).pop();
                       break;
@@ -472,12 +438,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
               WakelockPlus.disable();
               if (mounted) {
                 setState(() => _isDownloading = false);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Download failed: $error'),
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
+                _reportAndroidInstallFailure('Download failed: $error');
               }
             },
           );
@@ -485,14 +446,38 @@ class _UpdateDialogState extends State<UpdateDialog> {
       WakelockPlus.disable();
       if (mounted) {
         setState(() => _isDownloading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Update failed: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        _reportAndroidInstallFailure('Update failed: $e');
       }
     }
+  }
+
+  /// Reports a failed Android install or download exactly once.
+  ///
+  /// Android refuses to install an APK signed with a different key than the
+  /// installed copy, and ota_update surfaces that refusal as a bare status or
+  /// platform exception. Without the hint the user reads "Update failed: …" and
+  /// has no way to know a one-time uninstall is the fix. The hint lives here
+  /// rather than in the dialog so it rides along with every Android failure
+  /// path, and the current snackbar is replaced instead of queued so a failure
+  /// that trips both the event stream and the error channel cannot stack the
+  /// hint twice.
+  void _reportAndroidInstallFailure(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            '$message\n\n'
+            'The install can fail with "App not installed as package conflicts '
+            'with an existing package" when the previously installed copy was '
+            'signed with a different key. Uninstall that copy once and install '
+            'again; export your settings first from Settings → Backup & Restore '
+            '(JSON) to keep them.',
+          ),
+          duration: const Duration(seconds: 10),
+          backgroundColor: context.tokens.danger,
+        ),
+      );
   }
 
   Future<void> _downloadAndInstallDesktop() async {
@@ -557,14 +542,20 @@ class _UpdateDialogState extends State<UpdateDialog> {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            backgroundColor: _surfaceColor,
-            title: const Row(
+            backgroundColor: context.tokens.surfaceOverlay,
+            title: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 32),
-                SizedBox(width: 12),
+                Icon(
+                  Icons.check_circle,
+                  color: context.tokens.success,
+                  size: 32,
+                ),
+                const SizedBox(width: ZplaySpacing.s12),
                 Text(
                   'Download Complete',
-                  style: TextStyle(color: Colors.white),
+                  style: ZplayType.title.toStyle(
+                    color: context.tokens.textPrimary,
+                  ),
                 ),
               ],
             ),
@@ -572,32 +563,36 @@ class _UpdateDialogState extends State<UpdateDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Update downloaded to:',
-                  style: TextStyle(color: Colors.white70),
+                  style: ZplayType.body.toStyle(
+                    color: context.tokens.textEmphasis,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: ZplaySpacing.s8),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(ZplaySpacing.s12),
                   decoration: BoxDecoration(
-                    color: _backgroundColor.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(8),
+                    color: context.tokens.bg.withValues(
+                      alpha: ZplayOpacity.textSecondary,
+                    ),
+                    borderRadius: ZplayRadius.smAll,
                   ),
                   child: SelectableText(
                     filePath,
-                    style: TextStyle(
-                      color: AppThemeService.currentPalette.value.primaryColor,
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                    ),
+                    style: ZplayType.bodySmall
+                        .toStyle(color: context.tokens.accent)
+                        .copyWith(fontFamily: 'monospace'),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: ZplaySpacing.s16),
                 Text(
                   Platform.isWindows
                       ? 'Close ZPlay and run the installer to update.'
                       : 'Make the file executable and run it:\nchmod +x "$fileName"\n./$fileName',
-                  style: const TextStyle(color: Colors.white70),
+                  style: ZplayType.body.toStyle(
+                    color: context.tokens.textEmphasis,
+                  ),
                 ),
               ],
             ),
@@ -611,16 +606,18 @@ class _UpdateDialogState extends State<UpdateDialog> {
                   }
                   if (context.mounted) Navigator.of(context).pop();
                 },
-                child: const Text(
+                child: Text(
                   'Open Folder',
-                  style: TextStyle(color: Colors.white70),
+                  style: ZplayType.label.toStyle(
+                    color: context.tokens.textEmphasis,
+                  ),
                 ),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.of(context).pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                  foregroundColor: Colors.white,
+                  backgroundColor: context.tokens.accent,
+                  foregroundColor: context.tokens.onAccent,
                 ),
                 child: const Text('OK'),
               ),

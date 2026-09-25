@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/audiobook/audiobook_settings.dart';
 import '../../services/theme/custom_background_service.dart';
 import '../../services/theme/glass_settings.dart';
@@ -27,18 +28,22 @@ class AppearanceSettingsPage extends StatefulWidget {
 class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque palette band with a
+        // bottom hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Appearance & Interface',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: Center(
@@ -52,11 +57,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 padding: const EdgeInsets.only(bottom: 20),
                 child: Text(
                   'Fine-tune the visual atmosphere, custom wallpaper background, color palettes, and interface layouts.',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    height: 1.4,
-                  ),
+                  style: ZplayType.body.toStyle(color: tokens.textSecondary),
                 ),
               ),
 
@@ -69,11 +70,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     builder: (context, currentPalette, _) {
                       return _buildSectionButton(
                         icon: Icons.wallpaper_rounded,
-                        iconColor: currentPalette.primaryColor,
+                        iconColor: tokens.accent,
                         title: 'Custom Background & Wallpaper',
                         subtitle: 'Upload custom photos, choose curated dark wallpapers, and blend theme ambient lighting',
                         badgeText: customBg.hasCustomBackground ? 'Custom Active' : 'Default Theme',
-                        badgeColor: customBg.hasCustomBackground ? currentPalette.primaryColor : Colors.white38,
+                        badgeColor: customBg.hasCustomBackground ? tokens.accent : tokens.textMuted,
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -100,11 +101,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     builder: (context, preset, _) {
                       return _buildSectionButton(
                         icon: Icons.blur_on_rounded,
-                        iconColor: AppThemeService.currentPalette.value.primaryColor,
+                        iconColor: tokens.accent,
                         title: 'Liquid Glass Setup',
                         subtitle: 'Adjust hover impact, wobble spring physics, lens refraction, and chromatic aberration',
                         badgeText: glassEnabled ? preset.label : 'Disabled',
-                        badgeColor: glassEnabled ? AppThemeService.currentPalette.value.primaryColor : Colors.white38,
+                        badgeColor: glassEnabled ? tokens.accent : tokens.textMuted,
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -128,11 +129,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 builder: (context, currentPalette, _) {
                   return _buildSectionButton(
                     icon: Icons.palette_rounded,
-                    iconColor: currentPalette.primaryColor,
+                    iconColor: tokens.accent,
                     title: 'Home Page UI & Themes',
                     subtitle: 'Color schemes, "Because you have on your list" smart slider, hero spotlight, and card density',
                     badgeText: currentPalette.name,
-                    badgeColor: currentPalette.primaryColor,
+                    badgeColor: tokens.accent,
                     onTap: () async {
                       await Navigator.push(
                         context,
@@ -157,11 +158,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     builder: (context, currentPalette, _) {
                       return _buildSectionButton(
                         icon: Icons.live_tv_rounded,
-                        iconColor: currentPalette.primaryColor,
+                        iconColor: tokens.accent,
                         title: 'Live TV & Sports UI',
                         subtitle: 'Broadcast hero spotlight, channel card density, category ordering, and live badge styling',
                         badgeText: spotlightEnabled ? 'Spotlight ON' : 'Compact',
-                        badgeColor: currentPalette.primaryColor,
+                        badgeColor: tokens.accent,
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -188,11 +189,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     builder: (context, currentPalette, _) {
                       return _buildSectionButton(
                         icon: Icons.menu_book_rounded,
-                        iconColor: currentPalette.primaryColor,
+                        iconColor: tokens.accent,
                         title: 'Manga UI & Reader Atmosphere',
                         subtitle: 'Ambient moving lighting, card density, reading layout widths, webtoon/horizontal modes, and page deck preview',
                         badgeText: readingMode == MangaReadingMode.webtoon ? 'Webtoon' : 'Horizontal',
-                        badgeColor: currentPalette.primaryColor,
+                        badgeColor: tokens.accent,
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -219,11 +220,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     builder: (context, currentPalette, _) {
                       return _buildSectionButton(
                         icon: Icons.headphones_rounded,
-                        iconColor: currentPalette.primaryColor,
+                        iconColor: tokens.accent,
                         title: 'Audiobook UI & Player Studio',
                         subtitle: 'Hero spotlight, 5 distinct player designs, drag & drop modular studio, waveform canvas scrubber, and custom controls',
                         badgeText: playerPreset.label.split(' ').first,
-                        badgeColor: currentPalette.primaryColor,
+                        badgeColor: tokens.accent,
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -250,11 +251,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     builder: (context, currentPalette, _) {
                       return _buildSectionButton(
                         icon: Icons.music_note_rounded,
-                        iconColor: currentPalette.primaryColor,
+                        iconColor: tokens.accent,
                         title: 'Music UI & Player Studio',
                         subtitle: 'Hero spotlight, lossless badges, and fullscreen player studio for layout, seekbar, physics & turntable styling',
                         badgeText: fullPreset.label.split(' ').first,
-                        badgeColor: currentPalette.primaryColor,
+                        badgeColor: tokens.accent,
                         onTap: () async {
                           await Navigator.push(
                             context,
@@ -280,12 +281,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               // Visual Overview Notes
               Text(
                 'LIVE CUSTOMIZATION SCOPE',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 12),
 
@@ -311,14 +307,14 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     return ValueListenableBuilder<RendererBackend>(
       valueListenable: RendererBackendSettings.current,
       builder: (context, backend, _) {
+        final tokens = context.tokens;
+        final accent = tokens.accent;
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF12151E),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
+            color: tokens.surface,
+            borderRadius: ZplayRadius.mdAll,
+            border: Border.fromBorderSide(tokens.hairline),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,12 +325,12 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(12),
+                      color: accent.withValues(alpha: ZplayOpacity.borderStrong),
+                      borderRadius: ZplayRadius.smAll,
                     ),
                     child: Icon(
                       Icons.speed_rounded,
-                      color: AppThemeService.currentPalette.value.primaryColor,
+                      color: accent,
                       size: 22,
                     ),
                   ),
@@ -345,13 +341,11 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                       children: [
                         Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: Text(
                                 'Graphics Backend',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                style: ZplayType.subtitle.toStyle(
+                                  color: tokens.textPrimary,
                                 ),
                               ),
                             ),
@@ -361,16 +355,14 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
+                                color: accent.withValues(
+                                  alpha: ZplayOpacity.borderStrong,
+                                ),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
                               child: Text(
                                 backend.label,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppThemeService.currentPalette.value.primaryColor,
-                                ),
+                                style: ZplayType.caption.toStyle(color: accent),
                               ),
                             ),
                           ],
@@ -379,10 +371,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                         Text(
                           'Skia is recommended on Windows here — '
                           'Impeller coincided with an NVIDIA driver crash.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.45),
-                            height: 1.25,
+                          style: ZplayType.bodySmall.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         ),
                       ],
@@ -406,15 +396,14 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                   Icon(
                     Icons.restart_alt_rounded,
                     size: 14,
-                    color: Colors.white.withValues(alpha: 0.4),
+                    color: tokens.textMuted,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'Restart the app to apply — the backend is fixed when the engine starts.',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: Colors.white.withValues(alpha: 0.4),
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textMuted,
                       ),
                     ),
                   ),
@@ -431,25 +420,24 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     required RendererBackend backend,
     required bool selected,
   }) {
-    final color = backend == RendererBackend.skia
-        ? AppThemeService.currentPalette.value.primaryColor
-        : AppThemeService.currentPalette.value.primaryColor;
+    final tokens = context.tokens;
+    // Both rows carry the palette accent; the selected one is distinguished by
+    // its fill and border rather than by a second hue.
+    final color = tokens.accent;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => RendererBackendSettings.setBackend(backend),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: ZplayRadius.smAll,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: selected
-                ? color.withValues(alpha: 0.10)
-                : Colors.white.withValues(alpha: 0.03),
-            borderRadius: BorderRadius.circular(12),
+            color: selected ? tokens.accentSubtle : tokens.surfaceOverlay,
+            borderRadius: ZplayRadius.smAll,
             border: Border.all(
               color: selected
-                  ? color.withValues(alpha: 0.35)
-                  : Colors.white.withValues(alpha: 0.07),
+                  ? color.withValues(alpha: ZplayOpacity.borderStrong)
+                  : tokens.borderDefault,
             ),
           ),
           child: Row(
@@ -459,7 +447,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     ? Icons.radio_button_checked_rounded
                     : Icons.radio_button_unchecked_rounded,
                 size: 18,
-                color: selected ? color : Colors.white38,
+                color: selected ? color : tokens.textMuted,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -470,19 +458,13 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                       backend == RendererBackend.skia
                           ? 'Skia (Recommended)'
                           : 'Impeller',
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                      style: ZplayType.label.toStyle(color: tokens.textPrimary),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       backend.description,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        color: Colors.white.withValues(alpha: 0.45),
-                        height: 1.3,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textSecondary,
                       ),
                     ),
                   ],
@@ -504,19 +486,18 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     required Color badgeColor,
     required VoidCallback onTap,
   }) {
+    final tokens = context.tokens;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: ZplayRadius.mdAll,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF12151E),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
+            color: tokens.surface,
+            borderRadius: ZplayRadius.mdAll,
+            border: Border.fromBorderSide(tokens.hairline),
           ),
           child: Row(
             children: [
@@ -524,8 +505,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(12),
+                  color: iconColor.withValues(alpha: ZplayOpacity.borderStrong),
+                  borderRadius: ZplayRadius.smAll,
                 ),
                 child: Icon(icon, color: iconColor, size: 22),
               ),
@@ -540,10 +521,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                            style: ZplayType.subtitle.toStyle(
+                              color: tokens.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -553,16 +532,14 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                           decoration: BoxDecoration(
-                            color: badgeColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
+                            color: badgeColor.withValues(
+                              alpha: ZplayOpacity.overlayHover,
+                            ),
+                            borderRadius: ZplayRadius.xsAll,
                           ),
                           child: Text(
                             badgeText,
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: badgeColor,
-                            ),
+                            style: ZplayType.caption.toStyle(color: badgeColor),
                             maxLines: 1,
                           ),
                         ),
@@ -571,10 +548,8 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.45),
-                        height: 1.25,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textSecondary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -586,7 +561,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 14,
-                color: Colors.white.withValues(alpha: 0.3),
+                color: tokens.textDisabled,
               ),
             ],
           ),
@@ -600,14 +575,13 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     required String title,
     required String description,
   }) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(color: tokens.borderSubtle),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -617,10 +591,10 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(8),
+              color: tokens.borderSubtle,
+              borderRadius: ZplayRadius.smAll,
             ),
-            child: Icon(icon, color: Colors.white70, size: 18),
+            child: Icon(icon, color: tokens.textEmphasis, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -629,20 +603,12 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: ZplayType.label.toStyle(color: tokens.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.4),
-                    height: 1.3,
-                  ),
+                  style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                 ),
               ],
             ),

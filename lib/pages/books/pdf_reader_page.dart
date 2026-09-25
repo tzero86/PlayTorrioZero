@@ -7,6 +7,7 @@ import '../../models/book/book_result.dart';
 import '../../models/book/reading_progress.dart';
 import '../../services/books/continue_reading_service.dart';
 import '../../services/books/reader_settings.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/window/window_service.dart';
 import '../../services/discord/discord_rpc_service.dart';
 
@@ -121,6 +122,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return ValueListenableBuilder<ReaderSettingsData>(
       valueListenable: ReaderSettings.settingsNotifier,
       builder: (context, settings, _) {
@@ -128,7 +130,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
           autofocus: true,
           onKeyEvent: _handleKeyEvent,
           child: Scaffold(
-            backgroundColor: const Color(0xFF101014),
+            backgroundColor: tokens.bg,
             body: Stack(
               children: [
                 // ── PDF Viewer ──
@@ -141,7 +143,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                       controller: _pdfController,
                       initialPageNumber: widget.initialPage,
                       params: PdfViewerParams(
-                        backgroundColor: const Color(0xFF141419),
+                        backgroundColor: tokens.surfaceRaised,
                         onPageChanged: (pageNumber) {
                           if (pageNumber != null) {
                             setState(() => _currentPage = pageNumber);
@@ -170,11 +172,9 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                     height: 64,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C1E26).withValues(alpha: 0.94),
+                      color: tokens.surfaceOverlay.withValues(alpha: 0.94),
                       border: Border(
-                        bottom: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
+                        bottom: BorderSide(color: tokens.borderDefault),
                       ),
                       boxShadow: const [
                         BoxShadow(
@@ -187,7 +187,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                          icon: Icon(Icons.arrow_back_ios_new_rounded, color: tokens.textPrimary, size: 20),
                           tooltip: 'Back to Library',
                           onPressed: () => Navigator.of(context).pop(),
                         ),
@@ -199,21 +199,16 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                             children: [
                               Text(
                                 widget.book.displayTitle,
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                                style: ZplayType.body
+                                    .copyWith(weight: FontWeight.w700)
+                                    .toStyle(color: tokens.textPrimary),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 widget.book.displayAuthor,
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  color: Colors.white70,
+                                style: ZplayType.bodySmall.toStyle(
+                                  color: tokens.textEmphasis,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -222,17 +217,17 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 22),
+                          icon: Icon(Icons.zoom_in_rounded, color: tokens.textPrimary, size: 22),
                           tooltip: 'Zoom In',
                           onPressed: () => _pdfController.zoomUp(),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.zoom_out_rounded, color: Colors.white, size: 22),
+                          icon: Icon(Icons.zoom_out_rounded, color: tokens.textPrimary, size: 22),
                           tooltip: 'Zoom Out',
                           onPressed: () => _pdfController.zoomDown(),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 24),
+                          icon: Icon(Icons.fullscreen_rounded, color: tokens.textPrimary, size: 24),
                           tooltip: 'Fullscreen (F)',
                           onPressed: () => WindowService.instance.toggleFullscreen(),
                         ),
@@ -252,11 +247,9 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                     height: 72,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1C1E26).withValues(alpha: 0.94),
+                      color: tokens.surfaceOverlay.withValues(alpha: 0.94),
                       border: Border(
-                        top: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08),
-                        ),
+                        top: BorderSide(color: tokens.borderDefault),
                       ),
                       boxShadow: const [
                         BoxShadow(
@@ -269,7 +262,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.chevron_left_rounded, color: Colors.white, size: 28),
+                          icon: Icon(Icons.chevron_left_rounded, color: tokens.textPrimary, size: 28),
                           tooltip: 'Previous Page',
                           onPressed: _currentPage > 1
                               ? () => _pdfController.goToPage(pageNumber: _currentPage - 1)
@@ -284,21 +277,15 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                                 children: [
                                   Text(
                                     'Page $_currentPage of $_pageCount',
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white70,
-                                    ),
+                                    style: ZplayType.bodySmall
+                                        .copyWith(weight: FontWeight.w600)
+                                        .toStyle(color: tokens.textEmphasis),
                                   ),
                                   Text(
                                     '${((_currentPage / (_pageCount > 0 ? _pageCount : 1)) * 100).round()}%',
-                                    style: const TextStyle(
-                                      fontFamily: 'Poppins',
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF7C3AED),
-                                    ),
+                                    style: ZplayType.bodySmall
+                                        .copyWith(weight: FontWeight.w700)
+                                        .toStyle(color: tokens.accent),
                                   ),
                                 ],
                               ),
@@ -307,9 +294,9 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                                   trackHeight: 3,
                                   thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
                                   overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                                  activeTrackColor: const Color(0xFF7C3AED),
-                                  inactiveTrackColor: Colors.white24,
-                                  thumbColor: const Color(0xFF7C3AED),
+                                  activeTrackColor: tokens.accent,
+                                  inactiveTrackColor: tokens.borderStrong,
+                                  thumbColor: tokens.accent,
                                 ),
                                 child: Slider(
                                   value: _currentPage.toDouble(),
@@ -326,7 +313,7 @@ class _PdfReaderPageState extends State<PdfReaderPage> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.chevron_right_rounded, color: Colors.white, size: 28),
+                          icon: Icon(Icons.chevron_right_rounded, color: tokens.textPrimary, size: 28),
                           tooltip: 'Next Page',
                           onPressed: _currentPage < _pageCount
                               ? () => _pdfController.goToPage(pageNumber: _currentPage + 1)

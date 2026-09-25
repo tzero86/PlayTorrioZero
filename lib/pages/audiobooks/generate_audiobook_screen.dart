@@ -13,6 +13,7 @@ import '../../services/audiobook/epub_cover.dart';
 import '../../services/audiobook/epub_splitter.dart';
 import '../../services/audiobook/paper2audio_service.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import 'audiobook_player_screen.dart';
 
@@ -102,6 +103,8 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   }
 
   Future<void> _processAndGenerateFromEpub(File file) async {
+    final tokens = context.tokens;
+
     setState(() => _isUploading = true);
     try {
       // Analyze and split if oversized (>250k words) on background thread
@@ -122,32 +125,34 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: const Color(0xFF13151F),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            backgroundColor: tokens.surfaceOverlay,
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
             title: Row(
               children: [
                 Icon(Icons.call_split_rounded, color: AppThemeService.currentPalette.value.primaryColor),
                 const SizedBox(width: 10),
-                const Text('EPUB Exceeds 250k Words', style: TextStyle(color: Colors.white, fontSize: 16)),
+                Text('EPUB Exceeds 250k Words',
+                    style: ZplayType.title.copyWith(size: 16).toStyle(color: tokens.textPrimary)),
               ],
             ),
             content: Text(
               'This book has ~${_formatWords(totalWords)} words. It will automatically be split into ${parts.length} parts along chapter boundaries and queued:\n\n'
               '${parts.map((p) => '• ${p.suggestedName} (~${_formatWords(p.wordCount)} words)').join('\n')}',
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
+              style: ZplayType.label.toStyle(color: tokens.textEmphasis),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                child: Text('Cancel', style: ZplayType.label.toStyle(color: tokens.textSecondary)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                 ),
                 onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Split & Generate', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text('Split & Generate',
+                    style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
               ),
             ],
           ),
@@ -174,7 +179,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           content: Text(parts.length == 1
               ? 'Upload complete — AI Audiobook generation started!'
               : 'Uploaded ${parts.length} parts — generation started in background!'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: tokens.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -182,7 +187,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Generation failed: $e'), backgroundColor: Colors.redAccent),
+        SnackBar(content: Text('Generation failed: $e'), backgroundColor: tokens.danger),
       );
     } finally {
       if (mounted) setState(() => _isUploading = false);
@@ -239,18 +244,20 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   }
 
   Future<void> _deleteGeneratedJob(GeneratedAudiobookJob job) async {
+    final tokens = context.tokens;
+
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF13151F),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: tokens.surfaceOverlay,
+        shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
         title: const Text('Remove Generation Job?'),
         content: Text('Remove "${job.fileName}" from the generation list?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Remove', style: TextStyle(color: Colors.redAccent)),
+            child: Text('Remove', style: ZplayType.label.toStyle(color: tokens.danger)),
           ),
         ],
       ),
@@ -266,6 +273,8 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   // ───────────────────────────────────────────────────────────────────────────
 
   Future<void> _openCustomAudiobookUploadDialog() async {
+    final tokens = context.tokens;
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['mp3', 'm4b', 'm4a', 'aac', 'flac', 'opus', 'wav', 'ogg'],
@@ -293,13 +302,14 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDlgState) {
           return AlertDialog(
-            backgroundColor: const Color(0xFF13151F),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            backgroundColor: tokens.surfaceOverlay,
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.lgAll),
             title: Row(
               children: [
                 Icon(Icons.upload_file_rounded, color: AppThemeService.currentPalette.value.primaryColor),
                 const SizedBox(width: 10),
-                const Text('Add Personal Audiobook', style: TextStyle(color: Colors.white, fontSize: 16.5, fontWeight: FontWeight.w800)),
+                Text('Add Personal Audiobook',
+                    style: ZplayType.title.copyWith(size: 16.5).toStyle(color: tokens.textPrimary)),
               ],
             ),
             content: SizedBox(
@@ -311,47 +321,49 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                   children: [
                     Text(
                       'Selected ${pickedFiles.length} audio file(s):',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12.5, fontWeight: FontWeight.w600),
+                      style: ZplayType.bodySmall
+                          .copyWith(size: 12.5, weight: FontWeight.w600)
+                          .toStyle(color: tokens.textEmphasis),
                     ),
                     const SizedBox(height: 6),
                     Container(
                       constraints: const BoxConstraints(maxHeight: 90),
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.black26,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white10),
+                        color: tokens.surface,
+                        borderRadius: ZplayRadius.smAll,
+                        border: Border.all(color: tokens.borderStrong),
                       ),
                       child: ListView(
                         shrinkWrap: true,
                         children: pickedFiles.map((f) => Text(
                           '• ${p.basename(f.path)}',
-                          style: const TextStyle(color: Colors.white60, fontSize: 11.5),
+                          style: ZplayType.caption.copyWith(size: 11.5).toStyle(color: tokens.textSecondary),
                         )).toList(),
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: titleController,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: ZplayType.body.toStyle(color: tokens.textPrimary),
                       decoration: InputDecoration(
                         labelText: 'Audiobook Title',
-                        labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
+                        labelStyle: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                         filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        fillColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                        border: const OutlineInputBorder(borderRadius: ZplayRadius.smAll),
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: authorController,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: ZplayType.body.toStyle(color: tokens.textPrimary),
                       decoration: InputDecoration(
                         labelText: 'Author / Narrator',
-                        labelStyle: const TextStyle(color: Colors.white54, fontSize: 12),
+                        labelStyle: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                         filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        fillColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                        border: const OutlineInputBorder(borderRadius: ZplayRadius.smAll),
                       ),
                     ),
                     const SizedBox(height: 14),
@@ -360,7 +372,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                       children: [
                         if (pickedCoverFile != null)
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: ZplayRadius.smAll,
                             child: Image.file(pickedCoverFile!, width: 44, height: 44, fit: BoxFit.cover),
                           )
                         else
@@ -368,10 +380,10 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                             width: 44,
                             height: 44,
                             decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(8),
+                              color: tokens.borderStrong,
+                              borderRadius: ZplayRadius.smAll,
                             ),
-                            child: const Icon(Icons.image_rounded, color: Colors.white38),
+                            child: Icon(Icons.image_rounded, color: tokens.textMuted),
                           ),
                         const SizedBox(width: 12),
                         TextButton.icon(
@@ -399,12 +411,12 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                child: Text('Cancel', style: ZplayType.label.toStyle(color: tokens.textSecondary)),
               ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                 ),
                 onPressed: () async {
                   Navigator.pop(ctx);
@@ -416,7 +428,8 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                   );
                   if (mounted) setState(() {});
                 },
-                child: const Text('Import to Library', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: Text('Import to Library',
+                    style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
               ),
             ],
           );
@@ -447,12 +460,14 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF090C14),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0E131F).withValues(alpha: 0.9),
+        backgroundColor: tokens.bg,
         elevation: 0,
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
@@ -461,16 +476,17 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           children: [
             Icon(Icons.auto_stories_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 22),
             const SizedBox(width: 10),
-            const Text('Audiobook Studio & Generator', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+            Text('Audiobook Studio & Generator',
+                style: ZplayType.title.toStyle(color: tokens.textPrimary)),
           ],
         ),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: palette.primaryColor,
           indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white54,
-          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+          labelColor: tokens.textPrimary,
+          unselectedLabelColor: tokens.textSecondary,
+          labelStyle: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(),
           tabs: const [
             Tab(text: 'AI EPUB Generator (TTS)', icon: Icon(Icons.record_voice_over_rounded, size: 18)),
             Tab(text: 'My Uploaded Audiobooks', icon: Icon(Icons.library_music_rounded, size: 18)),
@@ -494,6 +510,8 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildGeneratorTab(AppThemePalette palette) {
+    final tokens = context.tokens;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 860),
@@ -525,15 +543,12 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                   children: [
                     Text(
                       'GENERATION QUEUE & COMPLETED (${jobs.length})',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white.withValues(alpha: 0.4),
-                        letterSpacing: 1.1,
-                      ),
+                      style: ZplayType.overline
+                          .copyWith(size: 12, weight: FontWeight.w700, letterSpacing: 1.1)
+                          .toStyle(color: tokens.textMuted),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.refresh_rounded, size: 18, color: Colors.white54),
+                      icon: Icon(Icons.refresh_rounded, size: 18, color: tokens.textSecondary),
                       tooltip: 'Refresh Status',
                       onPressed: () => _paperService.refreshAll(),
                     ),
@@ -546,22 +561,24 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                     padding: const EdgeInsets.all(32),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF111420),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
+                      border: Border.all(color: tokens.borderSubtle),
                     ),
-                    child: const Column(
+                    child: Column(
                       children: [
-                        Icon(Icons.headphones_rounded, size: 40, color: Colors.white24),
-                        SizedBox(height: 12),
+                        Icon(Icons.headphones_rounded, size: 40, color: tokens.textDisabled),
+                        const SizedBox(height: 12),
                         Text(
                           'No generated audiobooks yet',
-                          style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
+                          style: ZplayType.body
+                              .copyWith(weight: FontWeight.w600)
+                              .toStyle(color: tokens.textEmphasis),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Pick an EPUB above to synthesize high-quality voice narrations.',
-                          style: TextStyle(color: Colors.white38, fontSize: 12),
+                          style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                         ),
                       ],
                     ),
@@ -577,6 +594,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   }
 
   Widget _buildVoiceSelectorCard(AppThemePalette palette) {
+    final tokens = context.tokens;
     final selectedVoice = kPaper2AudioVoices.firstWhere(
       (v) => v.id == _selectedVoiceId,
       orElse: () => kPaper2AudioVoices.first,
@@ -585,9 +603,9 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF111522),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(color: tokens.borderDefault),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,7 +617,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                 height: 36,
                 decoration: BoxDecoration(
                   color: palette.primaryColor.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                 ),
                 child: Icon(Icons.record_voice_over_rounded, color: palette.primaryColor, size: 20),
               ),
@@ -608,13 +626,15 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'AI Narrator Voice (Kokoro Engine)',
-                      style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w700),
+                      style: ZplayType.body
+                          .copyWith(size: 14.5, weight: FontWeight.w700)
+                          .toStyle(color: tokens.textPrimary),
                     ),
                     Text(
                       selectedVoice.description,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11.5),
+                      style: ZplayType.caption.copyWith(size: 11.5).toStyle(color: tokens.textSecondary),
                     ),
                   ],
                 ),
@@ -625,16 +645,16 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.black26,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              color: tokens.surface,
+              borderRadius: ZplayRadius.smAll,
+              border: Border.all(color: tokens.borderDefault),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<String>(
                 value: _selectedVoiceId,
                 isExpanded: true,
-                dropdownColor: const Color(0xFF131826),
-                icon: const Icon(Icons.arrow_drop_down_rounded, color: Colors.white70),
+                dropdownColor: tokens.surfaceOverlay,
+                icon: Icon(Icons.arrow_drop_down_rounded, color: tokens.textEmphasis),
                 items: kPaper2AudioVoices.map((voice) {
                   return DropdownMenuItem<String>(
                     value: voice.id,
@@ -643,17 +663,19 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                       children: [
                         Text(
                           voice.label,
-                          style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                          style: ZplayType.label.copyWith(weight: FontWeight.w600).toStyle(color: tokens.textPrimary),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
+                            color: tokens.borderDefault,
+                            borderRadius: ZplayRadius.xsAll,
                           ),
                           child: Text(
                             voice.group,
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 10, fontWeight: FontWeight.w700),
+                            style: ZplayType.overline
+                                .copyWith(weight: FontWeight.w700)
+                                .toStyle(color: tokens.textSecondary),
                           ),
                         ),
                       ],
@@ -672,6 +694,8 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   }
 
   Widget _buildDetectedEpubsSection(AppThemePalette palette) {
+    final tokens = context.tokens;
+
     if (_isLoadingEpubs) {
       return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
     }
@@ -688,16 +712,13 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           children: [
             Text(
               'DOWNLOADED BOOKS FROM LIBRARY (${_detectedEpubs.length})',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Colors.white.withValues(alpha: 0.4),
-                letterSpacing: 1.1,
-              ),
+              style: ZplayType.overline
+                  .copyWith(size: 12, weight: FontWeight.w700, letterSpacing: 1.1)
+                  .toStyle(color: tokens.textMuted),
             ),
             TextButton.icon(
               icon: const Icon(Icons.refresh_rounded, size: 14),
-              label: const Text('Rescan Books', style: TextStyle(fontSize: 11)),
+              label: Text('Rescan Books', style: ZplayType.caption.toStyle()),
               style: TextButton.styleFrom(foregroundColor: palette.primaryColor),
               onPressed: _loadDownloadedEpubs,
             ),
@@ -717,9 +738,9 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                 width: 260,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF111420),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.mdAll,
+                  border: Border.all(color: tokens.borderDefault),
                 ),
                 child: Row(
                   children: [
@@ -728,14 +749,14 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                       width: 65,
                       height: 145,
                       decoration: BoxDecoration(
-                        color: Colors.white10,
-                        borderRadius: BorderRadius.circular(8),
+                        color: tokens.borderStrong,
+                        borderRadius: ZplayRadius.smAll,
                         boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 4)],
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: epub.coverPath != null
                           ? Image.file(File(epub.coverPath!), fit: BoxFit.cover)
-                          : const Icon(Icons.book_rounded, color: Colors.white30, size: 30),
+                          : Icon(Icons.book_rounded, color: tokens.textDisabled, size: 30),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -747,22 +768,23 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                             epub.title,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                            style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Size: ${(epub.fileSizeBytes / (1024 * 1024)).toStringAsFixed(1)} MB',
-                            style: const TextStyle(color: Colors.white38, fontSize: 11),
+                            style: ZplayType.caption.toStyle(color: tokens.textMuted),
                           ),
                           const Spacer(),
                           ElevatedButton.icon(
                             icon: const Icon(Icons.record_voice_over_rounded, size: 14),
-                            label: const Text('Generate', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                            label: Text('Generate',
+                                style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle()),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: palette.primaryColor,
-                              foregroundColor: Colors.white,
+                              foregroundColor: tokens.onAccent,
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                             ),
                             onPressed: _isUploading
                                 ? null
@@ -782,21 +804,23 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   }
 
   Widget _buildUploadExternalCard(AppThemePalette palette) {
+    final tokens = context.tokens;
+
     return InkWell(
       onTap: _isUploading ? null : _pickAndUploadEpub,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: ZplayRadius.mdAll,
       child: Container(
         padding: const EdgeInsets.all(22),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
               palette.primaryColor.withValues(alpha: 0.15),
-              const Color(0xFF00E5FF).withValues(alpha: 0.05),
+              tokens.info.withValues(alpha: 0.05),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: ZplayRadius.mdAll,
           border: Border.all(color: palette.primaryColor.withValues(alpha: 0.3)),
         ),
         child: Row(
@@ -806,11 +830,13 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
               height: 48,
               decoration: BoxDecoration(
                 color: palette.primaryColor.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: ZplayRadius.mdAll,
               ),
               child: _isUploading
-                  ? const Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-                  : const Icon(Icons.upload_file_rounded, color: Colors.white, size: 26),
+                  ? Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: CircularProgressIndicator(color: tokens.onAccent, strokeWidth: 2.5))
+                  : Icon(Icons.upload_file_rounded, color: tokens.onAccent, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -819,17 +845,17 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                 children: [
                   Text(
                     _isUploading ? 'Analyzing & Uploading Book...' : 'Select External EPUB File',
-                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
+                    style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                   ),
                   const SizedBox(height: 3),
                   Text(
                     'Pick any .epub file from your device. Large books (>250k words) are auto-split.',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 12),
+                    style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 24),
+            Icon(Icons.chevron_right_rounded, color: tokens.textSecondary, size: 24),
           ],
         ),
       ),
@@ -837,6 +863,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   }
 
   Widget _buildJobCard(GeneratedAudiobookJob job, AppThemePalette palette) {
+    final tokens = context.tokens;
     final isDone = job.isDone;
     final isFailed = job.isFailed;
     final cleanTitle = job.fileName.replaceAll(RegExp(r'\.epub$', caseSensitive: false), '');
@@ -844,13 +871,13 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
     Color statusColor;
     String statusLabel;
     if (isDone) {
-      statusColor = const Color(0xFF10B981);
+      statusColor = tokens.success;
       statusLabel = 'Completed';
     } else if (isFailed) {
-      statusColor = Colors.redAccent;
+      statusColor = tokens.danger;
       statusLabel = 'Failed';
     } else {
-      statusColor = const Color(0xFFF59E0B);
+      statusColor = tokens.warning;
       statusLabel = 'Synthesizing ${(job.progress * 100).round()}%';
     }
 
@@ -858,9 +885,9 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF111522),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(color: tokens.borderDefault),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -872,13 +899,13 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                 width: 48,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(8),
+                  color: tokens.borderStrong,
+                  borderRadius: ZplayRadius.smAll,
                 ),
                 clipBehavior: Clip.antiAlias,
                 child: job.coverPath != null && File(job.coverPath!).existsSync()
                     ? Image.file(File(job.coverPath!), fit: BoxFit.cover)
-                    : const Icon(Icons.headphones_rounded, color: Colors.white30, size: 24),
+                    : Icon(Icons.headphones_rounded, color: tokens.textDisabled, size: 24),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -887,7 +914,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                   children: [
                     Text(
                       cleanTitle,
-                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                      style: ZplayType.body.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -898,18 +925,20 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: statusColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: ZplayRadius.xsAll,
                             border: Border.all(color: statusColor.withValues(alpha: 0.3), width: 0.8),
                           ),
                           child: Text(
                             statusLabel,
-                            style: TextStyle(color: statusColor, fontSize: 10.5, fontWeight: FontWeight.w700),
+                            style: ZplayType.caption
+                                .copyWith(size: 10.5, weight: FontWeight.w700)
+                                .toStyle(color: statusColor),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'Voice: ${job.voiceId}',
-                          style: const TextStyle(color: Colors.white38, fontSize: 11),
+                          style: ZplayType.caption.toStyle(color: tokens.textMuted),
                         ),
                       ],
                     ),
@@ -918,7 +947,7 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
               ),
               // Delete Button
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.white38),
+                icon: Icon(Icons.delete_outline_rounded, size: 18, color: tokens.textMuted),
                 onPressed: () => _deleteGeneratedJob(job),
               ),
             ],
@@ -927,10 +956,10 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
           if (!isDone && !isFailed) ...[
             const SizedBox(height: 12),
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: ZplayRadius.xsAll,
               child: LinearProgressIndicator(
                 value: job.progress > 0 ? job.progress : null,
-                backgroundColor: Colors.white10,
+                backgroundColor: tokens.borderStrong,
                 color: palette.primaryColor,
                 minHeight: 5,
               ),
@@ -944,12 +973,13 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                 Expanded(
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.play_arrow_rounded, size: 18),
-                    label: const Text('Play in App', style: TextStyle(fontWeight: FontWeight.bold)),
+                    label: Text('Play in App',
+                        style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle()),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: palette.primaryColor,
-                      foregroundColor: Colors.white,
+                      foregroundColor: tokens.onAccent,
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                     ),
                     onPressed: () => _playGeneratedAudiobook(job),
                   ),
@@ -960,10 +990,10 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                     icon: const Icon(Icons.link_rounded, size: 16),
                     label: const Text('Copy Stream URL'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
-                      side: const BorderSide(color: Colors.white24),
+                      foregroundColor: tokens.textEmphasis,
+                      side: BorderSide(color: tokens.textDisabled),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                     ),
                     onPressed: () => _copyStreamUrl(job.downloadUrl!),
                   ),
@@ -980,6 +1010,8 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   // ───────────────────────────────────────────────────────────────────────────
 
   Widget _buildUploadedTab(AppThemePalette palette) {
+    final tokens = context.tokens;
+
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 860),
@@ -993,50 +1025,50 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                 // Upload Personal Audiobook Banner
                 InkWell(
                   onTap: _openCustomAudiobookUploadDialog,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: ZplayRadius.mdAll,
                   child: Container(
                     padding: const EdgeInsets.all(22),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFF10B981).withValues(alpha: 0.15),
-                          const Color(0xFF00E5FF).withValues(alpha: 0.05),
+                          tokens.success.withValues(alpha: 0.15),
+                          tokens.info.withValues(alpha: 0.05),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                      borderRadius: ZplayRadius.mdAll,
+                      border: Border.all(color: tokens.success.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
                         Container(
                           width: 48,
                           height: 48,
-                          decoration: const BoxDecoration(
-                            color: Color(0x3310B981),
-                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                          decoration: BoxDecoration(
+                            color: tokens.success.withValues(alpha: 0.2),
+                            borderRadius: ZplayRadius.mdAll,
                           ),
-                          child: const Icon(Icons.library_add_rounded, color: Color(0xFF10B981), size: 26),
+                          child: Icon(Icons.library_add_rounded, color: tokens.success, size: 26),
                         ),
                         const SizedBox(width: 16),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Upload Personal Audiobook Files',
-                                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800),
+                                style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                               ),
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Text(
                                 'Import your own .mp3, .m4b, .m4a, or .flac audiobooks to listen offline.',
-                                style: TextStyle(color: Colors.white54, fontSize: 12),
+                                style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                               ),
                             ],
                           ),
                         ),
-                        const Icon(Icons.chevron_right_rounded, color: Colors.white54, size: 24),
+                        Icon(Icons.chevron_right_rounded, color: tokens.textSecondary, size: 24),
                       ],
                     ),
                   ),
@@ -1046,12 +1078,9 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
 
                 Text(
                   'IMPORTED AUDIOBOOKS (${books.length})',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white.withValues(alpha: 0.4),
-                    letterSpacing: 1.1,
-                  ),
+                  style: ZplayType.overline
+                      .copyWith(size: 12, weight: FontWeight.w700, letterSpacing: 1.1)
+                      .toStyle(color: tokens.textMuted),
                 ),
                 const SizedBox(height: 10),
 
@@ -1060,22 +1089,24 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
                     padding: const EdgeInsets.all(32),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF111420),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
+                      border: Border.all(color: tokens.borderSubtle),
                     ),
-                    child: const Column(
+                    child: Column(
                       children: [
-                        Icon(Icons.library_music_rounded, size: 40, color: Colors.white24),
-                        SizedBox(height: 12),
+                        Icon(Icons.library_music_rounded, size: 40, color: tokens.textDisabled),
+                        const SizedBox(height: 12),
                         Text(
                           'No personal audiobooks added yet',
-                          style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600),
+                          style: ZplayType.body
+                              .copyWith(weight: FontWeight.w600)
+                              .toStyle(color: tokens.textEmphasis),
                         ),
-                        SizedBox(height: 4),
+                        const SizedBox(height: 4),
                         Text(
                           'Tap the banner above to import audio files from your device.',
-                          style: TextStyle(color: Colors.white38, fontSize: 12),
+                          style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                         ),
                       ],
                     ),
@@ -1091,15 +1122,16 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
   }
 
   Widget _buildUploadedBookCard(UserUploadedAudiobook book, AppThemePalette palette) {
+    final tokens = context.tokens;
     final sizeMb = (book.totalBytes / (1024 * 1024)).toStringAsFixed(1);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF111522),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(color: tokens.borderDefault),
       ),
       child: Row(
         children: [
@@ -1108,13 +1140,13 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
             width: 48,
             height: 64,
             decoration: BoxDecoration(
-              color: Colors.white10,
-              borderRadius: BorderRadius.circular(8),
+              color: tokens.borderStrong,
+              borderRadius: ZplayRadius.smAll,
             ),
             clipBehavior: Clip.antiAlias,
             child: book.coverPath != null && File(book.coverPath!).existsSync()
                 ? Image.file(File(book.coverPath!), fit: BoxFit.cover)
-                : const Icon(Icons.music_note_rounded, color: Colors.white30, size: 24),
+                : Icon(Icons.music_note_rounded, color: tokens.textDisabled, size: 24),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1123,14 +1155,14 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
               children: [
                 Text(
                   book.title,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700),
+                  style: ZplayType.body.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
                 Text(
                   '${book.author} • ${book.audioFilePaths.length} part(s) ($sizeMb MB)',
-                  style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                 ),
               ],
             ),
@@ -1140,26 +1172,29 @@ class _GenerateAudiobookScreenState extends State<GenerateAudiobookScreen>
             label: const Text('Play'),
             style: ElevatedButton.styleFrom(
               backgroundColor: palette.primaryColor,
-              foregroundColor: Colors.white,
+              foregroundColor: tokens.onAccent,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
             ),
             onPressed: () => _playUploadedAudiobook(book),
           ),
           const SizedBox(width: 6),
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.white38),
+            icon: Icon(Icons.delete_outline_rounded, size: 18, color: tokens.textMuted),
             onPressed: () async {
               final ok = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  backgroundColor: const Color(0xFF13151F),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: tokens.surfaceOverlay,
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
                   title: const Text('Delete Audiobook?'),
                   content: Text('Delete "${book.title}" from your library?'),
                   actions: [
                     TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                    TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete', style: TextStyle(color: Colors.redAccent))),
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: Text('Delete', style: ZplayType.label.toStyle(color: tokens.danger)),
+                    ),
                   ],
                 ),
               );

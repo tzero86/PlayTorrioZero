@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'player_glass.dart';
+import '../../services/theme/design_tokens.dart';
 import '../common/focusable_card.dart';
 
 class PlayerAudioTrack {
@@ -79,6 +80,7 @@ class PlayerAudioMenu extends StatelessWidget {
     final screenWidth = size.width;
     final screenHeight = size.height;
     final isCompactH = screenHeight < 500;
+    final tokens = context.tokens;
 
     final cardWidth = (370.0).clamp(270.0, screenWidth - 28);
     final maxTrackListHeight = isCompactH
@@ -87,7 +89,7 @@ class PlayerAudioMenu extends StatelessWidget {
 
     return PlayerGlassCard(
       width: cardWidth,
-      padding: EdgeInsets.all(isCompactH ? 8 : 12),
+      padding: EdgeInsets.all(isCompactH ? ZplaySpacing.s8 : ZplaySpacing.s12),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
@@ -107,12 +109,12 @@ class PlayerAudioMenu extends StatelessWidget {
                       ),
                       child: Text(
                         'AUDIO TRACKS',
-                        style: TextStyle(
-                          color: PlayerTheme.inkSubtle,
-                          fontSize: isCompactH ? 9.5 : 10.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                        ),
+                        style: ZplayType.overline
+                            .copyWith(
+                              size: isCompactH ? 9.5 : 10.5,
+                              weight: FontWeight.w700,
+                            )
+                            .toStyle(color: tokens.textMuted),
                       ),
                     ),
                     if (hasTracks)
@@ -120,15 +122,16 @@ class PlayerAudioMenu extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: PlayerTheme.raised,
-                          borderRadius: BorderRadius.circular(999),
+                          borderRadius: ZplayRadius.fullAll,
                         ),
                         child: Text(
                           '${audioTracks.length}',
-                          style: TextStyle(
-                            color: PlayerTheme.inkSubtle,
-                            fontSize: isCompactH ? 9 : 10,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: ZplayType.overline
+                              .copyWith(
+                                size: isCompactH ? 9 : 10,
+                                weight: FontWeight.w700,
+                              )
+                              .toStyle(color: tokens.textMuted),
                         ),
                       ),
                   ],
@@ -161,23 +164,26 @@ class PlayerAudioMenu extends StatelessWidget {
                         return Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: ZplayRadius.smAll,
                             onTap: () {
                               onTrackSelected(track.index);
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 180),
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              margin: const EdgeInsets.only(bottom: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: ZplaySpacing.s12,
+                                vertical: ZplaySpacing.s8,
+                              ),
+                              margin: const EdgeInsets.only(bottom: ZplaySpacing.s4),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? PlayerTheme.accent.withValues(alpha: 0.18)
-                                    : Colors.white.withValues(alpha: 0.03),
-                                borderRadius: BorderRadius.circular(10),
+                                    : tokens.textPrimary.withValues(alpha: 0.03),
+                                borderRadius: ZplayRadius.smAll,
                                 border: Border.all(
                                   color: isSelected
                                       ? PlayerTheme.accent.withValues(alpha: 0.6)
-                                      : Colors.white.withValues(alpha: 0.06),
+                                      : tokens.borderSubtle,
                                   width: isSelected ? 1.4 : 1.0,
                                 ),
                               ),
@@ -187,50 +193,67 @@ class PlayerAudioMenu extends StatelessWidget {
                                     width: 20,
                                     height: 20,
                                     decoration: BoxDecoration(
-                                      color: isSelected ? PlayerTheme.accent : Colors.white.withValues(alpha: 0.08),
+                                      color: isSelected
+                                          ? PlayerTheme.accent
+                                          : tokens.borderDefault,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: isSelected ? PlayerTheme.accent : Colors.white30,
+                                        color: isSelected
+                                            ? PlayerTheme.accent
+                                            : tokens.borderStrong,
                                         width: 1.5,
                                       ),
                                     ),
                                     alignment: Alignment.center,
                                     child: isSelected
-                                        ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                                        ? Icon(
+                                            Icons.check_rounded,
+                                            size: 13,
+                                            color: tokens.onAccent,
+                                          )
                                         : null,
                                   ),
                                   const SizedBox(width: 10),
                                   Text(
                                     _getLanguageEmoji(track.language),
-                                    style: const TextStyle(fontSize: 15),
+                                    style: ZplayType.subtitle.toStyle(),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: ZplaySpacing.s8),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           track.title,
-                                          style: TextStyle(
-                                            color: isSelected ? Colors.white : Colors.white70,
-                                            fontSize: 13,
-                                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                          ),
+                                          style: ZplayType.label
+                                              .copyWith(
+                                                weight: isSelected
+                                                    ? FontWeight.w700
+                                                    : FontWeight.w500,
+                                              )
+                                              .toStyle(
+                                                color: isSelected
+                                                    ? tokens.textPrimary
+                                                    : tokens.textEmphasis,
+                                              ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                         if (subtitle != null) ...[
-                                          const SizedBox(height: 2),
+                                          const SizedBox(height: ZplaySpacing.s2),
                                           Text(
                                             subtitle,
-                                            style: TextStyle(
-                                              color: isSelected
-                                                  ? const Color(0xFF00D2EF)
-                                                  : Colors.white.withValues(alpha: 0.4),
-                                              fontSize: 10.5,
-                                              fontWeight: FontWeight.w600,
-                                              letterSpacing: 0.4,
-                                            ),
+                                            style: ZplayType.overline
+                                                .copyWith(
+                                                  size: 10.5,
+                                                  weight: FontWeight.w600,
+                                                  letterSpacing: 0.4,
+                                                )
+                                                .toStyle(
+                                                  color: isSelected
+                                                      ? tokens.info
+                                                      : tokens.textMuted,
+                                                ),
                                           ),
                                         ],
                                       ],
@@ -243,32 +266,39 @@ class PlayerAudioMenu extends StatelessWidget {
                         );
                       },
                     )
-                  : const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ZplaySpacing.s12,
+                        vertical: ZplaySpacing.s16,
+                      ),
                       child: Row(
                         children: [
-                          Icon(Icons.audiotrack_rounded, size: 16, color: Colors.white38),
-                          SizedBox(width: 8),
+                          Icon(
+                            Icons.audiotrack_rounded,
+                            size: 16,
+                            color: tokens.textMuted,
+                          ),
+                          const SizedBox(width: ZplaySpacing.s8),
                           Text(
                             'Default audio stream playing.',
-                            style: TextStyle(color: Colors.white54, fontSize: 13),
+                            style: ZplayType.label.toStyle(color: tokens.textSecondary),
                           ),
                         ],
                       ),
                     ),
             ),
 
-            SizedBox(height: isCompactH ? 4 : 8),
-            const Divider(color: PlayerTheme.edgeSoft, height: 1),
-            SizedBox(height: isCompactH ? 4 : 8),
+            SizedBox(height: isCompactH ? ZplaySpacing.s4 : ZplaySpacing.s8),
+            Divider(color: tokens.borderDefault, height: 1),
+            SizedBox(height: isCompactH ? ZplaySpacing.s4 : ZplaySpacing.s8),
 
             // Audio Sync Offset Row
             Container(
               padding: EdgeInsets.all(isCompactH ? 6 : 9),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                color: tokens.textPrimary.withValues(alpha: 0.04),
+                borderRadius: ZplayRadius.smAll,
+                border: Border.all(color: tokens.borderSubtle),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -278,15 +308,20 @@ class PlayerAudioMenu extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.sync_rounded, size: 14, color: Colors.white70),
+                          Icon(
+                            Icons.sync_rounded,
+                            size: 14,
+                            color: tokens.textEmphasis,
+                          ),
                           const SizedBox(width: 5),
                           Text(
                             'Audio Sync Offset',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: isCompactH ? 11 : 12,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: ZplayType.caption
+                                .copyWith(
+                                  size: isCompactH ? 11 : 12,
+                                  weight: FontWeight.w600,
+                                )
+                                .toStyle(color: tokens.textEmphasis),
                           ),
                         ],
                       ),
@@ -297,8 +332,8 @@ class PlayerAudioMenu extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: delaySec != 0
                                   ? PlayerTheme.accent.withValues(alpha: 0.25)
-                                  : Colors.white.withValues(alpha: 0.06),
-                              borderRadius: BorderRadius.circular(5),
+                                  : tokens.borderSubtle,
+                              borderRadius: ZplayRadius.xsAll,
                               border: Border.all(
                                 color: delaySec != 0
                                     ? PlayerTheme.accent.withValues(alpha: 0.5)
@@ -307,22 +342,28 @@ class PlayerAudioMenu extends StatelessWidget {
                             ),
                             child: Text(
                               '${delaySec > 0 ? "+" : ""}${delaySec.toStringAsFixed(2)}s',
-                              style: TextStyle(
-                                color: delaySec != 0 ? const Color(0xFF00D2EF) : Colors.white60,
-                                fontSize: isCompactH ? 11.5 : 12.5,
-                                fontWeight: FontWeight.w800,
-                                fontFamily: 'monospace',
-                              ),
+                              style: ZplayType.label
+                                  .copyWith(
+                                    size: isCompactH ? 11.5 : 12.5,
+                                    weight: FontWeight.w800,
+                                  )
+                                  .toStyle(
+                                    color: delaySec != 0
+                                        ? tokens.info
+                                        : tokens.textSecondary,
+                                    tabular: true,
+                                  )
+                                  .copyWith(fontFamily: 'monospace'),
                             ),
                           ),
                           if (delaySec != 0) ...[
                             const SizedBox(width: 6),
                             FocusableCard(
                               onTap: () => onDelayChanged(0.0),
-                              builder: (context, _) => const Icon(
+                              builder: (context, _) => Icon(
                                 Icons.refresh_rounded,
                                 size: 16,
-                                color: Color(0xFF00D2EF),
+                                color: tokens.info,
                               ),
                             ),
                           ],
@@ -337,59 +378,99 @@ class PlayerAudioMenu extends StatelessWidget {
                       Expanded(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                            foregroundColor: tokens.textPrimary,
+                            side: BorderSide(color: tokens.borderStrong),
                             padding: EdgeInsets.symmetric(vertical: isCompactH ? 3 : 6),
                             minimumSize: Size(0, isCompactH ? 26 : 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.xsAll,
+                            ),
                           ),
                           onPressed: () => onDelayChanged(((delaySec - 0.5) * 10).round() / 10.0),
-                          child: Text('−0.5s', style: TextStyle(fontSize: isCompactH ? 10 : 11.5, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            '−0.5s',
+                            style: ZplayType.caption
+                                .copyWith(
+                                  size: isCompactH ? 10 : 11.5,
+                                  weight: FontWeight.w600,
+                                )
+                                .toStyle(),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                       // -0.1s
                       Expanded(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                            foregroundColor: tokens.textPrimary,
+                            side: BorderSide(color: tokens.borderStrong),
                             padding: EdgeInsets.symmetric(vertical: isCompactH ? 3 : 6),
                             minimumSize: Size(0, isCompactH ? 26 : 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.xsAll,
+                            ),
                           ),
                           onPressed: () => onDelayChanged(((delaySec - 0.1) * 10).round() / 10.0),
-                          child: Text('−0.1s', style: TextStyle(fontSize: isCompactH ? 10 : 11.5, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            '−0.1s',
+                            style: ZplayType.caption
+                                .copyWith(
+                                  size: isCompactH ? 10 : 11.5,
+                                  weight: FontWeight.w600,
+                                )
+                                .toStyle(),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                       // +0.1s
                       Expanded(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                            foregroundColor: tokens.textPrimary,
+                            side: BorderSide(color: tokens.borderStrong),
                             padding: EdgeInsets.symmetric(vertical: isCompactH ? 3 : 6),
                             minimumSize: Size(0, isCompactH ? 26 : 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.xsAll,
+                            ),
                           ),
                           onPressed: () => onDelayChanged(((delaySec + 0.1) * 10).round() / 10.0),
-                          child: Text('+0.1s', style: TextStyle(fontSize: isCompactH ? 10 : 11.5, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            '+0.1s',
+                            style: ZplayType.caption
+                                .copyWith(
+                                  size: isCompactH ? 10 : 11.5,
+                                  weight: FontWeight.w600,
+                                )
+                                .toStyle(),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                       // +0.5s
                       Expanded(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                            foregroundColor: tokens.textPrimary,
+                            side: BorderSide(color: tokens.borderStrong),
                             padding: EdgeInsets.symmetric(vertical: isCompactH ? 3 : 6),
                             minimumSize: Size(0, isCompactH ? 26 : 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.xsAll,
+                            ),
                           ),
                           onPressed: () => onDelayChanged(((delaySec + 0.5) * 10).round() / 10.0),
-                          child: Text('+0.5s', style: TextStyle(fontSize: isCompactH ? 10 : 11.5, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            '+0.5s',
+                            style: ZplayType.caption
+                                .copyWith(
+                                  size: isCompactH ? 10 : 11.5,
+                                  weight: FontWeight.w600,
+                                )
+                                .toStyle(),
+                          ),
                         ),
                       ),
                     ],

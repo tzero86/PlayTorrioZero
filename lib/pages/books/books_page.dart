@@ -133,9 +133,10 @@ class _BooksPageState extends State<BooksPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isMobile = screenWidth < 600;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D12),
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           // ── Ambient Animated Background ──
@@ -168,15 +169,20 @@ class _BooksPageState extends State<BooksPage> {
                 // Catalog Title
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                    padding: const EdgeInsets.fromLTRB(
+                      ZplaySpacing.s24,
+                      ZplaySpacing.s8,
+                      ZplaySpacing.s24,
+                      ZplaySpacing.s16,
+                    ),
                     child: Row(
                       children: [
                         Container(
                           width: 4,
                           height: 20,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C3AED),
-                            borderRadius: BorderRadius.circular(2),
+                            color: tokens.accent,
+                            borderRadius: ZplayRadius.xsAll,
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -184,23 +190,13 @@ class _BooksPageState extends State<BooksPage> {
                           _searchController.text.trim().isNotEmpty
                               ? 'Results for "${_searchController.text.trim()}"'
                               : 'Discover Books',
-                          style: const TextStyle(
-                            fontFamily: 'Poppins',
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 0.2,
-                          ),
+                          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
                         ),
                         const Spacer(),
                         if (!_loading && _books.isNotEmpty)
                           Text(
                             '${_books.length} Books',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 13,
-                              color: Colors.white38,
-                            ),
+                            style: ZplayType.label.toStyle(color: tokens.textMuted),
                           ),
                       ],
                     ),
@@ -209,10 +205,10 @@ class _BooksPageState extends State<BooksPage> {
 
                 // Grid / Loading / Error
                 if (_loading)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(
-                      child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+                      child: CircularProgressIndicator(color: tokens.accent),
                     ),
                   )
                 else if (_error != null)
@@ -222,10 +218,10 @@ class _BooksPageState extends State<BooksPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
-                          const SizedBox(height: 12),
-                          Text(_error!, style: const TextStyle(color: Colors.white70)),
-                          const SizedBox(height: 16),
+                          Icon(Icons.error_outline_rounded, color: tokens.danger, size: 48),
+                          const SizedBox(height: ZplaySpacing.s12),
+                          Text(_error!, style: ZplayType.body.toStyle(color: tokens.textEmphasis)),
+                          const SizedBox(height: ZplaySpacing.s16),
                           ElevatedButton(
                             onPressed: () => _loadBooks(),
                             child: const Text('Retry'),
@@ -235,27 +231,22 @@ class _BooksPageState extends State<BooksPage> {
                     ),
                   )
                 else if (_books.isEmpty)
-                  const SliverFillRemaining(
+                  SliverFillRemaining(
                     hasScrollBody: false,
                     child: Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.search_off_rounded, color: Colors.white38, size: 56),
-                          SizedBox(height: 14),
+                          Icon(Icons.search_off_rounded, color: tokens.textMuted, size: 56),
+                          const SizedBox(height: 14),
                           Text(
                             'No books found',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white70,
-                            ),
+                            style: ZplayType.subtitle.toStyle(color: tokens.textEmphasis),
                           ),
-                          SizedBox(height: 6),
+                          const SizedBox(height: 6),
                           Text(
                             'Try searching for another title, author, or language',
-                            style: TextStyle(color: Colors.white38, fontSize: 13),
+                            style: ZplayType.label.toStyle(color: tokens.textMuted),
                           ),
                         ],
                       ),
@@ -263,7 +254,7 @@ class _BooksPageState extends State<BooksPage> {
                   )
                 else
                   SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s24),
                     sliver: SliverGrid(
                       gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                         maxCrossAxisExtent: isMobile ? 160 : 190,
@@ -286,13 +277,13 @@ class _BooksPageState extends State<BooksPage> {
 
                 // Loading More Indicator
                 if (_loadingMore)
-                  const SliverToBoxAdapter(
+                  SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 28),
+                      padding: const EdgeInsets.symmetric(vertical: 28),
                       child: Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2.5,
-                          color: Color(0xFF7C3AED),
+                          color: tokens.accent,
                         ),
                       ),
                     ),
@@ -319,57 +310,59 @@ class _BooksPageState extends State<BooksPage> {
   }
 
   Widget _buildHeader(bool isMobile) {
+    final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      padding: const EdgeInsets.fromLTRB(
+        ZplaySpacing.s20,
+        ZplaySpacing.s16,
+        ZplaySpacing.s20,
+        ZplaySpacing.s12,
+      ),
       child: Row(
         children: [
           // Title
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(ZplaySpacing.s8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF7C3AED).withValues(alpha: 0.4)),
+                  // The violet identity was the fork's, not the brand's: the
+                  // monogram now follows the active palette's accent.
+                  color: tokens.accentSubtle,
+                  borderRadius: ZplayRadius.smAll,
+                  border: Border.all(color: tokens.accent.withValues(alpha: 0.4)),
                 ),
-                child: const Icon(Icons.menu_book_rounded, color: Color(0xFFA78BFA), size: 22),
+                child: Icon(Icons.menu_book_rounded, color: tokens.accent, size: 22),
               ),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'Books',
-                style: TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 0.4,
-                ),
+                style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
               ),
             ],
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: ZplaySpacing.s20),
 
           // Search Bar
           Expanded(
             child: Container(
               height: 46,
               decoration: BoxDecoration(
-                color: const Color(0xFF1B1C26).withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white12),
+                color: tokens.surfaceOverlay.withValues(alpha: 0.8),
+                borderRadius: ZplayRadius.mdAll,
+                border: Border.all(color: tokens.borderStrong),
               ),
               child: TextField(
                 controller: _searchController,
                 onChanged: _onSearchChanged,
-                style: const TextStyle(color: Colors.white, fontSize: 13.5),
+                style: ZplayType.label.toStyle(color: tokens.textPrimary),
                 decoration: InputDecoration(
                   hintText: 'Search millions of books & authors...',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
-                  prefixIcon: const Icon(Icons.search_rounded, color: Colors.white54, size: 20),
+                  hintStyle: ZplayType.label.toStyle(color: tokens.textMuted),
+                  prefixIcon: Icon(Icons.search_rounded, color: tokens.textSecondary, size: 20),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, color: Colors.white54, size: 18),
+                          icon: Icon(Icons.clear_rounded, color: tokens.textSecondary, size: 18),
                           onPressed: () {
                             _searchController.clear();
                             _onSearchChanged('');
@@ -388,8 +381,14 @@ class _BooksPageState extends State<BooksPage> {
   }
 
   Widget _buildFilters() {
+    final tokens = context.tokens;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 4, 24, 20),
+      padding: const EdgeInsets.fromLTRB(
+        ZplaySpacing.s24,
+        ZplaySpacing.s4,
+        ZplaySpacing.s24,
+        ZplaySpacing.s20,
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -398,19 +397,19 @@ class _BooksPageState extends State<BooksPage> {
             // Format Filter Chips
             _buildFormatChip('All Formats', null),
             const SizedBox(width: 8),
-            _buildFormatChip('EPUB', 'epub', accentColor: const Color(0xFF7C3AED)),
+            _buildFormatChip('EPUB', 'epub', accentColor: tokens.accent),
             const SizedBox(width: 8),
-            _buildFormatChip('PDF', 'pdf', accentColor: const Color(0xFFEF4444)),
+            _buildFormatChip('PDF', 'pdf', accentColor: tokens.danger),
             const SizedBox(width: 8),
-            _buildFormatChip('MOBI', 'mobi', accentColor: const Color(0xFF0EA5E9)),
+            _buildFormatChip('MOBI', 'mobi', accentColor: tokens.info),
             const SizedBox(width: 8),
-            _buildFormatChip('AZW3', 'azw3', accentColor: const Color(0xFFF59E0B)),
+            _buildFormatChip('AZW3', 'azw3', accentColor: tokens.warning),
             const SizedBox(width: 8),
-            _buildFormatChip('FB2', 'fb2', accentColor: const Color(0xFF10B981)),
+            _buildFormatChip('FB2', 'fb2', accentColor: tokens.success),
             const SizedBox(width: 8),
-            _buildFormatChip('TXT', 'txt', accentColor: const Color(0xFF8B5CF6)),
+            _buildFormatChip('TXT', 'txt', accentColor: tokens.accentHover),
             const SizedBox(width: 8),
-            _buildFormatChip('CBZ', 'cbz', accentColor: const Color(0xFFEC4899)),
+            _buildFormatChip('CBZ', 'cbz', accentColor: tokens.accent),
           ],
         ),
       ),
@@ -418,6 +417,7 @@ class _BooksPageState extends State<BooksPage> {
   }
 
   Widget _buildFormatChip(String label, String? format, {Color? accentColor}) {
+    final tokens = context.tokens;
     final isSelected = _selectedFormat == format;
     return ChoiceChip(
       label: Text(label),
@@ -426,20 +426,17 @@ class _BooksPageState extends State<BooksPage> {
         setState(() => _selectedFormat = format);
         _loadBooks();
       },
-      selectedColor: accentColor ?? const Color(0xFF7C3AED),
-      backgroundColor: const Color(0xFF1B1C26),
+      selectedColor: accentColor ?? tokens.accent,
+      backgroundColor: tokens.surfaceOverlay,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: ZplayRadius.smAll,
         side: BorderSide(
-          color: isSelected ? Colors.transparent : Colors.white12,
+          color: isSelected ? Colors.transparent : tokens.borderStrong,
         ),
       ),
-      labelStyle: TextStyle(
-        fontFamily: 'Poppins',
-        fontSize: 12,
-        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-        color: isSelected ? Colors.white : Colors.white70,
-      ),
+      labelStyle: ZplayType.bodySmall
+          .copyWith(weight: isSelected ? FontWeight.w700 : FontWeight.w500)
+          .toStyle(color: isSelected ? tokens.textPrimary : tokens.textEmphasis),
     );
   }
 }
@@ -456,6 +453,7 @@ class _BookCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = ContinueReadingService.getProgress(book.md5);
+    final tokens = context.tokens;
 
     return FocusableCard(
       onTap: onTap,
@@ -473,13 +471,13 @@ class _BookCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: ReaderTokens.rounded16,
                     border: Border.all(
-                      color: state.highlighted ? const Color(0xFF7C3AED) : Colors.white.withValues(alpha: 0.08),
+                      color: state.highlighted ? tokens.accent : tokens.borderDefault,
                       width: state.highlighted ? 2.0 : 1.0,
                     ),
                     boxShadow: [
                       state.highlighted
                           ? BoxShadow(
-                              color: const Color(0xFF7C3AED).withValues(alpha: 0.35),
+                              color: tokens.accent.withValues(alpha: 0.35),
                               blurRadius: 18,
                               offset: const Offset(0, 6),
                             )
@@ -487,7 +485,7 @@ class _BookCard extends StatelessWidget {
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: ZplayRadius.mdAll,
                     child: Stack(
                       children: [
                         Positioned.fill(
@@ -497,21 +495,21 @@ class _BookCard extends StatelessWidget {
                                   cacheManager: AppImageCache.manager,
                                   fit: BoxFit.cover,
                                   placeholder: (_, __) => Container(
-                                    color: const Color(0xFF1E202B),
-                                    child: const Center(
-                                      child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                    color: tokens.surface,
+                                    child: Center(
+                                      child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                     ),
                                   ),
                                   errorWidget: (_, __, ___) => Container(
-                                    color: const Color(0xFF1E202B),
-                                    child: const Center(
-                                      child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                    color: tokens.surface,
+                                    child: Center(
+                                      child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                     ),
                                   ))
                               : Container(
-                                  color: const Color(0xFF1E202B),
-                                  child: const Center(
-                                    child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                  color: tokens.surface,
+                                  child: Center(
+                                    child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                   ),
                                 ),
                         ),
@@ -520,8 +518,8 @@ class _BookCard extends StatelessWidget {
                         Positioned.fill(
                           child: Container(
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                              borderRadius: ZplayRadius.mdAll,
+                              border: Border.all(color: tokens.borderSubtle),
                             ),
                           ),
                         ),
@@ -534,9 +532,9 @@ class _BookCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                             decoration: BoxDecoration(
                               color: book.isEpub
-                                  ? const Color(0xFF7C3AED).withValues(alpha: 0.9)
+                                  ? tokens.accent.withValues(alpha: 0.9)
                                   : book.isPdf
-                                      ? const Color(0xFFEF4444).withValues(alpha: 0.9)
+                                      ? tokens.danger.withValues(alpha: 0.9)
                                       : Colors.black87,
                               borderRadius: ReaderTokens.rounded4,
                               boxShadow: const [
@@ -545,12 +543,7 @@ class _BookCard extends StatelessWidget {
                             ),
                             child: Text(
                               book.bookFiletype.toUpperCase(),
-                              style: const TextStyle(
-                                fontFamily: ReaderTokens.uiFont,
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                              style: ZplayType.overline.toStyle(color: tokens.textPrimary),
                             ),
                           ),
                         ),
@@ -564,16 +557,11 @@ class _BookCard extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
                                 color: Colors.black.withValues(alpha: 0.75),
-                                borderRadius: BorderRadius.circular(5),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
                               child: Text(
                                 book.year,
-                                style: const TextStyle(
-                                  fontFamily: ReaderTokens.uiFont,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white70,
-                                ),
+                                style: ZplayType.caption.toStyle(color: tokens.textEmphasis),
                               ),
                             ),
                           ),
@@ -590,7 +578,7 @@ class _BookCard extends StatelessWidget {
                                 value: progress.progressPercent,
                                 minHeight: 3.5,
                                 backgroundColor: Colors.black38,
-                                valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF7C3AED)),
+                                valueColor: AlwaysStoppedAnimation<Color>(tokens.accent),
                               ),
                             ),
                           ),
@@ -604,12 +592,9 @@ class _BookCard extends StatelessWidget {
               // Title
               Text(
                 book.displayTitle,
-                style: const TextStyle(
-                  fontFamily: ReaderTokens.uiFont,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+                style: ZplayType.bodySmall
+                    .copyWith(weight: FontWeight.w600)
+                    .toStyle(color: tokens.textPrimary),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -618,11 +603,7 @@ class _BookCard extends StatelessWidget {
               // Author
               Text(
                 book.displayAuthor,
-                style: TextStyle(
-                  fontFamily: ReaderTokens.uiFont,
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.5),
-                ),
+                style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),

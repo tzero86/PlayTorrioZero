@@ -3,24 +3,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../services/anime_arabic/anime_arabic_service.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/slider_arrow.dart';
 import 'anime_arabic_stream_sheet.dart';
 import '../../services/storage/app_image_cache.dart';
-
-class _Space {
-  static const md = 16.0;
-  static const xl = 32.0;
-}
-
-class _Palette {
-  static Color get bg => AppThemeService.currentPalette.value.scaffoldBackgroundColor;
-  static Color get surface => AppThemeService.currentPalette.value.cardBackgroundColor;
-  static Color get accent => AppThemeService.currentPalette.value.primaryColor;
-  static const gold = Color(0xFFFFC107);
-}
 
 class AnimeArabicDetailsPage extends StatefulWidget {
   final ArabicAnimeCard anime;
@@ -193,6 +181,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isDesktop = screenWidth > 900;
     final isMobile = screenWidth < 600;
+    final tokens = ZplayTokens.of(context);
 
     final backdropUrl = _details?.displayBanner ?? widget.anime.cover ?? '';
     final coverUrl = _details?.displayCover ?? widget.anime.cover ?? '';
@@ -231,9 +220,9 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        _Palette.bg.withValues(alpha: 0.3),
-                        _Palette.bg.withValues(alpha: 0.75),
-                        _Palette.bg,
+                        tokens.bg.withValues(alpha: 0.3),
+                        tokens.bg.withValues(alpha: 0.75),
+                        tokens.bg,
                       ],
                       stops: const [0.0, 0.6, 1.0],
                     ),
@@ -245,7 +234,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                       center: Alignment.topCenter,
                       radius: 1.2,
                       colors: [
-                        _Palette.accent.withValues(alpha: 0.18),
+                        tokens.accent.withValues(alpha: 0.18),
                         Colors.transparent,
                       ],
                     ),
@@ -259,18 +248,18 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
           SafeArea(
             bottom: false,
             child: _loading && _details == null
-                ? Center(child: CircularProgressIndicator(color: _Palette.accent))
+                ? Center(child: CircularProgressIndicator(color: tokens.accent))
                 : _error != null && _details == null
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
-                            const SizedBox(height: 16),
-                            Text(_error!, style: const TextStyle(color: Colors.white70, fontSize: 16)),
-                            const SizedBox(height: 16),
+                            Icon(Icons.error_outline_rounded, color: tokens.danger, size: 48),
+                            const SizedBox(height: ZplaySpacing.s16),
+                            Text(_error!, style: ZplayType.title.toStyle(color: tokens.textEmphasis)),
+                            const SizedBox(height: ZplaySpacing.s16),
                             ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: _Palette.accent),
+                              style: ElevatedButton.styleFrom(backgroundColor: tokens.accent),
                               onPressed: _loadDetails,
                               child: const Text('Retry'),
                             ),
@@ -291,8 +280,8 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                               SliverToBoxAdapter(
                                 child: Padding(
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: isDesktop ? 60 : (isMobile ? 16 : 32),
-                                    vertical: _Space.md,
+                                    horizontal: isDesktop ? 60 : (isMobile ? ZplaySpacing.s16 : ZplaySpacing.s32),
+                                    vertical: ZplaySpacing.s16,
                                   ),
                                   child: isMobile
                                       ? _buildMobileHero(coverUrl, title)
@@ -300,27 +289,27 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                                 ),
                               ),
 
-                              const SliverToBoxAdapter(child: SizedBox(height: _Space.xl)),
+                              const SliverToBoxAdapter(child: SizedBox(height: ZplaySpacing.s32)),
 
                               // Episodes Section
                               if (_details != null && _details!.episodes.isNotEmpty)
                                 SliverToBoxAdapter(
                                   child: Padding(
                                     padding: EdgeInsets.symmetric(
-                                      horizontal: isDesktop ? 60 : (isMobile ? 16 : 32),
+                                      horizontal: isDesktop ? 60 : (isMobile ? ZplaySpacing.s16 : ZplaySpacing.s32),
                                     ),
                                     child: _buildEpisodesSection(),
                                   ),
                                 ),
 
-                              const SliverToBoxAdapter(child: SizedBox(height: _Space.xl)),
+                              const SliverToBoxAdapter(child: SizedBox(height: ZplaySpacing.s32)),
 
                               // Related Anime Rail
                               if (_details != null && _details!.related.isNotEmpty)
                                 SliverToBoxAdapter(
                                   child: Padding(
                                     padding: EdgeInsets.only(
-                                      left: isDesktop ? 60 : (isMobile ? 16 : 32),
+                                      left: isDesktop ? 60 : (isMobile ? ZplaySpacing.s16 : ZplaySpacing.s32),
                                       bottom: 60,
                                     ),
                                     child: _buildRelatedSection(),
@@ -346,40 +335,32 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                 filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                 child: Container(
                   padding: EdgeInsets.only(
-                    top: MediaQuery.paddingOf(context).top + 8,
-                    bottom: 12,
-                    left: 20,
-                    right: 20,
+                    top: MediaQuery.paddingOf(context).top + ZplaySpacing.s8,
+                    bottom: ZplaySpacing.s12,
+                    left: ZplaySpacing.s20,
+                    right: ZplaySpacing.s20,
                   ),
                   decoration: BoxDecoration(
-                    color: _Palette.bg.withValues(alpha: 0.65),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.06),
-                      ),
-                    ),
+                    color: tokens.bg.withValues(alpha: 0.65),
+                    border: Border(bottom: tokens.hairline),
                   ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white,
+                          color: tokens.textPrimary,
                           size: 20,
                         ),
                         onPressed: () => Navigator.pop(context),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: ZplaySpacing.s8),
                       Expanded(
                         child: Text(
                           title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: ZplayType.title.toStyle(color: tokens.textPrimary),
                         ),
                       ),
                     ],
@@ -410,21 +391,22 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Center(child: _buildPoster(coverUrl, 165, 245)),
-        const SizedBox(height: 20),
+        const SizedBox(height: ZplaySpacing.s20),
         _buildMetaDetails(title),
       ],
     );
   }
 
   Widget _buildPoster(String coverUrl, double width, double height) {
+    final tokens = ZplayTokens.of(context);
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: ZplayRadius.mdAll,
         boxShadow: [
           BoxShadow(
-            color: _Palette.accent.withValues(alpha: 0.25),
+            color: tokens.accent.withValues(alpha: 0.25),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -436,7 +418,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: ZplayRadius.mdAll,
         child: coverUrl.isNotEmpty
             ? CachedNetworkImage(
                 imageUrl: coverUrl,
@@ -444,16 +426,17 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                 memCacheWidth: 512,
                 fit: BoxFit.cover,
                 errorWidget: (_, __, ___) => Container(
-                  color: _Palette.surface,
-                  child: const Icon(Icons.broken_image_rounded, color: Colors.white24, size: 40),
+                  color: tokens.surface,
+                  child: Icon(Icons.broken_image_rounded, color: tokens.textDisabled, size: 40),
                 ),
               )
-            : Container(color: _Palette.surface),
+            : Container(color: tokens.surface),
       ),
     );
   }
 
   Widget _buildMetaDetails(String title) {
+    final tokens = ZplayTokens.of(context);
     final status = _details?.status ?? widget.anime.tag ?? 'يعرض الآن';
     final rating = _details?.rating ?? widget.anime.rating;
     final year = _details?.year;
@@ -466,50 +449,41 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 26,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.5,
-          ),
+          style: ZplayType.display.copyWith(weight: FontWeight.w900).toStyle(color: tokens.textPrimary),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: ZplaySpacing.s12),
 
         // Badges Row
         Wrap(
           spacing: 10,
-          runSpacing: 8,
+          runSpacing: ZplaySpacing.s8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (rating != null && rating.isNotEmpty)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s4),
                 decoration: BoxDecoration(
-                  color: _Palette.gold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: _Palette.gold.withValues(alpha: 0.4)),
+                  color: tokens.warning.withValues(alpha: ZplayOpacity.overlayHover),
+                  borderRadius: ZplayRadius.smAll,
+                  border: Border.all(color: tokens.warning.withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.star_rounded, color: _Palette.gold, size: 16),
-                    const SizedBox(width: 4),
+                    Icon(Icons.star_rounded, color: tokens.warning, size: 16),
+                    const SizedBox(width: ZplaySpacing.s4),
                     Text(
                       rating,
-                      style: const TextStyle(
-                        color: _Palette.gold,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                      style: ZplayType.label.toStyle(color: tokens.warning),
                     ),
                   ],
                 ),
               ),
             if (year != null && year.isNotEmpty)
-              _buildPill(year, Colors.white.withValues(alpha: 0.1), Colors.white70),
-            _buildPill(status, _Palette.accent.withValues(alpha: 0.2), _Palette.accent),
+              _buildPill(year, tokens.borderStrong, tokens.textEmphasis),
+            _buildPill(status, tokens.accent.withValues(alpha: 0.2), tokens.accent),
             if (studio != null && studio.isNotEmpty)
-              _buildPill(studio, Colors.white.withValues(alpha: 0.08), Colors.white60),
+              _buildPill(studio, tokens.borderDefault, tokens.textEmphasis),
           ],
         ),
 
@@ -518,23 +492,19 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
         // Genres
         if (genres.isNotEmpty)
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: ZplaySpacing.s8,
+            runSpacing: ZplaySpacing.s8,
             children: genres.map((g) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: 5),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                  color: tokens.borderSubtle,
+                  borderRadius: ZplayRadius.lgAll,
+                  border: Border.fromBorderSide(tokens.hairlineStrong),
                 ),
                 child: Text(
                   g,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: ZplayType.bodySmall.copyWith(weight: FontWeight.w600).toStyle(color: tokens.textEmphasis),
                 ),
               );
             }).toList(),
@@ -553,18 +523,18 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
               );
               return ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _Palette.accent,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  backgroundColor: tokens.accent,
+                  foregroundColor: tokens.onAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s24, vertical: 14),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
                   elevation: 8,
-                  shadowColor: _Palette.accent.withValues(alpha: 0.5),
+                  shadowColor: tokens.accent.withValues(alpha: 0.5),
                 ),
                 onPressed: () => _playEpisode(targetEp),
                 icon: const Icon(Icons.play_arrow_rounded, size: 24),
                 label: Text(
                   'مشاهدة الحلقة $targetEpNum',
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+                  style: ZplayType.subtitle.copyWith(weight: FontWeight.w800).toStyle(),
                 ),
               );
             },
@@ -581,11 +551,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                 description,
                 maxLines: _isSynopsisExpanded ? null : 3,
                 overflow: _isSynopsisExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 14,
-                  height: 1.5,
-                ),
+                style: ZplayType.body.copyWith(height: 1.5).toStyle(color: tokens.textEmphasis),
               ),
               if (description.length > 140)
                 GestureDetector(
@@ -594,11 +560,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(
                       _isSynopsisExpanded ? 'عرض أقل' : 'عرض المزيد',
-                      style: TextStyle(
-                        color: _Palette.accent,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
+                      style: ZplayType.label.toStyle(color: tokens.accent),
                     ),
                   ),
                 ),
@@ -610,19 +572,20 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
 
   Widget _buildPill(String text, Color bg, Color textColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s4),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: ZplayRadius.smAll,
       ),
       child: Text(
         text,
-        style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontSize: 12),
+        style: ZplayType.bodySmall.copyWith(weight: FontWeight.w600).toStyle(color: textColor),
       ),
     );
   }
 
   Widget _buildEpisodesSection() {
+    final tokens = ZplayTokens.of(context);
     final episodes = _details!.episodes;
     final totalEpisodes = episodes.length;
     final totalBatches = (totalEpisodes / _chunkSize).ceil();
@@ -637,15 +600,11 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
         // Section Header
         Row(
           children: [
-            Icon(Icons.video_library_rounded, color: _Palette.accent, size: 22),
+            Icon(Icons.video_library_rounded, color: tokens.accent, size: 22),
             const SizedBox(width: 10),
             Text(
               'الحلقات ($totalEpisodes)',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-              ),
+              style: ZplayType.titleLarge.copyWith(weight: FontWeight.w800).toStyle(color: tokens.textPrimary),
             ),
             const Spacer(),
 
@@ -658,20 +617,20 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                   controller: _jumpEpController,
                   keyboardType: TextInputType.number,
                   onSubmitted: _jumpToEpisode,
-                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  style: ZplayType.label.toStyle(color: tokens.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'اذهب لرقم...',
-                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 12),
+                    hintStyle: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.06),
+                    fillColor: tokens.borderSubtle,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                      borderRadius: ZplayRadius.smAll,
+                      borderSide: tokens.hairlineStrong,
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: _Palette.accent),
+                      borderRadius: ZplayRadius.smAll,
+                      borderSide: BorderSide(color: tokens.accent),
                     ),
                   ),
                 ),
@@ -679,7 +638,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
           ],
         ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: ZplaySpacing.s16),
 
         // Batches tabs if > 50 episodes
         if (totalBatches > 1)
@@ -688,7 +647,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: totalBatches,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s8),
               itemBuilder: (context, index) {
                 final batchStart = index * _chunkSize + 1;
                 final batchEnd = ((index + 1) * _chunkSize).clamp(1, totalEpisodes);
@@ -699,27 +658,23 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                     _selectedEpisodeBatch = index;
                     _highlightedEpisode = null;
                   }),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: ZplaySpacing.s8),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? _Palette.accent.withValues(alpha: 0.25)
-                          : Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(10),
+                          ? tokens.accent.withValues(alpha: 0.25)
+                          : tokens.borderSubtle,
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
                         color: isSelected
-                            ? _Palette.accent
-                            : Colors.white.withValues(alpha: 0.08),
+                            ? tokens.accent
+                            : tokens.borderDefault,
                       ),
                     ),
                     child: Text(
                       '$batchStart - $batchEnd',
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white60,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                        fontSize: 13,
-                      ),
+                      style: ZplayType.label.copyWith(weight: isSelected ? FontWeight.w700 : FontWeight.w500).toStyle(color: isSelected ? tokens.textPrimary : tokens.textEmphasis),
                     ),
                   ),
                 );
@@ -727,7 +682,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
             ),
           ),
 
-        const SizedBox(height: 16),
+        const SizedBox(height: ZplaySpacing.s16),
 
         // Episode Grid
         LayoutBuilder(
@@ -749,8 +704,8 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
               physics: const NeverScrollableScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
+                mainAxisSpacing: ZplaySpacing.s12,
+                crossAxisSpacing: ZplaySpacing.s12,
                 childAspectRatio: 1.6,
               ),
               itemCount: currentBatchEpisodes.length,
@@ -767,27 +722,28 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
   }
 
   Widget _buildEpisodeCard(ArabicEpisode episode, bool isHighlighted) {
+    final tokens = ZplayTokens.of(context);
     final thumb = episode.thumb ?? _details?.displayBanner ?? widget.anime.cover ?? '';
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _playEpisode(episode),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: ZplayRadius.smAll,
         child: Container(
           decoration: BoxDecoration(
-            color: _Palette.surface,
-            borderRadius: BorderRadius.circular(12),
+            color: tokens.surface,
+            borderRadius: ZplayRadius.smAll,
             border: Border.all(
               color: isHighlighted
-                  ? _Palette.accent
-                  : Colors.white.withValues(alpha: 0.08),
+                  ? tokens.accent
+                  : tokens.borderDefault,
               width: isHighlighted ? 2 : 1,
             ),
             boxShadow: isHighlighted
                 ? [
                     BoxShadow(
-                      color: _Palette.accent.withValues(alpha: 0.35),
+                      color: tokens.accent.withValues(alpha: 0.35),
                       blurRadius: 12,
                     )
                   ]
@@ -803,7 +759,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                   cacheManager: AppImageCache.manager,
                   memCacheWidth: 330,
                   fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => Container(color: _Palette.surface),
+                  errorWidget: (_, __, ___) => Container(color: tokens.surface),
                 ),
               Container(
                 decoration: BoxDecoration(
@@ -824,18 +780,14 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: ZplaySpacing.s2),
                       decoration: BoxDecoration(
-                        color: _Palette.accent,
-                        borderRadius: BorderRadius.circular(6),
+                        color: tokens.accent,
+                        borderRadius: ZplayRadius.xsAll,
                       ),
                       child: Text(
                         'EP ${episode.number}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                        ),
+                        style: ZplayType.caption.copyWith(weight: FontWeight.w900).toStyle(color: tokens.textPrimary),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -844,11 +796,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                         episode.title.isNotEmpty ? episode.title : 'الحلقة ${episode.number}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: ZplayType.bodySmall.copyWith(weight: FontWeight.w600).toStyle(color: tokens.textPrimary),
                       ),
                     ),
                   ],
@@ -862,7 +810,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                     color: Colors.black.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                  child: Icon(Icons.play_arrow_rounded, color: tokens.textPrimary, size: 20),
                 ),
               ),
             ],
@@ -873,6 +821,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
   }
 
   Widget _buildRelatedSection() {
+    final tokens = ZplayTokens.of(context);
     final related = _details!.related;
     final isDesktop = MediaQuery.sizeOf(context).width > 700;
 
@@ -883,15 +832,11 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
         children: [
           Row(
             children: [
-              Icon(Icons.recommend_rounded, color: _Palette.accent, size: 22),
+              Icon(Icons.recommend_rounded, color: tokens.accent, size: 22),
               const SizedBox(width: 10),
-              const Text(
+              Text(
                 'أنميات ذات صلة',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: ZplayType.titleLarge.copyWith(weight: FontWeight.w800).toStyle(color: tokens.textPrimary),
               ),
             ],
           ),
@@ -922,18 +867,18 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                             ),
                           );
                         },
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: ZplayRadius.mdAll,
                         child: SizedBox(
                           width: 130,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: ZplayRadius.mdAll,
                                 child: Container(
                                   width: 130,
                                   height: 180,
-                                  color: _Palette.surface,
+                                  color: tokens.surface,
                                   child: (item.cover != null && item.cover!.isNotEmpty)
                                       ? CachedNetworkImage(
                                           imageUrl: item.cover!,
@@ -941,9 +886,9 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                                           memCacheWidth: 330,
                                           fit: BoxFit.cover,
                                           errorWidget: (_, __, ___) =>
-                                              const Icon(Icons.movie_rounded, color: Colors.white24),
+                                              Icon(Icons.movie_rounded, color: tokens.textDisabled),
                                         )
-                                      : const Icon(Icons.movie_rounded, color: Colors.white24),
+                                      : Icon(Icons.movie_rounded, color: tokens.textDisabled),
                                 ),
                               ),
                               const SizedBox(height: 6),
@@ -951,11 +896,7 @@ class _AnimeArabicDetailsPageState extends State<AnimeArabicDetailsPage>
                                 item.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                               ),
                             ],
                           ),

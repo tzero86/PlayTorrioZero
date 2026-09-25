@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../services/iptv/hardcoded_channels.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/iptv/iptv_channel_card.dart';
 import 'iptv_channel_sheet.dart';
@@ -91,6 +91,7 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final channels = _filteredChannels();
     final width = MediaQuery.sizeOf(context).width;
 
@@ -107,32 +108,37 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
+      // Opaque band with a hairline underneath — same treatment as the other
+      // migrated shell pages, instead of a transparent bar over the grid.
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: tokens.bg,
         elevation: 0,
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white70),
+          icon: Icon(Icons.arrow_back_rounded, color: tokens.textEmphasis),
           onPressed: () => Navigator.pop(context),
         ),
         title: Container(
           height: 44,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+            color: tokens.borderDefault,
+            borderRadius: ZplayRadius.mdAll,
+            border: Border.all(
+              color: tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
+            ),
           ),
           child: TextField(
             controller: _searchCtrl,
             autofocus: true,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
+            style: ZplayType.body.toStyle(color: tokens.textPrimary),
             decoration: InputDecoration(
               hintText: 'Search 60+ live channels, leagues, networks…',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 13.5),
-              prefixIcon: Icon(Icons.search_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 20),
+              hintStyle: ZplayType.label.toStyle(color: tokens.textMuted),
+              prefixIcon: Icon(Icons.search_rounded, color: tokens.accent, size: 20),
               suffixIcon: _query.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 18),
+                      icon: Icon(Icons.close_rounded, color: tokens.textMuted, size: 18),
                       onPressed: () {
                         _searchCtrl.clear();
                         setState(() => _query = '');
@@ -153,9 +159,12 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
             height: 48,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(
+                horizontal: ZplaySpacing.s20,
+                vertical: ZplaySpacing.s8,
+              ),
               itemCount: _categories.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              separatorBuilder: (_, _) => const SizedBox(width: ZplaySpacing.s8),
               itemBuilder: (context, index) {
                 final cat = _categories[index];
                 final isSelected = _selectedCategory == cat;
@@ -164,28 +173,24 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
                   onTap: () => setState(() => _selectedCategory = cat),
                   builder: (context, state) => CardFocusRing(
                     focused: state.focused,
-                    radius: BorderRadius.circular(20),
+                    radius: ZplayRadius.lgAll,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppThemeService.currentPalette.value.primaryColor
-                            : Colors.white.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(20),
+                        color: isSelected ? tokens.accent : tokens.borderSubtle,
+                        borderRadius: ZplayRadius.lgAll,
                         border: Border.all(
                           color: isSelected
-                              ? AppThemeService.currentPalette.value.primaryColor
-                              : Colors.white.withValues(alpha: 0.1),
+                              ? tokens.accent
+                              : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
                         ),
                       ),
                       child: Center(
                         child: Text(
                           cat,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontSize: 12.5,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          style: ZplayType.label.toStyle(
+                            color: isSelected ? tokens.onAccent : tokens.textEmphasis,
                           ),
                         ),
                       ),
@@ -199,17 +204,25 @@ class _IptvSearchPageState extends State<IptvSearchPage> {
           // Channel Grid
           Expanded(
             child: channels.isEmpty
-                ? const Center(
-                    child: Text('No channels match your search.', style: TextStyle(color: Colors.white54)),
+                ? Center(
+                    child: Text(
+                      'No channels match your search.',
+                      style: ZplayType.body.toStyle(color: tokens.textMuted),
+                    ),
                   )
                 : GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 30),
+                    padding: const EdgeInsets.fromLTRB(
+                      ZplaySpacing.s20,
+                      ZplaySpacing.s12,
+                      ZplaySpacing.s20,
+                      30,
+                    ),
                     physics: const BouncingScrollPhysics(),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,
                       childAspectRatio: 0.72,
                       crossAxisSpacing: 14,
-                      mainAxisSpacing: 16,
+                      mainAxisSpacing: ZplaySpacing.s16,
                     ),
                     itemCount: channels.length,
                     itemBuilder: (context, index) {

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import '../../models/player/skip_segment_model.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
 import 'player_glass.dart';
 import 'player_seek_bar.dart';
@@ -86,6 +87,7 @@ class PlayerTransport extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 680;
     final isDesktop = !kIsWeb && (Platform.isWindows || Platform.isMacOS || Platform.isLinux);
@@ -97,17 +99,17 @@ class PlayerTransport extends StatelessWidget {
     return Container(
       padding: EdgeInsets.fromLTRB(
         isCompact ? 14 : 28,
-        isCompact ? 32 : 48,
+        isCompact ? ZplaySpacing.s32 : ZplaySpacing.s48,
         isCompact ? 14 : 28,
-        isCompact ? 14 : 24,
+        isCompact ? 14 : ZplaySpacing.s24,
       ),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [
-            Colors.black.withValues(alpha: 0.85),
-            Colors.black.withValues(alpha: 0.40),
+            tokens.bg.withValues(alpha: 0.85),
+            tokens.bg.withValues(alpha: 0.40),
             Colors.transparent,
           ],
         ),
@@ -127,7 +129,7 @@ class PlayerTransport extends StatelessWidget {
             onScrubbingChanged: onScrubbingChanged,
           ),
 
-          SizedBox(height: isCompact ? 8 : 14),
+          SizedBox(height: isCompact ? ZplaySpacing.s8 : 14),
 
           // Bottom Controls Row
           Row(
@@ -145,7 +147,7 @@ class PlayerTransport extends StatelessWidget {
                     onTap: onPlayPause,
                   ),
 
-                  SizedBox(width: isCompact ? 8 : 14),
+                  SizedBox(width: isCompact ? ZplaySpacing.s8 : 14),
 
                   // Seek Back 10s
                   PlayerIconButton(
@@ -278,7 +280,7 @@ class PlayerTransport extends StatelessWidget {
                     icon: const Icon(Icons.subtitles_rounded),
                     tooltip: 'Subtitles',
                     showActiveBadge: isSubtitlesActive,
-                    badgeColor: const Color(0xFF10B981), // Emerald
+                    badgeColor: tokens.success,
                     onPressed: onToggleSubtitleMenu,
                   ),
 
@@ -333,6 +335,7 @@ class _PlayerPlayPauseButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return FocusableCard(
       onTap: onTap,
       builder: (context, state) {
@@ -351,7 +354,7 @@ class _PlayerPlayPauseButton extends StatelessWidget {
 
                 final iconWidget = Icon(
                   isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                  color: Colors.white,
+                  color: tokens.textPrimary,
                   size: iconSize,
                 );
 
@@ -359,7 +362,9 @@ class _PlayerPlayPauseButton extends StatelessWidget {
                 if (glassEnabled) {
                   final style = GlassSettings.createButtonGlassStyle(
                     cornerRadius: size / 2,
-                    customColor: highlighted ? const Color(0x45FFFFFF) : const Color(0x28FFFFFF),
+                    customColor: highlighted
+                        ? tokens.textPrimary.withValues(alpha: 0.27)
+                        : tokens.textPrimary.withValues(alpha: 0.16),
                   );
 
                   body = RepaintBoundary(
@@ -369,12 +374,12 @@ class _PlayerPlayPauseButton extends StatelessWidget {
                       child: Container(
                         width: size,
                         height: size,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Color(0x66000000),
-                              offset: Offset(0, 4),
+                              color: tokens.bg.withValues(alpha: 0.40),
+                              offset: const Offset(0, 4),
                               blurRadius: 16,
                             ),
                           ],
@@ -391,17 +396,17 @@ class _PlayerPlayPauseButton extends StatelessWidget {
                     height: size,
                     decoration: BoxDecoration(
                       color: highlighted
-                          ? Colors.white.withValues(alpha: 0.28)
-                          : Colors.white.withValues(alpha: 0.18),
+                          ? tokens.textPrimary.withValues(alpha: 0.28)
+                          : tokens.textPrimary.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.25),
+                        color: tokens.textPrimary.withValues(alpha: 0.25),
                         width: 1.2,
                       ),
-                      boxShadow: const [
+                      boxShadow: [
                         BoxShadow(
-                          color: Color(0x66000000),
-                          offset: Offset(0, 4),
+                          color: tokens.bg.withValues(alpha: 0.40),
+                          offset: const Offset(0, 4),
                           blurRadius: 16,
                         ),
                       ],
@@ -414,7 +419,7 @@ class _PlayerPlayPauseButton extends StatelessWidget {
                 return AnimatedScale(
                   scale: effectiveScale,
                   duration: const Duration(milliseconds: 140),
-                  curve: Curves.easeOutCubic,
+                  curve: ZplayMotion.standard,
                   child: body,
                 );
               },

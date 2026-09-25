@@ -6,6 +6,7 @@ import 'package:html/parser.dart' as html_parser;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../services/books/epub_parser_service.dart';
 import '../../../services/books/reader_settings.dart';
+import '../../../services/theme/design_tokens.dart';
 import 'reader_design_tokens.dart';
 
 class FocusLineData {
@@ -292,17 +293,17 @@ class _FocusModeViewState extends State<FocusModeView> {
       autofocus: true,
       onKeyEvent: _handleKeyEvent,
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: ReaderTokens.bg,
         body: LayoutBuilder(
           builder: (context, constraints) {
             _computeLines(textColumnWidth);
 
             return Stack(
               children: [
-                // ── Pure AMOLED Background ──
+                // ── Reader Backdrop ──
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black,
+                    color: ReaderTokens.bg,
                   ),
                 ),
 
@@ -345,19 +346,19 @@ class _FocusModeViewState extends State<FocusModeView> {
                                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                                       decoration: BoxDecoration(
                                         color: isActive
-                                            ? const Color(0xFF14141C)
+                                            ? ReaderTokens.surface
                                             : Colors.transparent,
                                         borderRadius: ReaderTokens.rounded12,
                                         border: Border.all(
                                           color: isActive
-                                              ? const Color(0xFF8B5CF6).withValues(alpha: 0.65)
+                                              ? ReaderTokens.accent.withValues(alpha: 0.65)
                                               : Colors.transparent,
                                           width: 1.4,
                                         ),
                                         boxShadow: isActive
                                             ? [
                                                 BoxShadow(
-                                                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.28),
+                                                  color: ReaderTokens.accent.withValues(alpha: 0.28),
                                                   blurRadius: 20,
                                                   spreadRadius: 0,
                                                   offset: Offset.zero,
@@ -375,8 +376,8 @@ class _FocusModeViewState extends State<FocusModeView> {
                                           letterSpacing: widget.settings.letterSpacing,
                                           fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
                                           color: isActive
-                                              ? Colors.white
-                                              : Colors.white.withValues(alpha: 0.22),
+                                              ? ReaderTokens.textPrimary
+                                              : ReaderTokens.textDisabled,
                                         ),
                                         child: Text(
                                           line.text,
@@ -425,23 +426,26 @@ class _FocusModeViewState extends State<FocusModeView> {
                             vertical: ReaderTokens.space4 + 2,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF111116).withValues(alpha: 0.90),
+                            color: ReaderTokens.surfaceOverlay.withValues(alpha: 0.90),
                             borderRadius: ReaderTokens.rounded24,
-                            border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.40)),
+                            border: Border.all(
+                              color: ReaderTokens.accent.withValues(alpha: 0.40),
+                            ),
                             boxShadow: const [ReaderTokens.shadowSm],
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.center_focus_strong_rounded, color: Color(0xFFA78BFA), size: 16),
-                              SizedBox(width: ReaderTokens.space8),
+                              Icon(
+                                Icons.center_focus_strong_rounded,
+                                color: ReaderTokens.accent,
+                                size: 16,
+                              ),
+                              const SizedBox(width: ReaderTokens.space8),
                               Text(
                                 'Focus Mode Active',
-                                style: TextStyle(
-                                  fontFamily: ReaderTokens.uiFont,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFFA78BFA),
+                                style: ZplayType.label.toStyle(
+                                  color: ReaderTokens.accent,
                                 ),
                               ),
                             ],
@@ -461,23 +465,24 @@ class _FocusModeViewState extends State<FocusModeView> {
                                 vertical: ReaderTokens.space8,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF14141A).withValues(alpha: 0.95),
+                                color: ReaderTokens.surfaceOverlay.withValues(alpha: 0.95),
                                 borderRadius: ReaderTokens.rounded24,
-                                border: Border.all(color: Colors.white12),
+                                border: Border.all(color: ReaderTokens.borderStrong),
                                 boxShadow: const [ReaderTokens.shadowSm],
                               ),
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.close_rounded, color: Colors.white, size: 16),
-                                  SizedBox(width: ReaderTokens.space4),
+                                  Icon(
+                                    Icons.close_rounded,
+                                    color: ReaderTokens.textPrimary,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: ReaderTokens.space4),
                                   Text(
                                     'Exit (Esc)',
-                                    style: TextStyle(
-                                      fontFamily: ReaderTokens.uiFont,
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                                    style: ZplayType.label.toStyle(
+                                      color: ReaderTokens.textPrimary,
                                     ),
                                   ),
                                 ],
@@ -506,23 +511,26 @@ class _FocusModeViewState extends State<FocusModeView> {
                             vertical: ReaderTokens.space8,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF121217).withValues(alpha: 0.95),
+                            color: ReaderTokens.surfaceOverlay.withValues(alpha: 0.95),
                             borderRadius: ReaderTokens.rounded24,
-                            border: Border.all(color: const Color(0xFF8B5CF6).withValues(alpha: 0.40)),
+                            border: Border.all(
+                              color: ReaderTokens.accent.withValues(alpha: 0.40),
+                            ),
                             boxShadow: const [ReaderTokens.shadowMd],
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.touch_app_rounded, color: Color(0xFFA78BFA), size: 16),
-                              SizedBox(width: ReaderTokens.space8),
+                              Icon(
+                                Icons.touch_app_rounded,
+                                color: ReaderTokens.accent,
+                                size: 16,
+                              ),
+                              const SizedBox(width: ReaderTokens.space8),
                               Text(
                                 'Tap above/below to move · ↑ ↓ keys to navigate',
-                                style: TextStyle(
-                                  fontFamily: ReaderTokens.uiFont,
-                                  fontSize: 12,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
+                                style: ZplayType.label.toStyle(
+                                  color: ReaderTokens.textPrimary,
                                 ),
                               ),
                             ],
@@ -538,22 +546,28 @@ class _FocusModeViewState extends State<FocusModeView> {
                   top: constraints.maxHeight * 0.44,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF121217).withValues(alpha: 0.92),
+                      color: ReaderTokens.surfaceOverlay.withValues(alpha: 0.92),
                       borderRadius: ReaderTokens.rounded32,
-                      border: Border.all(color: Colors.white12),
+                      border: Border.all(color: ReaderTokens.borderStrong),
                       boxShadow: const [ReaderTokens.shadowMd],
                     ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white),
+                          icon: Icon(
+                            Icons.keyboard_arrow_up_rounded,
+                            color: ReaderTokens.textPrimary,
+                          ),
                           tooltip: 'Previous Line (Up Arrow)',
                           onPressed: () => _goToLine(_activeLineIndex - 1),
                         ),
-                        Container(height: 1, width: 24, color: Colors.white12),
+                        Container(height: 1, width: 24, color: ReaderTokens.borderStrong),
                         IconButton(
-                          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white),
+                          icon: Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            color: ReaderTokens.textPrimary,
+                          ),
                           tooltip: 'Next Line (Down Arrow / Space)',
                           onPressed: () => _goToLine(_activeLineIndex + 1),
                         ),
@@ -573,7 +587,7 @@ class _FocusModeViewState extends State<FocusModeView> {
                       value: _lines.isNotEmpty ? (_activeLineIndex + 1) / _lines.length : 0.0,
                       minHeight: 2.0,
                       backgroundColor: Colors.transparent,
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                      valueColor: AlwaysStoppedAnimation<Color>(ReaderTokens.accent),
                     ),
                   ),
                 ),

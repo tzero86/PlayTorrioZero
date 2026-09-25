@@ -5,12 +5,27 @@ Review and design charter for the shell, navigation and identity rewrite. Compan
 The interactive prototype for everything proposed here is `docs/redesign/preview.html`; open it
 from the repository root so its relative font and icon paths resolve.
 
-Measured against the current `main`. Every number is a `grep` or a `find` over `lib/`, reproducible
-with the commands at the bottom.
+Measured against `main` as it stood when this review was written; phases 1 to 4 have landed since.
+Every number in the review below is a `grep` or a `find` over `lib/`, reproducible with the commands
+at the bottom.
 
 ## Status
 
-Phases 1 to 3 of the plan below have landed. Phase 4 and 5 have not.
+Phases 1 to 4 of the plan below have landed. Phase 5 has not.
+
+**Phase 4, the token migration, landed across `lib/`.** Every page and shared widget now reads
+`context.tokens` and the `ZplaySpacing`, `ZplayRadius`, `ZplayType` and `ZplayOpacity` scales instead
+of carrying its own literals: the shell slots (Home, Browse, Search, Library, Settings), the settings
+family, the seven Browse verticals, the details screen, the media readers, the entity and modal
+screens, and the shared poster cards, rails, skeletons and dialogs. The player and reader families are
+on the same footing now rather than keeping a parallel vocabulary: `PlayerTheme` in
+`lib/widgets/player/player_glass.dart` is a token-backed bridge that keeps its member names, so the
+player widgets follow the active palette, and `ReaderTokens` is the same arrangement for the readers.
+Because no screen carries a fixed near-black palette any more, a palette or accent change applies
+everywhere instead of only to the shell, and the fork's competing greens, cyans and violets collapsed
+onto the single accent plus the semantic status tokens; third-party service brands (Trakt, Simkl,
+Discord) and the per-quality and HDR badges keep their identity colours. `flutter analyze` is clean,
+so the 18 info-level issues recorded under Verification below are gone.
 
 **Shipped**
 
@@ -25,6 +40,8 @@ Phases 1 to 3 of the plan below have landed. Phase 4 and 5 have not.
 | Library, My List and Downloads as two tabs | `lib/pages/library/library_page.dart` |
 | The playback seam, and the bar that reads it | `lib/services/playback/now_playing_service.dart`, `lib/shell/now_playing_bar.dart` |
 | The music adapter, so music survives leaving Music | `lib/services/playback/music_now_playing_bridge.dart` |
+| The token layer as the single source for every screen and shared widget | `lib/services/theme/design_tokens.dart` |
+| The player family's token bridge, keeping `PlayerTheme`'s member names | `lib/widgets/player/player_glass.dart` |
 
 The dock is deleted: `app_liquid_dock.dart`, `liquid_dock.dart`, `dock_settings.dart`,
 `appearance/dock_settings_page.dart` and `test/liquid_dock_test.dart` are gone, and `lib/` and
@@ -70,9 +87,10 @@ default-off gate, and opaque-ifying its fill would paint over the lens and leave
 nothing to show. It still smears while glass is off, so closing that needs a decision about the
 fallback decoration in `performance_liquid_lens.dart`, not a one-line fill change.
 
-**Verification.** `flutter analyze` reports 18 issues, all `info` level and all pre-existing in
-`lib/widgets/iptv/multinutz_channel_sheet.dart`, a file this work never touched: zero errors and
-zero warnings. `flutter test` reports **257 passing, 8 failing**, against a pre-change baseline of
+**Verification.** At the time of this review `flutter analyze` reported 18 issues, all `info` level
+and all pre-existing in `lib/widgets/iptv/multinutz_channel_sheet.dart`, a file this work never
+touched: zero errors and zero warnings. Phase 4 has since cleaned those up, so the command now reports
+no issues at all. `flutter test` reports **257 passing, 8 failing**, against a pre-change baseline of
 255 passing and the same 8 failing. The arithmetic closes: minus the six tests in the deleted
 `test/liquid_dock_test.dart`, plus eight new boundary tests in `test/form_factor_test.dart`. The
 eight failures are live-network scraper tests that were already failing before any of this, so no
@@ -98,17 +116,15 @@ useless as a signal. It now takes about six seconds and reports only this projec
 2. **Audiobooks are only half wired.** Their playback lives in a private State, so the bar reflects
    them only while their player screen is open. The full extraction is a real refactor and changes
    when playback stops, so it wants its own pass.
-3. **Phase 4, the token migration.** 1,836 literal colour values and three private `_Space` and
-   `_Palette` copies are still there. The shell, the rail, the switcher, the bar and the two new
-   pages are token-only; the older screens are not.
-4. **Phase 5, identity.** The palette presets still move the backgrounds rather than only the accent,
-   there is still no light theme, and the liquid reveal, the splash replay and the unused display
-   serif are all still in place.
-5. **Home still carries its `All / Movies / Series / Anime` filter.** The charter's phase 3 called for
+3. **Phase 5, identity.** The palette presets still move the backgrounds rather than only the accent,
+   there is still no light theme, the splash overlay still replays on every launch with no skip, the
+   unused display serif still ships with no role, and Home still carries the duplicate Anime filter
+   tab covered by the next item.
+4. **Home still carries its `All / Movies / Series / Anime` filter.** The charter's phase 3 called for
    deleting the Anime tab because it duplicates the Anime vertical, and it was deliberately deferred:
    it is woven through about twenty sites in Home's content assembly, and it is a content change
    rather than a navigation one.
-6. **Television chrome has not been seen on a real device.** It is driven by `navigationMode`, which
+5. **Television chrome has not been seen on a real device.** It is driven by `navigationMode`, which
    no desktop build reports, so the ten-foot layout is covered by widget tests and by the prototype
    rather than by a screenshot.
 
@@ -205,11 +221,11 @@ app cannot even choose a 10-foot layout because it cannot tell it is on a TV.
 
 There is no form-factor policy to extend, so each new screen invents one.
 
-### 5. Foundations: one excellent token layer, almost no adoption
+### 5. Foundations: one excellent token layer, then almost no adoption
 
-`design_tokens.dart` is genuinely good work and the redesign should build on it, not replace it. But
-the migration has barely started, and the ad-hoc values have **grown** since the audit, because new
-screens kept adding their own:
+`design_tokens.dart` is genuinely good work and the redesign should build on it, not replace it. At
+the time of this review the migration had barely started, and the ad-hoc values had **grown** since
+the audit, because new screens kept adding their own:
 
 | measure | audit | now |
 |:--|--:|--:|
@@ -219,7 +235,10 @@ screens kept adding their own:
 | files reading the token layer | n/a | **6** of 336 (`ZplayTokens` or `context.tokens`) |
 | total references to the token scales | n/a | **54** |
 
-Three screens keep private copies of the scales beside the real ones, and one of them hardcodes its
+Phase 4 has since closed both adoption rows: every page and shared widget reads `context.tokens` and
+the scales beside it, which retires the private copies below (see Status).
+
+Three screens kept private copies of the scales beside the real ones, and one of them hardcoded its
 own background:
 
 | file | private tokens |
@@ -237,8 +256,9 @@ Two more foundation gaps, both cheap to close and both blocking later work:
   one of those is restyled by hand per screen. Filling them in is what turns the token layer into a
   design system.
 * **No elevation scale.** The only shadow scale in the repository is inside
-  `pages/books/widgets/reader_design_tokens.dart`, a second, independent token file that the book
-  reader grew for itself. Shadows are the missing piece for cards, sheets and menus.
+  `pages/books/widgets/reader_design_tokens.dart`, the token file the book reader grew for itself;
+  `ReaderTokens` now bridges onto the contract layer rather than standing beside it, but the shadow
+  scale is the missing piece for cards, sheets and menus.
 * **No reduced-motion branch.** `ZplayMotion` documents the gap in its own comment, and exactly one
   surface implements it: `epub_reader_page.dart:262` and `widgets/focus_mode_view.dart:288` branch on
   `MediaQuery.disableAnimations`. The player chrome, the dock and the rails ignore the setting.
@@ -259,7 +279,7 @@ Secondary causes, in order of how much they cost:
 |:--|:--|
 | Upstream's signature motion is still the app's signature motion | a 380 ms circular liquid reveal on every push (`route_transitions.dart:31-81`) and a pointer-driven jelly magnification on the dock (`liquid_dock.dart:196-258`) |
 | A splash overlay replays on every launch, with no skip | `home_page.dart:819-875` |
-| Accent-era leftovers survive | screens still carry a second green and a third cyan; the token layer's own comment says a layer shipping two accents keeps the problem (`design_tokens.dart:349-352`) |
+| Accent-era leftovers | resolved by phase 4: the fork's extra greens, cyans and violets collapsed onto the single accent and the semantic status tokens, which is what the token layer's own comment asks for (`design_tokens.dart:349-352`) |
 | A decorative italic serif ships and is never used | `PlayfairDisplay-SemiBoldItalic.ttf` is declared in `pubspec.yaml` and referenced **nowhere** in `lib/` |
 | There is no light theme at all | `createThemeData` hardcodes `Brightness.dark` (`app_theme_service.dart:177-201`); no file mentions `Brightness.light` or `ThemeMode.light`, and `segmented_tabs.dart:32-40` documents that the control assumes a dark surface |
 
@@ -452,6 +472,7 @@ preference.
 ## Reproduce
 
 ```bash
+# readings taken when this review was written, before phases 1 to 4 landed; Status records what shipped since
 cd lib
 
 # scale of the app
@@ -467,9 +488,9 @@ grep -rhoE 'fontSize: [0-9.]+' --include=*.dart . \
   | grep -oE '[0-9.]+' | sort -u | wc -l                               # 32
 
 # token adoption
-grep -rlE 'ZplayTokens|context\.tokens' --include=*.dart . | wc -l     # 6
+grep -rlE 'ZplayTokens|context\.tokens' --include=*.dart . | wc -l     # 6 before phase 4
 grep -rhoE 'ZplaySpacing|ZplayRadius|ZplayType|ZplayMotion|ZplayOpacity' \
-  --include=*.dart . | wc -l                                           # 54
+  --include=*.dart . | wc -l                                           # 54 before phase 4
 
 # the missing navigation and TV layers
 grep -rc 'NavigationBar\|NavigationRail' --include=*.dart .            # no matches

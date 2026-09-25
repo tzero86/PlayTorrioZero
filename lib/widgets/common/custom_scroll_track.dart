@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Custom Scroll Track
@@ -85,26 +85,27 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
   @override
   Widget build(BuildContext context) {
     final isVert = widget.axis == Axis.vertical;
+    final tokens = ZplayTokens.of(context);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: AnimatedOpacity(
         opacity: _isHovering || _isDragging ? 1.0 : 0.35,
-        duration: const Duration(milliseconds: 200),
+        duration: ZplayMotion.base,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: ZplayRadius.lgAll,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               padding: EdgeInsets.symmetric(
-                vertical: isVert ? 16 : 8, 
-                horizontal: isVert ? 8 : 16
+                vertical: isVert ? ZplaySpacing.s16 : ZplaySpacing.s8,
+                horizontal: isVert ? ZplaySpacing.s8 : ZplaySpacing.s16,
               ),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1.5),
+                color: tokens.borderSubtle,
+                borderRadius: ZplayRadius.lgAll,
+                border: Border.all(color: tokens.borderStrong, width: 1.5),
               ),
               child: ValueListenableBuilder<double>(
                 valueListenable: _thumbFraction,
@@ -130,9 +131,9 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
           icon: Icons.keyboard_arrow_up_rounded,
           onTap: () => _scroll(-1),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: ZplaySpacing.s16),
         _buildTrackDragArea(thumbPosition, true),
-        const SizedBox(height: 16),
+        const SizedBox(height: ZplaySpacing.s16),
         _HoverArrow(
           icon: Icons.keyboard_arrow_down_rounded,
           onTap: () => _scroll(1),
@@ -149,9 +150,9 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
           icon: Icons.keyboard_arrow_left_rounded,
           onTap: () => _scroll(-1),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: ZplaySpacing.s16),
         _buildTrackDragArea(thumbPosition, false),
-        const SizedBox(width: 16),
+        const SizedBox(width: ZplaySpacing.s16),
         _HoverArrow(
           icon: Icons.keyboard_arrow_right_rounded,
           onTap: () => _scroll(1),
@@ -161,6 +162,8 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
   }
 
   Widget _buildTrackDragArea(double thumbPosition, bool isVert) {
+    final tokens = ZplayTokens.of(context);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onVerticalDragStart: isVert ? (_) => setState(() => _isDragging = true) : null,
@@ -181,8 +184,8 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
           height: isVert ? widget.length : 6, // Visual track
           width: isVert ? 6 : widget.length,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+            color: tokens.borderDefault,
+            borderRadius: ZplayRadius.smAll,
           ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -196,11 +199,11 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
                   height: isVert ? _thumbSize : null,
                   width: isVert ? null : _thumbSize,
                   decoration: BoxDecoration(
-                    color: AppThemeService.currentPalette.value.primaryColor,
-                    borderRadius: BorderRadius.circular(10),
+                    color: tokens.accent,
+                    borderRadius: ZplayRadius.smAll,
                     boxShadow: [
                       BoxShadow(
-                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6),
+                        color: tokens.accent.withValues(alpha: 0.6),
                         blurRadius: 12,
                         spreadRadius: 2,
                       ),
@@ -231,23 +234,27 @@ class _HoverArrowState extends State<_HoverArrow> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = ZplayTokens.of(context);
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: ZplayMotion.base,
           width: 38,
           height: 38,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: _isHovering ? Colors.white.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.05),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+            color: _isHovering
+                ? Colors.white.withValues(alpha: ZplayOpacity.overlayHover)
+                : tokens.borderSubtle,
+            border: Border.all(color: tokens.borderDefault, width: 1),
           ),
           child: Icon(
             widget.icon,
-            color: _isHovering ? AppThemeService.currentPalette.value.primaryColor : Colors.white70,
+            color: _isHovering ? tokens.accent : tokens.textEmphasis,
             size: 22,
           ),
         ),

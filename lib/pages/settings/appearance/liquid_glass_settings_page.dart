@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../services/theme/glass_settings.dart';
 import '../../../services/theme/app_theme_service.dart';
 import '../../../widgets/common/segmented_tabs.dart';
@@ -15,18 +16,22 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque palette band with a
+        // bottom hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Liquid Glass Setup',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
         actions: [
           TextButton.icon(
@@ -42,10 +47,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                 ),
               );
             },
-            icon: const Icon(Icons.restore_rounded, size: 18, color: Colors.white70),
-            label: const Text(
+            icon: Icon(Icons.restore_rounded, size: 18, color: tokens.textEmphasis),
+            label: Text(
               'Reset',
-              style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w700),
+              style: ZplayType.label.toStyle(color: tokens.textEmphasis),
             ),
           ),
           const SizedBox(width: 8),
@@ -64,12 +69,12 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                   return Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF12151E),
-                      borderRadius: BorderRadius.circular(16),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
                         color: enabled
                             ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.45)
-                            : Colors.white.withValues(alpha: 0.08),
+                            : tokens.borderDefault,
                       ),
                     ),
                     child: Row(
@@ -78,24 +83,24 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: ZplayOpacity.overlayHover),
+                            borderRadius: ZplayRadius.smAll,
                           ),
                           child: Icon(Icons.blur_on_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 24),
                         ),
                         const SizedBox(width: 14),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 'Enable Liquid Glass',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                                style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                               ),
-                              SizedBox(height: 3),
+                              const SizedBox(height: 3),
                               Text(
                                 'Real-time refraction shaders, jelly springs, and lenses',
-                                style: TextStyle(color: Colors.white54, fontSize: 12.5),
+                                style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                               ),
                             ],
                           ),
@@ -125,12 +130,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
               // Presets Selection
               Text(
                 'PRESETS',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 10),
               _buildPresetsRow(),
@@ -140,12 +140,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
               // Detailed Sliders
               Text(
                 'PHYSICS & OPTICAL PARAMETERS',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 12),
 
@@ -303,6 +298,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
     return ValueListenableBuilder<int>(
       valueListenable: GlassSettings.styleRevision,
       builder: (context, _, __) {
+        final tokens = context.tokens;
         final enabled = GlassSettings.enabled.value;
         final hoverScaleVal = GlassSettings.hoverScale.value;
         final wobbleVal = GlassSettings.wobbleIntensity.value;
@@ -310,8 +306,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
         return Container(
           height: 200,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            borderRadius: ZplayRadius.lgAll,
+            border: Border.all(color: tokens.borderDefault),
+            // The sandbox backdrop is simulated content (a scene to refract),
+            // not chrome, so it keeps its own hues.
             gradient: const LinearGradient(
               colors: [
                 Color(0xFF2E0854),
@@ -349,7 +347,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
-                      colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF10B981)],
+                      colors: [AppThemeService.currentPalette.value.primaryColor, tokens.success],
                     ),
                   ),
                 ),
@@ -364,8 +362,8 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(6),
+                        color: tokens.bg.withValues(alpha: 0.4),
+                        borderRadius: ZplayRadius.xsAll,
                       ),
                       child: Row(
                         children: [
@@ -374,13 +372,13 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                             height: 6,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: enabled ? const Color(0xFF10B981) : Colors.amber,
+                              color: enabled ? tokens.success : tokens.warning,
                             ),
                           ),
                           const SizedBox(width: 6),
                           Text(
                             enabled ? 'LIVE INTERACTIVE PREVIEW' : 'PREVIEW (ENABLE GLASS ABOVE)',
-                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white70),
+                            style: ZplayType.overline.toStyle(color: tokens.textEmphasis),
                           ),
                         ],
                       ),
@@ -400,14 +398,14 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                       onExit: (_) => setState(() => _previewHovered = false),
                       child: AnimatedContainer(
                         duration: Duration(milliseconds: (190 / wobbleVal.clamp(0.5, 2.0)).round()),
-                        curve: Curves.easeOutBack,
+                        curve: ZplayMotion.spring,
                         width: _previewHovered ? 56 * hoverScaleVal : 56,
                         height: _previewHovered ? 56 * hoverScaleVal : 56,
                         decoration: BoxDecoration(
-                          color: const Color(0x33FFFFFF),
-                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white.withValues(alpha: ZplayOpacity.overlayHover),
+                          borderRadius: ZplayRadius.mdAll,
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.35),
+                            color: Colors.white.withValues(alpha: ZplayOpacity.textMuted),
                             width: GlassSettings.borderWidth.value,
                           ),
                           boxShadow: [
@@ -418,7 +416,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
+                        child: Icon(Icons.play_arrow_rounded, color: tokens.textPrimary, size: 28),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -428,10 +426,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: const Color(0x33FFFFFF),
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white.withValues(alpha: ZplayOpacity.overlayHover),
+                        borderRadius: ZplayRadius.mdAll,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35),
+                          color: Colors.white.withValues(alpha: ZplayOpacity.textMuted),
                           width: GlassSettings.borderWidth.value,
                         ),
                       ),
@@ -444,10 +442,10 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: const Color(0x33FFFFFF),
-                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white.withValues(alpha: ZplayOpacity.overlayHover),
+                        borderRadius: ZplayRadius.mdAll,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35),
+                          color: Colors.white.withValues(alpha: ZplayOpacity.textMuted),
                           width: GlassSettings.borderWidth.value,
                         ),
                       ),
@@ -465,7 +463,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                 child: Center(
                   child: Text(
                     'Hover or tap the icons to preview spring wobble & scale',
-                    style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.5)),
+                    style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                   ),
                 ),
               ),
@@ -509,12 +507,13 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
     required int divisions,
     required ValueChanged<double> onChanged,
   }) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(color: tokens.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -524,24 +523,18 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(6),
+                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: ZplayOpacity.overlayHover),
+                  borderRadius: ZplayRadius.xsAll,
                 ),
                 child: Text(
                   valueDisplay,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
+                  style: ZplayType.labelNumeric.toStyle(
                     color: AppThemeService.currentPalette.value.primaryColor,
                   ),
                 ),
@@ -551,18 +544,15 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
           const SizedBox(height: 3),
           Text(
             subtitle,
-            style: TextStyle(
-              fontSize: 11.5,
-              color: Colors.white.withValues(alpha: 0.45),
-            ),
+            style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
           ),
           const SizedBox(height: 6),
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: AppThemeService.currentPalette.value.primaryColor,
-              inactiveTrackColor: Colors.white.withValues(alpha: 0.08),
+              inactiveTrackColor: Colors.white.withValues(alpha: ZplayOpacity.borderDefault),
               thumbColor: AppThemeService.currentPalette.value.primaryColor,
-              overlayColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
+              overlayColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: ZplayOpacity.overlayHover),
               trackHeight: 4,
             ),
             child: Slider(

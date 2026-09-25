@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/manga/manga.dart';
 import '../../pages/manga/manga_details_page.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../common/poster_skeleton.dart';
@@ -61,8 +61,8 @@ class MangaCardSizing {
       cardWidth: cardWidth,
       posterHeight: posterHeight,
       totalHeight: totalHeight,
-      spacing: 16,
-      sidePadding: 18,
+      spacing: ZplaySpacing.s16,
+      sidePadding: ZplaySpacing.s16,
     );
   }
 }
@@ -83,7 +83,8 @@ class MangaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
+
     final showYear = MangaSettings.showMangaYear.value;
     final showBadge = MangaSettings.showContentTypeBadge.value;
     final ambientGlow = MangaSettings.ambientCardGlow.value;
@@ -120,12 +121,11 @@ class MangaCard extends StatelessWidget {
               Expanded(
                 child: CardFocusRing(
                   focused: state.focused,
-                  radius: BorderRadius.circular(18),
+                  radius: ZplayRadius.mdAll,
                   child: _PosterFrame(
                     posterUrl: manga.coverNormal.isNotEmpty ? manga.coverNormal : manga.coverSmall,
                     hovered: state.highlighted,
                     contentType: manga.type.isNotEmpty ? manga.type : 'MANGA',
-                    palette: palette,
                     showBadge: showBadge,
                     ambientGlow: ambientGlow,
                   ),
@@ -133,16 +133,10 @@ class MangaCard extends StatelessWidget {
               ),
 
               // ── Title & Info ─────────────────────────────────────────
-              const SizedBox(height: 10),
+              const SizedBox(height: ZplaySpacing.s8),
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 170),
-                style: TextStyle(
-                  fontSize: 14.5,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.15,
-                  height: 1.25,
-                  color: state.highlighted ? Colors.white : Colors.white.withOpacity(0.92),
-                ),
+                style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 child: Text(
                   manga.title,
                   maxLines: 1,
@@ -150,16 +144,13 @@ class MangaCard extends StatelessWidget {
                 ),
               ),
               if (metaText.isNotEmpty || showYear) ...[
-                const SizedBox(height: 3),
+                const SizedBox(height: ZplaySpacing.s4),
                 Text(
                   metaText.isNotEmpty ? metaText : 'Unknown Year',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withOpacity(0.55),
-                    letterSpacing: -0.1,
+                  style: ZplayType.bodySmall.toStyle(
+                    color: tokens.textSecondary,
                   ),
                 ),
               ],
@@ -175,7 +166,6 @@ class _PosterFrame extends StatelessWidget {
   final String? posterUrl;
   final bool hovered;
   final String contentType;
-  final AppThemePalette palette;
   final bool showBadge;
   final bool ambientGlow;
 
@@ -183,29 +173,29 @@ class _PosterFrame extends StatelessWidget {
     required this.posterUrl,
     required this.hovered,
     required this.contentType,
-    required this.palette,
     required this.showBadge,
     required this.ambientGlow,
   });
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final hasPoster = posterUrl != null && posterUrl!.isNotEmpty;
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 170),
       curve: Curves.easeOutCubic,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: ZplayRadius.mdAll,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(hovered ? 0.60 : 0.34),
+            color: Colors.black.withValues(alpha: hovered ? 0.60 : 0.34),
             blurRadius: hovered ? 32 : 20,
             offset: Offset(0, hovered ? 18 : 10),
           ),
           if (hovered && ambientGlow)
             BoxShadow(
-              color: palette.primaryColor.withOpacity(0.30),
+              color: tokens.accent.withValues(alpha: 0.30),
               blurRadius: 34,
               spreadRadius: 1,
               offset: const Offset(0, 8),
@@ -213,13 +203,13 @@ class _PosterFrame extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: ZplayRadius.mdAll,
         child: Stack(
           fit: StackFit.expand,
           children: [
             // Background fill
-            const ColoredBox(
-              color: Color(0xFF171A23),
+            ColoredBox(
+              color: tokens.surface,
             ),
 
             // Poster image (cached, decode bounded to ~3x display width)
@@ -251,9 +241,9 @@ class _PosterFrame extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.black.withOpacity(0.00),
-                      Colors.black.withOpacity(0.00),
-                      Colors.black.withOpacity(0.20),
+                      Colors.transparent,
+                      Colors.transparent,
+                      tokens.bg.withValues(alpha: 0.20),
                     ],
                   ),
                 ),
@@ -271,9 +261,9 @@ class _PosterFrame extends StatelessWidget {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        Colors.white.withOpacity(0.11),
+                        tokens.textPrimary.withValues(alpha: 0.11),
                         Colors.transparent,
-                        Colors.black.withOpacity(0.40),
+                        tokens.bg.withValues(alpha: 0.40),
                       ],
                     ),
                   ),
@@ -284,30 +274,30 @@ class _PosterFrame extends StatelessWidget {
             // Content type badge (top-left)
             if (showBadge)
               Positioned(
-                left: 9,
-                top: 9,
+                left: ZplaySpacing.s8,
+                top: ZplaySpacing.s8,
                 child: AnimatedOpacity(
                   opacity: hovered ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 170),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ZplaySpacing.s8,
+                      vertical: ZplaySpacing.s4,
+                    ),
                     decoration: BoxDecoration(
-                      color: palette.primaryColor.withOpacity(0.88),
-                      borderRadius: BorderRadius.circular(8),
+                      color: tokens.accent.withValues(alpha: 0.88),
+                      borderRadius: ZplayRadius.smAll,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.40),
+                          color: Colors.black.withValues(alpha: 0.40),
                           blurRadius: 8,
                         ),
                       ],
                     ),
                     child: Text(
                       contentType.toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                        color: Colors.white,
+                      style: ZplayType.overline.toStyle(
+                        color: tokens.textPrimary,
                       ),
                     ),
                   ),
@@ -320,11 +310,11 @@ class _PosterFrame extends StatelessWidget {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 170),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: ZplayRadius.mdAll,
                     border: Border.all(
                       color: hovered
-                          ? palette.primaryColor.withOpacity(0.50)
-                          : Colors.white.withOpacity(0.08),
+                          ? tokens.accent
+                          : tokens.borderDefault,
                       width: hovered ? 1.4 : 1,
                     ),
                   ),
@@ -334,8 +324,8 @@ class _PosterFrame extends StatelessWidget {
 
             // Play button (bottom-right, hover reveal)
             Positioned(
-              right: 10,
-              bottom: 10,
+              right: ZplaySpacing.s8,
+              bottom: ZplaySpacing.s8,
               child: AnimatedOpacity(
                 opacity: hovered ? 1 : 0,
                 duration: const Duration(milliseconds: 150),
@@ -348,18 +338,18 @@ class _PosterFrame extends StatelessWidget {
                     height: 39,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.95),
+                      color: tokens.textPrimary.withValues(alpha: 0.95),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.40),
+                          color: Colors.black.withValues(alpha: 0.40),
                           blurRadius: 16,
                           offset: const Offset(0, 7),
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.play_arrow_rounded,
-                      color: Color(0xFF11131B),
+                      color: tokens.bg,
                       size: 29,
                     ),
                   ),
@@ -378,12 +368,14 @@ class MissingPoster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Container(
-      color: const Color(0xFF232533),
+      color: tokens.surface,
       child: Center(
         child: Icon(
           Icons.broken_image_rounded,
-          color: Colors.white.withOpacity(0.2),
+          color: tokens.textDisabled,
           size: 40,
         ),
       ),

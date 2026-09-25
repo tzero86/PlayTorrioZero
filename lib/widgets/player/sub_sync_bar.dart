@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 import '../common/focusable_card.dart';
 
@@ -63,15 +64,19 @@ class _SubSyncBarState extends State<SubSyncBar> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final isDirty = ((_localDelay - _initialDelay).abs() > 0.01);
     final isNonZero = _localDelay.abs() > 0.01;
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12),
         child: PlayerGlassCard(
-          borderRadius: 16,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          borderRadius: ZplayRadius.md,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: ZplaySpacing.s8,
+          ),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -82,13 +87,16 @@ class _SubSyncBarState extends State<SubSyncBar> {
               Material(
                 color: widget.isTextSyncAvailable
                     ? PlayerTheme.accent.withValues(alpha: 0.18)
-                    : Colors.white.withValues(alpha: 0.04),
-                borderRadius: BorderRadius.circular(10),
+                    : tokens.textPrimary.withValues(alpha: 0.04),
+                borderRadius: ZplayRadius.smAll,
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   onTap: widget.isTextSyncAvailable ? widget.onEnterTextSync : null,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ZplaySpacing.s12,
+                      vertical: 7,
+                    ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -102,13 +110,13 @@ class _SubSyncBarState extends State<SubSyncBar> {
                         const SizedBox(width: 6),
                         Text(
                           'Text Sync',
-                          style: TextStyle(
-                            color: widget.isTextSyncAvailable
-                                ? PlayerTheme.ink
-                                : PlayerTheme.inkSubtle,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: ZplayType.label
+                              .toStyle(
+                                color: widget.isTextSyncAvailable
+                                    ? PlayerTheme.ink
+                                    : PlayerTheme.inkSubtle,
+                              )
+                              .copyWith(fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -122,8 +130,8 @@ class _SubSyncBarState extends State<SubSyncBar> {
             Container(
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(12),
+                color: tokens.bg.withValues(alpha: 0.4),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(color: PlayerTheme.edgeSoft),
               ),
               child: Row(
@@ -139,11 +147,11 @@ class _SubSyncBarState extends State<SubSyncBar> {
                     onTap: () => _applyDelay(_localDelay - 0.1),
                   ),
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    margin: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s4),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: PlayerTheme.raised,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
                         color: isNonZero ? PlayerTheme.edge : Colors.transparent,
                       ),
@@ -153,26 +161,26 @@ class _SubSyncBarState extends State<SubSyncBar> {
                       children: [
                         Text(
                           '${_localDelay >= 0 ? '+' : ''}${_localDelay.toStringAsFixed(2)}s',
-                          style: TextStyle(
-                            color: isNonZero ? PlayerTheme.accent : PlayerTheme.inkMuted,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            fontFeatures: const [FontFeature.tabularFigures()],
-                          ),
+                          style: ZplayType.labelNumeric
+                              .toStyle(
+                                color: isNonZero ? PlayerTheme.accent : PlayerTheme.inkMuted,
+                              )
+                              .copyWith(fontWeight: FontWeight.w700),
                         ),
                         if (isNonZero) ...[
                           const SizedBox(width: 6),
                           FocusableCard(
                             onTap: () => _applyDelay(0.0),
                             builder: (context, _) => Container(
-                              padding: const EdgeInsets.all(2),
+                              padding: const EdgeInsets.all(ZplaySpacing.s2),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
+                                color: tokens.textPrimary
+                                    .withValues(alpha: ZplayOpacity.overlayHover),
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
+                              child: Icon(
                                 Icons.replay_rounded,
-                                color: Colors.white,
+                                color: tokens.textPrimary,
                                 size: 11,
                               ),
                             ),
@@ -211,15 +219,18 @@ class _SubSyncBarState extends State<SubSyncBar> {
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
                 backgroundColor: PlayerTheme.accent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                foregroundColor: tokens.onAccent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s12,
+                  vertical: 7,
+                ),
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                 minimumSize: const Size(0, 32),
               ),
               icon: const Icon(Icons.check_rounded, size: 15),
-              label: const Text(
+              label: Text(
                 'Done',
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                style: ZplayType.label.toStyle().copyWith(fontWeight: FontWeight.w600),
               ),
               onPressed: _handleSave,
             ),
@@ -257,7 +268,7 @@ class _StepButton extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: ZplayRadius.xsAll,
         onTap: onTap,
         child: Container(
           width: isWide ? 44 : 38,
@@ -265,12 +276,9 @@ class _StepButton extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             label,
-            style: const TextStyle(
-              color: PlayerTheme.inkMuted,
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
+            style: ZplayType.caption
+                .toStyle(color: PlayerTheme.inkMuted, tabular: true)
+                .copyWith(fontWeight: FontWeight.w700),
           ),
         ),
       ),

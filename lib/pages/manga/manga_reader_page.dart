@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../models/manga/manga.dart';
 import '../../models/manga/manga_chapter.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/manga/manga_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../services/discord/discord_rpc_service.dart';
@@ -349,11 +350,12 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
     showDialog(
       context: context,
       builder: (ctx) {
+        final tokens = ctx.tokens;
         return Dialog(
-          backgroundColor: const Color(0xFF10131C),
+          backgroundColor: tokens.surfaceOverlay,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            borderRadius: ZplayRadius.lgAll,
+            side: tokens.hairlineStrong,
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 490),
@@ -367,26 +369,24 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                     children: [
                       Icon(Icons.tune_rounded, color: palette.primaryColor, size: 20),
                       const SizedBox(width: 10),
-                      const Text(
+                      Text(
                         'Reader Settings & Layout',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: ZplayType.title
+                            .copyWith(weight: FontWeight.w700)
+                            .toStyle(color: tokens.textPrimary),
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
+                        icon: Icon(Icons.close_rounded, color: tokens.textSecondary, size: 20),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Divider(color: Colors.white.withValues(alpha: 0.08)),
+                  Divider(color: tokens.borderDefault),
                   const SizedBox(height: 12),
 
-                  const Text('Reading Orientation Mode', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                  Text('Reading Orientation Mode', style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
                   const SizedBox(height: 8),
                   SegmentedTabs<MangaReadingMode>(
                     semanticsLabel: 'Reading orientation mode',
@@ -404,7 +404,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
                   const SizedBox(height: 14),
 
-                  const Text('Page Reading Width Constraint', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                  Text('Page Reading Width Constraint', style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
                   const SizedBox(height: 8),
                   ValueListenableBuilder<MangaReaderMaxWidth>(
                     valueListenable: MangaSettings.readerMaxWidth,
@@ -426,7 +426,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
                   const SizedBox(height: 14),
 
-                  const Text('Reader Background Atmosphere', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700)),
+                  Text('Reader Background Atmosphere', style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
                   const SizedBox(height: 8),
                   ValueListenableBuilder<MangaReaderBackground>(
                     valueListenable: MangaSettings.readerBackground,
@@ -443,20 +443,22 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                               decoration: BoxDecoration(
                                 color: b.color,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white30),
+                                border: Border.all(color: tokens.textDisabled),
                               ),
                             ),
                             label: Text(b.label),
                             selected: isSelected,
-                            selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                            backgroundColor: const Color(0xFF0D1017),
-                            labelStyle: TextStyle(
-                              color: isSelected ? palette.primaryColor : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                              fontSize: 12,
-                            ),
+                            selectedColor: tokens.accentSubtle,
+                            backgroundColor: tokens.surface,
+                            labelStyle: ZplayType.bodySmall
+                                .copyWith(
+                                  weight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                )
+                                .toStyle(
+                                  color: isSelected ? palette.primaryColor : tokens.textEmphasis,
+                                ),
                             side: BorderSide(
-                              color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
+                              color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : tokens.borderDefault,
                             ),
                             onSelected: (selected) {
                               if (selected) MangaSettings.setReaderBackground(b);
@@ -474,7 +476,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                     builder: (context, showDeck, _) {
                       return SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Show Page Deck Previews Drawer', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                        title: Text('Show Page Deck Previews Drawer', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                         value: showDeck,
                         activeColor: palette.primaryColor,
                         onChanged: (val) => MangaSettings.setShowPageDeck(val),
@@ -487,7 +489,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                     builder: (context, showNext, _) {
                       return SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Show Next Chapter Deck Card', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                        title: Text('Show Next Chapter Deck Card', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                         value: showNext,
                         activeColor: palette.primaryColor,
                         onChanged: (val) => MangaSettings.setEnableNextChapterDeck(val),
@@ -509,6 +511,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
         ? widget.chapters[_currentChapterIndex].name
         : 'Chapter ${widget.chapters[_currentChapterIndex].number}';
 
+    final tokens = context.tokens;
     final readerBg = MangaSettings.readerBackground.value.color;
     final palette = AppThemeService.currentPalette.value;
 
@@ -527,10 +530,10 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                       child: CircularProgressIndicator(color: palette.primaryColor),
                     )
                   : _pageUrls.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
                             'No pages found for this chapter.',
-                            style: TextStyle(color: Colors.white70, fontSize: 16),
+                            style: ZplayType.subtitle.toStyle(color: tokens.textEmphasis),
                           ),
                         )
                       : InteractiveViewer(
@@ -597,6 +600,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
   // 1. Horizontal Reading Mode (LTR & RTL)
   Widget _buildHorizontalPageView() {
+    final tokens = context.tokens;
     final maxWidth = MangaSettings.readerMaxWidth.value.width;
     final isRtl = _readingMode == MangaReadingMode.horizontalRtl;
 
@@ -619,11 +623,11 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
               // under the 5x zoom InteractiveViewer while bounding the decode.
               memCacheWidth: (MediaQuery.sizeOf(context).width * 2).round().clamp(96, 2048).toInt(),
               fit: BoxFit.contain,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(color: Colors.white24),
+              placeholder: (context, url) => Center(
+                child: CircularProgressIndicator(color: tokens.textDisabled),
               ),
-              errorWidget: (context, url, error) => const Center(
-                child: Icon(Icons.broken_image_rounded, color: Colors.white38, size: 48),
+              errorWidget: (context, url, error) => Center(
+                child: Icon(Icons.broken_image_rounded, color: tokens.textMuted, size: 48),
               )),
           ),
         );
@@ -635,6 +639,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
   // 2. Vertical Webtoon Continuous Scroll Mode
   Widget _buildVerticalWebtoonReader() {
+    final tokens = context.tokens;
     final maxWidth = MangaSettings.readerMaxWidth.value.width;
     final pageGap = MangaSettings.pageGap.value;
     final showNextDeck = MangaSettings.enableNextChapterDeck.value;
@@ -664,16 +669,16 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                 // Webtoon strip keeps full-res (2x screen, <=2048) for 5x zoom.
                 memCacheWidth: (MediaQuery.sizeOf(context).width * 2).round().clamp(96, 2048).toInt(),
                 fit: BoxFit.fitWidth,
-                placeholder: (context, url) => const SizedBox(
+                placeholder: (context, url) => SizedBox(
                   height: 350,
                   child: Center(
-                    child: CircularProgressIndicator(color: Colors.white24),
+                    child: CircularProgressIndicator(color: tokens.textDisabled),
                   ),
                 ),
-                errorWidget: (context, url, error) => const SizedBox(
+                errorWidget: (context, url, error) => SizedBox(
                   height: 200,
                   child: Center(
-                    child: Icon(Icons.broken_image_rounded, color: Colors.white38, size: 48),
+                    child: Icon(Icons.broken_image_rounded, color: tokens.textMuted, size: 48),
                   ),
                 )),
             );
@@ -685,6 +690,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
   // 3. Next Chapter Preview Deck Card (at the end of Webtoon)
   Widget _buildNextChapterDeckCard() {
+    final tokens = context.tokens;
     final palette = AppThemeService.currentPalette.value;
     final hasNext = _currentChapterIndex > 0;
     final nextChapter = hasNext ? widget.chapters[_currentChapterIndex - 1] : null;
@@ -696,9 +702,9 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 48),
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: const Color(0xFF10131D).withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        color: tokens.surfaceOverlay.withValues(alpha: 0.92),
+        borderRadius: ZplayRadius.lgAll,
+        border: Border.all(color: tokens.borderStrong),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.5),
@@ -714,11 +720,11 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: palette.primaryColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: ZplayRadius.smAll,
             ),
             child: Text(
               hasNext ? 'UP NEXT' : 'CHAPTER FINISHED',
-              style: TextStyle(color: palette.primaryColor, fontSize: 11, fontWeight: FontWeight.w900),
+              style: ZplayType.caption.copyWith(weight: FontWeight.w700).toStyle(color: palette.primaryColor),
             ),
           ),
           const SizedBox(height: 12),
@@ -727,40 +733,36 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
+            style: ZplayType.title.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
           ),
           const SizedBox(height: 6),
           Text(
             widget.manga.title,
-            style: const TextStyle(color: Colors.white54, fontSize: 13),
+            style: ZplayType.label.toStyle(color: tokens.textSecondary),
           ),
           const SizedBox(height: 20),
           if (hasNext)
             ElevatedButton.icon(
               onPressed: _nextChapter,
-              icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 20),
-              label: const Text(
+              icon: Icon(Icons.skip_next_rounded, color: tokens.textPrimary, size: 20),
+              label: Text(
                 'Read Next Chapter',
-                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                style: ZplayType.subtitle.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: palette.primaryColor,
                 padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
               ),
             )
           else
             OutlinedButton.icon(
               onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.check_circle_outline_rounded, color: Colors.greenAccent),
-              label: const Text('Back to Manga Details', style: TextStyle(color: Colors.white)),
+              icon: Icon(Icons.check_circle_outline_rounded, color: tokens.success),
+              label: Text('Back to Manga Details', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.white24),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: tokens.hairlineStrong,
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
             ),
@@ -771,6 +773,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
   // 4. Page Deck Preview Section (Placed DIRECTLY ABOVE the slider)
   Widget _buildPageDeckSection(bool isMobile, bool isVerySmall, AppThemePalette palette) {
+    final tokens = context.tokens;
     final cardWidth = isVerySmall ? 54.0 : (isMobile ? 62.0 : 74.0);
     final cardHeight = isVerySmall ? 78.0 : (isMobile ? 88.0 : 104.0);
 
@@ -781,9 +784,9 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
         vertical: 8,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFF0C0F17).withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        color: tokens.surfaceOverlay.withValues(alpha: 0.85),
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(color: tokens.borderStrong),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -799,9 +802,11 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                   children: [
                     Icon(Icons.view_carousel_rounded, color: palette.primaryColor, size: 14),
                     const SizedBox(width: 6),
-                    const Text(
+                    Text(
                       'Page Deck Preview',
-                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5),
+                      style: ZplayType.caption
+                          .copyWith(weight: FontWeight.w700, letterSpacing: 0.5)
+                          .toStyle(color: tokens.textEmphasis),
                     ),
                   ],
                 ),
@@ -809,12 +814,12 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: palette.primaryColor.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: ZplayRadius.xsAll,
                     border: Border.all(color: palette.primaryColor.withValues(alpha: 0.4)),
                   ),
                   child: Text(
                     'Page ${_currentPageIndex + 1} of ${_pageUrls.length}',
-                    style: TextStyle(color: palette.primaryColor, fontSize: 10.5, fontWeight: FontWeight.bold),
+                    style: ZplayType.caption.copyWith(weight: FontWeight.w700).toStyle(color: palette.primaryColor),
                   ),
                 ),
               ],
@@ -837,10 +842,10 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                     width: cardWidth,
                     margin: const EdgeInsets.only(right: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF131722),
-                      borderRadius: BorderRadius.circular(10),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
-                        color: isCurrent ? palette.primaryColor : Colors.white.withValues(alpha: 0.12),
+                        color: isCurrent ? palette.primaryColor : tokens.borderStrong,
                         width: isCurrent ? 2.2 : 1.0,
                       ),
                       boxShadow: isCurrent
@@ -854,7 +859,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                           : null,
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ZplayRadius.smAll,
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
@@ -863,9 +868,9 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                             cacheManager: AppImageCache.manager,
                             fit: BoxFit.cover,
                             memCacheWidth: 140,
-                            placeholder: (_, __) => Container(color: const Color(0xFF161A24)),
-                            errorWidget: (_, __, ___) => const Center(
-                              child: Icon(Icons.broken_image_rounded, color: Colors.white24, size: 18),
+                            placeholder: (_, __) => Container(color: tokens.surface),
+                            errorWidget: (_, __, ___) => Center(
+                              child: Icon(Icons.broken_image_rounded, color: tokens.textDisabled, size: 18),
                             )),
                           // Bottom gradient overlay
                           Positioned(
@@ -896,15 +901,11 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                                 decoration: BoxDecoration(
                                   color: isCurrent ? palette.primaryColor : Colors.black.withValues(alpha: 0.7),
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: ZplayRadius.xsAll,
                                 ),
                                 child: Text(
                                   '${index + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9.5,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: ZplayType.overline.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                                 ),
                               ),
                             ),
@@ -924,6 +925,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
   // Top Glass Bar
   Widget _buildTopBar(String title) {
+    final tokens = context.tokens;
     final palette = AppThemeService.currentPalette.value;
     final topInset = MediaQuery.paddingOf(context).top;
 
@@ -934,12 +936,12 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
           padding: EdgeInsets.only(top: 12 + topInset, bottom: 12, left: 16, right: 16),
           decoration: BoxDecoration(
             color: Colors.black.withValues(alpha: 0.65),
-            border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+            border: Border(bottom: tokens.hairlineStrong),
           ),
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                icon: Icon(Icons.arrow_back_rounded, color: tokens.textPrimary),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               const SizedBox(width: 12),
@@ -949,20 +951,15 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                   children: [
                     Text(
                       widget.manga.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: ZplayType.subtitle
+                          .copyWith(weight: FontWeight.w700)
+                          .toStyle(color: tokens.textPrimary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       title,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 12,
-                      ),
+                      style: ZplayType.bodySmall.toStyle(color: tokens.textEmphasis),
                     ),
                   ],
                 ),
@@ -981,6 +978,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
 
   // Bottom Glass Control Bar with Integrated Page Deck (above slider), Navigation & Zoom
   Widget _buildBottomBar() {
+    final tokens = context.tokens;
     final palette = AppThemeService.currentPalette.value;
     final showScrubber = MangaSettings.showPageScrubber.value;
     final showDeckToggle = MangaSettings.showPageDeck.value;
@@ -1000,8 +998,8 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
             12 + bottomInset,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFF090B10).withValues(alpha: 0.90),
-            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+            color: tokens.bg.withValues(alpha: 0.90),
+            border: Border(top: tokens.hairlineStrong),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.7),
@@ -1024,7 +1022,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                   child: SliderTheme(
                     data: SliderThemeData(
                       activeTrackColor: palette.primaryColor,
-                      inactiveTrackColor: Colors.white.withValues(alpha: 0.2),
+                      inactiveTrackColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
                       thumbColor: palette.primaryColor,
                       overlayColor: palette.primaryColor.withValues(alpha: 0.2),
                       trackHeight: 3.5,
@@ -1048,7 +1046,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                 children: [
                   // Prev Chapter Button
                   IconButton(
-                    icon: const Icon(Icons.skip_previous_rounded, color: Colors.white),
+                    icon: Icon(Icons.skip_previous_rounded, color: tokens.textPrimary),
                     onPressed: _currentChapterIndex < widget.chapters.length - 1 ? _prevChapter : null,
                     tooltip: 'Previous Chapter',
                     splashRadius: 20,
@@ -1063,16 +1061,16 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                         if (!isVerySmall)
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                              color: tokens.borderDefault,
+                              borderRadius: ZplayRadius.lgAll,
+                              border: Border.all(color: tokens.borderStrong),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.zoom_out_rounded, color: Colors.white, size: 18),
+                                  icon: Icon(Icons.zoom_out_rounded, color: tokens.textPrimary, size: 18),
                                   onPressed: _currentZoom > 0.26 ? _zoomOut : null,
                                   tooltip: 'Zoom Out (-)',
                                   padding: const EdgeInsets.all(5),
@@ -1080,21 +1078,23 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                                 ),
                                 InkWell(
                                   onTap: _resetZoom,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: ZplayRadius.smAll,
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                                     child: Text(
                                       '${(_currentZoom * 100).round()}%',
-                                      style: TextStyle(
-                                        color: (_currentZoom - 1.0).abs() > 0.03 ? palette.primaryColor : Colors.white70,
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: ZplayType.caption
+                                          .copyWith(weight: FontWeight.w700)
+                                          .toStyle(
+                                            color: (_currentZoom - 1.0).abs() > 0.03
+                                                ? palette.primaryColor
+                                                : tokens.textEmphasis,
+                                          ),
                                     ),
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.zoom_in_rounded, color: Colors.white, size: 18),
+                                  icon: Icon(Icons.zoom_in_rounded, color: tokens.textPrimary, size: 18),
                                   onPressed: _currentZoom < 4.9 ? _zoomIn : null,
                                   tooltip: 'Zoom In (+)',
                                   padding: const EdgeInsets.all(5),
@@ -1113,16 +1113,14 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            color: tokens.borderStrong,
+                            borderRadius: ZplayRadius.smAll,
                           ),
                           child: Text(
                             'Page ${_currentPageIndex + 1} / ${_pageUrls.isNotEmpty ? _pageUrls.length : "?"}',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: isVerySmall ? 11 : 12.5,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: ZplayType.caption
+                                .copyWith(size: isVerySmall ? 11 : 12.5, weight: FontWeight.w700)
+                                .toStyle(color: tokens.textPrimary),
                           ),
                         ),
                       ],
@@ -1138,7 +1136,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                           tooltip: 'Toggle Page Deck',
                           icon: Icon(
                             Icons.view_carousel_rounded,
-                            color: _showDeckDrawer ? palette.primaryColor : Colors.white70,
+                            color: _showDeckDrawer ? palette.primaryColor : tokens.textEmphasis,
                             size: 20,
                           ),
                           onPressed: _toggleDeckDrawer,
@@ -1146,7 +1144,7 @@ class _MangaReaderPageState extends State<MangaReaderPage> {
                         ),
 
                       IconButton(
-                        icon: const Icon(Icons.skip_next_rounded, color: Colors.white),
+                        icon: Icon(Icons.skip_next_rounded, color: tokens.textPrimary),
                         onPressed: _currentChapterIndex > 0 ? _nextChapter : null,
                         tooltip: 'Next Chapter',
                         splashRadius: 20,

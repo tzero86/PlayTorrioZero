@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../models/movie/movie_section.dart';
 import '../../pages/calendar/tv_calendar_page.dart';
 import '../../pages/catalog/catalog_page.dart';
-import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/design_tokens.dart';
 import '../../utils/navigation/route_transitions.dart';
 import './movie_card.dart';
@@ -147,11 +146,12 @@ class _MovieSliderSectionState extends State<MovieSliderSection>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final sizing = MovieCardSizing.fromWidth(MediaQuery.sizeOf(context).width);
     final isDesktop = _isDesktop();
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 26),
+      padding: const EdgeInsets.only(bottom: ZplaySpacing.s24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,18 +171,16 @@ class _MovieSliderSectionState extends State<MovieSliderSection>
                           ),
                         );
                       },
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: ZplayRadius.smAll,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
+                          horizontal: ZplaySpacing.s12,
+                          vertical: ZplaySpacing.s4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.12),
-                          ),
+                          color: tokens.textPrimary.withValues(alpha: 0.08),
+                          borderRadius: ZplayRadius.smAll,
+                          border: Border.all(color: tokens.borderStrong),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -190,18 +188,13 @@ class _MovieSliderSectionState extends State<MovieSliderSection>
                             Icon(
                               Icons.calendar_month_rounded,
                               size: 14,
-                              color: AppThemeService
-                                  .currentPalette
-                                  .value
-                                  .primaryColor,
+                              color: tokens.accent,
                             ),
-                            const SizedBox(width: 5),
-                            const Text(
+                            const SizedBox(width: ZplaySpacing.s4),
+                            Text(
                               'Calendar',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
+                              style: ZplayType.label.toStyle(
+                                color: tokens.textPrimary,
                               ),
                             ),
                           ],
@@ -220,7 +213,7 @@ class _MovieSliderSectionState extends State<MovieSliderSection>
               },
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: ZplaySpacing.s12),
           MouseRegion(
             onEnter: (_) => setState(() => _isHoveringSlider = true),
             onExit: (_) => setState(() => _isHoveringSlider = false),
@@ -302,6 +295,8 @@ class _SliderArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return FocusableCard(
       onTap: onTap,
       builder: (_, state) => AnimatedScale(
@@ -319,12 +314,14 @@ class _SliderArrow extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: state.highlighted
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : const Color(0xFF080A0F).withValues(alpha: 0.5),
+                    ? tokens.textPrimary.withValues(
+                        alpha: ZplayOpacity.overlayHover,
+                      )
+                    : tokens.bg.withValues(alpha: 0.5),
                 border: Border.all(
                   color: state.highlighted
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.1),
+                      ? tokens.borderStrong
+                      : tokens.borderDefault,
                   width: 1.5,
                 ),
                 boxShadow: state.highlighted
@@ -339,7 +336,9 @@ class _SliderArrow extends StatelessWidget {
               ),
               child: Icon(
                 icon,
-                color: Colors.white.withValues(alpha: state.highlighted ? 1.0 : 0.7),
+                color: tokens.textPrimary.withValues(
+                  alpha: state.highlighted ? 1.0 : ZplayOpacity.textEmphasis,
+                ),
                 size: 20,
               ),
             ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../services/theme/design_tokens.dart';
+
 /// Animated shimmer skeleton shown while a poster image is loading.
 class PosterSkeleton extends StatefulWidget {
   const PosterSkeleton({super.key});
@@ -38,7 +40,7 @@ class _PosterSkeletonState extends State<PosterSkeleton>
     // phases during animation, making it extremely performant for scrolling lists.
     return FadeTransition(
       opacity: _animation,
-      child: ColoredBox(color: Theme.of(context).colorScheme.surfaceContainerHighest),
+      child: ColoredBox(color: ZplayTokens.of(context).surface),
     );
   }
 }
@@ -49,15 +51,15 @@ class MissingPoster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final tokens = ZplayTokens.of(context);
 
     return ColoredBox(
-      color: scheme.surface,
+      color: tokens.surface,
       child: Center(
         child: Icon(
           Icons.movie_rounded,
           size: 46,
-          color: scheme.onSurface.withValues(alpha: 0.22),
+          color: tokens.textDisabled,
         ),
       ),
     );

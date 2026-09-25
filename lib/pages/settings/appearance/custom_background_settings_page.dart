@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../services/theme/app_theme_service.dart';
 import '../../../services/theme/custom_background_service.dart';
 import '../../../widgets/common/animated_ambient_background.dart';
@@ -25,9 +26,9 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: const TextStyle(fontWeight: FontWeight.w600)),
+        content: Text(msg, style: ZplayType.subtitle.toStyle()),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: isError ? Colors.red.shade700 : AppThemeService.currentPalette.value.primaryColor,
+        backgroundColor: isError ? context.tokens.danger : AppThemeService.currentPalette.value.primaryColor,
         duration: const Duration(seconds: 2),
       ),
     );
@@ -65,20 +66,24 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
         return ValueListenableBuilder<CustomBackgroundData>(
           valueListenable: CustomBackgroundService.notifier,
           builder: (context, customBg, _) {
+            final tokens = context.tokens;
             final hasWallpaper = customBg.hasCustomBackground;
 
             return Scaffold(
-              backgroundColor: const Color(0xFF080A0F),
+              backgroundColor: tokens.bg,
               appBar: AppBar(
-                backgroundColor: const Color(0xFF0D1017),
+                backgroundColor: tokens.bg,
                 surfaceTintColor: Colors.transparent,
+                // The shell family draws this header as an opaque palette band
+                // with a bottom hairline rather than a translucent wash.
+                shape: Border(bottom: tokens.hairline),
                 leading: IconButton(
                   icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
                   onPressed: () => Navigator.pop(context),
                 ),
-                title: const Text(
+                title: Text(
                   'Custom Background & Wallpaper',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+                  style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
                 ),
               ),
               body: Center(
@@ -92,11 +97,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Text(
                           'Upload your own photo or choose a curated wallpaper. Theme colors and moving ambient lights softly blend into the background for a unified look.',
-                          style: TextStyle(
-                            fontSize: 13.5,
-                            color: Colors.white.withValues(alpha: 0.5),
-                            height: 1.4,
-                          ),
+                          style: ZplayType.body.toStyle(color: tokens.textSecondary),
                         ),
                       ),
 
@@ -105,7 +106,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                         height: 200,
                         clipBehavior: Clip.antiAlias,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: ZplayRadius.lgAll,
                           border: Border.all(
                             color: palette.primaryColor.withValues(alpha: 0.35),
                             width: 1.5,
@@ -130,13 +131,13 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                   color: palette.cardBackgroundColor.withValues(alpha: 0.82),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-                                  boxShadow: const [
+                                  borderRadius: ZplayRadius.mdAll,
+                                  border: Border.all(color: tokens.borderStrong),
+                                  boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black45,
+                                      color: tokens.bg.withValues(alpha: ZplayOpacity.textSecondary),
                                       blurRadius: 16,
-                                      offset: Offset(0, 6),
+                                      offset: const Offset(0, 6),
                                     ),
                                   ],
                                 ),
@@ -147,7 +148,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                                       height: 44,
                                       decoration: BoxDecoration(
                                         color: palette.primaryColor.withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: ZplayRadius.smAll,
                                       ),
                                       child: Icon(
                                         Icons.auto_awesome_rounded,
@@ -161,23 +162,16 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                                         mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          const Text(
+                                          Text(
                                             'Live Atmosphere Preview',
-                                            style: TextStyle(
-                                              fontSize: 14.5,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.white,
-                                            ),
+                                            style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                                           ),
                                           const SizedBox(height: 3),
                                           Text(
                                             hasWallpaper
                                                 ? 'Wallpaper active with ${palette.name} ambient lighting'
                                                 : 'Default ${palette.name} theme background',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.white.withValues(alpha: 0.6),
-                                            ),
+                                            style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                                           ),
                                         ],
                                       ),
@@ -199,21 +193,21 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                             child: ElevatedButton.icon(
                               onPressed: _isUploading ? null : _handlePickImage,
                               icon: _isUploading
-                                  ? const SizedBox(
+                                  ? SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: tokens.onAccent),
                                     )
                                   : const Icon(Icons.add_photo_alternate_rounded, size: 20),
                               label: Text(
                                 _isUploading ? 'Uploading...' : 'Upload Photo from Device',
-                                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                                style: ZplayType.label.toStyle(),
                               ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: palette.primaryColor,
-                                foregroundColor: Colors.white,
+                                foregroundColor: tokens.onAccent,
                                 padding: const EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                                 elevation: 0,
                               ),
                             ),
@@ -222,11 +216,11 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                             const SizedBox(width: 12),
                             IconButton.filledTonal(
                               tooltip: 'Reset to Default Background',
-                              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                              icon: Icon(Icons.delete_outline_rounded, color: tokens.danger),
                               style: IconButton.styleFrom(
-                                backgroundColor: Colors.red.withValues(alpha: 0.12),
+                                backgroundColor: tokens.danger.withValues(alpha: ZplayOpacity.borderStrong),
                                 padding: const EdgeInsets.all(14),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                               ),
                               onPressed: () async {
                                 await CustomBackgroundService.clearBackground();
@@ -243,24 +237,21 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF12151E),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                          color: tokens.surface,
+                          borderRadius: ZplayRadius.smAll,
+                          border: Border.fromBorderSide(tokens.hairline),
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.link_rounded, color: Colors.white38, size: 20),
+                            Icon(Icons.link_rounded, color: tokens.textMuted, size: 20),
                             const SizedBox(width: 10),
                             Expanded(
                               child: TextField(
                                 controller: _urlController,
-                                style: const TextStyle(color: Colors.white, fontSize: 13),
+                                style: ZplayType.label.toStyle(color: tokens.textPrimary),
                                 decoration: InputDecoration(
                                   hintText: 'Or paste image URL (https://...)',
-                                  hintStyle: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.3),
-                                    fontSize: 12.5,
-                                  ),
+                                  hintStyle: ZplayType.bodySmall.toStyle(color: tokens.textDisabled),
                                   border: InputBorder.none,
                                   isDense: true,
                                 ),
@@ -268,7 +259,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.content_paste_rounded, color: Colors.white54, size: 18),
+                              icon: Icon(Icons.content_paste_rounded, color: tokens.textSecondary, size: 18),
                               tooltip: 'Paste from Clipboard',
                               onPressed: () async {
                                 final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -281,10 +272,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                               onPressed: _handleApplyUrl,
                               child: Text(
                                 'Apply',
-                                style: TextStyle(
-                                  color: palette.primaryColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: ZplayType.label.toStyle(color: palette.primaryColor),
                               ),
                             ),
                           ],
@@ -296,12 +284,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                       // ── 3. Curated Wallpaper Presets ──
                       Text(
                         'CURATED DARK WALLPAPERS',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white.withValues(alpha: 0.35),
-                          letterSpacing: 1.1,
-                        ),
+                        style: ZplayType.overline.toStyle(color: tokens.textMuted),
                       ),
                       const SizedBox(height: 12),
 
@@ -328,12 +311,12 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                               await CustomBackgroundService.applyPreset(preset);
                               _showSnack('Applied "${preset.title}" wallpaper');
                             },
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: ZplayRadius.smAll,
                             child: Container(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: ZplayRadius.smAll,
                                 border: Border.all(
-                                  color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.1),
+                                  color: isSelected ? palette.primaryColor : tokens.borderDefault,
                                   width: isSelected ? 2.5 : 1.0,
                                 ),
                                 image: DecorationImage(
@@ -354,13 +337,15 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                                   Positioned.fill(
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
+                                        borderRadius: ZplayRadius.smAll,
+                                        // Scrim that makes the preset title legible
+                                        // over the artwork, so it keeps its own alpha.
                                         gradient: LinearGradient(
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
                                             Colors.transparent,
-                                            Colors.black.withValues(alpha: 0.85),
+                                            tokens.bg.withValues(alpha: 0.85),
                                           ],
                                         ),
                                       ),
@@ -376,7 +361,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                                           color: palette.primaryColor,
                                           shape: BoxShape.circle,
                                         ),
-                                        child: const Icon(Icons.check_rounded, color: Colors.white, size: 12),
+                                        child: Icon(Icons.check_rounded, color: tokens.onAccent, size: 12),
                                       ),
                                     ),
                                   Positioned(
@@ -385,11 +370,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                                     right: 8,
                                     child: Text(
                                       preset.title,
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
+                                      style: ZplayType.caption.toStyle(color: tokens.textPrimary),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -408,21 +389,16 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                       // ── 4. Atmosphere & Blending Controls ──
                       Text(
                         'WALLPAPER & LIGHT BLENDING CONTROLS',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white.withValues(alpha: 0.35),
-                          letterSpacing: 1.1,
-                        ),
+                        style: ZplayType.overline.toStyle(color: tokens.textMuted),
                       ),
                       const SizedBox(height: 12),
 
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF12151E),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                          color: tokens.surface,
+                          borderRadius: ZplayRadius.mdAll,
+                          border: Border.fromBorderSide(tokens.hairline),
                         ),
                         child: Column(
                           children: [
@@ -437,7 +413,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                               activeColor: palette.primaryColor,
                               onChanged: (v) => CustomBackgroundService.setOpacity(v),
                             ),
-                            const Divider(color: Colors.white10, height: 24),
+                            Divider(color: tokens.borderStrong, height: 24),
 
                             // Blur Slider
                             _buildSliderTile(
@@ -450,7 +426,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                               activeColor: palette.primaryColor,
                               onChanged: (v) => CustomBackgroundService.setBlur(v),
                             ),
-                            const Divider(color: Colors.white10, height: 24),
+                            Divider(color: tokens.borderStrong, height: 24),
 
                             // Theme Tint Slider
                             _buildSliderTile(
@@ -463,26 +439,19 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
                               activeColor: palette.primaryColor,
                               onChanged: (v) => CustomBackgroundService.setThemeTintOpacity(v),
                             ),
-                            const Divider(color: Colors.white10, height: 24),
+                            Divider(color: tokens.borderStrong, height: 24),
 
                             // Moving Ambient Lights Switch
                             SwitchListTile.adaptive(
                               contentPadding: EdgeInsets.zero,
                               activeColor: palette.primaryColor,
-                              title: const Text(
+                              title: Text(
                                 'Blend Moving Ambient Lights',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                ),
+                                style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                               ),
                               subtitle: Text(
                                 'Softly illuminates and animates theme lights over your wallpaper',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.white.withValues(alpha: 0.5),
-                                ),
+                                style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                               ),
                               value: customBg.blendThemeLights,
                               onChanged: (v) => CustomBackgroundService.setBlendThemeLights(v),
@@ -513,36 +482,29 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
     required Color activeColor,
     required ValueChanged<double> onChanged,
   }) {
+    final tokens = context.tokens;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 18, color: Colors.white70),
+            Icon(icon, size: 18, color: tokens.textEmphasis),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+                style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
               ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
                 color: activeColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(6),
+                borderRadius: ZplayRadius.xsAll,
               ),
               child: Text(
                 valueText,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.bold,
-                  color: activeColor,
-                ),
+                style: ZplayType.labelNumeric.toStyle(color: activeColor),
               ),
             ),
           ],
@@ -551,7 +513,7 @@ class _CustomBackgroundSettingsPageState extends State<CustomBackgroundSettingsP
         SliderTheme(
           data: SliderThemeData(
             activeTrackColor: activeColor,
-            inactiveTrackColor: Colors.white12,
+            inactiveTrackColor: Colors.white.withValues(alpha: ZplayOpacity.borderStrong),
             thumbColor: activeColor,
             trackHeight: 3,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),

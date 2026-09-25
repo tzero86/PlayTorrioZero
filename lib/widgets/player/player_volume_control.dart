@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 
 /// Interactive volume slider with high-gain boost support (up to 250%).
@@ -40,10 +41,10 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
     return Icons.volume_up_rounded;
   }
 
-  Color _getBoostColor() {
-    if (widget.volume <= 1.0) return Colors.white;
-    if (widget.volume > 1.75) return const Color(0xFFFF3D00); // Deep Flame Orange/Red
-    return const Color(0xFFFF8A00); // Amber/Orange
+  Color _getBoostColor(ZplayTokens tokens) {
+    if (widget.volume <= 1.0) return tokens.textPrimary;
+    if (widget.volume > 1.75) return tokens.danger; // Deep Flame Orange/Red
+    return tokens.warning; // Amber/Orange
   }
 
   void _updateFromPosition(double localX) {
@@ -67,10 +68,11 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final effectiveVol = widget.isMuted ? 0.0 : widget.volume;
     final fillFraction = _getFractionFromVolume(effectiveVol);
     final isBoosting = !widget.isMuted && widget.volume > 1.001;
-    final boostColor = _getBoostColor();
+    final boostColor = _getBoostColor(tokens);
     final pct = (effectiveVol * 100).round();
 
     return Listener(
@@ -93,13 +95,13 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
               iconSize: 22,
               icon: Icon(
                 _getVolumeIcon(),
-                color: isBoosting ? boostColor : (widget.isMuted ? PlayerTheme.inkSubtle : Colors.white),
+                color: isBoosting ? boostColor : (widget.isMuted ? PlayerTheme.inkSubtle : tokens.textPrimary),
               ),
               tooltip: widget.isMuted ? 'Unmute' : 'Mute',
               onPressed: widget.onToggleMute,
             ),
 
-            const SizedBox(width: 4),
+            const SizedBox(width: ZplaySpacing.s4),
 
             // Volume Slider Track
             GestureDetector(
@@ -118,8 +120,9 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
                       height: 6,
                       width: _trackWidth,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(999),
+                        color: tokens.textPrimary
+                            .withValues(alpha: ZplayOpacity.overlayHover),
+                        borderRadius: ZplayRadius.fullAll,
                       ),
                     ),
 
@@ -130,8 +133,8 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
                         width: 1.5,
                         height: 9,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.40),
-                          borderRadius: BorderRadius.circular(1),
+                          color: tokens.textMuted,
+                          borderRadius: ZplayRadius.xsAll,
                         ),
                       ),
                     ),
@@ -144,14 +147,14 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
                         gradient: isBoosting
                           ? LinearGradient(
                               colors: [
-                                Colors.white,
-                                const Color(0xFFFF8A00),
-                                if (widget.volume > 1.75) const Color(0xFFFF3D00),
+                                tokens.textPrimary,
+                                tokens.warning,
+                                if (widget.volume > 1.75) tokens.danger,
                               ],
                             )
                           : null,
-                        color: isBoosting ? null : Colors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(999),
+                        color: isBoosting ? null : tokens.textPrimary,
+                        borderRadius: ZplayRadius.fullAll,
                       ),
                     ),
 
@@ -162,11 +165,13 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
                         width: 12,
                         height: 12,
                         decoration: BoxDecoration(
-                          color: isBoosting ? boostColor : Colors.white,
+                          color: isBoosting ? boostColor : tokens.textPrimary,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: isBoosting ? boostColor.withValues(alpha: 0.6) : Colors.black54,
+                              color: isBoosting
+                                  ? boostColor.withValues(alpha: 0.6)
+                                  : tokens.bg.withValues(alpha: 0.54),
                               blurRadius: isBoosting ? 6 : 4,
                               spreadRadius: isBoosting ? 1 : 0,
                               offset: const Offset(0, 1),
@@ -190,7 +195,7 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
                   children: [
                     if (isBoosting)
                       Padding(
-                        padding: const EdgeInsets.only(right: 2),
+                        padding: const EdgeInsets.only(right: ZplaySpacing.s2),
                         child: Icon(
                           Icons.bolt_rounded,
                           size: 13,
@@ -199,12 +204,12 @@ class _PlayerVolumeControlState extends State<PlayerVolumeControl> {
                       ),
                     Text(
                       '$pct%',
-                      style: TextStyle(
-                        color: isBoosting ? boostColor : PlayerTheme.inkMuted,
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w800,
-                        fontFeatures: const [FontFeature.tabularFigures()],
-                      ),
+                      style: ZplayType.caption
+                          .toStyle(
+                            color: isBoosting ? boostColor : PlayerTheme.inkMuted,
+                            tabular: true,
+                          )
+                          .copyWith(fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),

@@ -6,6 +6,7 @@ import 'package:photo_view/photo_view.dart';
 import '../../../services/books/epub_parser_service.dart';
 import '../../../services/books/reader_settings.dart';
 import '../../../widgets/common/focusable_card.dart';
+import 'reader_design_tokens.dart';
 
 class EpubContentView extends StatelessWidget {
   final EpubBookData book;
@@ -94,7 +95,7 @@ class EpubContentView extends StatelessWidget {
           builder: (context, _) => Container(
             constraints: const BoxConstraints(maxHeight: 520),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: ReaderTokens.rounded8,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.25),
@@ -104,7 +105,7 @@ class EpubContentView extends StatelessWidget {
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: ReaderTokens.rounded8,
               child: Image.memory(
                 bytes,
                 fit: BoxFit.contain,
@@ -120,11 +121,11 @@ class EpubContentView extends StatelessWidget {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: ReaderTokens.bg,
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            iconTheme: const IconThemeData(color: Colors.white),
+            iconTheme: IconThemeData(color: ReaderTokens.textPrimary),
           ),
           body: PhotoView(
             imageProvider: MemoryImage(bytes),

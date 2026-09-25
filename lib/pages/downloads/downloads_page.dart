@@ -6,6 +6,7 @@ import 'package:zplay/models/movie/video.dart';
 
 import '../../models/download/download_task_model.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/download/download_service.dart';
 import '../../utils/platform/open_file_location_helper.dart';
 import '../../utils/download/download_path_helper.dart';
@@ -78,29 +79,33 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
   }
 
   void _confirmDelete(DownloadTask task) {
+    final tokens = context.tokens;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF131622),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        backgroundColor: tokens.surfaceOverlay,
+        shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
+        title: Text(
           'Delete Download',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: ZplayType.title.toStyle(color: tokens.textPrimary),
         ),
         content: Text(
           'Are you sure you want to delete "${task.title}" and remove the file from storage?',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+          style: ZplayType.body.toStyle(color: tokens.textEmphasis),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white60)),
+            child: Text(
+              'Cancel',
+              style: ZplayType.label.toStyle(color: tokens.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              backgroundColor: tokens.danger,
+              foregroundColor: tokens.textPrimary,
+              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
             ),
             onPressed: () {
               Navigator.pop(ctx);
@@ -118,6 +123,7 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
     return ValueListenableBuilder<AppThemePalette>(
       valueListenable: AppThemeService.currentPalette,
       builder: (context, palette, _) {
+        final tokens = context.tokens;
         return Scaffold(
           backgroundColor: palette.scaffoldBackgroundColor,
           appBar: AppBar(
@@ -133,7 +139,7 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                   height: 20,
                   decoration: BoxDecoration(
                     color: palette.primaryColor,
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: ZplayRadius.xsAll,
                     boxShadow: [
                       BoxShadow(
                         color: palette.primaryColor.withValues(alpha: 0.5),
@@ -142,21 +148,22 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                     ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                const Text(
+                const SizedBox(width: ZplaySpacing.s8),
+                Text(
                   'Downloads',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
+                  style: ZplayType.titleLarge.toStyle(
+                    color: tokens.textPrimary,
                   ),
                 ),
               ],
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.folder_open_rounded, color: Colors.white, size: 22),
+                icon: Icon(
+                  Icons.folder_open_rounded,
+                  color: tokens.textPrimary,
+                  size: 22,
+                ),
                 tooltip: 'Open Downloads Folder',
                 onPressed: () async {
                   final dir = await DownloadPathHelper.getDownloadsDirectoryPath();
@@ -168,7 +175,7 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                   }
                 },
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: ZplaySpacing.s8),
             ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),
@@ -183,8 +190,8 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                     indicatorColor: palette.primaryColor,
                     indicatorWeight: 3,
                     labelColor: palette.primaryColor,
-                    unselectedLabelColor: Colors.white54,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    unselectedLabelColor: tokens.textSecondary,
+                    labelStyle: ZplayType.label.toStyle(),
                     tabs: [
                       Tab(text: 'Active ($activeCount)'),
                       Tab(text: 'Downloaded ($completedCount)'),
@@ -215,21 +222,26 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
   }
 
   Widget _buildActiveList(List<DownloadTask> tasks, AppThemePalette palette) {
+    final tokens = context.tokens;
     if (tasks.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.download_done_rounded, size: 64, color: Colors.white.withValues(alpha: 0.2)),
-            const SizedBox(height: 16),
-            const Text(
-              'No active downloads',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white70),
+            Icon(
+              Icons.download_done_rounded,
+              size: 64,
+              color: tokens.textDisabled,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: ZplaySpacing.s16),
+            Text(
+              'No active downloads',
+              style: ZplayType.subtitle.toStyle(color: tokens.textEmphasis),
+            ),
+            const SizedBox(height: ZplaySpacing.s8),
             Text(
               'Media you download from the video player will show up here.',
-              style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.4)),
+              style: ZplayType.body.toStyle(color: tokens.textMuted),
             ),
           ],
         ),
@@ -237,9 +249,12 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: ZplaySpacing.s16,
+        vertical: ZplaySpacing.s16,
+      ),
       itemCount: tasks.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: ZplaySpacing.s12),
       itemBuilder: (context, index) {
         final task = tasks[index];
         return _buildActiveCard(task, palette);
@@ -248,20 +263,21 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
   }
 
   Widget _buildActiveCard(DownloadTask task, AppThemePalette palette) {
+    final tokens = context.tokens;
     final progress = task.progressPercent;
     final isDownloading = task.status == DownloadStatus.downloading;
     final isPaused = task.status == DownloadStatus.paused;
     final isFailed = task.status == DownloadStatus.failed;
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(ZplaySpacing.s12),
       decoration: BoxDecoration(
         color: palette.cardBackgroundColor.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: ZplayRadius.mdAll,
         border: Border.all(
           color: isDownloading
               ? palette.primaryColor.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.08),
+              : tokens.borderDefault,
           width: 1.2,
         ),
       ),
@@ -273,22 +289,28 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
             children: [
               // Thumbnail
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: ZplayRadius.smAll,
                 child: Container(
                   width: 50,
                   height: 70,
-                  color: const Color(0xFF1E212E),
+                  color: tokens.surface,
                   child: task.posterUrl != null && task.posterUrl!.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: task.posterUrl!,
                           cacheManager: AppImageCache.manager,
                           fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => const Icon(Icons.movie_rounded, color: Colors.white24))
-                      : const Icon(Icons.movie_rounded, color: Colors.white24),
+                          errorWidget: (_, __, ___) => Icon(
+                            Icons.movie_rounded,
+                            color: tokens.textDisabled,
+                          ))
+                      : Icon(
+                          Icons.movie_rounded,
+                          color: tokens.textDisabled,
+                        ),
                 ),
               ),
 
-              const SizedBox(width: 14),
+              const SizedBox(width: ZplaySpacing.s12),
 
               // Title & Engine Info
               Expanded(
@@ -297,56 +319,55 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                   children: [
                     Text(
                       task.title,
-                      style: const TextStyle(
-                        fontSize: 14.5,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      style: ZplayType.subtitle.toStyle(
+                        color: tokens.textPrimary,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: ZplaySpacing.s4),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: ZplaySpacing.s4,
+                            vertical: ZplaySpacing.s2,
+                          ),
                           decoration: BoxDecoration(
                             color: palette.primaryColor.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: ZplayRadius.xsAll,
                           ),
                           child: Text(
                             task.sourceType == DownloadSourceType.p2p
                                 ? 'P2P Torrent'
                                 : (task.sourceType == DownloadSourceType.debrid ? 'Cloud Debrid' : 'Direct HTTP'),
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                            style: ZplayType.caption.toStyle(
                               color: palette.primaryColor,
                             ),
                           ),
                         ),
                         if (task.peers > 0) ...[
-                          const SizedBox(width: 8),
+                          const SizedBox(width: ZplaySpacing.s8),
                           Text(
                             '${task.peers} peers',
-                            style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.5)),
+                            style: ZplayType.caption.toStyle(
+                              color: tokens.textSecondary,
+                            ),
                           ),
                         ],
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: ZplaySpacing.s4),
                     Text(
                       isFailed
                           ? 'Failed: ${task.error ?? "Unknown error"}'
                           : isPaused
                               ? 'Paused (${(progress * 100).toStringAsFixed(1)}%)'
                               : '${(progress * 100).toStringAsFixed(1)}% • ${task.speedLabel} • ETA: ${task.etaLabel}',
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w500,
+                      style: ZplayType.bodySmall.toStyle(
                         color: isFailed
-                            ? const Color(0xFFEF4444)
-                            : (isPaused ? Colors.amber : Colors.white70),
+                            ? tokens.danger
+                            : (isPaused ? tokens.warning : tokens.textEmphasis),
                       ),
                     ),
                   ],
@@ -359,7 +380,11 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                 children: [
                   if (isDownloading)
                     IconButton(
-                      icon: const Icon(Icons.pause_circle_rounded, color: Colors.amber, size: 26),
+                      icon: Icon(
+                        Icons.pause_circle_rounded,
+                        color: tokens.warning,
+                        size: 26,
+                      ),
                       tooltip: 'Pause',
                       onPressed: () => DownloadService.instance.pauseDownload(task.id),
                     )
@@ -371,12 +396,20 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                     )
                   else if (isFailed)
                     IconButton(
-                      icon: const Icon(Icons.replay_rounded, color: Colors.orangeAccent, size: 26),
+                      icon: Icon(
+                        Icons.replay_rounded,
+                        color: tokens.warning,
+                        size: 26,
+                      ),
                       tooltip: 'Retry / Reconnect',
                       onPressed: () => DownloadService.instance.resumeDownload(task.id),
                     ),
                   IconButton(
-                    icon: Icon(Icons.folder_open_rounded, color: Colors.white.withValues(alpha: 0.6), size: 22),
+                    icon: Icon(
+                      Icons.folder_open_rounded,
+                      color: tokens.textSecondary,
+                      size: 22,
+                    ),
                     tooltip: 'Open Folder Location',
                     onPressed: () async {
                       final opened = await OpenFileLocationHelper.openLocation(task.targetFilePath);
@@ -388,7 +421,11 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                     },
                   ),
                   IconButton(
-                    icon: Icon(Icons.close_rounded, color: Colors.white.withValues(alpha: 0.4), size: 22),
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: tokens.textMuted,
+                      size: 22,
+                    ),
                     tooltip: 'Cancel',
                     onPressed: () => _confirmDelete(task),
                   ),
@@ -397,33 +434,37 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: ZplaySpacing.s12),
 
           // Progress Bar
           ClipRRect(
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: ZplayRadius.xsAll,
             child: LinearProgressIndicator(
               value: progress > 0 ? progress : null,
               minHeight: 5,
-              backgroundColor: Colors.white.withValues(alpha: 0.08),
+              backgroundColor: tokens.borderDefault,
               valueColor: AlwaysStoppedAnimation<Color>(
                 isFailed
-                    ? const Color(0xFFEF4444)
-                    : (isPaused ? Colors.amber : palette.primaryColor),
+                    ? tokens.danger
+                    : (isPaused ? tokens.warning : palette.primaryColor),
               ),
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: ZplaySpacing.s4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 task.sizeLabel,
-                style: TextStyle(fontSize: 10.5, color: Colors.white.withValues(alpha: 0.45)),
+                style: ZplayType.caption.toStyle(
+                  color: tokens.textSecondary,
+                ),
               ),
               Text(
                 '${(progress * 100).toStringAsFixed(1)}%',
-                style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white.withValues(alpha: 0.6)),
+                style: ZplayType.caption.toStyle(
+                  color: tokens.textSecondary,
+                ),
               ),
             ],
           ),
@@ -433,21 +474,26 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
   }
 
   Widget _buildCompletedList(List<DownloadTask> tasks, AppThemePalette palette) {
+    final tokens = context.tokens;
     if (tasks.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.folder_open_rounded, size: 64, color: Colors.white.withValues(alpha: 0.2)),
-            const SizedBox(height: 16),
-            const Text(
-              'No downloaded media',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white70),
+            Icon(
+              Icons.folder_open_rounded,
+              size: 64,
+              color: tokens.textDisabled,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: ZplaySpacing.s16),
+            Text(
+              'No downloaded media',
+              style: ZplayType.subtitle.toStyle(color: tokens.textEmphasis),
+            ),
+            const SizedBox(height: ZplaySpacing.s8),
             Text(
               'Completed downloads will appear here for offline playback.',
-              style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.4)),
+              style: ZplayType.body.toStyle(color: tokens.textMuted),
             ),
           ],
         ),
@@ -455,11 +501,11 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
     }
 
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(ZplaySpacing.s16),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
         maxCrossAxisExtent: 220,
-        mainAxisSpacing: 14,
-        crossAxisSpacing: 14,
+        mainAxisSpacing: ZplaySpacing.s12,
+        crossAxisSpacing: ZplaySpacing.s12,
         childAspectRatio: 0.58,
       ),
       itemCount: tasks.length,
@@ -471,17 +517,18 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
   }
 
   Widget _buildCompletedCard(DownloadTask task, AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       decoration: BoxDecoration(
         color: palette.cardBackgroundColor.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: ZplayRadius.mdAll,
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
+          color: tokens.borderDefault,
           width: 1.0,
         ),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: ZplayRadius.mdAll,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -491,17 +538,25 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                 fit: StackFit.expand,
                 children: [
                   Container(
-                    color: const Color(0xFF1E212E),
+                    color: tokens.surface,
                     child: task.posterUrl != null && task.posterUrl!.isNotEmpty
                         ? CachedNetworkImage(
                             imageUrl: task.posterUrl!,
                             cacheManager: AppImageCache.manager,
                             fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => const Center(
-                              child: Icon(Icons.movie_rounded, color: Colors.white24, size: 36),
+                            errorWidget: (_, __, ___) => Center(
+                              child: Icon(
+                                Icons.movie_rounded,
+                                color: tokens.textDisabled,
+                                size: 36,
+                              ),
                             ))
-                        : const Center(
-                            child: Icon(Icons.movie_rounded, color: Colors.white24, size: 36),
+                        : Center(
+                            child: Icon(
+                              Icons.movie_rounded,
+                              color: tokens.textDisabled,
+                              size: 36,
+                            ),
                           ),
                   ),
 
@@ -538,9 +593,9 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                             ),
                           ],
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.play_arrow_rounded,
-                          color: Colors.white,
+                          color: tokens.onAccent,
                           size: 28,
                         ),
                       ),
@@ -549,8 +604,8 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
 
                   // Open Folder Location (Top-Left)
                   Positioned(
-                    top: 6,
-                    left: 6,
+                    top: ZplaySpacing.s4,
+                    left: ZplaySpacing.s4,
                     child: FocusableCard(
                       onTap: () async {
                         final opened = await OpenFileLocationHelper.openLocation(task.targetFilePath);
@@ -561,57 +616,66 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                         }
                       },
                       builder: (context, state) => Container(
-                        padding: const EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(ZplaySpacing.s4),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.black.withValues(alpha: 0.7),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: tokens.borderStrong,
                             width: 0.8,
                           ),
                         ),
-                        child: const Icon(Icons.folder_open_rounded, size: 14, color: Colors.white),
+                        child: Icon(
+                          Icons.folder_open_rounded,
+                          size: 14,
+                          color: tokens.textPrimary,
+                        ),
                       ),
                     ),
                   ),
 
                   // Delete Action (Top-Right)
                   Positioned(
-                    top: 6,
-                    right: 6,
+                    top: ZplaySpacing.s4,
+                    right: ZplaySpacing.s4,
                     child: FocusableCard(
                       onTap: () => _confirmDelete(task),
                       builder: (context, state) => Container(
-                        padding: const EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(ZplaySpacing.s4),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.black.withValues(alpha: 0.7),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: tokens.borderStrong,
                             width: 0.8,
                           ),
                         ),
-                        child: const Icon(Icons.delete_outline_rounded, size: 14, color: Colors.white),
+                        child: Icon(
+                          Icons.delete_outline_rounded,
+                          size: 14,
+                          color: tokens.textPrimary,
+                        ),
                       ),
                     ),
                   ),
 
                   // File size tag (Bottom-Right)
                   Positioned(
-                    bottom: 6,
-                    right: 6,
+                    bottom: ZplaySpacing.s4,
+                    right: ZplaySpacing.s4,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ZplaySpacing.s4,
+                        vertical: ZplaySpacing.s2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.75),
-                        borderRadius: BorderRadius.circular(5),
+                        borderRadius: ZplayRadius.xsAll,
                       ),
                       child: Text(
                         DownloadTask.formatBytes(task.totalBytes),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        style: ZplayType.caption.toStyle(
+                          color: tokens.textPrimary,
                         ),
                       ),
                     ),
@@ -622,7 +686,12 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
 
             // Metadata Row
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+              padding: const EdgeInsets.fromLTRB(
+                ZplaySpacing.s8,
+                ZplaySpacing.s8,
+                ZplaySpacing.s8,
+                ZplaySpacing.s8,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -630,20 +699,17 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
                     task.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    style: ZplayType.label.toStyle(
+                      color: tokens.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: ZplaySpacing.s2),
                   Text(
                     task.season != null && task.episode != null
                         ? 'S${task.season}:E${task.episode} • Offline'
                         : (task.year != null ? '${task.year} • Offline' : 'Offline Media'),
-                    style: TextStyle(
-                      fontSize: 10.5,
-                      color: Colors.white.withValues(alpha: 0.5),
+                    style: ZplayType.caption.toStyle(
+                      color: tokens.textSecondary,
                     ),
                   ),
                 ],

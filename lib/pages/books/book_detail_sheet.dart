@@ -8,6 +8,7 @@ import '../audiobooks/generate_audiobook_screen.dart';
 import 'epub_reader_page.dart';
 import 'pdf_reader_page.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../../services/theme/design_tokens.dart';
 
 class BookDetailSheet extends StatefulWidget {
   final BookResult book;
@@ -94,7 +95,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to download book: $e'),
-          backgroundColor: Colors.redAccent,
+          backgroundColor: context.tokens.danger,
         ),
       );
     }
@@ -132,6 +133,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final book = widget.book;
     final progress = ContinueReadingService.getProgress(book.md5);
     final hasProgress = progress != null && progress.progressPercent > 0;
@@ -140,10 +142,10 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
       constraints: BoxConstraints(
         maxHeight: MediaQuery.of(context).size.height * 0.88,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF16161E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-        boxShadow: [
+      decoration: BoxDecoration(
+        color: tokens.surfaceOverlay,
+        borderRadius: ZplayRadius.sheetTop,
+        boxShadow: const [
           BoxShadow(
             color: Colors.black87,
             blurRadius: 36,
@@ -162,8 +164,8 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
               width: 44,
               height: 4.5,
               decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(3),
+                color: tokens.textDisabled,
+                borderRadius: ZplayRadius.xsAll,
               ),
             ),
           ),
@@ -186,7 +188,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                           width: 124,
                           height: 180,
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: ZplayRadius.mdAll,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.6),
@@ -196,28 +198,28 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             ],
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: ZplayRadius.mdAll,
                             child: book.coverUrl.isNotEmpty
                                 ? CachedNetworkImage(
                                     imageUrl: book.coverUrl,
                                     cacheManager: AppImageCache.manager,
                                     fit: BoxFit.cover,
                                     placeholder: (_, __) => Container(
-                                      color: const Color(0xFF22232E),
-                                      child: const Center(
-                                        child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                      color: tokens.surface,
+                                      child: Center(
+                                        child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                       ),
                                     ),
                                     errorWidget: (_, __, ___) => Container(
-                                      color: const Color(0xFF22232E),
-                                      child: const Center(
-                                        child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                      color: tokens.surface,
+                                      child: Center(
+                                        child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                       ),
                                     ))
                                 : Container(
-                                    color: const Color(0xFF22232E),
-                                    child: const Center(
-                                      child: Icon(Icons.menu_book_rounded, color: Colors.white24, size: 36),
+                                    color: tokens.surface,
+                                    child: Center(
+                                      child: Icon(Icons.menu_book_rounded, color: tokens.textDisabled, size: 36),
                                     ),
                                   ),
                           ),
@@ -232,24 +234,16 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                           children: [
                             Text(
                               book.displayTitle,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                height: 1.25,
-                              ),
+                              style: ZplayType.title.toStyle(color: tokens.textPrimary),
                               maxLines: 3,
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 6),
                             Text(
                               book.displayAuthor,
-                              style: const TextStyle(
-                                fontFamily: 'Poppins',
-                                fontSize: 13,
-                                color: Color(0xFF9E9EA8),
-                              ),
+                              style: ZplayType.body
+                                  .copyWith(size: 13)
+                                  .toStyle(color: tokens.textSecondary),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -263,22 +257,22 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                                 _buildBadge(
                                   book.bookFiletype.toUpperCase(),
                                   bgColor: book.isEpub
-                                      ? const Color(0xFF7C3AED).withValues(alpha: 0.25)
+                                      ? tokens.accentSubtle
                                       : book.isPdf
-                                          ? const Color(0xFFEF4444).withValues(alpha: 0.25)
-                                          : Colors.white10,
+                                          ? tokens.danger.withValues(alpha: 0.25)
+                                          : tokens.borderStrong,
                                   textColor: book.isEpub
-                                      ? const Color(0xFFA78BFA)
+                                      ? tokens.accent
                                       : book.isPdf
-                                          ? const Color(0xFFFCA5A5)
-                                          : Colors.white70,
+                                          ? tokens.danger
+                                          : tokens.textEmphasis,
                                 ),
                                 if (book.bookSize.isNotEmpty)
-                                  _buildBadge(book.bookSize, textColor: Colors.white70),
+                                  _buildBadge(book.bookSize, textColor: tokens.textEmphasis),
                                 if (book.year.isNotEmpty)
-                                  _buildBadge(book.year, textColor: Colors.white70),
+                                  _buildBadge(book.year, textColor: tokens.textEmphasis),
                                 if (book.bookLang.isNotEmpty)
-                                  _buildBadge(book.bookLang, textColor: const Color(0xFF60A5FA)),
+                                  _buildBadge(book.bookLang, textColor: tokens.info),
                               ],
                             ),
                           ],
@@ -293,9 +287,9 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF20212C),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white10),
+                        color: tokens.surface,
+                        borderRadius: ZplayRadius.mdAll,
+                        border: Border.fromBorderSide(tokens.hairlineStrong),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,31 +301,25 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                                 progress.fileType == 'pdf'
                                     ? 'Page ${progress.currentPage} of ${progress.totalPages}'
                                     : 'Chapter ${progress.chapterIndex + 1} of ${progress.totalChapters}',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white70,
-                                ),
+                                style: ZplayType.bodySmall
+                                    .copyWith(weight: FontWeight.w600)
+                                    .toStyle(color: tokens.textEmphasis),
                               ),
                               Text(
                                 '${(progress.progressPercent * 100).round()}% Completed',
-                                style: const TextStyle(
-                                  fontFamily: 'Poppins',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFA78BFA),
-                                ),
+                                style: ZplayType.bodySmall
+                                    .copyWith(weight: FontWeight.bold)
+                                    .toStyle(color: tokens.accent),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: ZplayRadius.xsAll,
                             child: LinearProgressIndicator(
                               value: progress.progressPercent,
-                              backgroundColor: Colors.white12,
-                              color: const Color(0xFF7C3AED),
+                              backgroundColor: tokens.borderStrong,
+                              color: tokens.accent,
                               minHeight: 5,
                             ),
                           ),
@@ -356,7 +344,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                                   child: CircularProgressIndicator(
                                     value: _downloadProgress > 0.05 ? _downloadProgress : null,
                                     strokeWidth: 2.5,
-                                    color: Colors.white,
+                                    color: tokens.onAccent,
                                   ),
                                 )
                               : Icon(
@@ -369,21 +357,19 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                                 : hasProgress
                                     ? 'Resume Reading'
                                     : 'Read Now',
-                            style: const TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: ZplayType.label
+                                .copyWith(weight: FontWeight.bold)
+                                .toStyle(),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7C3AED),
-                            foregroundColor: Colors.white,
+                            backgroundColor: tokens.accent,
+                            foregroundColor: tokens.onAccent,
                             padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.mdAll,
                             ),
                             elevation: 8,
-                            shadowColor: const Color(0xFF7C3AED).withValues(alpha: 0.5),
+                            shadowColor: tokens.accent.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -391,7 +377,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                       if (book.isEpub) ...[
                         const SizedBox(width: 10),
                         IconButton.filledTonal(
-                          icon: const Icon(Icons.record_voice_over_rounded, color: Color(0xFFA78BFA)),
+                          icon: Icon(Icons.record_voice_over_rounded, color: tokens.accent),
                           tooltip: 'Generate AI Audiobook (TTS)',
                           onPressed: () async {
                             Navigator.pop(context);
@@ -401,10 +387,10 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             );
                           },
                           style: IconButton.styleFrom(
-                            backgroundColor: const Color(0xFF7C3AED).withValues(alpha: 0.2),
+                            backgroundColor: tokens.accentSubtle,
                             padding: const EdgeInsets.all(14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.mdAll,
                             ),
                           ),
                         ),
@@ -413,7 +399,7 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                       if (_isDownloaded) ...[
                         const SizedBox(width: 10),
                         IconButton.filledTonal(
-                          icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                          icon: Icon(Icons.delete_outline_rounded, color: tokens.danger),
                           tooltip: 'Delete downloaded file',
                           onPressed: () async {
                             await BookDownloadService.instance.deleteBook(
@@ -423,10 +409,10 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
                             _checkDownloadStatus();
                           },
                           style: IconButton.styleFrom(
-                            backgroundColor: Colors.white10,
+                            backgroundColor: tokens.borderStrong,
                             padding: const EdgeInsets.all(14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.mdAll,
                             ),
                           ),
                         ),
@@ -437,22 +423,17 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
 
                   // Metadata Details List
                   if (book.publisher.isNotEmpty || book.isbn.isNotEmpty || book.series.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'Information',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                     ),
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF20212C),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white10),
+                        color: tokens.surface,
+                        borderRadius: ZplayRadius.mdAll,
+                        border: Border.fromBorderSide(tokens.hairlineStrong),
                       ),
                       child: Column(
                         children: [
@@ -475,24 +456,16 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
 
                   // Description
                   if (book.description.isNotEmpty) ...[
-                    const Text(
+                    Text(
                       'Overview',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       book.description,
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontSize: 13,
-                        color: Colors.white70,
-                        height: 1.5,
-                      ),
+                      style: ZplayType.body
+                          .copyWith(size: 13, height: 1.5)
+                          .toStyle(color: tokens.textEmphasis),
                     ),
                   ],
                 ],
@@ -505,25 +478,24 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
   }
 
   Widget _buildBadge(String text, {Color? bgColor, required Color textColor}) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: bgColor ?? Colors.white10,
-        borderRadius: BorderRadius.circular(8),
+        color: bgColor ?? tokens.borderStrong,
+        borderRadius: ZplayRadius.smAll,
       ),
       child: Text(
         text,
-        style: TextStyle(
-          fontFamily: 'Poppins',
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
+        style: ZplayType.caption
+            .copyWith(weight: FontWeight.w600)
+            .toStyle(color: textColor),
       ),
     );
   }
 
   Widget _buildInfoRow(String label, String value) {
+    final tokens = context.tokens;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -531,21 +503,14 @@ class _BookDetailSheetState extends State<BookDetailSheet> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 12,
-              color: Colors.white54,
-            ),
+            style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
           ),
           Flexible(
             child: Text(
               value,
-              style: const TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
+              style: ZplayType.bodySmall
+                  .copyWith(weight: FontWeight.w500)
+                  .toStyle(color: tokens.textPrimary),
               textAlign: TextAlign.right,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

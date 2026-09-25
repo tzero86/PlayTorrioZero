@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 /// Full-screen error view with retry button.
 class ErrorView extends StatelessWidget {
@@ -15,40 +15,38 @@ class ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(26),
+        padding: const EdgeInsets.all(ZplaySpacing.s24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.warning_amber_rounded,
               size: 48,
-              color: Colors.orangeAccent,
+              color: tokens.warning,
             ),
-            const SizedBox(height: 14),
-            const Text(
+            const SizedBox(height: ZplaySpacing.s16),
+            Text(
               'Could not load movies',
-              style: TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w800,
-              ),
+              style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: ZplaySpacing.s8),
             Text(
               error ?? 'Unknown error',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.58),
-              ),
+              style: ZplayType.body.toStyle(color: tokens.textSecondary),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: ZplaySpacing.s20),
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try again'),
               style: FilledButton.styleFrom(
-                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
+                backgroundColor: tokens.accent,
+                foregroundColor: tokens.onAccent,
               ),
             ),
           ],

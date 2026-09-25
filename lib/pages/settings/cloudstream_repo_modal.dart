@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/cloudstream/cloudstream_source.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 class CloudStreamRepoModal extends StatefulWidget {
   const CloudStreamRepoModal({super.key});
@@ -75,6 +75,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
   }
 
   Future<void> _install(CloudStreamSource plugin) async {
+    final tokens = context.tokens;
     final id = plugin.internalName ?? plugin.name;
     setState(() => _installingIds.add(id));
 
@@ -84,7 +85,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${plugin.name} installed successfully!'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: tokens.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -93,7 +94,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: tokens.danger,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -105,6 +106,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
   }
 
   Future<void> _uninstall(CloudStreamSource plugin) async {
+    final tokens = context.tokens;
     final id = plugin.internalName ?? plugin.name;
     setState(() => _installingIds.add(id));
 
@@ -114,7 +116,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('${plugin.name} uninstalled.'),
-          backgroundColor: Colors.orange.shade800,
+          backgroundColor: tokens.warning,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -123,7 +125,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst('Exception: ', '')),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: tokens.danger,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -135,6 +137,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
   }
 
   Future<void> _installAll() async {
+    final tokens = context.tokens;
     final uninstalled = _filteredPlugins.where((p) => !_isInstalled(p)).toList();
     if (uninstalled.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -152,7 +155,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Successfully installed $count plugins!'),
-          backgroundColor: const Color(0xFF10B981),
+          backgroundColor: tokens.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -162,7 +165,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Installation error: $e'),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: tokens.danger,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -170,38 +173,42 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
   }
 
   Future<void> _confirmUninstallAllInRepo() async {
+    final tokens = context.tokens;
     final installedList = _filteredPlugins.where((p) => _isInstalled(p)).toList();
     if (installedList.isEmpty) return;
 
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF151822),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: tokens.surfaceOverlay,
+        shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
         title: Row(
           children: [
-            const Icon(Icons.delete_sweep_rounded, color: Color(0xFFEF4444), size: 22),
+            Icon(Icons.delete_sweep_rounded, color: tokens.danger, size: 22),
             const SizedBox(width: 8),
             Text('Remove ${installedList.length} Plugin${installedList.length > 1 ? 's' : ''}?'),
           ],
         ),
         content: Text(
           'Are you sure you want to uninstall all ${installedList.length} installed plugins from this list? Their downloaded files will be removed.',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13.5),
+          style: ZplayType.body.toStyle(color: tokens.textEmphasis),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: TextStyle(color: Colors.white.withValues(alpha: 0.45))),
+            child: Text(
+              'Cancel',
+              style: ZplayType.label.toStyle(color: tokens.textSecondary),
+            ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade700,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: tokens.danger,
+              foregroundColor: tokens.onAccent,
+              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
             ),
-            child: Text('Remove All (${installedList.length})', style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text('Remove All (${installedList.length})', style: ZplayType.label.toStyle()),
           ),
         ],
       ),
@@ -214,7 +221,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Successfully uninstalled ${installedList.length} plugins.'),
-        backgroundColor: const Color(0xFFEF4444),
+        backgroundColor: tokens.danger,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -223,6 +230,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final filtered = _filteredPlugins;
     final uninstalledCount = filtered.where((p) => !_isInstalled(p)).length;
 
@@ -232,10 +240,10 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
       maxChildSize: 0.95,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Color(0xFF0F121A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
+          decoration: BoxDecoration(
+            color: tokens.surfaceOverlay,
+            borderRadius: ZplayRadius.sheetTop,
+            boxShadow: const [
               BoxShadow(
                 color: Colors.black54,
                 blurRadius: 30,
@@ -252,8 +260,8 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                   width: 44,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(2),
+                    color: Colors.white.withValues(alpha: ZplayOpacity.overlayHover),
+                    borderRadius: ZplayRadius.xsAll,
                   ),
                 ),
               ),
@@ -270,17 +278,27 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                           builder: (context, busy, _) {
                             return OutlinedButton.icon(
                               onPressed: busy ? null : _confirmUninstallAllInRepo,
-                              icon: const Icon(Icons.delete_sweep_rounded, size: 14, color: Color(0xFFEF4444)),
+                              icon: Icon(
+                                Icons.delete_sweep_rounded,
+                                size: 14,
+                                color: tokens.danger,
+                              ),
                               label: Text(
                                 'Remove All ($installedCount)',
-                                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFFEF4444)),
+                                style: ZplayType.caption.toStyle(color: tokens.danger),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: const Color(0xFFEF4444).withValues(alpha: 0.5)),
-                                backgroundColor: const Color(0xFFEF4444).withValues(alpha: 0.08),
+                                side: BorderSide(
+                                  color: tokens.danger.withValues(
+                                    alpha: ZplayOpacity.textSecondary,
+                                  ),
+                                ),
+                                backgroundColor: tokens.danger.withValues(
+                                  alpha: ZplayOpacity.borderDefault,
+                                ),
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                                 visualDensity: VisualDensity.compact,
                               ),
                             );
@@ -295,14 +313,14 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                               icon: const Icon(Icons.download_rounded, size: 14),
                               label: Text(
                                 'Install All ($uninstalledCount)',
-                                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold),
+                                style: ZplayType.caption.toStyle(),
                                 overflow: TextOverflow.ellipsis,
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                                foregroundColor: Colors.white,
+                                backgroundColor: tokens.accent,
+                                foregroundColor: tokens.onAccent,
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                                 visualDensity: VisualDensity.compact,
                               ),
                             );
@@ -315,19 +333,15 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                         children: [
                           Row(
                             children: [
-                              const Expanded(
+                              Expanded(
                                 child: Text(
                                   'Available Plugins',
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
+                                  style: ZplayType.title.toStyle(color: tokens.textPrimary),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                                icon: Icon(Icons.close_rounded, color: tokens.textEmphasis),
                                 onPressed: () => Navigator.pop(context),
                               ),
                             ],
@@ -351,13 +365,9 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
 
                     return Row(
                       children: [
-                        const Text(
+                        Text(
                           'Available CloudStream Plugins',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                          ),
+                          style: ZplayType.title.toStyle(color: tokens.textPrimary),
                         ),
                         const Spacer(),
                         if (installedCount > 0) ...[
@@ -369,7 +379,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                           const SizedBox(width: 8),
                         ],
                         IconButton(
-                          icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                          icon: Icon(Icons.close_rounded, color: tokens.textEmphasis),
                           onPressed: () => Navigator.pop(context),
                         ),
                       ],
@@ -390,22 +400,26 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
-                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)),
+                          color: tokens.accentSubtle,
+                          borderRadius: ZplayRadius.smAll,
+                          border: Border.all(
+                            color: tokens.accent.withValues(
+                              alpha: ZplayOpacity.borderStrong,
+                            ),
+                          ),
                         ),
                         child: Row(
                           children: [
                             SizedBox(
                               width: 14,
                               height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: tokens.accent),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
                                 msg,
-                                style: const TextStyle(fontSize: 12, color: Color(0xFFB4A0FF)),
+                                style: ZplayType.bodySmall.toStyle(color: tokens.accent),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -423,20 +437,21 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 child: TextField(
                   controller: _searchController,
-                  style: const TextStyle(fontSize: 13.5, color: Colors.white),
+                  style: ZplayType.body.toStyle(color: tokens.textPrimary),
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: InputDecoration(
                     hintText: 'Search plugins (e.g. Sflix, SuperStream)...',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      fontSize: 13,
+                    hintStyle: ZplayType.label.toStyle(color: tokens.textDisabled),
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      size: 18,
+                      color: tokens.textSecondary,
                     ),
-                    prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Colors.white54),
                     filled: true,
-                    fillColor: const Color(0xFF161A24),
+                    fillColor: tokens.surfaceRaised,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    border: const OutlineInputBorder(
+                      borderRadius: ZplayRadius.smAll,
                       borderSide: BorderSide.none,
                     ),
                   ),
@@ -448,7 +463,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
               // Plugins list
               Expanded(
                 child: _isLoading
-                    ? Center(child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor))
+                    ? Center(child: CircularProgressIndicator(color: tokens.accent))
                     : filtered.isEmpty
                         ? Center(
                             child: Padding(
@@ -458,11 +473,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                     ? 'No plugins found in added repositories.\nPlease add a CloudStream repository URL first.'
                                     : 'No plugins matching "$_searchQuery"',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 13.5,
-                                  color: Colors.white.withValues(alpha: 0.4),
-                                  height: 1.4,
-                                ),
+                                style: ZplayType.body.toStyle(color: tokens.textMuted),
                               ),
                             ),
                           )
@@ -480,19 +491,21 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                               return Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF161A24),
-                                  borderRadius: BorderRadius.circular(14),
+                                  color: tokens.surface,
+                                  borderRadius: ZplayRadius.mdAll,
                                   border: Border.all(
                                     color: installed
-                                        ? const Color(0xFF10B981).withValues(alpha: 0.3)
-                                        : Colors.white.withValues(alpha: 0.05),
+                                        ? tokens.success.withValues(
+                                            alpha: ZplayOpacity.borderStrong,
+                                          )
+                                        : tokens.borderSubtle,
                                   ),
                                 ),
                                 child: Row(
                                   children: [
                                     // Plugin logo
                                     ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: ZplayRadius.smAll,
                                       child: SizedBox(
                                         width: 40,
                                         height: 40,
@@ -500,9 +513,15 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                             ? CachedNetworkImage(
                                                 imageUrl: plugin.iconUrl!,
                                                 fit: BoxFit.cover,
-                                                errorWidget: (_, __, ___) => const Icon(Icons.extension_rounded, color: Colors.white54),
+                                                errorWidget: (_, __, ___) => Icon(
+                                                  Icons.extension_rounded,
+                                                  color: tokens.textSecondary,
+                                                ),
                                               )
-                                            : const Icon(Icons.extension_rounded, color: Colors.white54),
+                                            : Icon(
+                                                Icons.extension_rounded,
+                                                color: tokens.textSecondary,
+                                              ),
                                       ),
                                     ),
                                     const SizedBox(width: 14),
@@ -517,11 +536,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                               Flexible(
                                                 child: Text(
                                                   plugin.name,
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: Colors.white,
-                                                  ),
+                                                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                                                   overflow: TextOverflow.ellipsis,
                                                 ),
                                               ),
@@ -530,12 +545,14 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                                 Container(
                                                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.red.withValues(alpha: 0.2),
-                                                    borderRadius: BorderRadius.circular(4),
+                                                    color: tokens.danger.withValues(
+                                                      alpha: ZplayOpacity.borderStrong,
+                                                    ),
+                                                    borderRadius: ZplayRadius.xsAll,
                                                   ),
-                                                  child: const Text(
+                                                  child: Text(
                                                     '18+',
-                                                    style: TextStyle(fontSize: 10, color: Colors.redAccent, fontWeight: FontWeight.bold),
+                                                    style: ZplayType.caption.toStyle(color: tokens.danger),
                                                   ),
                                                 ),
                                               ],
@@ -547,25 +564,20 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
-                                                  borderRadius: BorderRadius.circular(4),
+                                                  color: tokens.accent.withValues(
+                                                    alpha: ZplayOpacity.borderStrong,
+                                                  ),
+                                                  borderRadius: ZplayRadius.xsAll,
                                                 ),
                                                 child: Text(
                                                   plugin.effectiveLanguage.toUpperCase(),
-                                                  style: TextStyle(
-                                                    fontSize: 10,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: AppThemeService.currentPalette.value.primaryColor,
-                                                  ),
+                                                  style: ZplayType.caption.toStyle(color: tokens.accent),
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
                                               Text(
                                                 'v${plugin.version ?? "1.0.0"}',
-                                                style: TextStyle(
-                                                  fontSize: 11.5,
-                                                  color: Colors.white.withValues(alpha: 0.35),
-                                                ),
+                                                style: ZplayType.caption.toStyle(color: tokens.textMuted),
                                               ),
                                             ],
                                           ),
@@ -578,7 +590,7 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                       SizedBox(
                                         width: 28,
                                         height: 28,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: AppThemeService.currentPalette.value.primaryColor),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: tokens.accent),
                                       )
                                     else if (installed)
                                       Row(
@@ -587,24 +599,36 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: tokens.success.withValues(
+                                                alpha: ZplayOpacity.borderStrong,
+                                              ),
+                                              borderRadius: ZplayRadius.smAll,
                                             ),
-                                            child: const Row(
+                                            child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                Icon(Icons.check_rounded, size: 13, color: Color(0xFF10B981)),
-                                                SizedBox(width: 4),
+                                                Icon(
+                                                  Icons.check_rounded,
+                                                  size: 13,
+                                                  color: tokens.success,
+                                                ),
+                                                const SizedBox(width: 4),
                                                 Text(
                                                   'Installed',
-                                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF10B981)),
+                                                  style: ZplayType.caption.toStyle(
+                                                    color: tokens.success,
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                           ),
                                           const SizedBox(width: 2),
                                           IconButton(
-                                            icon: const Icon(Icons.delete_outline_rounded, size: 18, color: Colors.redAccent),
+                                            icon: Icon(
+                                              Icons.delete_outline_rounded,
+                                              size: 18,
+                                              color: tokens.danger,
+                                            ),
                                             onPressed: () => _uninstall(plugin),
                                             tooltip: 'Uninstall',
                                             visualDensity: VisualDensity.compact,
@@ -617,15 +641,15 @@ class _CloudStreamRepoModalState extends State<CloudStreamRepoModal> {
                                       ElevatedButton(
                                         onPressed: () => _install(plugin),
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                                          foregroundColor: Colors.white,
+                                          backgroundColor: tokens.accent,
+                                          foregroundColor: tokens.onAccent,
                                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                                           visualDensity: VisualDensity.compact,
                                         ),
-                                        child: const Text(
+                                        child: Text(
                                           'Install',
-                                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                                          style: ZplayType.label.toStyle(),
                                         ),
                                       ),
                                   ],

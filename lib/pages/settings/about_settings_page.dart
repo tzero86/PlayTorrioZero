@@ -1,32 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 class AboutSettingsPage extends StatelessWidget {
   const AboutSettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque band with a bottom
+        // hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'About ZPlay',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s24,
+            ),
             children: [
               // App Brand Header
               Center(
@@ -36,35 +43,28 @@ class AboutSettingsPage extends StatelessWidget {
                       width: 72,
                       height: 72,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [AppThemeService.currentPalette.value.primaryColor, AppThemeService.currentPalette.value.primaryColor],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(22),
+                        color: tokens.accent,
+                        borderRadius: ZplayRadius.lgAll,
                         boxShadow: [
                           BoxShadow(
-                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
+                            color: tokens.accent.withValues(
+                              alpha: ZplayOpacity.textDisabled,
+                            ),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.play_arrow_rounded,
-                        color: Colors.white,
+                        color: tokens.onAccent,
                         size: 44,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'ZPlay',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                        color: Colors.white,
-                      ),
+                      style: ZplayType.display.toStyle(color: tokens.textPrimary),
                     ),
                     const SizedBox(height: 6),
                     FutureBuilder<PackageInfo>(
@@ -73,10 +73,8 @@ class AboutSettingsPage extends StatelessWidget {
                         final version = snapshot.hasData ? snapshot.data!.version : '1.1.6';
                         return Text(
                           'Version $version • Next-Gen Streaming Hub',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.white.withValues(alpha: 0.45),
-                            fontWeight: FontWeight.w500,
+                          style: ZplayType.label.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         );
                       },
@@ -89,33 +87,27 @@ class AboutSettingsPage extends StatelessWidget {
 
               // Description Card
               Container(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(ZplaySpacing.s20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF12151E),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.08),
-                  ),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.lgAll,
+                  border: Border.fromBorderSide(tokens.hairline),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Universal Entertainment Ecosystem',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
+                      style: ZplayType.subtitle.toStyle(
+                        color: tokens.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'ZPlay is an all-in-one entertainment client bringing together movies, TV series, anime, live IPTV, music, manga, and audiobooks into a unified, high-performance interface with custom Liquid Glass visuals.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.5),
-                        height: 1.45,
-                      ),
+                      style: ZplayType.body
+                          .toStyle(color: tokens.textSecondary)
+                          .copyWith(height: 1.45),
                     ),
                   ],
                 ),
@@ -126,31 +118,30 @@ class AboutSettingsPage extends StatelessWidget {
               // Architecture & Core Technologies
               Text(
                 'CORE TECHNOLOGIES',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 12),
 
               _buildTechTile(
+                context: context,
                 title: 'High-Performance Video Engine',
                 subtitle: 'Powered by embedded media_kit / libmpv with hardware-accelerated decoding.',
               ),
               const SizedBox(height: 10),
               _buildTechTile(
+                context: context,
                 title: 'Debrid & Multi-Source Scrapers',
                 subtitle: 'Direct high-speed cloud playback via Real-Debrid, TorBox, and Stremio addons.',
               ),
               const SizedBox(height: 10),
               _buildTechTile(
+                context: context,
                 title: 'Liquid Glass GLSL Shaders',
                 subtitle: 'Custom real-time optical refraction, lenses, and fluid physics.',
               ),
               const SizedBox(height: 10),
               _buildTechTile(
+                context: context,
                 title: 'Trakt & Cloud Synchronization',
                 subtitle: 'Cross-platform watchlist, episode tracking, and playback scrobbling.',
               ),
@@ -160,16 +151,12 @@ class AboutSettingsPage extends StatelessWidget {
               // Credits & Licence
               Text(
                 'CREDITS & LICENCE',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  letterSpacing: 1.1,
-                ),
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
               ),
               const SizedBox(height: 12),
 
               _buildLinkTile(
+                context: context,
                 icon: Icons.code_rounded,
                 title: 'ZPlay',
                 subtitle: 'Independent fork maintained by tzero86',
@@ -177,6 +164,7 @@ class AboutSettingsPage extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               _buildLinkTile(
+                context: context,
                 icon: Icons.history_edu_rounded,
                 title: 'Based on PlayTorrio V3',
                 subtitle: 'Original project by Ayman (@ayman708-UX)',
@@ -188,11 +176,7 @@ class AboutSettingsPage extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 'Poppins and Playfair Display are bundled under the SIL Open Font License 1.1.',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.3),
-                  height: 1.4,
-                ),
+                style: ZplayType.bodySmall.toStyle(color: tokens.textDisabled),
               ),
             ],
           ),
@@ -202,17 +186,17 @@ class AboutSettingsPage extends StatelessWidget {
   }
 
   Widget _buildTechTile({
+    required BuildContext context,
     required String title,
     required String subtitle,
   }) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.05),
-        ),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,8 +206,8 @@ class AboutSettingsPage extends StatelessWidget {
             width: 8,
             height: 8,
             decoration: BoxDecoration(
-              color: AppThemeService.currentPalette.value.primaryColor,
-              borderRadius: BorderRadius.circular(4),
+              color: tokens.accent,
+              borderRadius: ZplayRadius.xsAll,
             ),
           ),
           const SizedBox(width: 14),
@@ -233,18 +217,15 @@ class AboutSettingsPage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                  style: ZplayType.subtitle.toStyle(
+                    color: tokens.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.4),
+                  style: ZplayType.bodySmall.toStyle(
+                    color: tokens.textSecondary,
                   ),
                 ),
               ],
@@ -257,19 +238,21 @@ class AboutSettingsPage extends StatelessWidget {
 
   /// A tappable credit row that opens [url] in the system browser.
   Widget _buildLinkTile({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
     required String url,
   }) {
+    final tokens = context.tokens;
     return _CreditTile(
       icon: icon,
       title: title,
       subtitle: subtitle,
-      trailing: const Icon(
+      trailing: Icon(
         Icons.open_in_new_rounded,
         size: 16,
-        color: Colors.white38,
+        color: tokens.textMuted,
       ),
       onTap: () => _openUrl(url),
     );
@@ -278,16 +261,17 @@ class AboutSettingsPage extends StatelessWidget {
   /// Opens the licence notice: ZPlay's own GPL attribution header plus every
   /// third-party package licence Flutter collected at build time.
   Widget _buildLicenseTile(BuildContext context) {
+    final tokens = context.tokens;
     return _CreditTile(
       icon: Icons.gavel_rounded,
       title: 'GNU GPL v3.0',
       subtitle:
           'ZPlay is a modified version of PlayTorrio V3, distributed under the '
           'GNU General Public License v3.0. Tap to read the licence.',
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right_rounded,
         size: 20,
-        color: Colors.white38,
+        color: tokens.textMuted,
       ),
       onTap: () => showLicensePage(
         context: context,
@@ -334,22 +318,23 @@ class _CreditTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Material(
-      color: const Color(0xFF12151E),
-      borderRadius: BorderRadius.circular(14),
+      color: tokens.surface,
+      borderRadius: ZplayRadius.mdAll,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: ZplayRadius.mdAll,
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            borderRadius: ZplayRadius.mdAll,
+            border: Border.fromBorderSide(tokens.hairline),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 18, color: AppThemeService.currentPalette.value.primaryColor),
+              Icon(icon, size: 18, color: tokens.accent),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -357,20 +342,16 @@ class _CreditTile extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                      style: ZplayType.subtitle.toStyle(
+                        color: tokens.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 1.35,
-                        color: Colors.white.withValues(alpha: 0.4),
-                      ),
+                      style: ZplayType.bodySmall
+                          .toStyle(color: tokens.textSecondary)
+                          .copyWith(height: 1.35),
                     ),
                   ],
                 ),

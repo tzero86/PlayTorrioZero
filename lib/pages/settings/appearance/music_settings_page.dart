@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../services/theme/app_theme_service.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../services/home/home_page_settings.dart';
 import '../../../services/music/music_settings.dart';
 import '../../../widgets/common/segmented_tabs.dart';
@@ -20,19 +21,23 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque palette band with a
+        // bottom hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Music UI & Player Atmosphere',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
         elevation: 0,
       ),
@@ -40,7 +45,10 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 820),
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s20,
+            ),
             physics: const BouncingScrollPhysics(),
             children: [
               // 1. Enter Music Player Studio Banner
@@ -84,18 +92,15 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final tokens = context.tokens;
     return Text(
       title,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: Colors.white.withValues(alpha: 0.35),
-        letterSpacing: 1.1,
-      ),
+      style: ZplayType.overline.toStyle(color: tokens.textMuted),
     );
   }
 
   Widget _buildThemesGrid() {
+    final tokens = context.tokens;
     return ValueListenableBuilder<AppThemePalette>(
       valueListenable: AppThemeService.currentPalette,
       builder: (context, currentPalette, _) {
@@ -124,16 +129,16 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                     AppThemeService.setPalette(theme);
                     setState(() {});
                   },
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: ZplayRadius.mdAll,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF12151E),
-                      borderRadius: BorderRadius.circular(14),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
                         color: isSelected
                             ? currentPalette.primaryColor
-                            : Colors.white.withValues(alpha: 0.08),
+                            : tokens.borderDefault,
                         width: isSelected ? 1.8 : 1.0,
                       ),
                     ),
@@ -157,17 +162,17 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                             ],
                           ),
                           child: isSelected
-                              ? const Icon(Icons.check_rounded, color: Colors.white, size: 15)
+                              ? Icon(Icons.check_rounded, color: tokens.textPrimary, size: 15)
                               : null,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             theme.name,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                              fontSize: 13,
+                            style: ZplayType.label.toStyle(
+                              color: isSelected
+                                  ? tokens.textPrimary
+                                  : tokens.textEmphasis,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -185,12 +190,13 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
   }
 
   Widget _buildAmbientLightsCard(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,13 +206,13 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
             builder: (context, enabled, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                title: Text(
                   'Moving Background Ambient Lighting',
-                  style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w700),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
                 subtitle: Text(
                   'Dynamic moving glowing orbs reacting with your theme accent colors',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12),
+                  style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                 ),
                 value: enabled,
                 activeColor: palette.primaryColor,
@@ -215,12 +221,12 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
             },
           ),
           const SizedBox(height: 12),
-          Divider(color: Colors.white.withValues(alpha: 0.08)),
+          Divider(color: tokens.borderDefault),
           const SizedBox(height: 12),
 
           Text(
             'Ambient Light Pattern',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600),
+            style: ZplayType.label.toStyle(color: tokens.textEmphasis),
           ),
           const SizedBox(height: 8),
           ValueListenableBuilder<AmbientLightPattern>(
@@ -249,15 +255,17 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Glow Strength / Opacity', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
-                      Text('${(intensity * 100).round()}%', style: TextStyle(color: palette.primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text('Glow Strength / Opacity', style: ZplayType.label.toStyle(color: tokens.textEmphasis)),
+                      Text('${(intensity * 100).round()}%', style: ZplayType.labelNumeric.toStyle(color: palette.primaryColor)),
                     ],
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: palette.primaryColor,
-                      inactiveTrackColor: Colors.white12,
-                      thumbColor: Colors.white,
+                      inactiveTrackColor: Colors.white.withValues(
+                        alpha: ZplayOpacity.borderMedium,
+                      ),
+                      thumbColor: tokens.textPrimary,
                     ),
                     child: Slider(
                       value: intensity,
@@ -276,12 +284,13 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
   }
 
   Widget _buildDiscoveryConfigCard(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,31 +300,31 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
             builder: (context, enabled, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show Hero Spotlight Showcase', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                subtitle: const Text('Featured bestselling album & track showcase at the top of the music page', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                title: Text('Show Hero Spotlight Showcase', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
+                subtitle: Text('Featured bestselling album & track showcase at the top of the music page', style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary)),
                 value: enabled,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MusicSettings.setEnableSpotlight(val),
               );
             },
           ),
-          Divider(color: Colors.white.withValues(alpha: 0.08)),
+          Divider(color: tokens.borderDefault),
           ValueListenableBuilder<bool>(
             valueListenable: MusicSettings.showLosslessBadge,
             builder: (context, enabled, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show Lossless Hi-Res Audio Badges', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                subtitle: const Text('Displays FLAC / Hi-Res lossless stream indicators on music cards and player', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                title: Text('Show Lossless Hi-Res Audio Badges', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
+                subtitle: Text('Displays FLAC / Hi-Res lossless stream indicators on music cards and player', style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary)),
                 value: enabled,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MusicSettings.setShowLosslessBadge(val),
               );
             },
           ),
-          Divider(color: Colors.white.withValues(alpha: 0.08)),
+          Divider(color: tokens.borderDefault),
           const SizedBox(height: 8),
-          Text('Music Card & Grid Density', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
+          Text('Music Card & Grid Density', style: ZplayType.label.toStyle(color: tokens.textEmphasis)),
           const SizedBox(height: 8),
           ValueListenableBuilder<MusicCardDensity>(
             valueListenable: MusicSettings.cardDensity,
@@ -338,6 +347,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
   }
 
   Widget _buildFullscreenPlayerPresetSelector(AppThemePalette palette) {
+    final tokens = context.tokens;
     return ValueListenableBuilder<MusicFullscreenPreset>(
       valueListenable: MusicSettings.selectedFullscreenPreset,
       builder: (context, selectedPreset, _) {
@@ -347,10 +357,10 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
-                color: isSelected ? palette.primaryColor.withValues(alpha: 0.12) : const Color(0xFF12151E),
-                borderRadius: BorderRadius.circular(16),
+                color: isSelected ? tokens.accentSubtle : tokens.surface,
+                borderRadius: ZplayRadius.mdAll,
                 border: Border.all(
-                  color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
+                  color: isSelected ? palette.primaryColor : tokens.borderDefault,
                   width: isSelected ? 1.8 : 1.0,
                 ),
               ),
@@ -361,7 +371,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
+                    color: isSelected ? palette.primaryColor : tokens.borderSubtle,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -374,24 +384,17 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                                 : preset == MusicFullscreenPreset.cinematicArtwork
                                     ? Icons.fullscreen_rounded
                                     : Icons.dashboard_customize_rounded,
-                    color: isSelected ? Colors.white : Colors.white70,
+                    color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
                     size: 20,
                   ),
                 ),
                 title: Text(
                   preset.label,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    fontSize: 14,
-                  ),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
                 subtitle: Text(
                   preset.description,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 11.5,
-                  ),
+                  style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                 ),
                 trailing: isSelected
                     ? Icon(Icons.check_circle_rounded, color: palette.primaryColor, size: 22)
@@ -405,13 +408,14 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
   }
 
   Widget _buildEnterPlayerStudioBanner(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: ZplayRadius.lgAll,
         gradient: LinearGradient(
           colors: [
             palette.primaryColor.withValues(alpha: 0.3),
-            const Color(0xFF10131E),
+            tokens.surface,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -448,7 +452,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.dashboard_customize_rounded, color: Colors.white, size: 28),
+              child: Icon(Icons.dashboard_customize_rounded, color: tokens.textPrimary, size: 28),
             ),
             const SizedBox(width: 18),
             Expanded(
@@ -457,24 +461,20 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                 children: [
                   Row(
                     children: [
-                      const Text(
+                      Text(
                         'Custom Music Player Studio',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w900,
-                        ),
+                        style: ZplayType.title.toStyle(color: tokens.textPrimary),
                       ),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
                           color: palette.primaryColor.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: ZplayRadius.xsAll,
                         ),
                         child: Text(
                           'FULL PLAYER ENGINE',
-                          style: TextStyle(color: palette.primaryColor, fontSize: 9.5, fontWeight: FontWeight.bold),
+                          style: ZplayType.overline.toStyle(color: palette.primaryColor),
                         ),
                       ),
                     ],
@@ -482,10 +482,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                   const SizedBox(height: 5),
                   Text(
                     'Customize the Fullscreen Player. Drag & drop blocks, waveform equalizers, vinyl turntable & liquid glass buttons.',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 12,
-                    ),
+                    style: ZplayType.bodySmall.toStyle(color: tokens.textEmphasis),
                   ),
                   const SizedBox(height: 14),
                   ElevatedButton.icon(
@@ -495,14 +492,14 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                         MaterialPageRoute(builder: (_) => const MusicPlayerStudioPage()),
                       );
                     },
-                    icon: const Icon(Icons.tune_rounded, size: 18, color: Colors.white),
-                    label: const Text(
+                    icon: Icon(Icons.tune_rounded, size: 18, color: tokens.textPrimary),
+                    label: Text(
                       'Enter Custom Player Studio',
-                      style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.white),
+                      style: ZplayType.label.toStyle(color: tokens.textPrimary),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: palette.primaryColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
                     ),
                   ),
@@ -516,12 +513,13 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
   }
 
   Widget _buildCustomPlayerStudioCard(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -530,7 +528,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Live Waveform & Controls Preview', style: TextStyle(color: palette.primaryColor, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text('Live Waveform & Controls Preview', style: ZplayType.label.toStyle(color: palette.primaryColor)),
               TextButton(
                 onPressed: () {
                   Navigator.push(
@@ -538,7 +536,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                     MaterialPageRoute(builder: (_) => const MusicPlayerStudioPage()),
                   );
                 },
-                child: const Text('Open Full Studio ➔', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                child: Text('Open Full Studio ➔', style: ZplayType.label.toStyle()),
               ),
             ],
           ),
@@ -561,11 +559,11 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                 MaterialPageRoute(builder: (_) => const MusicPlayerStudioPage()),
               );
             },
-            icon: const Icon(Icons.dashboard_customize_rounded, size: 18, color: Colors.white),
-            label: const Text('Launch Full Custom Player Studio', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13.5, color: Colors.white)),
+            icon: Icon(Icons.dashboard_customize_rounded, size: 18, color: tokens.textPrimary),
+            label: Text('Launch Full Custom Player Studio', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
             style: ElevatedButton.styleFrom(
               backgroundColor: palette.primaryColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
               padding: const EdgeInsets.symmetric(vertical: 13),
               minimumSize: const Size.fromHeight(46),
             ),

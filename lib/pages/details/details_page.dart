@@ -15,39 +15,26 @@ import '../../widgets/common/focusable_card.dart';
 import '../discover/discover_page.dart';
 import '../player/watch_screen.dart';
 import '../../services/storage/app_image_cache.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 // ---------------------------------------------------------------------------
-// Design tokens
+// Cast avatars
 // ---------------------------------------------------------------------------
-class _Space {
-  static const xs = 8.0;
-  static const sm = 12.0;
-  static const md = 16.0;
-  static const lg = 24.0;
-  static const xl = 32.0;
-  static const xxl = 48.0;
-}
 
-class _Palette {
-  static const bg = Color(0xFF0B0D12);
-  static const surface = Color(0xFF15171F);
-
-  /// The screen's accent was pinned to #E50914, a Netflix red that belongs to no
-  /// palette in this app, so Details ignored the user's theme entirely. Both
-  /// accents now derive from the active palette.
-  static Color get accent => AppThemeService.currentPalette.value.primaryColor;
-  static Color get accentDim => Color.lerp(accent, Colors.black, 0.33)!;
-  static const gold = Color(0xFFFFC107);
-
-  static const avatarPairs = [
-    [Color(0xFF3A1C71), Color(0xFFD76D77)],
-    [Color(0xFF11998E), Color(0xFF38EF7D)],
-    [Color(0xFF1F4037), Color(0xFF99F2C8)],
-    [Color(0xFF2C3E50), Color(0xFF4CA1AF)],
-    [Color(0xFF614385), Color(0xFF516395)],
-    [Color(0xFF232526), Color(0xFF6E6E6E)],
-  ];
+/// Gradient pair for a cast avatar.
+///
+/// The old six hardcoded pairs carried no identity — the avatar is decoration,
+/// not a face. One deterministic cycle over four semantic hues keeps a given
+/// name's avatar stable and adjacent cast members distinct, while the hue now
+/// comes from the active palette instead of a literal.
+List<Color> _avatarGradient(ZplayTokens tokens, int index) {
+  final hue = switch (index % 4) {
+    0 => tokens.accent,
+    1 => tokens.info,
+    2 => tokens.success,
+    _ => tokens.warning,
+  };
+  return [Color.lerp(tokens.bg, hue, 0.45)!, hue];
 }
 
 class DetailsPage extends StatefulWidget {
@@ -462,10 +449,12 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Scaffold(
-      backgroundColor: _Palette.bg,
+      backgroundColor: tokens.bg,
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: _Palette.accent))
+          ? Center(child: CircularProgressIndicator(color: tokens.accent))
           : _detail == null
               ? _buildError()
               : _buildContent(context),
@@ -473,17 +462,19 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildError() {
+    final tokens = context.tokens;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.broken_image_rounded, size: 64, color: Colors.white24),
-          const SizedBox(height: _Space.md),
-          const Text('Details unavailable.', style: TextStyle(color: Colors.white54, fontSize: 18)),
-          const SizedBox(height: _Space.lg),
+          Icon(Icons.broken_image_rounded, size: 64, color: tokens.textDisabled),
+          const SizedBox(height: ZplaySpacing.s16),
+          Text('Details unavailable.', style: ZplayType.title.toStyle(color: tokens.textSecondary)),
+          const SizedBox(height: ZplaySpacing.s24),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.white10, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(backgroundColor: tokens.surface, foregroundColor: tokens.textPrimary),
             child: const Text('Go Back'),
           )
         ],
@@ -492,6 +483,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildContent(BuildContext context) {
+    final tokens = context.tokens;
     final meta = _detail!;
     final bgUrl = meta.background ?? meta.poster ?? widget.movie.poster;
     final posterUrl = meta.poster ?? widget.movie.poster;
@@ -522,25 +514,25 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                     opacity: _fadeAnimation,
                     child: Padding(
                       padding: EdgeInsets.fromLTRB(
-                        isDesktop ? _Space.xxl : _Space.lg,
+                        isDesktop ? ZplaySpacing.s48 : ZplaySpacing.s24,
                         0,
-                        isDesktop ? _Space.xxl : _Space.lg,
-                        _Space.xxl + bottomInset,
+                        isDesktop ? ZplaySpacing.s48 : ZplaySpacing.s24,
+                        ZplaySpacing.s48 + bottomInset,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: heroHeight - overlap),
                           isDesktop ? _buildDesktopLayout(meta, posterUrl) : _buildMobileLayout(meta, posterUrl),
-                          const SizedBox(height: _Space.xl),
+                          const SizedBox(height: ZplaySpacing.s32),
                           if (meta.cast.isNotEmpty) ...[
                             _buildCastRow(meta.cast),
-                            const SizedBox(height: _Space.xl),
+                            const SizedBox(height: ZplaySpacing.s32),
                           ],
                           if (meta.videos.isNotEmpty) ...[
                             if (meta.videos.map((v) => v.season).where((s) => s != null).toSet().length > 1) ...[
                               _buildSeasonSelector(meta),
-                              const SizedBox(height: _Space.lg),
+                              const SizedBox(height: ZplaySpacing.s24),
                             ] else ...[
                               _buildSectionHeader(_isCollection ? 'Movies in Collection' : 'Episodes'),
                             ],
@@ -592,32 +584,32 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                               },
                               child: _buildEpisodeSlider(key: ValueKey(_selectedSeason)),
                             ),
-                            const SizedBox(height: _Space.xl),
+                            const SizedBox(height: ZplaySpacing.s32),
                           ],
                           if (widget.relatedItems != null && widget.relatedItems!.isNotEmpty) ...[
                             _buildRelatedRow(widget.relatedItems!),
-                            const SizedBox(height: _Space.xl),
+                            const SizedBox(height: ZplaySpacing.s32),
                           ],
                           if (_similarItems.isNotEmpty) ...[
                             _buildSimilarRow(),
-                            const SizedBox(height: _Space.xl),
+                            const SizedBox(height: ZplaySpacing.s32),
                           ] else if (_isFetchingSimilar) ...[
                             _buildSectionHeader('Similar Content'),
                             Center(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 40),
+                                padding: const EdgeInsets.symmetric(vertical: ZplaySpacing.s40),
                                 child: SizedBox(
-                                  width: 24, height: 24,
+                                  width: ZplaySpacing.s24, height: ZplaySpacing.s24,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.5,
-                                    color: _Palette.accent,
+                                    color: tokens.accent,
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(height: _Space.xl),
+                            const SizedBox(height: ZplaySpacing.s32),
                           ],
-                          const SizedBox(height: _Space.xxl),
+                          const SizedBox(height: ZplaySpacing.s48),
                         ],
                       ),
                     ),
@@ -628,18 +620,18 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
           ),
         ),
         Positioned(
-          top: isDesktop ? _Space.lg : (topInset + 10),
-          left: isDesktop ? _Space.xxl : _Space.md,
+          top: isDesktop ? ZplaySpacing.s24 : (topInset + 10),
+          left: isDesktop ? ZplaySpacing.s48 : ZplaySpacing.s16,
           child: ClipOval(
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
               child: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+                icon: Icon(Icons.arrow_back_ios_new_rounded, color: tokens.textPrimary, size: 20),
                 onPressed: () => Navigator.pop(context),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.1),
-                  padding: const EdgeInsets.all(12),
-                  side: BorderSide(color: Colors.white.withOpacity(0.12)),
+                  backgroundColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
+                  padding: const EdgeInsets.all(ZplaySpacing.s12),
+                  side: BorderSide(color: tokens.borderStrong),
                 ),
               ),
             ),
@@ -663,6 +655,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   //   3. a gentle horizontal wash so text on the left never fights the image
   // -------------------------------------------------------------------------
   Widget _buildBackdrop(String bgUrl, Size screenSize) {
+    final tokens = context.tokens;
+
     return Positioned(
       top: 0,
       left: 0,
@@ -679,37 +673,45 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                fit: BoxFit.cover, alignment: Alignment.topCenter),
             // horizontal wash — darkens where the title/synopsis sit, leaves
             // the rest of the image breathing room instead of blacking it all out
-            const DecoratedBox(
+            DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
-                  colors: [_Palette.bg, Color(0x991A1D26), Colors.transparent],
-                  stops: [0.0, 0.42, 0.82],
+                  colors: [
+                    tokens.bg,
+                    tokens.surfaceRaised.withValues(alpha: 0.60),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.42, 0.82],
                 ),
               ),
             ),
             // slow bottom fade — the whole point of the fix: this used to
             // resolve to solid bg by ~70% of a 300-460px strip, now it takes
             // nearly the full viewport height to settle
-            const DecoratedBox(
+            DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Color(0x661A1D26), _Palette.bg],
-                  stops: [0.0, 0.62, 0.94],
+                  colors: [
+                    Colors.transparent,
+                    tokens.surfaceRaised.withValues(alpha: 0.40),
+                    tokens.bg,
+                  ],
+                  stops: const [0.0, 0.62, 0.94],
                 ),
               ),
             ),
             // top cap so the back button always has contrast
-            const DecoratedBox(
+            DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.black45, Colors.transparent],
-                  stops: [0.0, 0.22],
+                  colors: [tokens.bg.withValues(alpha: 0.45), Colors.transparent],
+                  stops: const [0.0, 0.22],
                 ),
               ),
             ),
@@ -727,6 +729,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   // already in the metadata line, so it's dropped to avoid repeating itself.
   // -------------------------------------------------------------------------
   Widget _buildDesktopLayout(MovieDetail meta, String? posterUrl) {
+    final tokens = context.tokens;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -738,17 +742,17 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
               if (posterUrl != null)
                 DecoratedBox(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: ZplayRadius.mdAll,
                     boxShadow: [
                       // subtle accent-tinted glow behind the poster, on top
                       // of the usual drop shadow, so it reads as "lit" rather
                       // than just floating on black
-                      BoxShadow(color: _Palette.accent.withOpacity(0.18), blurRadius: 46, spreadRadius: -6),
-                      BoxShadow(color: Colors.black.withOpacity(0.55), blurRadius: 30, offset: const Offset(0, 14)),
+                      BoxShadow(color: tokens.accent.withValues(alpha: 0.18), blurRadius: 46, spreadRadius: -6),
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.55), blurRadius: 30, offset: const Offset(0, 14)),
                     ],
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: ZplayRadius.mdAll,
                     child: AspectRatio(
                       aspectRatio: 2 / 3,
                       child: CachedNetworkImage(
@@ -756,31 +760,31 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                         cacheManager: AppImageCache.manager,
                         memCacheWidth: 512,
                         fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => const ColoredBox(color: _Palette.surface)),
+                        errorWidget: (_, __, ___) => ColoredBox(color: tokens.surface)),
                     ),
                   ),
                 ),
-              const SizedBox(height: _Space.lg),
+              const SizedBox(height: ZplaySpacing.s24),
               _buildPlayButton(fullWidth: true),
-              const SizedBox(height: _Space.sm),
+              const SizedBox(height: ZplaySpacing.s12),
               _buildLibraryButton(fullWidth: true),
             ],
           ),
         ),
-        const SizedBox(width: _Space.xl),
+        const SizedBox(width: ZplaySpacing.s32),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildLogoOrTitle(meta, isDesktop: true),
-              const SizedBox(height: _Space.md),
+              const SizedBox(height: ZplaySpacing.s16),
               _buildMetadataRow(meta),
               if (meta.description != null && meta.description!.isNotEmpty) ...[
-                const SizedBox(height: _Space.lg),
+                const SizedBox(height: ZplaySpacing.s24),
                 _buildSynopsis(meta.description!),
               ],
               if (meta.genres.isNotEmpty) ...[
-                const SizedBox(height: _Space.lg),
+                const SizedBox(height: ZplaySpacing.s24),
                 _buildGenreChips(meta.genres),
               ],
             ],
@@ -791,6 +795,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildMobileLayout(MovieDetail meta, String? posterUrl) {
+    final tokens = context.tokens;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -800,40 +806,40 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
             if (posterUrl != null)
               DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   boxShadow: [
-                    BoxShadow(color: _Palette.accent.withOpacity(0.16), blurRadius: 28, spreadRadius: -4),
-                    BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 16, offset: const Offset(0, 8)),
+                    BoxShadow(color: tokens.accent.withValues(alpha: 0.16), blurRadius: 28, spreadRadius: -4),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 16, offset: const Offset(0, 8)),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: ZplayRadius.smAll,
                   child: CachedNetworkImage(imageUrl: posterUrl,
                                             cacheManager: AppImageCache.manager,
                                             memCacheWidth: 330,
                                             width: 110, fit: BoxFit.cover),
                 ),
               ),
-            const SizedBox(width: _Space.md),
+            const SizedBox(width: ZplaySpacing.s16),
             Expanded(child: _buildLogoOrTitle(meta, isDesktop: false)),
           ],
         ),
-        const SizedBox(height: _Space.lg),
+        const SizedBox(height: ZplaySpacing.s24),
         _buildMetadataRow(meta),
-        const SizedBox(height: _Space.lg),
+        const SizedBox(height: ZplaySpacing.s24),
         Row(
           children: [
             Expanded(child: _buildPlayButton(fullWidth: true)),
-            const SizedBox(width: _Space.sm),
+            const SizedBox(width: ZplaySpacing.s12),
             _buildLibraryButton(fullWidth: false),
           ],
         ),
         if (meta.description != null && meta.description!.isNotEmpty) ...[
-          const SizedBox(height: _Space.lg),
+          const SizedBox(height: ZplaySpacing.s24),
           _buildSynopsis(meta.description!),
         ],
         if (meta.genres.isNotEmpty) ...[
-          const SizedBox(height: _Space.md),
+          const SizedBox(height: ZplaySpacing.s16),
           _buildGenreChips(meta.genres),
         ],
       ],
@@ -860,16 +866,22 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildTextTitle(String text, bool isDesktop) {
+    final tokens = context.tokens;
+
     return Text(
       text,
-      style: TextStyle(
-        fontSize: isDesktop ? 40 : 28,
-        fontWeight: FontWeight.w800,
-        height: 1.1,
-        letterSpacing: -1.0,
-        color: Colors.white,
-        shadows: [Shadow(color: Colors.black.withOpacity(0.7), blurRadius: 20, offset: const Offset(0, 6))],
-      ),
+      style: ZplayType.display
+          .copyWith(size: isDesktop ? 40 : 28)
+          .toStyle(color: tokens.textPrimary)
+          .copyWith(
+            shadows: [
+              Shadow(
+                color: tokens.bg.withValues(alpha: 0.7),
+                blurRadius: 20,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
     );
   }
 
@@ -877,9 +889,11 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   // the old boxed "Quick Facts" panel — same information, but styled as a
   // lightweight row instead of a card that left dead space under the poster.
   Widget _buildGenreChips(List<String> genres) {
+    final tokens = context.tokens;
+
     return Wrap(
-      spacing: _Space.xs,
-      runSpacing: _Space.xs,
+      spacing: ZplaySpacing.s8,
+      runSpacing: ZplaySpacing.s8,
       children: genres
           .map(
             (g) {
@@ -899,13 +913,16 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                     );
                   },
                   builder: (_, state) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.12)),
+                      color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderSubtle),
+                      borderRadius: ZplayRadius.lgAll,
+                      border: Border.all(color: tokens.borderStrong),
                     ),
-                    child: Text(g, style: const TextStyle(color: Colors.white70, fontSize: 12.5, fontWeight: FontWeight.w600)),
+                    child: Text(
+                      g,
+                      style: ZplayType.label.copyWith(weight: FontWeight.w600).toStyle(color: tokens.textEmphasis),
+                    ),
                   ),
                 ),
               );
@@ -916,20 +933,21 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildMetadataRow(MovieDetail meta) {
+    final tokens = context.tokens;
     final List<Widget> items = [];
 
     if (meta.year != null && meta.year!.isNotEmpty) {
-      items.add(Text(meta.year!, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)));
+      items.add(Text(meta.year!, style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)));
     }
 
     if (_isSeries) {
       final seasonCount = meta.videos.map((v) => v.season).where((s) => s != null).toSet().length;
       if (seasonCount > 0) {
         items.add(Text('$seasonCount Season${seasonCount > 1 ? "s" : ""}',
-            style: const TextStyle(color: Colors.white70, fontSize: 14)));
+            style: ZplayType.body.toStyle(color: tokens.textEmphasis)));
       }
     } else if (meta.runtime != null && meta.runtime!.isNotEmpty) {
-      items.add(Text(meta.runtime!, style: const TextStyle(color: Colors.white70, fontSize: 14)));
+      items.add(Text(meta.runtime!, style: ZplayType.body.toStyle(color: tokens.textEmphasis)));
     }
 
     if (meta.imdbRating != null && meta.imdbRating!.isNotEmpty) {
@@ -937,16 +955,19 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.12),
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: Colors.white.withOpacity(0.25)),
+            color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderStrong),
+            borderRadius: ZplayRadius.xsAll,
+            border: Border.all(color: tokens.textPrimary.withValues(alpha: 0.25)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.star_rounded, color: _Palette.gold, size: 14),
-              const SizedBox(width: 4),
-              Text(meta.imdbRating!, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+              Icon(Icons.star_rounded, color: tokens.warning, size: 14),
+              const SizedBox(width: ZplaySpacing.s4),
+              Text(
+                meta.imdbRating!,
+                style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
+              ),
             ],
           ),
         ),
@@ -954,16 +975,16 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
     }
 
     if (meta.genres.isNotEmpty) {
-      items.add(Text(meta.genres.take(3).join(' · '), style: const TextStyle(color: Colors.white70, fontSize: 14)));
+      items.add(Text(meta.genres.take(3).join(' · '), style: ZplayType.body.toStyle(color: tokens.textEmphasis)));
     }
 
     final List<Widget> spaced = [];
     for (int i = 0; i < items.length; i++) {
       spaced.add(items[i]);
       if (i < items.length - 1) {
-        spaced.add(const Padding(
-          padding: EdgeInsets.symmetric(horizontal: _Space.sm),
-          child: Text('•', style: TextStyle(color: Colors.white30, fontSize: 16)),
+        spaced.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12),
+          child: Text('•', style: ZplayType.body.copyWith(size: 16).toStyle(color: tokens.textDisabled)),
         ));
       }
     }
@@ -972,6 +993,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildPlayButton({required bool fullWidth}) {
+    final tokens = context.tokens;
+
     return _HoverButton(
       onTap: () => _handlePlayAction(
         _currentSeasonEpisodes.isNotEmpty
@@ -980,23 +1003,23 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
       ),
       child: Container(
         width: fullWidth ? double.infinity : null,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s24, vertical: 14),
         decoration: BoxDecoration(
-          gradient: LinearGradient(colors: [_Palette.accent, _Palette.accentDim]),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [BoxShadow(color: _Palette.accent.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 4))],
+          gradient: LinearGradient(colors: [tokens.accent, tokens.accentPressed]),
+          borderRadius: ZplayRadius.smAll,
+          boxShadow: [BoxShadow(color: tokens.accent.withValues(alpha: 0.35), blurRadius: 16, offset: const Offset(0, 4))],
         ),
         child: Row(
           mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+            Icon(Icons.play_arrow_rounded, color: tokens.onAccent, size: 24),
             const SizedBox(width: 6),
             Text(
               _isCollection
                   ? 'Play First Movie'
                   : (_isSeries ? 'Play Episodes' : 'Play Movie'),
-              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
+              style: ZplayType.subtitle.copyWith(weight: FontWeight.w700).toStyle(color: tokens.onAccent),
             ),
           ],
         ),
@@ -1008,6 +1031,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
     return ValueListenableBuilder<List<MyListItem>>(
       valueListenable: MyListService.items,
       builder: (context, items, _) {
+        final tokens = context.tokens;
         final inList = _detail != null &&
             MyListService.isInList(
               MyListItem.fromMovieDetail(
@@ -1025,16 +1049,16 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
           onTap: () => _toggleMyList(),
           child: Container(
             width: fullWidth ? double.infinity : null,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s20, vertical: 14),
             decoration: BoxDecoration(
               color: inList
-                  ? _Palette.accent.withOpacity(0.18)
-                  : Colors.white.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(8),
+                  ? tokens.accent.withValues(alpha: 0.18)
+                  : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderDefault),
+              borderRadius: ZplayRadius.smAll,
               border: Border.all(
                 color: inList
-                    ? _Palette.accent.withOpacity(0.35)
-                    : Colors.white.withOpacity(0.14),
+                    ? tokens.accent.withValues(alpha: 0.35)
+                    : tokens.textPrimary.withValues(alpha: 0.14),
               ),
             ),
             child: Row(
@@ -1043,17 +1067,15 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
               children: [
                 Icon(
                   inList ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                  color: inList ? _Palette.accent : Colors.white,
+                  color: inList ? tokens.accent : tokens.textPrimary,
                   size: 22,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   inList ? 'In Library' : 'Library',
-                  style: TextStyle(
-                    color: inList ? _Palette.accent : Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: ZplayType.body
+                      .copyWith(weight: FontWeight.w600)
+                      .toStyle(color: inList ? tokens.accent : tokens.textPrimary),
                 ),
               ],
             ),
@@ -1080,7 +1102,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildSynopsis(String text) {
-    const style = TextStyle(color: Colors.white70, fontSize: 15, height: 1.55, letterSpacing: 0.2);
+    final tokens = context.tokens;
+    final style = ZplayType.body
+        .copyWith(size: 15, height: 1.55, letterSpacing: 0.2)
+        .toStyle(color: tokens.textEmphasis);
     const maxLines = 3;
 
     return LayoutBuilder(
@@ -1112,12 +1137,12 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
               ),
             ),
             if (isOverflowing) ...[
-              const SizedBox(height: _Space.xs),
+              const SizedBox(height: ZplaySpacing.s8),
               FocusableCard(
                 onTap: () => setState(() => _isSynopsisExpanded = !_isSynopsisExpanded),
                 builder: (_, state) => Text(
                   _isSynopsisExpanded ? 'Show less' : 'Read more',
-                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                  style: ZplayType.body.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                 ),
               ),
             ],
@@ -1128,13 +1153,17 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildSectionHeader(String title) {
+    final tokens = context.tokens;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: _Space.md),
-      child: Text(title, style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: -0.3)),
+      padding: const EdgeInsets.only(bottom: ZplaySpacing.s16),
+      child: Text(title, style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary)),
     );
   }
 
   Widget _buildCastRow(List<String> cast) {
+    final tokens = context.tokens;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHoveringCast = true),
       onExit: (_) => setState(() => _isHoveringCast = false),
@@ -1153,13 +1182,13 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
                   itemCount: cast.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: _Space.lg),
+                  separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s24),
                   itemBuilder: (context, index) {
                     final name = cast[index];
                     final initials = name.isNotEmpty
                         ? name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join('').toUpperCase()
                         : '?';
-                    final pair = _Palette.avatarPairs[name.hashCode.abs() % _Palette.avatarPairs.length];
+                    final pair = _avatarGradient(tokens, name.hashCode.abs() % 4);
 
                     return SizedBox(
                       width: 84,
@@ -1187,22 +1216,28 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: pair),
-                                      border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
+                                      border: Border.all(
+                                        color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
+                                        width: 1.5,
+                                      ),
                                     ),
                                     alignment: Alignment.center,
-                                    child: Text(initials, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                                    child: Text(
+                                      initials,
+                                      style: ZplayType.titleLarge.copyWith(size: 24).toStyle(color: tokens.textPrimary),
+                                    ),
                                   ),
                                 ),
                               );
                             }
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: ZplaySpacing.s8),
                           Text(
                             name,
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12, height: 1.2),
+                            style: ZplayType.bodySmall.copyWith(height: 1.2).toStyle(color: tokens.textEmphasis),
                           ),
                         ],
                       ),
@@ -1230,6 +1265,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildSeasonSelector(MovieDetail meta) {
+    final tokens = context.tokens;
     final seasons = meta.videos.map((v) => v.season).where((s) => s != null).toSet().toList();
     seasons.sort();
 
@@ -1247,7 +1283,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemCount: seasons.length,
-              separatorBuilder: (_, __) => const SizedBox(width: _Space.sm),
+              separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s12),
               itemBuilder: (context, index) {
                 final season = seasons[index];
                 final isSelected = _selectedSeason == season;
@@ -1267,17 +1303,21 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                     padding: const EdgeInsets.symmetric(horizontal: 22),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : Colors.white.withOpacity(0.07),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(color: isSelected ? Colors.white : Colors.white.withOpacity(0.1)),
+                      color: isSelected
+                          ? tokens.textPrimary
+                          : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderSubtle),
+                      borderRadius: ZplayRadius.lgAll,
+                      border: Border.all(
+                        color: isSelected
+                            ? tokens.textPrimary
+                            : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
+                      ),
                     ),
                     child: Text(
                       'Season $season',
-                      style: TextStyle(
-                        color: isSelected ? Colors.black : Colors.white,
-                        fontSize: 15,
-                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                      ),
+                      style: ZplayType.subtitle
+                          .copyWith(weight: isSelected ? FontWeight.w700 : FontWeight.w600)
+                          .toStyle(color: isSelected ? tokens.bg : tokens.textPrimary),
                     ),
                   ),
                 );
@@ -1302,6 +1342,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildEpisodeSlider({Key? key}) {
+    final tokens = context.tokens;
     final isDesktop = _isDesktop();
     final cardWidth = isDesktop ? 300.0 : 230.0;
     final fadeWidth = isDesktop ? 60.0 : 40.0;
@@ -1324,10 +1365,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    _canScrollEpisodesLeft ? Colors.transparent : Colors.black,
-                    Colors.black,
-                    Colors.black,
-                    _canScrollEpisodesRight ? Colors.transparent : Colors.black,
+                    _canScrollEpisodesLeft ? Colors.transparent : tokens.bg,
+                    tokens.bg,
+                    tokens.bg,
+                    _canScrollEpisodesRight ? Colors.transparent : tokens.bg,
                   ],
                   stops: [
                     0.0,
@@ -1344,7 +1385,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
                 itemCount: _currentSeasonEpisodes.length,
-                separatorBuilder: (_, __) => const SizedBox(width: _Space.md),
+                separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s16),
                 itemBuilder: (context, index) {
                   final ep = _currentSeasonEpisodes[index];
                   return SizedBox(
@@ -1372,8 +1413,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          _Palette.bg,
-                          _Palette.bg.withValues(alpha: 0.0),
+                          tokens.bg,
+                          tokens.bg.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
@@ -1399,8 +1440,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                         begin: Alignment.centerRight,
                         end: Alignment.centerLeft,
                         colors: [
-                          _Palette.bg,
-                          _Palette.bg.withValues(alpha: 0.0),
+                          tokens.bg,
+                          tokens.bg.withValues(alpha: 0.0),
                         ],
                       ),
                     ),
@@ -1424,6 +1465,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   // "More Like This" — fills the dead space at the bottom of the page and
   // gives people somewhere to go next instead of hitting a wall of black.
   Widget _buildRelatedRow(List<Movie> related) {
+    final tokens = context.tokens;
     final isDesktop = _isDesktop();
     final cardWidth = isDesktop ? 150.0 : 120.0;
     final fadeWidth = isDesktop ? 60.0 : 40.0;
@@ -1449,10 +1491,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        _canScrollRelatedLeft ? Colors.transparent : Colors.black,
-                        Colors.black,
-                        Colors.black,
-                        _canScrollRelatedRight ? Colors.transparent : Colors.black,
+                        _canScrollRelatedLeft ? Colors.transparent : tokens.bg,
+                        tokens.bg,
+                        tokens.bg,
+                        _canScrollRelatedRight ? Colors.transparent : tokens.bg,
                       ],
                       stops: [
                         0.0,
@@ -1469,7 +1511,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     itemCount: related.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: _Space.md),
+                    separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s16),
                     itemBuilder: (context, index) {
                       final item = related[index];
                       return SizedBox(
@@ -1483,7 +1525,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                           },
                           scaleAmount: 1.05,
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: ZplayRadius.smAll,
                             child: AspectRatio(
                               aspectRatio: 2 / 3,
                               child: item.poster != null
@@ -1491,7 +1533,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                                        cacheManager: AppImageCache.manager,
                                                        memCacheWidth: 330,
                                                        fit: BoxFit.cover)
-                                  : const ColoredBox(color: _Palette.surface),
+                                  : ColoredBox(color: tokens.surface),
                             ),
                           ),
                         ),
@@ -1512,8 +1554,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                             colors: [
-                              _Palette.bg,
-                              _Palette.bg.withValues(alpha: 0.0),
+                              tokens.bg,
+                              tokens.bg.withValues(alpha: 0.0),
                             ],
                           ),
                         ),
@@ -1539,8 +1581,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                             begin: Alignment.centerRight,
                             end: Alignment.centerLeft,
                             colors: [
-                              _Palette.bg,
-                              _Palette.bg.withValues(alpha: 0.0),
+                              tokens.bg,
+                              tokens.bg.withValues(alpha: 0.0),
                             ],
                           ),
                         ),
@@ -1564,6 +1606,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildSimilarRow() {
+    final tokens = context.tokens;
     final isDesktop = _isDesktop();
     final cardWidth = isDesktop ? 160.0 : 130.0;
     final cardHeight = cardWidth * 1.5 + 64; // poster + text area
@@ -1590,10 +1633,10 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        _canScrollSimilarLeft ? Colors.transparent : Colors.black,
-                        Colors.black,
-                        Colors.black,
-                        _canScrollSimilarRight ? Colors.transparent : Colors.black,
+                        _canScrollSimilarLeft ? Colors.transparent : tokens.bg,
+                        tokens.bg,
+                        tokens.bg,
+                        _canScrollSimilarRight ? Colors.transparent : tokens.bg,
                       ],
                       stops: [
                         0.0,
@@ -1610,7 +1653,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
                     itemCount: _similarItems.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: _Space.md),
+                    separatorBuilder: (_, __) => const SizedBox(width: ZplaySpacing.s16),
                     itemBuilder: (context, index) {
                       final item = _similarItems[index];
                       return SizedBox(
@@ -1625,7 +1668,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                               Stack(
                                 children: [
                                   ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: ZplayRadius.smAll,
                                     child: AspectRatio(
                                       aspectRatio: 2 / 3,
                                       child: item.thumbUrl.isNotEmpty
@@ -1635,15 +1678,15 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                               memCacheWidth: 330,
                                               fit: BoxFit.cover,
                                               errorWidget: (_, __, ___) => Container(
-                                                color: _Palette.surface,
-                                                child: const Center(
-                                                  child: Icon(Icons.movie_rounded, color: Colors.white24, size: 36),
+                                                color: tokens.surface,
+                                                child: Center(
+                                                  child: Icon(Icons.movie_rounded, color: tokens.textDisabled, size: 36),
                                                 ),
                                               ))
                                           : Container(
-                                              color: _Palette.surface,
-                                              child: const Center(
-                                                child: Icon(Icons.movie_rounded, color: Colors.white24, size: 36),
+                                              color: tokens.surface,
+                                              child: Center(
+                                                child: Icon(Icons.movie_rounded, color: tokens.textDisabled, size: 36),
                                               ),
                                             ),
                                     ),
@@ -1656,17 +1699,15 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.75),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: _Palette.accent.withOpacity(0.6)),
+                                          color: tokens.bg.withValues(alpha: 0.75),
+                                          borderRadius: ZplayRadius.xsAll,
+                                          border: Border.all(color: tokens.accent.withValues(alpha: 0.6)),
                                         ),
                                         child: Text(
                                           '${item.similarityPercent}%',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w800,
-                                          ),
+                                          style: ZplayType.caption
+                                              .copyWith(weight: FontWeight.w700)
+                                              .toStyle(color: tokens.textPrimary),
                                         ),
                                       ),
                                     ),
@@ -1678,21 +1719,19 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                                         decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.75),
-                                          borderRadius: BorderRadius.circular(6),
+                                          color: tokens.bg.withValues(alpha: 0.75),
+                                          borderRadius: ZplayRadius.xsAll,
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.star_rounded, color: _Palette.gold, size: 13),
+                                            Icon(Icons.star_rounded, color: tokens.warning, size: 13),
                                             const SizedBox(width: 3),
                                             Text(
                                               item.rating!.toStringAsFixed(1),
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                              ),
+                                              style: ZplayType.caption
+                                                  .copyWith(weight: FontWeight.w700)
+                                                  .toStyle(color: tokens.textPrimary),
                                             ),
                                           ],
                                         ),
@@ -1700,19 +1739,17 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                     ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: ZplaySpacing.s8),
                               // Title
                               Text(
                                 item.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: ZplayType.label
+                                    .copyWith(weight: FontWeight.w600)
+                                    .toStyle(color: tokens.textPrimary),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: ZplaySpacing.s2),
                               // Year + genre
                               Text(
                                 [
@@ -1721,10 +1758,7 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                                 ].join(' · '),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white38,
-                                  fontSize: 12,
-                                ),
+                                style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                               ),
                             ],
                           ),
@@ -1746,8 +1780,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
                             colors: [
-                              _Palette.bg,
-                              _Palette.bg.withValues(alpha: 0.0),
+                              tokens.bg,
+                              tokens.bg.withValues(alpha: 0.0),
                             ],
                           ),
                         ),
@@ -1773,8 +1807,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                             begin: Alignment.centerRight,
                             end: Alignment.centerLeft,
                             colors: [
-                              _Palette.bg,
-                              _Palette.bg.withValues(alpha: 0.0),
+                              tokens.bg,
+                              tokens.bg.withValues(alpha: 0.0),
                             ],
                           ),
                         ),
@@ -1798,6 +1832,8 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
   }
 
   Widget _buildScrollArrow(IconData icon, VoidCallback onTap, bool isVisible) {
+    final tokens = context.tokens;
+
     return Center(
       child: AnimatedOpacity(
         opacity: isVisible ? 1.0 : 0.0,
@@ -1820,11 +1856,11 @@ class _DetailsPageState extends State<DetailsPage> with SingleTickerProviderStat
                     width: 42,
                     height: 42,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: tokens.bg.withValues(alpha: 0.6),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(color: tokens.textPrimary.withValues(alpha: 0.2)),
                     ),
-                    child: Icon(icon, color: Colors.white, size: 18),
+                    child: Icon(icon, color: tokens.textPrimary, size: 18),
                   ),
                 ),
               ),
@@ -1851,6 +1887,7 @@ class _EpisodeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final ep = episode;
     final imgUrl = ep.thumbnail ?? fallbackImageUrl;
 
@@ -1864,15 +1901,19 @@ class _EpisodeCard extends StatelessWidget {
           curve: Curves.easeOutCubic,
           child: Container(
             decoration: BoxDecoration(
-              color: _Palette.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: state.highlighted ? Colors.white.withOpacity(0.22) : Colors.white.withOpacity(0.04)),
+              color: tokens.surface,
+              borderRadius: ZplayRadius.smAll,
+              border: Border.all(
+                color: state.highlighted
+                    ? tokens.textPrimary.withValues(alpha: 0.22)
+                    : tokens.borderSubtle,
+              ),
               boxShadow: state.highlighted
-                  ? [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 18, offset: const Offset(0, 8))]
+                  ? [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 18, offset: const Offset(0, 8))]
                   : [],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: ZplayRadius.smAll,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -1887,15 +1928,15 @@ class _EpisodeCard extends StatelessWidget {
                             cacheManager: AppImageCache.manager,
                             memCacheWidth: 330,
                             fit: BoxFit.cover,
-                            errorWidget: (context, url, error) => const ColoredBox(color: Color(0xFF1B1E27)))
+                            errorWidget: (context, url, error) => ColoredBox(color: tokens.surfaceRaised))
                         else
-                          const ColoredBox(color: Color(0xFF1B1E27)),
+                          ColoredBox(color: tokens.surfaceRaised),
                         DecoratedBox(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, Colors.black.withOpacity(0.75)],
+                              colors: [Colors.transparent, tokens.bg.withValues(alpha: 0.75)],
                               stops: const [0.5, 1.0],
                             ),
                           ),
@@ -1907,11 +1948,11 @@ class _EpisodeCard extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: tokens.textPrimary.withValues(alpha: 0.95),
                                 shape: BoxShape.circle,
-                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10)],
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 10)],
                               ),
-                              child: const Icon(Icons.play_arrow_rounded, color: Colors.black, size: 24),
+                              child: Icon(Icons.play_arrow_rounded, color: tokens.bg, size: 24),
                             ),
                           ),
                         ),
@@ -1919,7 +1960,7 @@ class _EpisodeCard extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(_Space.sm),
+                    padding: const EdgeInsets.all(ZplaySpacing.s12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
@@ -1928,7 +1969,7 @@ class _EpisodeCard extends StatelessWidget {
                           children: [
                             Text(
                               isCollection ? 'PART ${ep.episode ?? "?"}' : 'EP ${ep.episode ?? "?"}',
-                              style: TextStyle(color: _Palette.accent, fontWeight: FontWeight.bold, fontSize: 12),
+                              style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: tokens.accent),
                             ),
                             const Spacer(),
                             if (ep.released != null && ep.released!.length >= 4)
@@ -1936,16 +1977,16 @@ class _EpisodeCard extends StatelessWidget {
                                 isCollection
                                     ? ep.released!.substring(0, 4)
                                     : (ep.released!.length >= 10 ? ep.released!.substring(0, 10) : ep.released!),
-                                style: const TextStyle(color: Colors.white38, fontSize: 11),
+                                style: ZplayType.caption.toStyle(color: tokens.textMuted),
                               ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: ZplaySpacing.s4),
                         Text(
                           ep.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13.5),
+                          style: ZplayType.label.copyWith(weight: FontWeight.w600).toStyle(color: tokens.textPrimary),
                         ),
                         if (ep.overview != null) ...[
                           const SizedBox(height: 3),
@@ -1953,7 +1994,7 @@ class _EpisodeCard extends StatelessWidget {
                             ep.overview!,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(color: Colors.white54, fontSize: 11.5, height: 1.3),
+                            style: ZplayType.bodySmall.copyWith(height: 1.3).toStyle(color: tokens.textSecondary),
                           ),
                         ],
                       ],

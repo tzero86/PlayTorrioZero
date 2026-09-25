@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+import '../../services/theme/design_tokens.dart';
+
 class SliderArrow extends StatefulWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -21,6 +23,8 @@ class _SliderArrowState extends State<SliderArrow> with SingleTickerProviderStat
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     // Dynamic scale based on interaction state
     final scale = _isPressed ? 0.90 : (_isHovered ? 1.08 : 1.0);
     
@@ -51,18 +55,20 @@ class _SliderArrowState extends State<SliderArrow> with SingleTickerProviderStat
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: _isHovered
-                      ? Colors.white.withOpacity(0.15)
-                      : const Color(0xFF080A0F).withOpacity(0.5),
+                      ? tokens.textPrimary.withValues(
+                          alpha: ZplayOpacity.overlayHover,
+                        )
+                      : tokens.bg.withValues(alpha: 0.5),
                   border: Border.all(
                     color: _isHovered
-                        ? Colors.white.withOpacity(0.3)
-                        : Colors.white.withOpacity(0.1),
+                        ? tokens.borderStrong
+                        : tokens.borderDefault,
                     width: 1.5,
                   ),
                   boxShadow: _isHovered
                       ? [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           )
@@ -71,7 +77,9 @@ class _SliderArrowState extends State<SliderArrow> with SingleTickerProviderStat
                 ),
                 child: Icon(
                   widget.icon,
-                  color: Colors.white.withOpacity(_isHovered ? 1.0 : 0.7),
+                  color: tokens.textPrimary.withValues(
+                    alpha: _isHovered ? 1.0 : ZplayOpacity.textEmphasis,
+                  ),
                   size: 20,
                 ),
               ),

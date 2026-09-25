@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/design_tokens.dart';
 import 'focusable_card.dart';
 
@@ -38,15 +37,19 @@ class SectionHeader extends StatelessWidget {
     this.trailing,
   });
 
-  static const BorderRadius _actionRadius =
-      BorderRadius.all(Radius.circular(10));
+  static const BorderRadius _actionRadius = ZplayRadius.smAll;
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = AppThemeService.currentPalette.value.primaryColor;
+    final tokens = ZplayTokens.of(context);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 8, 16, 0),
+      padding: const EdgeInsets.fromLTRB(
+        ZplaySpacing.s20,
+        ZplaySpacing.s8,
+        ZplaySpacing.s16,
+        0,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -63,36 +66,28 @@ class SectionHeader extends StatelessWidget {
                         title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                          height: 1.1,
+                        style: ZplayType.titleLarge.toStyle(
+                          color: tokens.textPrimary,
                         ),
                       ),
                     ),
                     if (count != null) ...[
-                      const SizedBox(width: 8),
+                      const SizedBox(width: ZplaySpacing.s8),
                       Text(
                         '$count',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.35),
-                          fontFeatures: const [FontFeature.tabularFigures()],
+                        style: ZplayType.labelNumeric.toStyle(
+                          color: tokens.textMuted,
                         ),
                       ),
                     ],
                   ],
                 ),
                 if (subtitle != null && subtitle!.isNotEmpty) ...[
-                  const SizedBox(height: 3),
+                  const SizedBox(height: ZplaySpacing.s2),
                   Text(
                     subtitle!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.38),
-                      fontWeight: FontWeight.w500,
+                    style: ZplayType.label.toStyle(
+                      color: tokens.textSecondary,
                     ),
                   ),
                 ],
@@ -101,7 +96,7 @@ class SectionHeader extends StatelessWidget {
           ),
           if (trailing != null) ...[
             trailing!,
-            if (onSeeAll != null) const SizedBox(width: 8),
+            if (onSeeAll != null) const SizedBox(width: ZplaySpacing.s8),
           ],
           if (onSeeAll != null)
             FocusableCard(
@@ -113,11 +108,11 @@ class SectionHeader extends StatelessWidget {
                   duration: ZplayMotion.fast,
                   curve: ZplayMotion.standard,
                   constraints: const BoxConstraints(minHeight: 44),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s12),
                   decoration: BoxDecoration(
                     borderRadius: _actionRadius,
                     color: state.highlighted
-                        ? primaryColor.withValues(alpha: 0.12)
+                        ? tokens.accent.withValues(alpha: ZplayOpacity.borderStrong)
                         : Colors.transparent,
                   ),
                   child: Row(
@@ -125,17 +120,13 @@ class SectionHeader extends StatelessWidget {
                     children: [
                       Text(
                         'See All',
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w600,
-                          color: primaryColor,
-                        ),
+                        style: ZplayType.label.toStyle(color: tokens.accent),
                       ),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: ZplaySpacing.s2),
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 20,
-                        color: primaryColor,
+                        color: tokens.accent,
                       ),
                     ],
                   ),

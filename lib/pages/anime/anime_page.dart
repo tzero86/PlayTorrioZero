@@ -289,6 +289,7 @@ class _AnimePageState extends State<AnimePage> {
     return ValueListenableBuilder<AppThemePalette>(
       valueListenable: AppThemeService.currentPalette,
       builder: (context, palette, _) {
+        final tokens = context.tokens;
         final backgroundContent = AnimatedAmbientBackground(
           child: Stack(
             children: [
@@ -302,21 +303,19 @@ class _AnimePageState extends State<AnimePage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline_rounded,
-                        color: Colors.redAccent,
+                        color: tokens.danger,
                         size: 48,
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: ZplaySpacing.s16),
                       Text(
                         _error!,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                        style: ZplayType.title.toStyle(
+                          color: tokens.textEmphasis,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: ZplaySpacing.s16),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: palette.primaryColor,
@@ -355,7 +354,7 @@ class _AnimePageState extends State<AnimePage> {
                             onDetailsTap: _openDetails,
                           ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: ZplaySpacing.s16),
 
                         // 2. Anime Continue Watching Slider
                         const ContinueWatchingSlider(
@@ -363,7 +362,7 @@ class _AnimePageState extends State<AnimePage> {
                           title: 'متابعة المشاهدة',
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: ZplaySpacing.s8),
 
                         // 3. Arabic Sliders with Desktop Scroll Arrows
                         if (_arabicFeed != null) ...[
@@ -426,7 +425,7 @@ class _AnimePageState extends State<AnimePage> {
                             onDetailsTap: _openDetails,
                           ),
 
-                        const SizedBox(height: 16),
+                        const SizedBox(height: ZplaySpacing.s16),
 
                         // 2. Anime Continue Watching Slider
                         const ContinueWatchingSlider(
@@ -434,7 +433,7 @@ class _AnimePageState extends State<AnimePage> {
                           title: 'Continue Watching',
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: ZplaySpacing.s8),
 
                         // 3. Sliders with Desktop Scroll Arrows
                         AnimeSliderSection(
@@ -575,16 +574,17 @@ class _AnimeGlassAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final isDesktop = MediaQuery.sizeOf(context).width > 700;
     final isMobile = MediaQuery.sizeOf(context).width < 430;
 
     return RepaintBoundary(
       child: Container(
         padding: EdgeInsets.only(
-          top: topPadding + 10,
-          bottom: 14,
-          left: isMobile ? 8 : 20,
-          right: 8,
+          top: topPadding + ZplaySpacing.s8,
+          bottom: ZplaySpacing.s16,
+          left: isMobile ? ZplaySpacing.s8 : ZplaySpacing.s20,
+          right: ZplaySpacing.s8,
         ),
         decoration: BoxDecoration(
           // Opaque, where this was a 90-96% `#080A0F` gradient. Nothing blurs
@@ -597,10 +597,8 @@ class _AnimeGlassAppBar extends StatelessWidget {
           // `tokens.bg` over the literal also fixes a palette mismatch: `#080A0F`
           // is only the ocean palette's background, so the bar stayed ocean-black
           // under all eleven other palettes.
-          color: context.tokens.bg,
-          border: Border(
-            bottom: BorderSide(color: context.tokens.borderSubtle),
-          ),
+          color: tokens.bg,
+          border: Border(bottom: tokens.hairline),
         ),
         child: Row(
           children: [
@@ -612,23 +610,24 @@ class _AnimeGlassAppBar extends StatelessWidget {
                 height: 32,
                 fit: BoxFit.contain,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: ZplaySpacing.s12),
               RichText(
                 text: TextSpan(
                   text: 'ZPlay ',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    color: Colors.white,
-                  ),
+                  style: ZplayType.titleLarge
+                      .copyWith(weight: FontWeight.w900)
+                      .toStyle(color: tokens.textPrimary),
                   children: [
                     TextSpan(
                       text: isArabicMode ? 'Anime • Arabic' : 'Anime',
-                      style: TextStyle(
-                        color: AppThemeService.currentPalette.value.primaryColor,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      style: ZplayType.titleLarge
+                          .copyWith(weight: FontWeight.w900)
+                          .toStyle(
+                            color: AppThemeService
+                                .currentPalette
+                                .value
+                                .primaryColor,
+                          ),
                     ),
                   ],
                 ),
@@ -638,23 +637,25 @@ class _AnimeGlassAppBar extends StatelessWidget {
 
             // Mode Switcher (General Anime vs Arabic Anime)
             Container(
-              padding: const EdgeInsets.all(3),
+              padding: const EdgeInsets.all(ZplaySpacing.s4),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.12),
-                ),
+                // The track is the audit's 6%-white inset wash, so the border
+                // scale's subtlest step is the exact match for the fill.
+                color: tokens.borderSubtle,
+                borderRadius: ZplayRadius.lgAll,
+                border: Border.all(color: tokens.borderStrong),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _buildModeButton(
+                    tokens: tokens,
                     label: isDesktop ? '🇯🇵 General' : '🇯🇵',
                     isActive: !isArabicMode,
                     onTap: () => onModeChanged(false),
                   ),
                   _buildModeButton(
+                    tokens: tokens,
                     label: isDesktop ? '🇸🇦 Arabic Anime' : '🇸🇦',
                     isActive: isArabicMode,
                     onTap: () => onModeChanged(true),
@@ -662,7 +663,7 @@ class _AnimeGlassAppBar extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: ZplaySpacing.s8),
 
             // Search Button
             Builder(
@@ -670,7 +671,7 @@ class _AnimeGlassAppBar extends StatelessWidget {
                 return IconButton(
                   icon: Icon(
                     Icons.search_rounded,
-                    color: Colors.white.withValues(alpha: 0.65),
+                    color: tokens.textEmphasis,
                     size: 25,
                   ),
                   onPressed: () {
@@ -686,7 +687,7 @@ class _AnimeGlassAppBar extends StatelessWidget {
             IconButton(
               icon: Icon(
                 Icons.settings_rounded,
-                color: Colors.white.withValues(alpha: 0.65),
+                color: tokens.textEmphasis,
                 size: 24,
               ),
               onPressed: onSettingsTap,
@@ -698,6 +699,7 @@ class _AnimeGlassAppBar extends StatelessWidget {
   }
 
   Widget _buildModeButton({
+    required ZplayTokens tokens,
     required String label,
     required bool isActive,
     required VoidCallback onTap,
@@ -705,16 +707,22 @@ class _AnimeGlassAppBar extends StatelessWidget {
     return FocusableCard(
       onTap: onTap,
       builder: (_, state) => AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        duration: ZplayMotion.base,
+        curve: ZplayMotion.standard,
+        padding: const EdgeInsets.symmetric(
+          horizontal: ZplaySpacing.s12,
+          vertical: ZplaySpacing.s4,
+        ),
         decoration: BoxDecoration(
-          color: isActive ? AppThemeService.currentPalette.value.primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          color: isActive
+              ? AppThemeService.currentPalette.value.primaryColor
+              : Colors.transparent,
+          borderRadius: ZplayRadius.mdAll,
           boxShadow: isActive
               ? [
                   BoxShadow(
-                    color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4),
+                    color: AppThemeService.currentPalette.value.primaryColor
+                        .withValues(alpha: 0.4),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   )
@@ -723,11 +731,11 @@ class _AnimeGlassAppBar extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.white.withValues(alpha: 0.65),
-            fontSize: 12,
-            fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
-          ),
+          style: ZplayType.bodySmall
+              .copyWith(weight: isActive ? FontWeight.w700 : FontWeight.w600)
+              .toStyle(
+                color: isActive ? tokens.textPrimary : tokens.textEmphasis,
+              ),
         ),
       ),
     );
@@ -783,7 +791,7 @@ class _AnimeHeroCarouselState extends State<_AnimeHeroCarousel> {
       _pageController.animateToPage(
         next,
         duration: const Duration(milliseconds: 700),
-        curve: Curves.easeInOutCubic,
+        curve: ZplayMotion.emphasized,
       );
     });
   }
@@ -795,7 +803,7 @@ class _AnimeHeroCarouselState extends State<_AnimeHeroCarousel> {
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOutCubic,
+      curve: ZplayMotion.emphasized,
     );
   }
 
@@ -813,6 +821,7 @@ class _AnimeHeroCarouselState extends State<_AnimeHeroCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
     final heroHeight = _heroHeight(screenWidth, screenHeight);
@@ -862,16 +871,18 @@ class _AnimeHeroCarouselState extends State<_AnimeHeroCarousel> {
                     return FocusableCard(
                       onTap: () => _goTo(i),
                       builder: (_, state) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOutCubic,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        duration: ZplayMotion.base,
+                        curve: ZplayMotion.standard,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: ZplaySpacing.s4,
+                        ),
                         width: active ? 22 : 7,
                         height: 7,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: ZplayRadius.xsAll,
                           color: active
                               ? AppThemeService.currentPalette.value.primaryColor
-                              : Colors.white.withValues(alpha: 0.30),
+                              : tokens.textDisabled,
                           boxShadow: active
                               ? [
                                   BoxShadow(
@@ -939,6 +950,7 @@ class _AnimeHeroSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final isCompact = screenWidth < 600;
     final hasBanner = anime.bannerImage.trim().isNotEmpty;
     final bannerUrl = hasBanner ? anime.bannerImage : null;
@@ -1000,16 +1012,15 @@ class _AnimeHeroSlide extends StatelessWidget {
                                 fit: BoxFit.cover,
                                 alignment: Alignment.center,
                                 filterQuality: FilterQuality.low,
-                                placeholder: (_, __) => const ColoredBox(
-                                    color: Color(0xFF080A0F)),
-                                errorWidget: (_, __, ___) => const ColoredBox(
-                                    color: Color(0xFF080A0F)),
+                                placeholder: (_, __) =>
+                                    ColoredBox(color: tokens.surface),
+                                errorWidget: (_, __, ___) =>
+                                    ColoredBox(color: tokens.surface),
                               ),
                             ),
                           ),
                           ColoredBox(
-                            color:
-                                const Color(0xFF080A0F).withValues(alpha: 0.50),
+                            color: tokens.bg.withValues(alpha: 0.50),
                           ),
                         ],
                       ),
@@ -1070,7 +1081,7 @@ class _AnimeHeroSlide extends StatelessWidget {
                             aspectRatio: 2 / 3,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: ZplayRadius.lgAll,
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.65),
@@ -1081,7 +1092,7 @@ class _AnimeHeroSlide extends StatelessWidget {
                                 ],
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: ZplayRadius.lgAll,
                                 child: heroArtwork(
                                   url: effectiveUrl,
                                   fit: BoxFit.cover,
@@ -1099,9 +1110,11 @@ class _AnimeHeroSlide extends StatelessWidget {
             ),
           )
         else
-          const ColoredBox(color: Color(0xFF080A0F)),
+          ColoredBox(color: tokens.surface),
 
-        // Left horizontal wash for cinematic readability
+        // Left horizontal wash for cinematic readability. The wash keeps its
+        // gradient structure — it is a legibility scrim over artwork, not chrome —
+        // and only takes its colour from the palette, like Home's hero.
         Positioned.fill(
           child: DecoratedBox(
             decoration: BoxDecoration(
@@ -1110,8 +1123,8 @@ class _AnimeHeroSlide extends StatelessWidget {
                 end: Alignment.centerRight,
                 stops: const [0.0, 0.38, 0.85],
                 colors: [
-                  const Color(0xFF080A0F).withValues(alpha: 0.95),
-                  const Color(0xFF080A0F).withValues(alpha: 0.70),
+                  tokens.bg.withValues(alpha: 0.95),
+                  tokens.bg.withValues(alpha: 0.70),
                   Colors.transparent,
                 ],
               ),
@@ -1127,7 +1140,7 @@ class _AnimeHeroSlide extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.center,
                 colors: [
-                  const Color(0xFF080A0F).withValues(alpha: 0.75),
+                  tokens.bg.withValues(alpha: 0.75),
                   Colors.transparent,
                 ],
               ),
@@ -1144,8 +1157,8 @@ class _AnimeHeroSlide extends StatelessWidget {
                 end: Alignment.topCenter,
                 stops: const [0.0, 0.30, 0.75],
                 colors: [
-                  const Color(0xFF080A0F),
-                  const Color(0xFF080A0F).withValues(alpha: 0.80),
+                  tokens.bg,
+                  tokens.bg.withValues(alpha: 0.80),
                   Colors.transparent,
                 ],
               ),
@@ -1155,8 +1168,8 @@ class _AnimeHeroSlide extends StatelessWidget {
 
         // Content Overlay
         Positioned(
-          left: isCompact ? 20 : 48,
-          right: isCompact ? 20 : 48,
+          left: isCompact ? ZplaySpacing.s20 : ZplaySpacing.s48,
+          right: isCompact ? ZplaySpacing.s20 : ZplaySpacing.s48,
           bottom: isCompact ? 36 : 56,
           child: Align(
             alignment: Alignment.bottomLeft,
@@ -1174,105 +1187,101 @@ class _AnimeHeroSlide extends StatelessWidget {
                       if (anime.averageScore > 0) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 11,
-                            vertical: 6,
+                            horizontal: ZplaySpacing.s12,
+                            vertical: ZplaySpacing.s4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFD700).withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(9),
+                            color: tokens.warning.withValues(
+                              alpha: ZplayOpacity.overlayHover,
+                            ),
+                            borderRadius: ZplayRadius.smAll,
                             border: Border.all(
-                              color: const Color(0xFFFFD700).withValues(alpha: 0.28),
+                              color: tokens.warning.withValues(alpha: 0.28),
                             ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.star_rounded,
                                 size: 17,
-                                color: Color(0xFFFFD700),
+                                color: tokens.warning,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: ZplaySpacing.s4),
                               Text(
                                 anime.formattedScore,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFFFFD700),
-                                ),
+                                style: ZplayType.bodyNumeric
+                                    .copyWith(weight: FontWeight.w700)
+                                    .toStyle(color: tokens.warning),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: ZplaySpacing.s8),
                       ],
                       if (anime.seasonYear > 0)
                         Text(
                           '${anime.seasonYear}',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white.withValues(alpha: 0.55),
-                            fontWeight: FontWeight.w600,
+                          style: ZplayType.subtitle.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         ),
                       if (anime.totalEpisodes > 0) ...[
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: ZplaySpacing.s8,
+                          ),
                           child: Icon(
                             Icons.circle,
                             size: 4,
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: tokens.textDisabled,
                           ),
                         ),
                         Text(
                           '${anime.totalEpisodes} Episodes',
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white.withValues(alpha: 0.55),
-                            fontWeight: FontWeight.w600,
+                          style: ZplayType.subtitle.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         ),
                       ],
                       if (anime.studioName.isNotEmpty) ...[
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: ZplaySpacing.s8,
+                          ),
                           child: Icon(
                             Icons.circle,
                             size: 4,
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: tokens.textDisabled,
                           ),
                         ),
                         Text(
                           anime.studioName,
-                          style: TextStyle(
-                            fontSize: 15,
-                            color: Colors.white.withValues(alpha: 0.55),
-                            fontWeight: FontWeight.w600,
+                          style: ZplayType.subtitle.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         ),
                       ],
                     ],
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: ZplaySpacing.s16),
 
                   // Title
                   Text(
                     anime.displayTitle,
-                    style: TextStyle(
-                      fontSize: isCompact ? 30 : 44,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1.2,
-                      height: 1.05,
-                      color: Colors.white,
-                    ),
+                    style: ZplayType.display
+                        .copyWith(size: isCompact ? 30 : 44)
+                        .toStyle(color: tokens.textPrimary),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
 
                   // Description
                   if (anime.description.isNotEmpty) ...[
-                    SizedBox(height: isCompact ? 12 : 16),
+                    SizedBox(
+                      height: isCompact ? ZplaySpacing.s12 : ZplaySpacing.s16,
+                    ),
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: isCompact ? double.infinity : 580,
@@ -1281,41 +1290,35 @@ class _AnimeHeroSlide extends StatelessWidget {
                         anime.description,
                         maxLines: isCompact ? 2 : 3,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: isCompact ? 14.5 : 15.5,
-                          color: Colors.white.withValues(alpha: 0.65),
-                          height: 1.5,
-                        ),
+                        style: ZplayType.body
+                            .copyWith(size: isCompact ? 14.5 : 15.5)
+                            .toStyle(color: tokens.textEmphasis),
                       ),
                     ),
                   ],
 
                   // Genre chips
                   if (anime.genres.isNotEmpty) ...[
-                    const SizedBox(height: 16),
+                    const SizedBox(height: ZplaySpacing.s16),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
+                      spacing: ZplaySpacing.s8,
+                      runSpacing: ZplaySpacing.s4,
                       children: anime.genres.take(4).map((genre) {
                         return Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 13,
-                            vertical: 6,
+                            horizontal: ZplaySpacing.s12,
+                            vertical: ZplaySpacing.s4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.12),
-                            ),
+                            color: tokens.surface,
+                            borderRadius: ZplayRadius.lgAll,
+                            border: Border.all(color: tokens.borderStrong),
                           ),
                           child: Text(
                             genre,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.70),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: ZplayType.bodySmall
+                                .copyWith(weight: FontWeight.w600)
+                                .toStyle(color: tokens.textEmphasis),
                           ),
                         );
                       }).toList(),
@@ -1323,61 +1326,65 @@ class _AnimeHeroSlide extends StatelessWidget {
                   ],
 
                   // Action buttons (Matching Home Page)
-                  SizedBox(height: isCompact ? 22 : 26),
+                  SizedBox(
+                    height: isCompact ? ZplaySpacing.s20 : ZplaySpacing.s24,
+                  ),
                   Row(
                     children: [
                       ElevatedButton.icon(
                         onPressed: onWatchNow,
                         icon: const Icon(Icons.play_arrow_rounded, size: 24),
-                        label: const Text(
+                        label: Text(
                           'Watch Ep 1',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15.5,
-                          ),
+                          style: ZplayType.subtitle.toStyle(),
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                          foregroundColor: Colors.white,
+                          foregroundColor: tokens.onAccent,
                           padding: EdgeInsets.symmetric(
-                            horizontal: isCompact ? 18 : 28,
-                            vertical: isCompact ? 12 : 16,
+                            horizontal: isCompact
+                                ? ZplaySpacing.s16
+                                : ZplaySpacing.s24,
+                            vertical: isCompact
+                                ? ZplaySpacing.s12
+                                : ZplaySpacing.s16,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: ZplayRadius.mdAll,
                           ),
                           elevation: 12,
                           shadowColor: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.45),
                         ),
                       ),
-                      SizedBox(width: isCompact ? 8 : 12),
+                      SizedBox(
+                        width: isCompact ? ZplaySpacing.s8 : ZplaySpacing.s12,
+                      ),
                       OutlinedButton.icon(
                         onPressed: onDetailsTap,
                         icon: Icon(
                           Icons.info_outline_rounded,
                           size: isCompact ? 18 : 21,
-                          color: Colors.white.withValues(alpha: 0.80),
+                          color: tokens.textEmphasis,
                         ),
                         label: Text(
                           'Details',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: isCompact ? 14 : 15.5,
-                            color: Colors.white.withValues(alpha: 0.80),
+                          style: ZplayType.subtitle.toStyle(
+                            color: tokens.textEmphasis,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
                           padding: EdgeInsets.symmetric(
-                            horizontal: isCompact ? 16 : 24,
-                            vertical: isCompact ? 12 : 16,
+                            horizontal: isCompact
+                                ? ZplaySpacing.s16
+                                : ZplaySpacing.s24,
+                            vertical: isCompact
+                                ? ZplaySpacing.s12
+                                : ZplaySpacing.s16,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: ZplayRadius.mdAll,
                           ),
-                          side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.18),
-                            width: 1.2,
-                          ),
+                          side: tokens.hairlineStrong,
                         ),
                       ),
                     ],
@@ -1400,27 +1407,24 @@ class _CarouselArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return FocusableCard(
       onTap: onTap,
       builder: (_, state) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: ZplayMotion.base,
         width: 52,
         height: 52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: state.highlighted
-              ? Colors.black.withValues(alpha: 0.6)
-              : Colors.black.withValues(alpha: 0.3),
+          color: state.highlighted ? tokens.surfaceRaised : tokens.surface,
           border: Border.all(
-            color: state.highlighted
-                ? Colors.white.withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.2),
-            width: 1.5,
+            color: state.highlighted ? tokens.accent : tokens.borderStrong,
           ),
         ),
         child: Icon(
           icon,
-          color: state.highlighted ? Colors.white : Colors.white70,
+          color: state.highlighted ? tokens.textPrimary : tokens.textEmphasis,
           size: 24,
         ),
       ),

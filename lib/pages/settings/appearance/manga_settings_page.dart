@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../services/theme/app_theme_service.dart';
 import '../../../services/home/home_page_settings.dart';
 import '../../../services/manga/manga_settings.dart';
@@ -16,19 +17,23 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
   @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque palette band with a
+        // bottom hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Manga UI & Reader Atmosphere',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: Center(
@@ -72,19 +77,16 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
   }
 
   Widget _buildSectionHeader(String title) {
+    final tokens = context.tokens;
     return Text(
       title,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-        color: Colors.white.withValues(alpha: 0.35),
-        letterSpacing: 1.1,
-      ),
+      style: ZplayType.overline.toStyle(color: tokens.textMuted),
     );
   }
 
   // ── 1. Themes Grid ──
   Widget _buildThemesGrid() {
+    final tokens = context.tokens;
     return ValueListenableBuilder<AppThemePalette>(
       valueListenable: AppThemeService.currentPalette,
       builder: (context, current, _) {
@@ -113,16 +115,16 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
                     await AppThemeService.setPalette(palette);
                     setState(() {});
                   },
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: ZplayRadius.mdAll,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF12151E),
-                      borderRadius: BorderRadius.circular(14),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
                         color: isSelected
                             ? palette.primaryColor
-                            : Colors.white.withValues(alpha: 0.08),
+                            : tokens.borderDefault,
                         width: isSelected ? 2 : 1,
                       ),
                     ),
@@ -148,17 +150,15 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
                             ],
                           ),
                           child: isSelected
-                              ? const Icon(Icons.check_rounded, color: Colors.white, size: 16)
+                              ? Icon(Icons.check_rounded, color: tokens.onAccent, size: 16)
                               : null,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             palette.name,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white70,
-                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                              fontSize: 13,
+                            style: ZplayType.label.toStyle(
+                              color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -178,12 +178,13 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
 
   // ── 2. Ambient Lighting Card ──
   Widget _buildAmbientLightsCard(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,13 +194,13 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, enabled, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text(
+                title: Text(
                   'Enable Moving Ambient Lighting',
-                  style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w700),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
                 subtitle: Text(
                   'Soft flowing glowing orbs and aurora waves themed to ${palette.name}',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12),
+                  style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                 ),
                 value: enabled,
                 activeColor: palette.primaryColor,
@@ -209,13 +210,13 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           ),
 
           const SizedBox(height: 12),
-          Divider(color: Colors.white.withValues(alpha: 0.08)),
+          Divider(color: tokens.borderDefault),
           const SizedBox(height: 12),
 
           // Pattern selector
           Text(
             'Lighting Flow Pattern',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600),
+            style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
           ),
           const SizedBox(height: 8),
           ValueListenableBuilder<AmbientLightPattern>(
@@ -246,14 +247,14 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Glow Strength / Opacity', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
-                      Text('${(intensity * 100).round()}%', style: TextStyle(color: palette.primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text('Glow Strength / Opacity', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
+                      Text('${(intensity * 100).round()}%', style: ZplayType.labelNumeric.toStyle(color: palette.primaryColor)),
                     ],
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: palette.primaryColor,
-                      inactiveTrackColor: Colors.white12,
+                      inactiveTrackColor: Colors.white.withValues(alpha: ZplayOpacity.borderStrong),
                       thumbColor: palette.primaryColor,
                       trackHeight: 3,
                     ),
@@ -280,14 +281,14 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Motion Drift Speed', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
-                      Text('${speed.toStringAsFixed(1)}x', style: TextStyle(color: palette.primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text('Motion Drift Speed', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
+                      Text('${speed.toStringAsFixed(1)}x', style: ZplayType.labelNumeric.toStyle(color: palette.primaryColor)),
                     ],
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: palette.primaryColor,
-                      inactiveTrackColor: Colors.white12,
+                      inactiveTrackColor: Colors.white.withValues(alpha: ZplayOpacity.borderStrong),
                       thumbColor: palette.primaryColor,
                       trackHeight: 3,
                     ),
@@ -311,11 +312,11 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             height: 80,
             width: double.infinity,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              borderRadius: ZplayRadius.smAll,
+              border: Border.fromBorderSide(tokens.hairline),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: ZplayRadius.smAll,
               child: Stack(
                 children: [
                   const Positioned.fill(child: AnimatedAmbientBackground()),
@@ -323,16 +324,16 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                        color: tokens.bg.withValues(alpha: ZplayOpacity.textSecondary),
+                        borderRadius: ZplayRadius.lgAll,
+                        border: Border.fromBorderSide(tokens.hairlineStrong),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.auto_awesome_rounded, color: palette.primaryColor, size: 14),
                           const SizedBox(width: 6),
-                          const Text('Live Atmosphere Preview', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                          Text('Live Atmosphere Preview', style: ZplayType.caption.toStyle(color: tokens.textPrimary)),
                         ],
                       ),
                     ),
@@ -348,12 +349,13 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
 
   // ── 3. Discovery & Cards Config Card ──
   Widget _buildCardsConfigCard(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,8 +365,8 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show "Continue Reading" Slider', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w700)),
-                subtitle: const Text('Display your active reading history at the top of the Manga page', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                title: Text('Show "Continue Reading" Slider', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
+                subtitle: Text('Display your active reading history at the top of the Manga page', style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setShowContinueReading(val),
@@ -373,10 +375,10 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           ),
 
           const SizedBox(height: 12),
-          Divider(color: Colors.white.withValues(alpha: 0.08)),
+          Divider(color: tokens.borderDefault),
           const SizedBox(height: 12),
 
-          Text('Manga Poster Card Density', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
+          Text('Manga Poster Card Density', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
           const SizedBox(height: 8),
           ValueListenableBuilder<MangaCardDensity>(
             valueListenable: MangaSettings.cardDensity,
@@ -401,7 +403,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show Content Type Badge (Manga/Manhwa)', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                title: Text('Show Content Type Badge (Manga/Manhwa)', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setShowContentTypeBadge(val),
@@ -414,7 +416,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show Publication Year on Cards', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                title: Text('Show Publication Year on Cards', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setShowMangaYear(val),
@@ -427,7 +429,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Poster Card Hover Glow Effect', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                title: Text('Poster Card Hover Glow Effect', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setAmbientCardGlow(val),
@@ -440,7 +442,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show Desktop Scroll Track', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                title: Text('Show Desktop Scroll Track', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setShowScrollTrack(val),
@@ -454,18 +456,19 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
 
   // ── 4. Reader Configuration Card ──
   Widget _buildReaderConfigCard(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Default Reading Mode
-          Text('Default Reading Mode', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
+          Text('Default Reading Mode', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
           const SizedBox(height: 8),
           ValueListenableBuilder<MangaReadingMode>(
             valueListenable: MangaSettings.defaultReadingMode,
@@ -486,7 +489,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           const SizedBox(height: 16),
 
           // Reader Max Width
-          Text('Page Reading Width Constraint', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
+          Text('Page Reading Width Constraint', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
           const SizedBox(height: 8),
           ValueListenableBuilder<MangaReaderMaxWidth>(
             valueListenable: MangaSettings.readerMaxWidth,
@@ -507,7 +510,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           const SizedBox(height: 16),
 
           // Reader Background Color
-          Text('Reader Background Atmosphere', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
+          Text('Reader Background Atmosphere', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
           const SizedBox(height: 8),
           ValueListenableBuilder<MangaReaderBackground>(
             valueListenable: MangaSettings.readerBackground,
@@ -524,20 +527,22 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
                       decoration: BoxDecoration(
                         color: b.color,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white30),
+                        border: Border.fromBorderSide(
+                          BorderSide(
+                            color: Colors.white.withValues(alpha: ZplayOpacity.textDisabled),
+                          ),
+                        ),
                       ),
                     ),
                     label: Text(b.label),
                     selected: isSelected,
                     selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                    backgroundColor: const Color(0xFF0C0F17),
-                    labelStyle: TextStyle(
-                      color: isSelected ? palette.primaryColor : Colors.white70,
-                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                      fontSize: 12,
+                    backgroundColor: tokens.surface,
+                    labelStyle: ZplayType.label.toStyle(
+                      color: isSelected ? palette.primaryColor : tokens.textEmphasis,
                     ),
                     side: BorderSide(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
+                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.6) : tokens.borderDefault,
                     ),
                     onSelected: (selected) {
                       if (selected) MangaSettings.setReaderBackground(b);
@@ -551,7 +556,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
           const SizedBox(height: 16),
 
           // Control Bar Style
-          Text('Control Toolbar Style', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
+          Text('Control Toolbar Style', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
           const SizedBox(height: 8),
           ValueListenableBuilder<MangaControlBarStyle>(
             valueListenable: MangaSettings.readerControlBarStyle,
@@ -581,14 +586,14 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Vertical Page Gap', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w600)),
-                      Text('${gap.round()} px', style: TextStyle(color: palette.primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                      Text('Vertical Page Gap', style: ZplayType.subtitle.toStyle(color: tokens.textPrimary)),
+                      Text('${gap.round()} px', style: ZplayType.labelNumeric.toStyle(color: palette.primaryColor)),
                     ],
                   ),
                   SliderTheme(
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: palette.primaryColor,
-                      inactiveTrackColor: Colors.white12,
+                      inactiveTrackColor: Colors.white.withValues(alpha: ZplayOpacity.borderStrong),
                       thumbColor: palette.primaryColor,
                       trackHeight: 3,
                     ),
@@ -610,8 +615,8 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show Page Deck / Thumbnail Previews', style: TextStyle(color: Colors.white, fontSize: 13.5)),
-                subtitle: const Text('Interactive visual tray of thumbnail previews for instant page jumping', style: TextStyle(color: Colors.white54, fontSize: 11.5)),
+                title: Text('Show Page Deck / Thumbnail Previews', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
+                subtitle: Text('Interactive visual tray of thumbnail previews for instant page jumping', style: ZplayType.caption.toStyle(color: tokens.textSecondary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setShowPageDeck(val),
@@ -624,7 +629,7 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Show Page Scrubber Slider', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                title: Text('Show Page Scrubber Slider', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setShowPageScrubber(val),
@@ -637,8 +642,8 @@ class _MangaSettingsPageState extends State<MangaSettingsPage> {
             builder: (context, show, _) {
               return SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Enable Next Chapter Preview Card Deck', style: TextStyle(color: Colors.white, fontSize: 13.5)),
-                subtitle: const Text('Rich glass deck card at the end of each chapter with chapter art and direct launch', style: TextStyle(color: Colors.white54, fontSize: 11.5)),
+                title: Text('Enable Next Chapter Preview Card Deck', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
+                subtitle: Text('Rich glass deck card at the end of each chapter with chapter art and direct launch', style: ZplayType.caption.toStyle(color: tokens.textSecondary)),
                 value: show,
                 activeColor: palette.primaryColor,
                 onChanged: (val) => MangaSettings.setEnableNextChapterDeck(val),

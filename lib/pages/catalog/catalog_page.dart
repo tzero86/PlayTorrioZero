@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../models/addon/addon.dart';
@@ -6,6 +5,7 @@ import '../../models/movie/movie.dart';
 import '../../models/movie/movie_section.dart';
 import '../../services/metadata/metadata_service.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/error_view.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/movie/movie_card.dart';
@@ -214,16 +214,21 @@ class _CatalogPageState extends State<CatalogPage> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
+    final tokens = context.tokens;
     final sizing = MovieCardSizing.fromWidth(MediaQuery.sizeOf(context).width);
     final isDesktop = MediaQuery.sizeOf(context).width >= 800;
     
     // Calculate safe top padding for grid based on if filters are available
     final selectableExtras = widget.section.catalog.selectableExtras;
     final hasFilters = selectableExtras.isNotEmpty && !_isSearching;
-    final gridTopPadding = topPadding + kToolbarHeight + (hasFilters ? 60 : 20) + 20;
+    final gridTopPadding =
+        topPadding +
+        kToolbarHeight +
+        (hasFilters ? 60 : ZplaySpacing.s20) +
+        ZplaySpacing.s20;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           // ── Main Content Grid ──
@@ -237,10 +242,10 @@ class _CatalogPageState extends State<CatalogPage> {
               onRetry: () => _loadItems(refresh: true),
             )
           else if (_items.isEmpty)
-            const Center(
+            Center(
               child: Text(
                 'No items found',
-                style: TextStyle(color: Colors.white54, fontSize: 16),
+                style: ZplayType.subtitle.toStyle(color: tokens.textSecondary),
               ),
             )
           else
@@ -250,7 +255,8 @@ class _CatalogPageState extends State<CatalogPage> {
                 sizing.sidePadding,
                 gridTopPadding,
                 sizing.sidePadding,
-                40 + MediaQuery.paddingOf(context).bottom, // Bottom padding
+                // Bottom padding
+                ZplaySpacing.s40 + MediaQuery.paddingOf(context).bottom,
               ),
               physics: const BouncingScrollPhysics(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -275,97 +281,89 @@ class _CatalogPageState extends State<CatalogPage> {
             top: 0,
             left: 0,
             right: 0,
-            child: ClipRRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
-                child: Container(
-                  padding: EdgeInsets.only(top: topPadding),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        const Color(0xFF080A0F).withValues(alpha: 0.90),
-                        const Color(0xFF080A0F).withValues(alpha: 0.60),
-                      ],
-                    ),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.06),
-                      ),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Header Row
-                      SizedBox(
-                        height: kToolbarHeight,
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
-                              color: Colors.white,
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                            if (!_isSearching)
-                              Expanded(
-                                child: Text(
-                                  widget.section.title,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+            // The shell family draws this band as an opaque palette surface with a
+            // bottom hairline, not as a blurred wash over the grid.
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: tokens.bg,
+                border: Border(bottom: tokens.hairline),
+              ),
+              child: Padding(
+                padding: EdgeInsets.only(top: topPadding),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header Row
+                    SizedBox(
+                      height: kToolbarHeight,
+                      child: Row(
+                        children: [
+                          const SizedBox(width: ZplaySpacing.s8),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
+                            color: tokens.textPrimary,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          if (!_isSearching)
+                            Expanded(
+                              child: Text(
+                                widget.section.title,
+                                style: ZplayType.title.toStyle(
+                                  color: tokens.textPrimary,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            if (_isSearching)
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(right: 16),
-                                  child: TextField(
-                                    controller: _searchController,
-                                    autofocus: true,
-                                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                                    textInputAction: TextInputAction.search,
-                                    onSubmitted: _onSearchSubmitted,
-                                    decoration: InputDecoration(
-                                      hintText: 'Search...',
-                                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-                                      border: InputBorder.none,
-                                      suffixIcon: IconButton(
-                                        icon: const Icon(Icons.close_rounded, size: 20),
-                                        color: Colors.white70,
-                                        onPressed: _clearSearch,
-                                      ),
+                            ),
+                          if (_isSearching)
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(
+                                  right: ZplaySpacing.s16,
+                                ),
+                                child: TextField(
+                                  controller: _searchController,
+                                  autofocus: true,
+                                  style: ZplayType.subtitle.toStyle(
+                                    color: tokens.textPrimary,
+                                  ),
+                                  textInputAction: TextInputAction.search,
+                                  onSubmitted: _onSearchSubmitted,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search...',
+                                    hintStyle: ZplayType.subtitle.toStyle(
+                                      color: tokens.textMuted,
+                                    ),
+                                    border: InputBorder.none,
+                                    suffixIcon: IconButton(
+                                      icon: const Icon(Icons.close_rounded, size: 20),
+                                      color: tokens.textEmphasis,
+                                      onPressed: _clearSearch,
                                     ),
                                   ),
                                 ),
                               ),
-                            if (!_isSearching && widget.section.catalog.supportsSearch)
-                              IconButton(
-                                icon: const Icon(Icons.search_rounded),
-                                color: Colors.white70,
-                                onPressed: () {
-                                  setState(() {
-                                    _isSearching = true;
-                                  });
-                                },
-                              ),
-                            if (!_isSearching)
-                              const SizedBox(width: 8),
-                          ],
-                        ),
+                            ),
+                          if (!_isSearching && widget.section.catalog.supportsSearch)
+                            IconButton(
+                              icon: const Icon(Icons.search_rounded),
+                              color: tokens.textEmphasis,
+                              onPressed: () {
+                                setState(() {
+                                  _isSearching = true;
+                                });
+                              },
+                            ),
+                          if (!_isSearching)
+                            const SizedBox(width: ZplaySpacing.s8),
+                        ],
                       ),
-                      
-                      // Selectable Extras Row (Genre, Tag, Sort, etc.)
-                      if (hasFilters)
-                        _buildFilterRow(selectableExtras, isDesktop),
-                    ],
-                  ),
+                    ),
+                    
+                    // Selectable Extras Row (Genre, Tag, Sort, etc.)
+                    if (hasFilters)
+                      _buildFilterRow(selectableExtras, isDesktop),
+                  ],
                 ),
               ),
             ),
@@ -376,6 +374,7 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   Widget _buildFilterRow(List<CatalogExtra> selectableExtras, bool isDesktop) {
+    final tokens = context.tokens;
     if (selectableExtras.length == 1) {
       final singleExtra = selectableExtras.first;
       final options = singleExtra.options;
@@ -389,10 +388,13 @@ class _CatalogPageState extends State<CatalogPage> {
               child: ListView.separated(
                 controller: _genreScrollController,
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s16,
+                  vertical: ZplaySpacing.s8,
+                ),
                 physics: const BouncingScrollPhysics(),
                 itemCount: options.length + (singleExtra.isRequired ? 0 : 1),
-                separatorBuilder: (context, index) => const SizedBox(width: 8),
+                separatorBuilder: (context, index) => const SizedBox(width: ZplaySpacing.s8),
                 itemBuilder: (context, index) {
                   if (!singleExtra.isRequired) {
                     if (index == 0) {
@@ -451,48 +453,58 @@ class _CatalogPageState extends State<CatalogPage> {
       height: 50,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: ZplaySpacing.s16,
+          vertical: ZplaySpacing.s8,
+        ),
         physics: const BouncingScrollPhysics(),
         itemCount: selectableExtras.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        separatorBuilder: (context, index) => const SizedBox(width: ZplaySpacing.s8),
         itemBuilder: (context, index) {
           final extra = selectableExtras[index];
           final currentVal = _selectedExtras[extra.name];
           final label = currentVal ?? (extra.isRequired ? 'Select ${extra.name}' : 'All ${extra.name}');
           return PopupMenuButton<String?>(
             tooltip: extra.name,
-            color: const Color(0xFF15171F),
+            color: tokens.surfaceOverlay,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              borderRadius: ZplayRadius.smAll,
+              side: BorderSide(color: tokens.borderStrong),
             ),
             onSelected: (val) => _onExtraSelected(extra.name, val),
             itemBuilder: (context) => [
               if (!extra.isRequired)
-                const PopupMenuItem<String?>(
+                PopupMenuItem<String?>(
                   value: null,
-                  child: Text('All', style: TextStyle(color: Colors.white)),
+                  child: Text(
+                    'All',
+                    style: ZplayType.body.toStyle(color: tokens.textPrimary),
+                  ),
                 ),
               ...extra.options.map(
                 (opt) => PopupMenuItem<String?>(
                   value: opt,
                   child: Text(
                     opt,
-                    style: TextStyle(
-                      color: opt == currentVal ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
-                      fontWeight: opt == currentVal ? FontWeight.bold : FontWeight.normal,
+                    style: ZplayType.body.toStyle(
+                      color: opt == currentVal
+                          ? AppThemeService.currentPalette.value.primaryColor
+                          : tokens.textPrimary,
                     ),
                   ),
                 ),
               ),
             ],
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              padding: const EdgeInsets.symmetric(
+                horizontal: ZplaySpacing.s12,
+                vertical: ZplaySpacing.s8,
+              ),
               decoration: BoxDecoration(
-                color: currentVal != null ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20),
+                color: currentVal != null ? AppThemeService.currentPalette.value.primaryColor : tokens.surface,
+                borderRadius: ZplayRadius.lgAll,
                 border: Border.all(
-                  color: currentVal != null ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.12),
+                  color: currentVal != null ? AppThemeService.currentPalette.value.primaryColor : tokens.borderStrong,
                 ),
               ),
               child: Row(
@@ -500,17 +512,19 @@ class _CatalogPageState extends State<CatalogPage> {
                 children: [
                   Text(
                     '${extra.name.toUpperCase()}: $label',
-                    style: TextStyle(
-                      color: currentVal != null ? Colors.white : Colors.white.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
+                    style: ZplayType.label.toStyle(
+                      color: currentVal != null
+                          ? tokens.onAccent
+                          : tokens.textEmphasis,
                     ),
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: ZplaySpacing.s4),
                   Icon(
                     Icons.arrow_drop_down,
                     size: 18,
-                    color: currentVal != null ? Colors.white : Colors.white70,
+                    color: currentVal != null
+                        ? tokens.onAccent
+                        : tokens.textEmphasis,
                   ),
                 ],
               ),
@@ -522,10 +536,11 @@ class _CatalogPageState extends State<CatalogPage> {
   }
 
   Widget _buildScrollArrow(IconData icon, VoidCallback onTap, bool isVisible) {
+    final tokens = context.tokens;
     return Center(
       child: AnimatedOpacity(
         opacity: isVisible ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 200),
+        duration: ZplayMotion.base,
         child: IgnorePointer(
           ignoring: !isVisible,
           // An invisible arrow must not be a focus stop. IgnorePointer blocks
@@ -535,14 +550,14 @@ class _CatalogPageState extends State<CatalogPage> {
             onTap: onTap,
             enabled: isVisible,
             builder: (context, state) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.all(8),
+              margin: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s4),
+              padding: const EdgeInsets.all(ZplaySpacing.s8),
               decoration: BoxDecoration(
                 color: Colors.black.withValues(alpha: 0.7),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white24),
+                border: Border.all(color: tokens.borderStrong),
               ),
-              child: Icon(icon, color: Colors.white, size: 16),
+              child: Icon(icon, color: tokens.textPrimary, size: 16),
             ),
           ),
         ),
@@ -564,30 +579,32 @@ class _GenreChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return FocusableCard(
       onTap: onTap,
       builder: (context, state) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        duration: ZplayMotion.base,
+        padding: const EdgeInsets.symmetric(
+          horizontal: ZplaySpacing.s16,
+          vertical: ZplaySpacing.s4,
+        ),
         decoration: BoxDecoration(
-          color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppThemeService.currentPalette.value.primaryColor : tokens.surface,
+          borderRadius: ZplayRadius.lgAll,
           border: Border.all(
-            color: isSelected 
-              ? AppThemeService.currentPalette.value.primaryColor 
-              : Colors.white.withValues(alpha: 0.12),
+            color: isSelected
+              ? AppThemeService.currentPalette.value.primaryColor
+              : tokens.borderStrong,
           ),
-          boxShadow: isSelected 
-            ? [BoxShadow(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3), blurRadius: 8)] 
+          boxShadow: isSelected
+            ? [BoxShadow(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3), blurRadius: 8)]
             : null,
         ),
         alignment: Alignment.center,
         child: Text(
           label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-            fontSize: 13,
+          style: ZplayType.label.toStyle(
+            color: isSelected ? tokens.onAccent : tokens.textEmphasis,
           ),
         ),
       ),

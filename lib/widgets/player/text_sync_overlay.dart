@@ -5,6 +5,7 @@ import 'package:media_kit/media_kit.dart';
 
 import '../../services/subtitles/subtitle_parser.dart';
 import '../../services/subtitles/subtitle_sync_helper.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 
 /// Full-screen right-side floating drawer for dialogue speech following & subtitle sync.
@@ -301,6 +302,7 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final cues = widget.initialCues;
     final activeIdx = _activeCueIndex;
     final closestIdx = _closestCueIndex;
@@ -331,16 +333,16 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
           width: panelWidth,
           height: MediaQuery.sizeOf(context).height,
           child: Container(
-            decoration: const BoxDecoration(
-            color: Color(0xF4080C12),
+            decoration: BoxDecoration(
+            color: tokens.surfaceOverlay.withValues(alpha: 0.95),
             border: Border(
               left: BorderSide(color: PlayerTheme.edge),
             ),
             boxShadow: [
               BoxShadow(
-                color: Color(0xCC000000),
+                color: tokens.bg.withValues(alpha: 0.80),
                 blurRadius: 36,
-                offset: Offset(-8, 0),
+                offset: const Offset(-8, 0),
               ),
             ],
           ),
@@ -363,7 +365,7 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
                           color: PlayerTheme.accent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: ZplayRadius.smAll,
                         ),
                         child: Icon(
                           Icons.sync_alt_rounded,
@@ -379,20 +381,18 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                           children: [
                             Text(
                               _sectionMode ? 'FIX SECTION' : 'SUBTITLE TIMING',
-                              style: const TextStyle(
-                                color: PlayerTheme.inkSubtle,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.2,
-                              ),
+                              style: ZplayType.overline
+                                  .copyWith(weight: FontWeight.w800)
+                                  .toStyle(color: PlayerTheme.inkSubtle),
                             ),
                             Text(
                               _sectionMode ? 'Select Range & Sync' : 'Speech Dialogue Sync',
-                              style: TextStyle(
-                                color: PlayerTheme.ink,
-                                fontSize: isLandscapeMobile ? 14 : 16,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: ZplayType.body
+                                  .copyWith(
+                                    size: isLandscapeMobile ? 14 : 16,
+                                    weight: FontWeight.bold,
+                                  )
+                                  .toStyle(color: PlayerTheme.ink),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -413,14 +413,10 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                 // Hint Banner (Compact on mobile)
                 if (!isLandscapeMobile)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s2),
                     child: Text(
                       hintText,
-                      style: const TextStyle(
-                        color: PlayerTheme.inkMuted,
-                        fontSize: 11.5,
-                        height: 1.3,
-                      ),
+                      style: ZplayType.caption.toStyle(color: PlayerTheme.inkMuted),
                     ),
                   ),
 
@@ -433,20 +429,20 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                     height: isLandscapeMobile ? 32 : 36,
                     decoration: BoxDecoration(
                       color: PlayerTheme.raised,
-                      borderRadius: BorderRadius.circular(9),
+                      borderRadius: ZplayRadius.smAll,
                       border: Border.all(
                         color: _searchQuery.isNotEmpty && _matchedIndices.isNotEmpty
-                            ? const Color(0xFFFFC107).withValues(alpha: 0.45)
+                            ? tokens.warning.withValues(alpha: 0.45)
                             : PlayerTheme.edge,
                       ),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8),
                     child: Row(
                       children: [
                         Icon(
                           Icons.search_rounded,
                           color: _searchQuery.isNotEmpty && _matchedIndices.isNotEmpty
-                              ? const Color(0xFFFFC107)
+                              ? tokens.warning
                               : PlayerTheme.inkSubtle,
                           size: 15,
                         ),
@@ -454,11 +450,13 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                         Expanded(
                           child: TextField(
                             controller: _searchController,
-                            style: TextStyle(color: PlayerTheme.ink, fontSize: isLandscapeMobile ? 12 : 12.5),
+                            style: ZplayType.bodySmall
+                                .copyWith(size: isLandscapeMobile ? 12 : 12.5)
+                                .toStyle(color: PlayerTheme.ink),
                             onSubmitted: (_) => _goToNextMatch(),
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Search dialogue...',
-                              hintStyle: TextStyle(color: PlayerTheme.inkSubtle, fontSize: 12),
+                              hintStyle: ZplayType.bodySmall.toStyle(color: PlayerTheme.inkSubtle),
                               border: InputBorder.none,
                               isDense: true,
                               contentPadding: EdgeInsets.zero,
@@ -471,9 +469,9 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                             decoration: BoxDecoration(
                               color: _searchQuery.length >= 3 && _matchedIndices.isNotEmpty
-                                  ? const Color(0x33FFC107)
-                                  : Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(5),
+                                  ? tokens.warning.withValues(alpha: 0.20)
+                                  : tokens.textPrimary.withValues(alpha: 0.05),
+                              borderRadius: ZplayRadius.xsAll,
                             ),
                             child: Text(
                               _searchQuery.length < 3
@@ -481,23 +479,23 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                                   : (_matchedIndices.isNotEmpty
                                       ? '${_currentMatchIndex + 1}/${_matchedIndices.length}'
                                       : '0/0'),
-                              style: TextStyle(
-                                color: _searchQuery.length >= 3 && _matchedIndices.isNotEmpty
-                                    ? const Color(0xFFFFC107)
-                                    : PlayerTheme.inkSubtle,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                fontFeatures: const [FontFeature.tabularFigures()],
-                              ),
+                              style: ZplayType.overline
+                                  .copyWith(weight: FontWeight.w700)
+                                  .toStyle(
+                                    color: _searchQuery.length >= 3 && _matchedIndices.isNotEmpty
+                                        ? tokens.warning
+                                        : PlayerTheme.inkSubtle,
+                                    tabular: true,
+                                  ),
                             ),
                           ),
-                          const SizedBox(width: 2),
+                          const SizedBox(width: ZplaySpacing.s2),
                           if (_searchQuery.length >= 3) ...[
                             InkWell(
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: ZplayRadius.xsAll,
                               onTap: _matchedIndices.isNotEmpty ? _goToPrevMatch : null,
                               child: Padding(
-                                padding: const EdgeInsets.all(2),
+                                padding: const EdgeInsets.all(ZplaySpacing.s2),
                                 child: Icon(
                                   Icons.keyboard_arrow_up_rounded,
                                   size: 16,
@@ -506,10 +504,10 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                               ),
                             ),
                             InkWell(
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: ZplayRadius.xsAll,
                               onTap: _matchedIndices.isNotEmpty ? _goToNextMatch : null,
                               child: Padding(
-                                padding: const EdgeInsets.all(2),
+                                padding: const EdgeInsets.all(ZplaySpacing.s2),
                                 child: Icon(
                                   Icons.keyboard_arrow_down_rounded,
                                   size: 16,
@@ -519,10 +517,10 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                             ),
                           ],
                           InkWell(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: ZplayRadius.xsAll,
                             onTap: () => _searchController.clear(),
-                            child: const Padding(
-                              padding: EdgeInsets.all(2),
+                            child: Padding(
+                              padding: const EdgeInsets.all(ZplaySpacing.s2),
                               child: Icon(Icons.close_rounded, color: PlayerTheme.inkSubtle, size: 14),
                             ),
                           ),
@@ -591,9 +589,9 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                               children: [
                                 Material(
                                   color: isCurrentFocusedMatch
-                                      ? const Color(0x59FFC107)
+                                      ? tokens.warning.withValues(alpha: 0.35)
                                       : isMatch
-                                          ? const Color(0x26FFC107)
+                                          ? tokens.warning.withValues(alpha: 0.15)
                                           : isActive
                                               ? PlayerTheme.accent.withValues(alpha: 0.18)
                                               : inRange
@@ -624,13 +622,10 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                                       decoration: BoxDecoration(
                                         border: Border(
                                           bottom: BorderSide(
-                                            color: Colors.white.withValues(alpha: 0.04),
+                                            color: tokens.textPrimary.withValues(alpha: 0.04),
                                           ),
                                           left: isCurrentFocusedMatch
-                                              ? const BorderSide(
-                                                  color: Color(0xFFFFC107),
-                                                  width: 3,
-                                                )
+                                              ? BorderSide(color: tokens.warning, width: 3)
                                               : isActive
                                                   ? BorderSide(
                                                       color: PlayerTheme.accent,
@@ -647,12 +642,15 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                                             width: 44,
                                             child: Text(
                                               SubtitleParser.formatDisplayTime(cue.start),
-                                              style: TextStyle(
-                                                color: isActive ? PlayerTheme.accent : PlayerTheme.inkSubtle,
-                                                fontSize: isLandscapeMobile ? 10.5 : 11,
-                                                fontWeight: isActive ? FontWeight.w700 : FontWeight.normal,
-                                                fontFeatures: const [FontFeature.tabularFigures()],
-                                              ),
+                                              style: ZplayType.caption
+                                                  .copyWith(
+                                                    size: isLandscapeMobile ? 10.5 : 11,
+                                                    weight: isActive ? FontWeight.w700 : FontWeight.normal,
+                                                  )
+                                                  .toStyle(
+                                                    color: isActive ? PlayerTheme.accent : PlayerTheme.inkSubtle,
+                                                    tabular: true,
+                                                  ),
                                             ),
                                           ),
                                           const SizedBox(width: 6),
@@ -675,15 +673,11 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                               decoration: BoxDecoration(
                                                 color: PlayerTheme.accent,
-                                                borderRadius: BorderRadius.circular(999),
+                                                borderRadius: ZplayRadius.fullAll,
                                               ),
                                               child: Text(
                                                 'P$pointNum',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 9,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
+                                                style: ZplayType.overline.copyWith(weight: FontWeight.bold).toStyle(color: tokens.onAccent),
                                               ),
                                             )
                                           else if (isActive)
@@ -691,16 +685,13 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                                               decoration: BoxDecoration(
                                                 color: PlayerTheme.accent,
-                                                borderRadius: BorderRadius.circular(4),
+                                                borderRadius: ZplayRadius.xsAll,
                                               ),
-                                              child: const Text(
+                                              child: Text(
                                                 'NOW',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 8.5,
-                                                  fontWeight: FontWeight.w800,
-                                                  letterSpacing: 0.5,
-                                                ),
+                                                style: ZplayType.overline
+                                                    .copyWith(weight: FontWeight.w800, letterSpacing: 0.5)
+                                                    .toStyle(color: tokens.onAccent),
                                               ),
                                             )
                                           else if (inSegment)
@@ -725,14 +716,16 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                                         ElevatedButton.icon(
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: PlayerTheme.accent,
-                                            foregroundColor: Colors.white,
+                                            foregroundColor: tokens.onAccent,
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                                            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.xsAll),
                                           ),
                                           icon: const Icon(Icons.check_rounded, size: 14),
-                                          label: const Text(
+                                          label: Text(
                                             'Sync from here',
-                                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                                            style: ZplayType.caption
+                                                .copyWith(weight: FontWeight.w600)
+                                                .toStyle(),
                                           ),
                                           onPressed: () => _handleSyncFromHere(index),
                                         ),
@@ -740,12 +733,12 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                                         OutlinedButton.icon(
                                           style: OutlinedButton.styleFrom(
                                             foregroundColor: PlayerTheme.inkMuted,
-                                            side: const BorderSide(color: PlayerTheme.edgeSoft),
+                                            side: BorderSide(color: PlayerTheme.edgeSoft),
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                                            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.xsAll),
                                           ),
                                           icon: const Icon(Icons.play_arrow_rounded, size: 14),
-                                          label: const Text('Jump here', style: TextStyle(fontSize: 11)),
+                                          label: Text('Jump here', style: ZplayType.caption.toStyle()),
                                           onPressed: () => _handleSeekTo(index),
                                         ),
                                       ],
@@ -766,16 +759,16 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                               child: FilledButton.icon(
                                 style: FilledButton.styleFrom(
                                   backgroundColor: PlayerTheme.accent,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                                  shadowColor: Colors.black,
+                                  foregroundColor: tokens.onAccent,
+                                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
+                                  shadowColor: tokens.bg,
                                   elevation: 6,
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 ),
                                 icon: const Icon(Icons.arrow_downward_rounded, size: 13),
-                                label: const Text(
+                                label: Text(
                                   'Jump to now',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                  style: ZplayType.caption.copyWith(weight: FontWeight.bold).toStyle(),
                                 ),
                                 onPressed: _jumpToNow,
                               ),
@@ -798,9 +791,11 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
   }
 
   Widget _buildBottomControlDock(bool isLandscapeMobile, double currentDelta) {
+    final tokens = context.tokens;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF0A0E16),
+      decoration: BoxDecoration(
+        color: tokens.surfaceRaised,
         border: Border(top: BorderSide(color: PlayerTheme.edgeSoft)),
       ),
       padding: EdgeInsets.fromLTRB(
@@ -816,25 +811,20 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
           Row(
             children: [
               _NudgeButton(label: '−0.1s', onTap: () => _handleNudge(-0.1)),
-              const SizedBox(width: 4),
+              const SizedBox(width: ZplaySpacing.s4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                 decoration: BoxDecoration(
                   color: PlayerTheme.raised,
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: ZplayRadius.xsAll,
                   border: Border.all(color: PlayerTheme.edge),
                 ),
                 child: Text(
                   '${currentDelta >= 0 ? '+' : ''}${currentDelta.toStringAsFixed(2)}s',
-                  style: const TextStyle(
-                    color: PlayerTheme.ink,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.bold,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
+                  style: ZplayType.caption.copyWith(weight: FontWeight.bold).toStyle(color: PlayerTheme.ink, tabular: true),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: ZplaySpacing.s4),
               _NudgeButton(label: '+0.1s', onTap: () => _handleNudge(0.1)),
               const Spacer(),
               TextButton.icon(
@@ -842,14 +832,14 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                   foregroundColor: _sectionMode ? PlayerTheme.accent : PlayerTheme.inkMuted,
                   backgroundColor: _sectionMode
                       ? PlayerTheme.accent.withValues(alpha: 0.18)
-                      : Colors.white.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      : tokens.textPrimary.withValues(alpha: 0.05),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.xsAll),
+                  padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: ZplaySpacing.s4),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 icon: const Icon(Icons.content_cut_rounded, size: 12),
-                label: Text(_sectionMode ? 'Selecting' : 'Fix section', style: const TextStyle(fontSize: 11)),
+                label: Text(_sectionMode ? 'Selecting' : 'Fix section', style: ZplayType.caption.toStyle()),
                 onPressed: () {
                   setState(() {
                     _sectionMode = !_sectionMode;
@@ -859,9 +849,9 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                 },
               ),
               if (_isDirty) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: ZplaySpacing.s4),
                 IconButton(
-                  icon: const Icon(Icons.replay_rounded, size: 15, color: PlayerTheme.inkSubtle),
+                  icon: Icon(Icons.replay_rounded, size: 15, color: PlayerTheme.inkSubtle),
                   tooltip: 'Reset timing',
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
@@ -880,10 +870,10 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                 flex: 2,
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: PlayerTheme.edgeSoft),
+                    foregroundColor: tokens.textPrimary,
+                    side: BorderSide(color: PlayerTheme.edgeSoft),
                     padding: EdgeInsets.symmetric(vertical: isLandscapeMobile ? 6 : 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -893,7 +883,7 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                   ),
                   label: Text(
                     _isPlaying ? 'Pause' : 'Play',
-                    style: TextStyle(fontSize: isLandscapeMobile ? 11 : 12),
+                    style: ZplayType.caption.copyWith(size: isLandscapeMobile ? 11 : 12).toStyle(),
                   ),
                   onPressed: () {
                     setState(() {
@@ -908,31 +898,36 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
                   },
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: ZplaySpacing.s8),
               Expanded(
                 flex: 3,
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: PlayerTheme.accent,
-                    foregroundColor: Colors.white,
+                    foregroundColor: tokens.onAccent,
                     padding: EdgeInsets.symmetric(vertical: isLandscapeMobile ? 6 : 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                     minimumSize: Size.zero,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: _isSaving
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 13,
                           height: 13,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 1.8),
+                          child: CircularProgressIndicator(
+                            color: tokens.onAccent,
+                            strokeWidth: 1.8,
+                          ),
                         )
                       : const Icon(Icons.check_rounded, size: 15),
                   label: Text(
                     _isSaving ? 'Saving...' : 'Save Timing',
-                    style: TextStyle(
-                      fontSize: isLandscapeMobile ? 11 : 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: ZplayType.caption
+                        .copyWith(
+                          size: isLandscapeMobile ? 11 : 12,
+                          weight: FontWeight.bold,
+                        )
+                        .toStyle(),
                   ),
                   onPressed: _isSaving ? null : _handleSave,
                 ),
@@ -950,15 +945,20 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
     bool isActive, {
     double fontSize = 12.5,
   }) {
+    final tokens = context.tokens;
+
     if (query.isEmpty || query.length < 3) {
       return Text(
         text,
-        style: TextStyle(
-          color: isActive ? PlayerTheme.ink : PlayerTheme.inkMuted,
-          fontSize: fontSize,
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          height: 1.3,
-        ),
+        style: ZplayType.bodySmall
+            .copyWith(
+              size: fontSize,
+              weight: isActive ? FontWeight.w600 : FontWeight.normal,
+              height: 1.3,
+            )
+            .toStyle(
+              color: isActive ? PlayerTheme.ink : PlayerTheme.inkMuted,
+            ),
       );
     }
 
@@ -978,9 +978,9 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
       spans.add(
         TextSpan(
           text: text.substring(index, index + query.length),
-          style: const TextStyle(
-            backgroundColor: Color(0xFFFFC107),
-            color: Color(0xFF000000),
+          style: TextStyle(
+            backgroundColor: tokens.warning,
+            color: tokens.bg,
             fontWeight: FontWeight.w900,
           ),
         ),
@@ -990,12 +990,15 @@ class _TextSyncOverlayState extends State<TextSyncOverlay> {
 
     return RichText(
       text: TextSpan(
-        style: TextStyle(
-          color: isActive ? PlayerTheme.ink : PlayerTheme.inkMuted,
-          fontSize: fontSize,
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          height: 1.3,
-        ),
+        style: ZplayType.bodySmall
+            .copyWith(
+              size: fontSize,
+              weight: isActive ? FontWeight.w600 : FontWeight.normal,
+              height: 1.3,
+            )
+            .toStyle(
+              color: isActive ? PlayerTheme.ink : PlayerTheme.inkMuted,
+            ),
         children: spans,
       ),
     );
@@ -1013,22 +1016,19 @@ class _NudgeButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Material(
-      color: Colors.white.withValues(alpha: 0.06),
-      borderRadius: BorderRadius.circular(6),
+      color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderSubtle),
+      borderRadius: ZplayRadius.xsAll,
       child: InkWell(
-        borderRadius: BorderRadius.circular(6),
+        borderRadius: ZplayRadius.xsAll,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: ZplaySpacing.s4),
           child: Text(
             label,
-            style: const TextStyle(
-              color: PlayerTheme.inkMuted,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
+            style: ZplayType.caption.copyWith(weight: FontWeight.w600).toStyle(color: PlayerTheme.inkMuted, tabular: true),
           ),
         ),
       ),

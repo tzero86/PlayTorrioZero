@@ -10,6 +10,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/player/player_settings.dart';
 import '../../services/window/window_service.dart';
 import '../../services/discord/discord_rpc_service.dart';
@@ -425,6 +426,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final ch = widget.channel;
     final currentHit = widget.hits.isNotEmpty ? widget.hits[_activeHitIndex] : null;
     final isLive = _isLiveStream;
@@ -488,7 +490,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
         return KeyEventResult.ignored;
       },
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: tokens.bg,
         body: Listener(
           onPointerSignal: (pointerSignal) {
             if (pointerSignal is PointerScrollEvent) {
@@ -531,10 +533,10 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                 if (_isLoading)
                   Center(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s24, vertical: 14),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.75),
-                        borderRadius: BorderRadius.circular(16),
+                        color: tokens.bg.withValues(alpha: 0.75),
+                        borderRadius: ZplayRadius.mdAll,
                         border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.5)),
                       ),
                       child: Row(
@@ -551,11 +553,9 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                           const SizedBox(width: 14),
                           Text(
                             _statusMessage,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: ZplayType.body
+                                .copyWith(weight: FontWeight.w600)
+                                .toStyle(color: tokens.textPrimary),
                           ),
                         ],
                       ),
@@ -569,8 +569,8 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xE60D101A),
-                          borderRadius: BorderRadius.circular(16),
+                          color: tokens.surfaceOverlay.withValues(alpha: 0.90),
+                          borderRadius: ZplayRadius.mdAll,
                           border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6), width: 1.5),
                           boxShadow: [
                             BoxShadow(
@@ -587,32 +587,29 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                               _isMuted || _volume == 0
                                   ? Icons.volume_off_rounded
                                   : (_volume < 0.5 ? Icons.volume_down_rounded : Icons.volume_up_rounded),
-                              color: _isMuted ? Colors.redAccent : const Color(0xFF00D2EF),
+                              color: _isMuted ? tokens.danger : tokens.info,
                               size: 28,
                             ),
                             const SizedBox(width: 14),
                             SizedBox(
                               width: 130,
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: ZplayRadius.xsAll,
                                 child: LinearProgressIndicator(
                                   value: _isMuted ? 0.0 : _volume,
-                                  backgroundColor: Colors.white24,
+                                  backgroundColor: tokens.textDisabled,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    _isMuted ? Colors.redAccent : AppThemeService.currentPalette.value.primaryColor,
+                                    _isMuted ? tokens.danger : AppThemeService.currentPalette.value.primaryColor,
                                   ),
                                   minHeight: 7,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: ZplaySpacing.s12),
                             Text(
                               _isMuted ? 'MUTED' : '${(_volume * 100).toInt()}%',
-                              style: TextStyle(
-                                color: _isMuted ? Colors.redAccent : Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w900,
-                                fontFamily: 'monospace',
+                              style: ZplayType.labelNumeric.toStyle(
+                                color: _isMuted ? tokens.danger : tokens.textPrimary,
                               ),
                             ),
                           ],
@@ -628,8 +625,8 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
                         decoration: BoxDecoration(
-                          color: const Color(0xE60D101A),
-                          borderRadius: BorderRadius.circular(16),
+                          color: tokens.surfaceOverlay.withValues(alpha: 0.90),
+                          borderRadius: ZplayRadius.mdAll,
                           border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6), width: 1.5),
                           boxShadow: [
                             BoxShadow(
@@ -642,16 +639,13 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.aspect_ratio_rounded, color: Color(0xFF00D2EF), size: 26),
-                            const SizedBox(width: 12),
+                            Icon(Icons.aspect_ratio_rounded, color: tokens.info, size: 26),
+                            const SizedBox(width: ZplaySpacing.s12),
                             Text(
                               _aspectHudText,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.5,
-                              ),
+                              style: ZplayType.body
+                                  .copyWith(weight: FontWeight.w700, letterSpacing: 0.5)
+                                  .toStyle(color: tokens.textPrimary),
                             ),
                           ],
                         ),
@@ -674,21 +668,21 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                           left: 0,
                           right: 0,
                           child: Container(
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                            decoration: const BoxDecoration(
+                            padding: const EdgeInsets.fromLTRB(ZplaySpacing.s16, ZplaySpacing.s16, ZplaySpacing.s16, ZplaySpacing.s24),
+                            decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [Color(0xCC000000), Colors.transparent],
+                                colors: [tokens.bg.withValues(alpha: 0.80), Colors.transparent],
                               ),
                             ),
                             child: Row(
                               children: [
                                 IconButton(
-                                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 24),
+                                  icon: Icon(Icons.arrow_back_rounded, color: tokens.textPrimary, size: 24),
                                   onPressed: () => Navigator.pop(context),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: ZplaySpacing.s8),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -697,61 +691,54 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                       Row(
                                         children: [
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: ZplaySpacing.s2),
                                             decoration: BoxDecoration(
-                                              color: isLive ? const Color(0xFFFF3B30) : AppThemeService.currentPalette.value.primaryColor,
-                                              borderRadius: BorderRadius.circular(4),
+                                              color: isLive ? tokens.danger : AppThemeService.currentPalette.value.primaryColor,
+                                              borderRadius: ZplayRadius.xsAll,
                                             ),
                                             child: Text(
                                               isLive
                                                   ? 'LIVE'
                                                   : (ch.category.isNotEmpty ? ch.category.toUpperCase() : 'VOD'),
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 9.5,
-                                                fontWeight: FontWeight.w900,
-                                              ),
+                                              style: ZplayType.overline
+                                                  .copyWith(weight: FontWeight.w700)
+                                                  .toStyle(color: tokens.textPrimary),
                                             ),
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: ZplaySpacing.s8),
                                           Expanded(
                                             child: Text(
                                               currentTitle,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 17,
-                                                fontWeight: FontWeight.w800,
-                                              ),
+                                              style: ZplayType.title
+                                                  .copyWith(weight: FontWeight.w700)
+                                                  .toStyle(color: tokens.textPrimary),
                                             ),
                                           ),
                                         ],
                                       ),
                                       if (currentHit != null) ...[
-                                        const SizedBox(height: 2),
+                                        const SizedBox(height: ZplaySpacing.s2),
                                         Text(
                                           isCategoryList
                                               ? 'Channel ${_activeHitIndex + 1}/${widget.hits.length} · ${currentHit.portal.name}'
                                               : 'Source ${_activeHitIndex + 1}/${widget.hits.length} · ${currentHit.portal.name}',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            color: Colors.white.withValues(alpha: 0.6),
-                                            fontSize: 12,
-                                          ),
+                                          style: ZplayType.bodySmall.toStyle(color: tokens.textEmphasis),
                                         ),
                                       ],
                                     ],
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: ZplaySpacing.s12),
                                 // Category Channels / Sources Drawer Toggle
                                 if (widget.hits.length > 1)
                                   IconButton(
                                     icon: Icon(
                                       isCategoryList ? Icons.format_list_bulleted_rounded : Icons.video_library_rounded,
-                                      color: Colors.white,
+                                      color: tokens.textPrimary,
                                     ),
                                     tooltip: isCategoryList
                                         ? (widget.categoryTitle ?? 'Category Channels')
@@ -759,14 +746,14 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                     onPressed: _openSourcesDrawer,
                                   ),
                                 if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) ...[
-                                  const SizedBox(width: 4),
+                                  const SizedBox(width: ZplaySpacing.s4),
                                   ValueListenableBuilder<bool>(
                                     valueListenable: WindowService.instance.isFullscreenNotifier,
                                     builder: (context, isFullscreen, _) {
                                       return IconButton(
                                         icon: Icon(
                                           isFullscreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-                                          color: Colors.white,
+                                          color: tokens.textPrimary,
                                           size: 24,
                                         ),
                                         tooltip: isFullscreen ? 'Exit Fullscreen (F11)' : 'Fullscreen (F11)',
@@ -786,12 +773,12 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                           left: 0,
                           right: 0,
                           child: Container(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                            decoration: const BoxDecoration(
+                            padding: const EdgeInsets.fromLTRB(ZplaySpacing.s20, ZplaySpacing.s20, ZplaySpacing.s20, ZplaySpacing.s16),
+                            decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
-                                colors: [Color(0xCC000000), Colors.transparent],
+                                colors: [tokens.bg.withValues(alpha: 0.80), Colors.transparent],
                               ),
                             ),
                             child: Column(
@@ -819,45 +806,40 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                         _isPlaying
                                             ? Icons.pause_rounded
                                             : Icons.play_arrow_rounded,
-                                        color: Colors.white,
+                                        color: tokens.textPrimary,
                                         size: 30,
                                       ),
                                       onPressed: _togglePlayPause,
                                     ),
 
                                     if (!isLive) ...[
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: ZplaySpacing.s4),
                                       // Replay -10s
                                       IconButton(
-                                        icon: const Icon(Icons.replay_10_rounded, color: Colors.white, size: 24),
+                                        icon: Icon(Icons.replay_10_rounded, color: tokens.textPrimary, size: 24),
                                         tooltip: 'Seek -10s',
                                         onPressed: () => _seekRelative(-10),
                                       ),
                                       // Forward +10s
                                       IconButton(
-                                        icon: const Icon(Icons.forward_10_rounded, color: Colors.white, size: 24),
+                                        icon: Icon(Icons.forward_10_rounded, color: tokens.textPrimary, size: 24),
                                         tooltip: 'Seek +10s',
                                         onPressed: () => _seekRelative(10),
                                       ),
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: ZplaySpacing.s8),
                                       // Position / Duration Readout
                                       ValueListenableBuilder<Duration>(
                                         valueListenable: _positionNotifier,
                                         builder: (context, pos, _) {
                                           return Text(
                                             '${_formatDuration(pos)} / ${_formatDuration(_duration)}',
-                                            style: const TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 12.5,
-                                              fontWeight: FontWeight.w600,
-                                              fontFamily: 'monospace',
-                                            ),
+                                            style: ZplayType.labelNumeric.toStyle(color: tokens.textEmphasis),
                                           );
                                         },
                                       ),
                                     ],
 
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: ZplaySpacing.s8),
 
                                     // ── INTERACTIVE VOLUME SLIDER & MUTE TOGGLE ──
                                     Row(
@@ -868,7 +850,7 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                             _isMuted || _volume == 0
                                                 ? Icons.volume_off_rounded
                                                 : (_volume < 0.5 ? Icons.volume_down_rounded : Icons.volume_up_rounded),
-                                            color: _isMuted ? Colors.redAccent : Colors.white,
+                                            color: _isMuted ? tokens.danger : tokens.textPrimary,
                                             size: 22,
                                           ),
                                           tooltip: _isMuted ? 'Unmute (M)' : 'Mute (M)',
@@ -882,8 +864,8 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5.5),
                                               overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
                                               activeTrackColor: AppThemeService.currentPalette.value.primaryColor,
-                                              inactiveTrackColor: Colors.white24,
-                                              thumbColor: Colors.white,
+                                              inactiveTrackColor: tokens.textDisabled,
+                                              thumbColor: tokens.textPrimary,
                                             ),
                                             child: Slider(
                                               value: _isMuted ? 0.0 : _volume,
@@ -911,11 +893,8 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                         ),
                                         Text(
                                           '${((_isMuted ? 0.0 : _volume) * 100).toInt()}%',
-                                          style: TextStyle(
-                                            color: _isMuted ? Colors.redAccent : Colors.white70,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w700,
-                                            fontFamily: 'monospace',
+                                          style: ZplayType.labelNumeric.toStyle(
+                                            color: _isMuted ? tokens.danger : tokens.textEmphasis,
                                           ),
                                         ),
                                       ],
@@ -938,36 +917,33 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                             _startHideControlsTimer();
                                           }
                                         },
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: ZplayRadius.smAll,
                                         child: Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 5),
                                           decoration: BoxDecoration(
                                             color: _showAspectMenu
                                                 ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)
-                                                : Colors.white.withValues(alpha: 0.12),
-                                            borderRadius: BorderRadius.circular(8),
+                                                : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderStrong),
+                                            borderRadius: ZplayRadius.smAll,
                                             border: Border.all(
                                               color: _showAspectMenu
                                                   ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.6)
-                                                  : Colors.white.withValues(alpha: 0.15),
+                                                  : tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
                                               width: 1,
                                             ),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              const Icon(Icons.aspect_ratio_rounded, color: Colors.white, size: 16),
+                                              Icon(Icons.aspect_ratio_rounded, color: tokens.textPrimary, size: 16),
                                               const SizedBox(width: 6),
                                               Text(
                                                 _videoFit == BoxFit.contain
                                                     ? 'FIT'
                                                     : (_videoFit == BoxFit.cover ? 'ZOOM' : 'STRETCH'),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w700,
-                                                  letterSpacing: 0.4,
-                                                ),
+                                                style: ZplayType.caption
+                                                    .copyWith(weight: FontWeight.w700, letterSpacing: 0.4)
+                                                    .toStyle(color: tokens.textPrimary),
                                               ),
                                             ],
                                           ),
@@ -977,14 +953,14 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
 
                                     // Fullscreen toggle on desktop
                                     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) ...[
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: ZplaySpacing.s8),
                                       ValueListenableBuilder<bool>(
                                         valueListenable: WindowService.instance.isFullscreenNotifier,
                                         builder: (context, isFullscreen, _) {
                                           return IconButton(
                                             icon: Icon(
                                               isFullscreen ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-                                              color: Colors.white,
+                                              color: tokens.textPrimary,
                                               size: 24,
                                             ),
                                             tooltip: isFullscreen ? 'Exit Fullscreen (F11)' : 'Fullscreen (F11)',
@@ -1028,14 +1004,14 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                     right: 0,
                     width: 360,
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: Color(0xF2080A10),
-                        border: Border(left: BorderSide(color: Color(0xFF1E2336), width: 1.2)),
-                        boxShadow: [
+                      decoration: BoxDecoration(
+                        color: tokens.bg.withValues(alpha: 0.95),
+                        border: Border(left: BorderSide(color: tokens.surfaceOverlay, width: 1.2)),
+                        boxShadow: const [
                           BoxShadow(color: Colors.black87, blurRadius: 24, offset: Offset(-6, 0)),
                         ],
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                      padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: 18),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -1046,42 +1022,38 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                 color: AppThemeService.currentPalette.value.primaryColor,
                                 size: 20,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: ZplaySpacing.s8),
                               Expanded(
                                 child: Text(
                                   widget.categoryTitle ?? (isCategoryList ? 'Category Channels' : 'Stream Feeds'),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                                  style: ZplayType.title
+                                      .copyWith(weight: FontWeight.w700)
+                                      .toStyle(color: tokens.textPrimary),
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: ZplaySpacing.s2),
                                 decoration: BoxDecoration(
                                   color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: ZplayRadius.smAll,
                                 ),
                                 child: Text(
                                   '${widget.hits.length}',
-                                  style: const TextStyle(
-                                    color: Color(0xFF9D4EDD),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w800,
-                                  ),
+                                  style: ZplayType.caption
+                                      .copyWith(weight: FontWeight.w700)
+                                      .toStyle(color: tokens.accent),
                                 ),
                               ),
                               const SizedBox(width: 6),
                               IconButton(
-                                icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
+                                icon: Icon(Icons.close_rounded, color: tokens.textMuted, size: 20),
                                 onPressed: () => setState(() => _showSourcesDrawer = false),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: ZplaySpacing.s12),
                           Expanded(
                             child: ListView.separated(
                               controller: _sourcesScrollController,
@@ -1096,19 +1068,19 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                   onTap: () => _switchSource(index),
                                   builder: (context, state) => CardFocusRing(
                                     focused: state.focused,
-                                    radius: BorderRadius.circular(10),
+                                    radius: ZplayRadius.smAll,
                                     child: AnimatedContainer(
                                       duration: const Duration(milliseconds: 120),
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
                                       decoration: BoxDecoration(
                                         color: isSelected
                                             ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.25)
-                                            : Colors.white.withValues(alpha: 0.04),
-                                        borderRadius: BorderRadius.circular(10),
+                                            : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                                        borderRadius: ZplayRadius.smAll,
                                         border: Border.all(
                                           color: isSelected
                                               ? AppThemeService.currentPalette.value.primaryColor
-                                              : Colors.white.withValues(alpha: 0.08),
+                                              : tokens.borderDefault,
                                           width: isSelected ? 1.4 : 1.0,
                                         ),
                                       ),
@@ -1119,12 +1091,11 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                             width: 28,
                                             child: Text(
                                               numFormatted,
-                                              style: TextStyle(
-                                                color: isSelected ? const Color(0xFF00E5FF) : Colors.white30,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700,
-                                                fontFamily: 'monospace',
-                                              ),
+                                              style: ZplayType.caption
+                                                  .copyWith(weight: FontWeight.w700)
+                                                  .toStyle(
+                                                    color: isSelected ? tokens.info : tokens.textDisabled,
+                                                  ),
                                             ),
                                           ),
 
@@ -1135,13 +1106,13 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                             width: 38,
                                             height: 28,
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF080A10),
-                                              borderRadius: BorderRadius.circular(4),
-                                              border: Border.all(color: const Color(0xFF1E2336)),
+                                              color: tokens.bg,
+                                              borderRadius: ZplayRadius.xsAll,
+                                              border: Border.all(color: tokens.surfaceOverlay),
                                             ),
                                             child: hit.stream.icon.isNotEmpty
                                                 ? ClipRRect(
-                                                    borderRadius: BorderRadius.circular(3),
+                                                    borderRadius: ZplayRadius.xsAll,
                                                     child: CachedNetworkImage(
                                                       imageUrl: hit.stream.icon,
                                                       cacheManager: AppImageCache.manager,
@@ -1149,13 +1120,13 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                                       memCacheWidth: 64,
                                                       errorWidget: (_, _, _) => Icon(
                                                         isLive ? Icons.live_tv_rounded : Icons.movie_rounded,
-                                                        color: Colors.white38,
+                                                        color: tokens.textMuted,
                                                         size: 16,
                                                       )),
                                                   )
                                                 : Icon(
                                                     isLive ? Icons.live_tv_rounded : Icons.movie_rounded,
-                                                    color: Colors.white38,
+                                                    color: tokens.textMuted,
                                                     size: 16,
                                                   ),
                                           ),
@@ -1171,24 +1142,24 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                                   hit.stream.name,
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    color: isSelected ? Colors.white : Colors.white70,
-                                                    fontSize: 13,
-                                                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                                  ),
+                                                  style: ZplayType.label
+                                                      .copyWith(
+                                                        weight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                                      )
+                                                      .toStyle(
+                                                        color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
+                                                      ),
                                                 ),
-                                                const SizedBox(height: 2),
+                                                const SizedBox(height: ZplaySpacing.s2),
                                                 Text(
                                                   hit.portal.portal.username.isNotEmpty
                                                       ? hit.portal.portal.username
                                                       : hit.portal.name,
                                                   maxLines: 1,
                                                   overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    color: Colors.white.withValues(alpha: 0.4),
-                                                    fontSize: 10.5,
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
+                                                  style: ZplayType.caption
+                                                      .copyWith(weight: FontWeight.w600)
+                                                      .toStyle(color: tokens.textMuted),
                                                 ),
                                               ],
                                             ),
@@ -1197,14 +1168,14 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
                                           if (isSelected) ...[
                                             const SizedBox(width: 6),
                                             Container(
-                                              padding: const EdgeInsets.all(4),
+                                              padding: const EdgeInsets.all(ZplaySpacing.s4),
                                               decoration: BoxDecoration(
                                                 color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
                                                 shape: BoxShape.circle,
                                               ),
-                                              child: const Icon(
+                                              child: Icon(
                                                 Icons.play_arrow_rounded,
-                                                color: Color(0xFF00E5FF),
+                                                color: tokens.info,
                                                 size: 16,
                                               ),
                                             ),
@@ -1275,6 +1246,7 @@ class _IptvCustomProgressBarState extends State<_IptvCustomProgressBar> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final duration = widget.duration;
 
     return ValueListenableBuilder<Duration>(
@@ -1335,7 +1307,7 @@ class _IptvCustomProgressBarState extends State<_IptvCustomProgressBar> {
                       _seekTo(details.localPosition.dx, width, duration);
                     },
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: ZplaySpacing.s8),
                       child: Stack(
                         clipBehavior: Clip.none,
                         alignment: Alignment.centerLeft,
@@ -1352,8 +1324,8 @@ class _IptvCustomProgressBarState extends State<_IptvCustomProgressBar> {
                             height: 5,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.white24,
-                              borderRadius: BorderRadius.circular(3),
+                              color: tokens.textDisabled,
+                              borderRadius: ZplayRadius.xsAll,
                             ),
                           ),
 
@@ -1365,8 +1337,8 @@ class _IptvCustomProgressBarState extends State<_IptvCustomProgressBar> {
                                 height: 5,
                                 width: (width * (bufferedDuration.inMilliseconds / duration.inMilliseconds)).clamp(0.0, width),
                                 decoration: BoxDecoration(
-                                  color: Colors.white38,
-                                  borderRadius: BorderRadius.circular(3),
+                                  color: tokens.textMuted,
+                                  borderRadius: ZplayRadius.xsAll,
                                 ),
                               ),
                             ),
@@ -1379,9 +1351,9 @@ class _IptvCustomProgressBarState extends State<_IptvCustomProgressBar> {
                                 : 0,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [AppThemeService.currentPalette.value.primaryColor, const Color(0xFF00D2EF)],
+                                colors: [AppThemeService.currentPalette.value.primaryColor, tokens.info],
                               ),
-                              borderRadius: BorderRadius.circular(3),
+                              borderRadius: ZplayRadius.xsAll,
                             ),
                           ),
 
@@ -1394,7 +1366,7 @@ class _IptvCustomProgressBarState extends State<_IptvCustomProgressBar> {
                               width: 14,
                               height: 14,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: tokens.textPrimary,
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
@@ -1412,23 +1384,21 @@ class _IptvCustomProgressBarState extends State<_IptvCustomProgressBar> {
                               left: (_hoverX! - 30).clamp(0.0, width - 60),
                               bottom: 20,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF0C0E15),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: Colors.white24, width: 1),
+                                  color: tokens.surface,
+                                  borderRadius: ZplayRadius.xsAll,
+                                  border: Border.all(
+                                    color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
+                                    width: 1,
+                                  ),
                                   boxShadow: const [
                                     BoxShadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 2)),
                                   ],
                                 ),
                                 child: Text(
                                   _formatDuration(duration * (_hoverX! / width)),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: 'monospace',
-                                  ),
+                                  style: ZplayType.labelNumeric.toStyle(color: tokens.textPrimary),
                                 ),
                               ),
                             ),

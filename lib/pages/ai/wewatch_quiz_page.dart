@@ -7,6 +7,7 @@ import '../../models/movie/movie.dart';
 import '../../services/addon/addon_manager.dart';
 import '../../services/ai/wewatch_service.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../details/details_page.dart';
 import '../../services/storage/app_image_cache.dart';
@@ -281,12 +282,12 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
 
   @override
   Widget build(BuildContext context) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final size = MediaQuery.sizeOf(context);
     final isMobile = size.width < 700;
 
     return Scaffold(
-      backgroundColor: palette.scaffoldBackgroundColor,
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           // Ambient Wallpaper & Animated Glow Layer
@@ -301,13 +302,13 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                 constraints: const BoxConstraints(maxWidth: 880),
                 child: Column(
                   children: [
-                    _buildAppBar(palette),
+                    _buildAppBar(tokens),
                     Expanded(
                       child: _isGenerating
-                          ? _buildCinematicLoadingView(palette)
+                          ? _buildCinematicLoadingView(tokens)
                           : (_recommendations != null
-                              ? _buildRecommendationsView(palette, isMobile)
-                              : _buildQuizForm(palette, isMobile)),
+                              ? _buildRecommendationsView(tokens, isMobile)
+                              : _buildQuizForm(tokens, isMobile)),
                     ),
                   ],
                 ),
@@ -319,19 +320,19 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
     );
   }
 
-  Widget _buildAppBar(AppThemePalette palette) {
+  Widget _buildAppBar(ZplayTokens tokens) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: palette.appBarBackgroundColor.withValues(alpha: 0.7),
+        color: tokens.surfaceRaised.withValues(alpha: 0.7),
         border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          bottom: BorderSide(color: tokens.borderSubtle),
         ),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+            icon: Icon(Icons.arrow_back_ios_new_rounded, color: tokens.textPrimary, size: 20),
             splashRadius: 20,
             onPressed: () => Navigator.pop(context),
           ),
@@ -339,46 +340,53 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: palette.primaryColor.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: palette.primaryColor.withValues(alpha: 0.4)),
+              color: tokens.accent.withValues(alpha: 0.18),
+              borderRadius: ZplayRadius.smAll,
+              border: Border.all(color: tokens.accent.withValues(alpha: 0.4)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.auto_awesome_rounded, size: 14, color: palette.primaryColor),
+                Icon(Icons.auto_awesome_rounded, size: 14, color: tokens.accent),
                 const SizedBox(width: 5),
                 Text(
                   'AI TASTE MATCH',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    color: palette.primaryColor,
-                    letterSpacing: 0.6,
-                  ),
+                  style: ZplayType.overline
+                      .copyWith(
+                        size: 11,
+                        weight: FontWeight.w900,
+                        letterSpacing: 0.6,
+                      )
+                      .toStyle(color: tokens.accent),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 10),
-          const Text(
+          Text(
             'Recommendation Quiz',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
-            ),
+            style: ZplayType.title
+                .copyWith(
+                  size: 17,
+                  weight: FontWeight.w800,
+                  letterSpacing: -0.3,
+                )
+                .toStyle(color: tokens.textPrimary),
           ),
           const Spacer(),
           if (_recommendations != null)
             TextButton.icon(
               style: TextButton.styleFrom(
-                foregroundColor: Colors.white70,
+                foregroundColor: tokens.textEmphasis,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               ),
               icon: const Icon(Icons.refresh_rounded, size: 16),
-              label: const Text('Retake', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+              label: Text(
+                'Retake',
+                style: ZplayType.label
+                    .copyWith(size: 12, weight: FontWeight.bold)
+                    .toStyle(),
+              ),
               onPressed: () => setState(() => _recommendations = null),
             ),
         ],
@@ -386,7 +394,7 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
     );
   }
 
-  Widget _buildQuizForm(AppThemePalette palette, bool isMobile) {
+  Widget _buildQuizForm(ZplayTokens tokens, bool isMobile) {
     final rated = _ratedCount;
     final progress = (rated / 3.0).clamp(0.0, 1.0);
 
@@ -396,15 +404,15 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
       children: [
         // Taste Profile Header Card
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: ZplayRadius.mdAll,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: palette.cardBackgroundColor.withValues(alpha: 0.75),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                color: tokens.surface.withValues(alpha: 0.75),
+                borderRadius: ZplayRadius.mdAll,
+                border: Border.all(color: tokens.borderDefault),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -412,35 +420,39 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'What do you like to watch?',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.3,
-                        ),
+                        style: ZplayType.title
+                            .copyWith(
+                              weight: FontWeight.w900,
+                              letterSpacing: -0.3,
+                            )
+                            .toStyle(color: tokens.textPrimary),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: _canSubmit
-                              ? const Color(0xFF10B981).withValues(alpha: 0.18)
-                              : Colors.white.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(20),
+                              ? tokens.success.withValues(alpha: 0.18)
+                              : tokens.textPrimary.withValues(
+                                  alpha: ZplayOpacity.borderSubtle,
+                                ),
+                          borderRadius: ZplayRadius.lgAll,
                           border: Border.all(
                             color: _canSubmit
-                                ? const Color(0xFF10B981).withValues(alpha: 0.4)
-                                : Colors.white.withValues(alpha: 0.1),
+                                ? tokens.success.withValues(alpha: 0.4)
+                                : tokens.borderStrong,
                           ),
                         ),
                         child: Text(
                           '$rated/3 rated',
-                          style: TextStyle(
-                            color: _canSubmit ? const Color(0xFF10B981) : Colors.white70,
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: ZplayType.caption
+                              .copyWith(size: 11.5, weight: FontWeight.w800)
+                              .toStyle(
+                                color: _canSubmit
+                                    ? tokens.success
+                                    : tokens.textEmphasis,
+                              ),
                         ),
                       ),
                     ],
@@ -448,23 +460,21 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                   const SizedBox(height: 6),
                   Text(
                     'Rate 3 or more movies or TV shows. Choose what you liked or disliked, and select key elements to generate pinpoint AI recommendations.',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.65),
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
+                    style: ZplayType.body
+                        .copyWith(size: 13)
+                        .toStyle(color: tokens.textEmphasis),
                   ),
                   const SizedBox(height: 14),
 
                   // Segmented Progress Bar
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: ZplayRadius.xsAll,
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 5,
-                      backgroundColor: Colors.white.withValues(alpha: 0.08),
+                      backgroundColor: tokens.borderDefault,
                       valueColor: AlwaysStoppedAnimation(
-                        _canSubmit ? const Color(0xFF10B981) : palette.primaryColor,
+                        _canSubmit ? tokens.success : tokens.accent,
                       ),
                     ),
                   ),
@@ -480,20 +490,22 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.redAccent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.redAccent.withValues(alpha: 0.35)),
+              color: tokens.danger.withValues(alpha: 0.15),
+              borderRadius: ZplayRadius.smAll,
+              border: Border.all(color: tokens.danger.withValues(alpha: 0.35)),
             ),
             child: Text(
               _errorMessage!,
-              style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w600),
+              style: ZplayType.label
+                  .copyWith(weight: FontWeight.w600)
+                  .toStyle(color: tokens.danger),
             ),
           ),
           const SizedBox(height: 14),
         ],
 
         // Movie/Show Input Cards
-        ..._picks.asMap().entries.map((entry) => _buildPickCard(entry.key, entry.value, palette, isMobile)),
+        ..._picks.asMap().entries.map((entry) => _buildPickCard(entry.key, entry.value, tokens, isMobile)),
 
         const SizedBox(height: 12),
 
@@ -502,13 +514,18 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
           Center(
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white70,
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+                foregroundColor: tokens.textEmphasis,
+                side: tokens.hairlineStrong,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
               ),
               icon: const Icon(Icons.add_rounded, size: 18),
-              label: const Text('Add Another Title', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+              label: Text(
+                'Add Another Title',
+                style: ZplayType.label
+                    .copyWith(weight: FontWeight.w700)
+                    .toStyle(),
+              ),
               onPressed: _addAnotherTitle,
             ),
           ),
@@ -518,10 +535,10 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
         // Generate Recommendations Action
         ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: _canSubmit ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
-            foregroundColor: _canSubmit ? Colors.white : Colors.white38,
+            backgroundColor: _canSubmit ? tokens.accent : tokens.borderDefault,
+            foregroundColor: _canSubmit ? tokens.onAccent : tokens.textMuted,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.mdAll),
             elevation: _canSubmit ? 4 : 0,
           ),
           onPressed: _canSubmit ? _generateRecommendations : null,
@@ -531,12 +548,14 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
               Icon(
                 Icons.auto_awesome_rounded,
                 size: 18,
-                color: _canSubmit ? Colors.white : Colors.white38,
+                color: _canSubmit ? tokens.onAccent : tokens.textMuted,
               ),
               const SizedBox(width: 8),
               Text(
                 _canSubmit ? 'Discover Recommendations ($rated Titles)' : 'Rate 3 Titles to Unlock Recommendations',
-                style: const TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+                style: ZplayType.body
+                    .copyWith(size: 14.5, weight: FontWeight.w800)
+                    .toStyle(),
               ),
             ],
           ),
@@ -547,24 +566,24 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
     );
   }
 
-  Widget _buildPickCard(int index, WeWatchUserPick pick, AppThemePalette palette, bool isMobile) {
+  Widget _buildPickCard(int index, WeWatchUserPick pick, ZplayTokens tokens, bool isMobile) {
     final hasSelectedMedia = pick.title.isNotEmpty;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: ZplayRadius.mdAll,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: palette.cardBackgroundColor.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(16),
+              color: tokens.surface.withValues(alpha: 0.7),
+              borderRadius: ZplayRadius.mdAll,
               border: Border.all(
                 color: pick.isValid
-                    ? palette.primaryColor.withValues(alpha: 0.4)
-                    : Colors.white.withValues(alpha: 0.08),
+                    ? tokens.accent.withValues(alpha: 0.4)
+                    : tokens.borderDefault,
               ),
             ),
             child: Column(
@@ -581,40 +600,43 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                           height: 22,
                           decoration: BoxDecoration(
                             color: pick.isValid
-                                ? palette.primaryColor
-                                : Colors.white.withValues(alpha: 0.1),
+                                ? tokens.accent
+                                : tokens.textPrimary.withValues(
+                                    alpha: ZplayOpacity.borderMedium,
+                                  ),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
                             child: pick.isValid
-                                ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                                ? Icon(Icons.check_rounded, size: 13, color: tokens.textPrimary)
                                 : Text(
                                     '${index + 1}',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: ZplayType.caption
+                                        .copyWith(weight: FontWeight.bold)
+                                        .toStyle(color: tokens.textEmphasis),
                                   ),
                           ),
                         ),
                         const SizedBox(width: 10),
                         Text(
                           hasSelectedMedia ? pick.title : 'Title #${index + 1}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: ZplayType.subtitle
+                              .copyWith(weight: FontWeight.w800)
+                              .toStyle(color: tokens.textPrimary),
                         ),
                         if (pick.year != null && pick.year!.isNotEmpty) ...[
                           const SizedBox(width: 6),
-                          Text('(${pick.year})', style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                          Text(
+                            '(${pick.year})',
+                            style: ZplayType.body
+                                .copyWith(size: 13)
+                                .toStyle(color: tokens.textSecondary),
+                          ),
                         ],
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white38),
+                      icon: Icon(Icons.close_rounded, size: 18, color: tokens.textMuted),
                       splashRadius: 18,
                       onPressed: () => _removeTitle(index),
                     ),
@@ -627,25 +649,27 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                 if (!hasSelectedMedia) ...[
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0D1017).withValues(alpha: 0.8),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                      color: tokens.surface.withValues(alpha: 0.8),
+                      borderRadius: ZplayRadius.smAll,
+                      border: Border.all(color: tokens.borderDefault),
                     ),
                     child: TextField(
                       controller: _searchControllers[index],
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: ZplayType.body.toStyle(color: tokens.textPrimary),
                       onChanged: (q) => _onSearchChanged(index, q),
                       decoration: InputDecoration(
                         hintText: 'Search movie or TV series...',
-                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 13),
-                        prefixIcon: Icon(Icons.search_rounded, color: palette.primaryColor, size: 18),
+                        hintStyle: ZplayType.body
+                            .copyWith(size: 13)
+                            .toStyle(color: tokens.textMuted),
+                        prefixIcon: Icon(Icons.search_rounded, color: tokens.accent, size: 18),
                         suffixIcon: (_isSearching[index] ?? false)
                             ? Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: SizedBox(
                                   width: 14,
                                   height: 14,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: palette.primaryColor),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: tokens.accent),
                                 ),
                               )
                             : null,
@@ -661,20 +685,20 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                     Container(
                       constraints: const BoxConstraints(maxHeight: 220),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF0D1017),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                        color: tokens.surface,
+                        borderRadius: ZplayRadius.smAll,
+                        border: Border.all(color: tokens.borderStrong),
                       ),
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: _searchResults[index]!.length,
-                        separatorBuilder: (_, __) => Divider(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+                        separatorBuilder: (_, __) => Divider(height: 1, color: tokens.borderSubtle),
                         itemBuilder: (context, rIdx) {
                           final item = _searchResults[index]![rIdx];
                           return ListTile(
                             dense: true,
                             leading: ClipRRect(
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: ZplayRadius.xsAll,
                               child: item.posterUrl != null
                                   ? CachedNetworkImage(
                                       imageUrl: item.posterUrl!,
@@ -683,15 +707,17 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                                       width: 28,
                                       height: 42,
                                       fit: BoxFit.cover)
-                                  : Container(width: 28, height: 42, color: Colors.white10),
+                                  : Container(width: 28, height: 42, color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium)),
                             ),
                             title: Text(
                               item.title,
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                              style: ZplayType.label
+                                  .copyWith(weight: FontWeight.bold)
+                                  .toStyle(color: tokens.textPrimary),
                             ),
                             subtitle: Text(
                               '${item.year ?? ''} • ${item.mediaType == 'movie' ? 'Movie' : 'TV Series'}',
-                              style: const TextStyle(color: Colors.white54, fontSize: 11),
+                              style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                             ),
                             onTap: () => _selectMedia(index, item),
                           );
@@ -705,27 +731,32 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                   // Need Ideas Toggle
                   InkWell(
                     onTap: () => setState(() => _showStarterPicks[index] = !(_showStarterPicks[index] ?? false)),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: ZplayRadius.lgAll,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                        color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                        borderRadius: ZplayRadius.lgAll,
+                        border: Border.all(color: tokens.borderDefault),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.lightbulb_outline_rounded, size: 14, color: palette.primaryColor),
+                          Icon(Icons.lightbulb_outline_rounded, size: 14, color: tokens.accent),
                           const SizedBox(width: 6),
-                          const Text('Need ideas?', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text(
+                            'Need ideas?',
+                            style: ZplayType.label
+                                .copyWith(size: 12, weight: FontWeight.bold)
+                                .toStyle(color: tokens.textPrimary),
+                          ),
                           const SizedBox(width: 4),
                           Icon(
                             (_showStarterPicks[index] ?? false)
                                 ? Icons.keyboard_arrow_up_rounded
                                 : Icons.keyboard_arrow_down_rounded,
                             size: 16,
-                            color: Colors.white54,
+                            color: tokens.textSecondary,
                           ),
                         ],
                       ),
@@ -747,19 +778,19 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                             padding: const EdgeInsets.only(right: 10),
                             child: InkWell(
                               onTap: () => _selectStarterPick(index, starter),
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: ZplayRadius.smAll,
                               child: Container(
                                 width: 72,
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.04),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                                  color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                                  borderRadius: ZplayRadius.smAll,
+                                  border: Border.all(color: tokens.borderSubtle),
                                 ),
                                 child: Column(
                                   children: [
                                     ClipRRect(
-                                      borderRadius: BorderRadius.circular(6),
+                                      borderRadius: ZplayRadius.xsAll,
                                       child: CachedNetworkImage(
                                         imageUrl: starter.posterUrl,
                                         cacheManager: AppImageCache.manager,
@@ -771,7 +802,12 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                                     const SizedBox(height: 4),
                                     Text(
                                       starter.label,
-                                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600),
+                                      style: ZplayType.caption
+                                          .copyWith(
+                                            size: 10,
+                                            weight: FontWeight.w600,
+                                          )
+                                          .toStyle(color: tokens.textPrimary),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.center,
@@ -792,7 +828,7 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                     children: [
                       if (pick.posterUrl != null)
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: ZplayRadius.smAll,
                           child: CachedNetworkImage(
                             imageUrl: pick.posterUrl!,
                             cacheManager: AppImageCache.manager,
@@ -806,9 +842,14 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'How was your experience with it?',
-                              style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                              style: ZplayType.label
+                                  .copyWith(
+                                    size: 12,
+                                    weight: FontWeight.w600,
+                                  )
+                                  .toStyle(color: tokens.textEmphasis),
                             ),
                             const SizedBox(height: 8),
 
@@ -817,10 +858,10 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                               spacing: 6,
                               runSpacing: 6,
                               children: [
-                                _buildSentimentButton(index, 'loved', 'Loved it ❤️', palette),
-                                _buildSentimentButton(index, 'liked', 'Liked it 👍', palette),
-                                _buildSentimentButton(index, 'meh', 'It was okay 😐', palette),
-                                _buildSentimentButton(index, 'hated', 'Disliked 👎', palette),
+                                _buildSentimentButton(index, 'loved', 'Loved it ❤️', tokens),
+                                _buildSentimentButton(index, 'liked', 'Liked it 👍', tokens),
+                                _buildSentimentButton(index, 'meh', 'It was okay 😐', tokens),
+                                _buildSentimentButton(index, 'hated', 'Disliked 👎', tokens),
                               ],
                             ),
                           ],
@@ -832,9 +873,11 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                   // Dynamic AI Reason Pills
                   if (pick.sentiment != null) ...[
                     const SizedBox(height: 14),
-                    const Text(
+                    Text(
                       'What stood out? (Pick key elements or write a note):',
-                      style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: ZplayType.label
+                          .copyWith(size: 12, weight: FontWeight.w600)
+                          .toStyle(color: tokens.textEmphasis),
                     ),
                     const SizedBox(height: 8),
 
@@ -852,10 +895,15 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                                 SizedBox(
                                   width: 12,
                                   height: 12,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: palette.primaryColor),
+                                  child: CircularProgressIndicator(strokeWidth: 2, color: tokens.accent),
                                 ),
                                 const SizedBox(width: 8),
-                                const Text('Fetching reason tags...', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                                Text(
+                                  'Fetching reason tags...',
+                                  style: ZplayType.caption.toStyle(
+                                    color: tokens.textSecondary,
+                                  ),
+                                ),
                               ],
                             ),
                           );
@@ -869,19 +917,26 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                             return ChoiceChip(
                               label: Text(pill),
                               selected: isSelected,
-                              selectedColor: palette.primaryColor.withValues(alpha: 0.25),
-                              backgroundColor: const Color(0xFF0D1017).withValues(alpha: 0.6),
-                              labelStyle: TextStyle(
-                                color: isSelected ? palette.primaryColor : Colors.white70,
-                                fontSize: 11.5,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              ),
+                              selectedColor: tokens.accentSubtle,
+                              backgroundColor: tokens.surface.withValues(alpha: 0.6),
+                              labelStyle: ZplayType.caption
+                                  .copyWith(
+                                    size: 11.5,
+                                    weight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                  )
+                                  .toStyle(
+                                    color: isSelected
+                                        ? tokens.accent
+                                        : tokens.textEmphasis,
+                                  ),
                               side: BorderSide(
                                 color: isSelected
-                                    ? palette.primaryColor.withValues(alpha: 0.6)
-                                    : Colors.white.withValues(alpha: 0.08),
+                                    ? tokens.accent.withValues(alpha: 0.6)
+                                    : tokens.borderDefault,
                               ),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                               onSelected: (_) => _togglePill(index, pill),
                             );
                           }).toList(),
@@ -893,25 +948,27 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
 
                     // User Comment / Note
                     TextField(
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      style: ZplayType.body
+                          .copyWith(size: 13)
+                          .toStyle(color: tokens.textPrimary),
                       maxLines: 2,
                       onChanged: (val) => pick.reason = val,
                       decoration: InputDecoration(
                         hintText: 'Additional notes or specifics (optional)...',
-                        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 12),
+                        hintStyle: ZplayType.bodySmall.toStyle(color: tokens.textDisabled),
                         filled: true,
-                        fillColor: const Color(0xFF0D1017).withValues(alpha: 0.6),
+                        fillColor: tokens.surface.withValues(alpha: 0.6),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+                          borderRadius: ZplayRadius.smAll,
+                          borderSide: BorderSide(color: tokens.borderSubtle),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+                          borderRadius: ZplayRadius.smAll,
+                          borderSide: BorderSide(color: tokens.borderSubtle),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: palette.primaryColor.withValues(alpha: 0.4)),
+                          borderRadius: ZplayRadius.smAll,
+                          borderSide: BorderSide(color: tokens.accent.withValues(alpha: 0.4)),
                         ),
                         contentPadding: const EdgeInsets.all(10),
                       ),
@@ -926,48 +983,53 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
     );
   }
 
-  Widget _buildSentimentButton(int index, String value, String label, AppThemePalette palette) {
+  Widget _buildSentimentButton(int index, String value, String label, ZplayTokens tokens) {
     final isSelected = _picks[index].sentiment == value;
 
     return InkWell(
       onTap: () => _setSentiment(index, value),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: ZplayRadius.smAll,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? palette.primaryColor.withValues(alpha: 0.22) : const Color(0xFF0D1017).withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected
+              ? tokens.accentSubtle
+              : tokens.surface.withValues(alpha: 0.6),
+          borderRadius: ZplayRadius.smAll,
           border: Border.all(
-            color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.1),
+            color: isSelected ? tokens.accent : tokens.borderStrong,
             width: isSelected ? 1.4 : 1.0,
           ),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
-            fontSize: 11.5,
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-          ),
+          style: ZplayType.caption
+              .copyWith(
+                size: 11.5,
+                weight: isSelected ? FontWeight.w800 : FontWeight.w500,
+              )
+              .toStyle(
+                color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
+              ),
         ),
       ),
     );
   }
 
-  Widget _buildCinematicLoadingView(AppThemePalette palette) {
+  Widget _buildCinematicLoadingView(ZplayTokens tokens) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: ZplayRadius.lgAll,
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
               decoration: BoxDecoration(
-                color: palette.cardBackgroundColor.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: palette.primaryColor.withValues(alpha: 0.3)),
+                color: tokens.surface.withValues(alpha: 0.8),
+                borderRadius: ZplayRadius.lgAll,
+                border: Border.all(color: tokens.accent.withValues(alpha: 0.3)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -977,19 +1039,23 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                     height: 56,
                     child: CircularProgressIndicator(
                       strokeWidth: 3,
-                      valueColor: AlwaysStoppedAnimation(palette.primaryColor),
+                      valueColor: AlwaysStoppedAnimation(tokens.accent),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Text(
                     _generationStep,
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800),
+                    style: ZplayType.subtitle
+                        .copyWith(size: 16, weight: FontWeight.w800)
+                        .toStyle(color: tokens.textPrimary),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Synthesizing taste vectors with multi-signal AI...',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 12.5),
+                    style: ZplayType.bodySmall
+                        .copyWith(size: 12.5)
+                        .toStyle(color: tokens.textSecondary),
                   ),
                 ],
               ),
@@ -1000,7 +1066,7 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
     );
   }
 
-  Widget _buildRecommendationsView(AppThemePalette palette, bool isMobile) {
+  Widget _buildRecommendationsView(ZplayTokens tokens, bool isMobile) {
     final recs = _recommendations!;
 
     return ListView(
@@ -1013,14 +1079,22 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Your Personalized Matches',
-                  style: TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w900, letterSpacing: -0.3),
+                  style: ZplayType.titleLarge
+                      .copyWith(
+                        size: 19,
+                        weight: FontWeight.w900,
+                        letterSpacing: -0.3,
+                      )
+                      .toStyle(color: tokens.textPrimary),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '${recs.length} cinema picks tailored to your taste profile',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12.5),
+                  style: ZplayType.bodySmall
+                      .copyWith(size: 12.5)
+                      .toStyle(color: tokens.textSecondary),
                 ),
               ],
             ),
@@ -1034,25 +1108,25 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
           return Container(
             margin: const EdgeInsets.only(bottom: 14),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: ZplayRadius.mdAll,
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: palette.cardBackgroundColor.withValues(alpha: 0.75),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    color: tokens.surface.withValues(alpha: 0.75),
+                    borderRadius: ZplayRadius.mdAll,
+                    border: Border.all(color: tokens.borderDefault),
                   ),
                   child: InkWell(
                     onTap: () => _openDetails(rec),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: ZplayRadius.mdAll,
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Poster
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: ZplayRadius.smAll,
                           child: rec.posterUrl != null
                               ? CachedNetworkImage(
                                   imageUrl: rec.posterUrl!,
@@ -1063,7 +1137,7 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                               : Container(
                                   width: isMobile ? 80 : 96,
                                   height: isMobile ? 120 : 144,
-                                  color: Colors.white10,
+                                  color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
                                 ),
                         ),
                         const SizedBox(width: 14),
@@ -1079,11 +1153,9 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                                   Expanded(
                                     child: Text(
                                       rec.title,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w900,
-                                      ),
+                                      style: ZplayType.subtitle
+                                          .copyWith(weight: FontWeight.w900)
+                                          .toStyle(color: tokens.textPrimary),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
@@ -1091,18 +1163,19 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.18),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
+                                      color: tokens.success.withValues(alpha: 0.18),
+                                      borderRadius: ZplayRadius.xsAll,
+                                      border: Border.all(color: tokens.success.withValues(alpha: 0.4)),
                                     ),
                                     child: Text(
                                       '${rec.matchConfidence}% MATCH',
-                                      style: const TextStyle(
-                                        color: Color(0xFF10B981),
-                                        fontSize: 10.5,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 0.5,
-                                      ),
+                                      style: ZplayType.overline
+                                          .copyWith(
+                                            size: 10.5,
+                                            weight: FontWeight.w900,
+                                            letterSpacing: 0.5,
+                                          )
+                                          .toStyle(color: tokens.success),
                                     ),
                                   ),
                                 ],
@@ -1111,23 +1184,26 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                               Row(
                                 children: [
                                   if (rec.year != null)
-                                    Text(rec.year!, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                                    Text(
+                                      rec.year!,
+                                      style: ZplayType.bodySmall.toStyle(
+                                        color: tokens.textSecondary,
+                                      ),
+                                    ),
                                   if (rec.mediaType.isNotEmpty) ...[
                                     const SizedBox(width: 6),
                                     Text(
                                       '•  ${rec.mediaType == 'movie' ? 'Movie' : 'TV Series'}',
-                                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                                      style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                                     ),
                                   ],
                                   if (rec.voteAverage != null) ...[
                                     const SizedBox(width: 6),
                                     Text(
                                       '•  ★ ${rec.voteAverage!.toStringAsFixed(1)}',
-                                      style: const TextStyle(
-                                        color: Color(0xFFFFC107),
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: ZplayType.bodySmall
+                                          .copyWith(weight: FontWeight.bold)
+                                          .toStyle(color: tokens.warning),
                                     ),
                                   ],
                                 ],
@@ -1137,11 +1213,9 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                               // Why it fits
                               Text(
                                 rec.reasoning,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                  fontSize: 12,
-                                  height: 1.35,
-                                ),
+                                style: ZplayType.bodySmall
+                                    .copyWith(height: 1.35)
+                                    .toStyle(color: tokens.textEmphasis),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1150,11 +1224,10 @@ class _WeWatchQuizPageState extends State<WeWatchQuizPage> {
                               // Match Explanation
                               Text(
                                 rec.matchExplanation,
-                                style: TextStyle(
-                                  color: palette.accentColor,
-                                  fontSize: 11.5,
-                                  fontStyle: FontStyle.italic,
-                                ),
+                                style: ZplayType.caption
+                                    .copyWith(size: 11.5)
+                                    .toStyle(color: tokens.accent)
+                                    .copyWith(fontStyle: FontStyle.italic),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),

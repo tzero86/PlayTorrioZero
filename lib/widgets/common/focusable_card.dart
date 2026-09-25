@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 
 /// What a card needs to know about how it is currently being pointed at.
 ///
@@ -168,7 +168,7 @@ class CardFocusRing extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!focused) return child;
 
-    final accent = AppThemeService.currentPalette.value.primaryColor;
+    final accent = ZplayTokens.of(context).accent;
 
     return Stack(
       fit: StackFit.passthrough,

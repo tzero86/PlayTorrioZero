@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 
 /// Top floating subtitle appearance and size scaling toolbar.
@@ -19,6 +20,7 @@ class PlayerSubStyleBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final percent = (scale * 100).round();
+    final tokens = context.tokens;
 
     return Container(
       alignment: Alignment.topCenter,
@@ -28,8 +30,11 @@ class PlayerSubStyleBar extends StatelessWidget {
         right: 20,
       ),
       child: PlayerGlassCard(
-        borderRadius: 16,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        borderRadius: ZplayRadius.md,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: ZplaySpacing.s8,
+        ),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -43,15 +48,12 @@ class PlayerSubStyleBar extends StatelessWidget {
                   size: 16,
                   color: PlayerTheme.accent,
                 ),
-                const SizedBox(width: 8),
-                const Text(
+                const SizedBox(width: ZplaySpacing.s8),
+                Text(
                   'SUBTITLE SIZE',
-                  style: TextStyle(
-                    color: PlayerTheme.inkSubtle,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.2,
-                  ),
+                  style: ZplayType.overline
+                      .copyWith(size: 10.5, weight: FontWeight.w700)
+                      .toStyle(color: PlayerTheme.inkSubtle),
                 ),
               ],
             ),
@@ -63,14 +65,18 @@ class PlayerSubStyleBar extends StatelessWidget {
               height: 34,
               decoration: BoxDecoration(
                 color: PlayerTheme.raised,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(color: PlayerTheme.edgeSoft),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.remove_rounded, size: 16, color: Colors.white),
+                    icon: Icon(
+                      Icons.remove_rounded,
+                      size: 16,
+                      color: tokens.textPrimary,
+                    ),
                     onPressed: () => onScaleChanged(((scale - 0.1) * 10).round() / 10.0),
                     tooltip: 'Decrease size',
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 34),
@@ -81,16 +87,17 @@ class PlayerSubStyleBar extends StatelessWidget {
                     alignment: Alignment.center,
                     child: Text(
                       '$percent%',
-                      style: const TextStyle(
-                        color: PlayerTheme.ink,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
+                      style: ZplayType.bodySmall
+                          .copyWith(size: 12.5, weight: FontWeight.w700)
+                          .toStyle(color: PlayerTheme.ink, tabular: true),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                    icon: Icon(
+                      Icons.add_rounded,
+                      size: 16,
+                      color: tokens.textPrimary,
+                    ),
                     onPressed: () => onScaleChanged(((scale + 0.1) * 10).round() / 10.0),
                     tooltip: 'Increase size',
                     constraints: const BoxConstraints(minWidth: 32, minHeight: 34),
@@ -120,22 +127,22 @@ class PlayerSubStyleBar extends StatelessWidget {
 
             // Reset Button (if not default 1.0)
             if ((scale - 1.0).abs() > 0.04) ...[
-              const SizedBox(width: 4),
+              const SizedBox(width: ZplaySpacing.s4),
               PlayerIconButton(
                 size: 32,
                 iconSize: 15,
                 icon: const Icon(Icons.replay_rounded),
                 tooltip: 'Reset to 100%',
                 backgroundColor: PlayerTheme.raised,
-                borderRadius: 8,
+                borderRadius: ZplayRadius.sm,
                 onPressed: () => onScaleChanged(1.0),
               ),
             ],
 
             const SizedBox(width: 6),
-            const SizedBox(
-              height: 20,
-              child: VerticalDivider(color: PlayerTheme.edgeSoft, width: 1),
+            SizedBox(
+              height: ZplaySpacing.s20,
+              child: VerticalDivider(color: tokens.borderDefault, width: 1),
             ),
             const SizedBox(width: 6),
 
@@ -146,7 +153,7 @@ class PlayerSubStyleBar extends StatelessWidget {
               icon: const Icon(Icons.close_rounded),
               tooltip: 'Close',
               backgroundColor: PlayerTheme.raised,
-              borderRadius: 8,
+              borderRadius: ZplayRadius.sm,
               onPressed: onClose,
             ),
           ],

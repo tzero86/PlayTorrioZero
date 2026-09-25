@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../models/player/skip_segment_model.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 import '../common/focusable_card.dart';
 
@@ -91,6 +92,7 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
   }
 
   Widget _buildRow(BuildContext context, Duration currentPosition, Duration? currentBuffered) {
+    final tokens = context.tokens;
     final totalMs = widget.duration.inMilliseconds;
     final currentMs = currentPosition.inMilliseconds;
     final currentFraction = totalMs > 0 ? (currentMs / totalMs).clamp(0.0, 1.0) : 0.0;
@@ -109,16 +111,11 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
             _formatDuration(_scrubFraction != null
                 ? Duration(milliseconds: (_scrubFraction! * totalMs).round())
                 : currentPosition),
-            style: const TextStyle(
-              color: PlayerTheme.inkMuted,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-              fontFeatures: [FontFeature.tabularFigures()],
-            ),
+            style: ZplayType.labelNumeric.toStyle(color: PlayerTheme.inkMuted),
           ),
         ),
 
-        const SizedBox(width: 12),
+        const SizedBox(width: ZplaySpacing.s12),
 
         // Scrubber Track
         Expanded(
@@ -173,8 +170,9 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                           height: (_isHovered || _isScrubbing) ? 8 : 6,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(999),
+                            color: tokens.textPrimary
+                                .withValues(alpha: ZplayOpacity.overlayHover),
+                            borderRadius: ZplayRadius.fullAll,
                           ),
                           child: Stack(
                             children: [
@@ -184,8 +182,8 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                                   widthFactor: bufferedFraction,
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.3),
-                                      borderRadius: BorderRadius.circular(999),
+                                      color: tokens.textPrimary.withValues(alpha: 0.30),
+                                      borderRadius: ZplayRadius.fullAll,
                                     ),
                                   ),
                                 ),
@@ -198,8 +196,8 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                                   final segWidth = ((eFrac - sFrac) * trackWidth).clamp(2.0, trackWidth);
                                   final isCredits = seg.type == 'credits';
                                   final color = isCredits
-                                      ? const Color(0x9910B981)
-                                      : const Color(0x99F59E0B);
+                                      ? tokens.success.withValues(alpha: 0.60)
+                                      : tokens.warning.withValues(alpha: 0.60);
 
                                   return Positioned(
                                     left: sFrac * trackWidth,
@@ -209,7 +207,7 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                                     child: Container(
                                       decoration: BoxDecoration(
                                         color: color,
-                                        borderRadius: BorderRadius.circular(2),
+                                        borderRadius: ZplayRadius.xsAll,
                                       ),
                                     ),
                                   );
@@ -225,9 +223,9 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                           width: trackWidth * activeFraction,
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
-                              colors: [PlayerTheme.accent, const Color(0xFF9D84FF)],
+                              colors: [PlayerTheme.accent, tokens.accentHover],
                             ),
-                            borderRadius: BorderRadius.circular(999),
+                            borderRadius: ZplayRadius.fullAll,
                             boxShadow: [
                               BoxShadow(
                                 color: PlayerTheme.accent.withValues(alpha: 0.5),
@@ -247,11 +245,11 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                             width: (_isHovered || _isScrubbing) ? 16 : 12,
                             height: (_isHovered || _isScrubbing) ? 16 : 12,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: tokens.textPrimary,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.6),
+                                  color: tokens.bg.withValues(alpha: 0.6),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -272,16 +270,19 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                                 .clamp(0.0, trackWidth - 56),
                             top: -32,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: ZplaySpacing.s8,
+                                vertical: ZplaySpacing.s4,
+                              ),
                               decoration: BoxDecoration(
-                                color: const Color(0xF0080C12),
-                                borderRadius: BorderRadius.circular(6),
+                                color: tokens.surfaceOverlay.withValues(alpha: 0.94),
+                                borderRadius: ZplayRadius.xsAll,
                                 border: Border.all(color: PlayerTheme.edge),
-                                boxShadow: const [
+                                boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black54,
+                                    color: tokens.bg.withValues(alpha: 0.54),
                                     blurRadius: 10,
-                                    offset: Offset(0, 4),
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
@@ -292,12 +293,9 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                                         ((_scrubFraction ?? _hoverFraction!) * totalMs).round(),
                                   ),
                                 ),
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w700,
-                                  fontFeatures: [FontFeature.tabularFigures()],
-                                ),
+                                style: ZplayType.caption
+                                    .toStyle(color: tokens.textPrimary, tabular: true)
+                                    .copyWith(fontWeight: FontWeight.w700),
                               ),
                             ),
                           ),
@@ -311,7 +309,7 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
           ),
         ),
 
-        const SizedBox(width: 12),
+        const SizedBox(width: ZplaySpacing.s12),
 
         // Time End / Remaining Toggle
         FocusableCard(
@@ -324,12 +322,7 @@ class _PlayerSeekBarState extends State<PlayerSeekBar> {
                 _showRemainingTime
                     ? (_formatDuration(-remainingDuration))
                     : _formatDuration(widget.duration),
-                style: const TextStyle(
-                  color: PlayerTheme.inkMuted,
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  fontFeatures: [FontFeature.tabularFigures()],
-                ),
+                style: ZplayType.labelNumeric.toStyle(color: PlayerTheme.inkMuted),
               ),
             );
           },

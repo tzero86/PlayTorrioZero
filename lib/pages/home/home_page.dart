@@ -583,8 +583,8 @@ class _HomePageState extends State<HomePage> {
     return featured;
   }
 
-  /// Height of the floating glass app bar below `MediaQuery` top padding
-  /// (10 top pad + 34 logo + 14 bottom pad).
+  /// Height of the app bar below `MediaQuery` top padding
+  /// (8 top pad + 34 logo + 16 bottom pad).
   static const double _appBarHeight = 58;
 
   /// Width at which the filter tabs move into the app bar; below it they sit
@@ -623,10 +623,17 @@ class _HomePageState extends State<HomePage> {
   /// themselves otherwise.
   Widget _buildFilterSlot(BuildContext context, double topPadding) {
     if (_filtersInAppBar(context)) {
-      return SizedBox(height: topPadding + _appBarHeight + 8);
+      return SizedBox(
+        height: topPadding + _appBarHeight + ZplaySpacing.s8,
+      );
     }
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, topPadding + _appBarHeight + 12, 20, 4),
+      padding: EdgeInsets.fromLTRB(
+        ZplaySpacing.s20,
+        topPadding + _appBarHeight + ZplaySpacing.s12,
+        ZplaySpacing.s20,
+        ZplaySpacing.s4,
+      ),
       child: Align(alignment: Alignment.centerLeft, child: _buildFilterTabs()),
     );
   }
@@ -634,7 +641,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final visibleSections = _visibleSections;
 
     final isAnimeTab = _selectedFilter == _HomeFilter.anime;
@@ -680,20 +687,27 @@ class _HomePageState extends State<HomePage> {
       ),
       if (isAnimeTab && _animeLoading)
         const Padding(
-          padding: EdgeInsets.symmetric(vertical: 32),
+          padding: EdgeInsets.symmetric(vertical: ZplaySpacing.s32),
           child: Center(child: CircularProgressIndicator()),
         ),
       if (isAnimeTab) ...animeRowWidgets,
       if (!hasContent)
         Padding(
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 48),
+          padding: const EdgeInsets.fromLTRB(
+            ZplaySpacing.s24,
+            ZplaySpacing.s32,
+            ZplaySpacing.s24,
+            ZplaySpacing.s48,
+          ),
           child: Center(
             child: Text(
               isAnimeTab
                   ? 'No anime available right now.'
                   : 'No titles match this filter.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.70)),
+              style: ZplayType.body.toStyle(
+                color: context.tokens.textEmphasis,
+              ),
             ),
           ),
         ),
@@ -721,13 +735,13 @@ class _HomePageState extends State<HomePage> {
         children: [
           // ── Main scrollable content ──
           if (_loading && !_showIntro && _sections.isEmpty)
-            _HomeSkeleton(topInset: topPadding + _appBarHeight + 8)
+            _HomeSkeleton(topInset: topPadding + _appBarHeight + ZplaySpacing.s8)
           else if (_error != null && _sections.isEmpty)
             ErrorView(error: _error, onRetry: _loadHome)
           else
             RefreshIndicator(
-              color: palette.primaryColor,
-              backgroundColor: palette.cardBackgroundColor,
+              color: tokens.accent,
+              backgroundColor: tokens.surface,
               onRefresh: _loadHome,
               child: ListView.builder(
                 controller: _scrollController,
@@ -745,7 +759,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     return Scaffold(
-      backgroundColor: palette.scaffoldBackgroundColor,
+      backgroundColor: tokens.bg,
       body: Focus(
         // Deliberately NOT autofocused. This node wraps the whole page body, so
         // its rect covers every focusable child, and directional (D-pad)
@@ -832,7 +846,7 @@ class _HomePageState extends State<HomePage> {
         }
 
         return Container(
-          color: const Color(0xFF080A0F),
+          color: context.tokens.bg,
           child: Stack(
             children: [
               RepaintBoundary(child: backgroundContent),
@@ -857,7 +871,7 @@ class _HomePageState extends State<HomePage> {
         duration: const Duration(milliseconds: 800),
         curve: Curves.easeInOut,
         child: Container(
-          color: const Color(0xFF080A0F),
+          color: context.tokens.bg,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -868,27 +882,21 @@ class _HomePageState extends State<HomePage> {
                   height: iconSize * 1.5,
                   fit: BoxFit.contain,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: ZplaySpacing.s32),
                 Text(
                   'ZPlay',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: titleSize,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -1,
-                  ),
+                  style: ZplayType.display
+                      .copyWith(size: titleSize)
+                      .toStyle(color: context.tokens.textPrimary),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: ZplaySpacing.s8),
                 Text(
                   'Your Cinema Universe',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: subtitleSize,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white54,
-                    letterSpacing: 2,
-                  ),
+                  style: ZplayType.overline
+                      .copyWith(size: subtitleSize, letterSpacing: 2)
+                      .toStyle(color: context.tokens.textSecondary),
                 ),
               ],
             ),
@@ -930,7 +938,7 @@ class _HomeSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final surface = AppThemeService.currentPalette.value.cardBackgroundColor;
+    final tokens = context.tokens;
     final sizing = MovieCardSizing.fromWidth(MediaQuery.sizeOf(context).width);
 
     return SingleChildScrollView(
@@ -938,21 +946,26 @@ class _HomeSkeleton extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: topInset + 8),
+          SizedBox(height: topInset + ZplaySpacing.s8),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            padding: const EdgeInsets.fromLTRB(
+              ZplaySpacing.s20,
+              0,
+              ZplaySpacing.s20,
+              ZplaySpacing.s24,
+            ),
             child: AspectRatio(
               aspectRatio: 16 / 9,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: surface,
-                  borderRadius: BorderRadius.circular(18),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.mdAll,
                 ),
               ),
             ),
           ),
           RailSkeleton(sizing: sizing, showHeader: true),
-          const SizedBox(height: 28),
+          const SizedBox(height: ZplaySpacing.s24),
           RailSkeleton(sizing: sizing, showHeader: true, count: 5),
         ],
       ),
@@ -975,13 +988,15 @@ class _GlassAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return RepaintBoundary(
       child: Container(
         padding: EdgeInsets.only(
-          top: topPadding + 10,
-          bottom: 14,
-          left: 20,
-          right: 8,
+          // 8 + the 34px logo + 16 keeps `_appBarHeight` (58) exact.
+          top: topPadding + ZplaySpacing.s8,
+          bottom: ZplaySpacing.s16,
+          left: ZplaySpacing.s20,
+          right: ZplaySpacing.s8,
         ),
         decoration: BoxDecoration(
           // Opaque, where this was a 90-96% `#080A0F` gradient. Nothing blurs
@@ -993,10 +1008,8 @@ class _GlassAppBar extends StatelessWidget {
           // `tokens.bg` over the literal also fixes a palette mismatch: `#080A0F`
           // is only the ocean palette's background, so the bar stayed ocean-black
           // under all eleven other palettes.
-          color: context.tokens.bg,
-          border: Border(
-            bottom: BorderSide(color: context.tokens.borderSubtle),
-          ),
+          color: tokens.bg,
+          border: Border(bottom: tokens.hairline),
         ),
         child: Row(
           children: [
@@ -1007,15 +1020,10 @@ class _GlassAppBar extends StatelessWidget {
               height: 34,
               fit: BoxFit.contain,
             ),
-            const SizedBox(width: 10),
-            const Text(
+            const SizedBox(width: ZplaySpacing.s12),
+            Text(
               'ZPlay',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
-                color: Colors.white,
-              ),
+              style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
             ),
             const Spacer(),
             // All / Movies / Series tabs (wide layouts only)
@@ -1032,8 +1040,10 @@ class _GlassAppBar extends StatelessWidget {
               Container(
                 width: 1,
                 height: 18,
-                margin: const EdgeInsets.symmetric(horizontal: 8),
-                color: Colors.white.withValues(alpha: 0.10),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: ZplaySpacing.s8,
+                ),
+                color: tokens.borderStrong,
               ),
             ],
             // AI Taste Profile Quiz
@@ -1041,11 +1051,10 @@ class _GlassAppBar extends StatelessWidget {
               valueListenable: HomePageSettings.enableAiQuiz,
               builder: (context, aiQuizEnabled, _) {
                 if (!aiQuizEnabled) return const SizedBox.shrink();
-                final palette = AppThemeService.currentPalette.value;
                 return IconButton(
                   icon: Icon(
                     Icons.auto_awesome_rounded,
-                    color: palette.primaryColor,
+                    color: tokens.accent,
                     size: 22,
                   ),
                   tooltip: 'AI Taste Quiz',
@@ -1068,7 +1077,7 @@ class _GlassAppBar extends StatelessWidget {
                 return IconButton(
                   icon: Icon(
                     Icons.calendar_month_rounded,
-                    color: Colors.white.withValues(alpha: 0.75),
+                    color: tokens.textEmphasis,
                     size: 22,
                   ),
                   tooltip: 'TV Airing Calendar',
@@ -1091,9 +1100,7 @@ class _GlassAppBar extends StatelessWidget {
                       isFullscreen
                           ? Icons.fullscreen_exit_rounded
                           : Icons.fullscreen_rounded,
-                      color: isFullscreen
-                          ? const Color(0xFFFFB300)
-                          : Colors.white.withValues(alpha: 0.75),
+                      color: isFullscreen ? tokens.warning : tokens.textEmphasis,
                       size: 24,
                     ),
                     tooltip: isFullscreen
@@ -1188,7 +1195,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
       _pageController.animateToPage(
         next,
         duration: const Duration(milliseconds: 700),
-        curve: Curves.easeInOutCubic,
+        curve: ZplayMotion.emphasized,
       );
     });
   }
@@ -1200,7 +1207,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     _pageController.animateToPage(
       index,
       duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOutCubic,
+      curve: ZplayMotion.emphasized,
     );
   }
 
@@ -1269,7 +1276,7 @@ class _HeroCarouselState extends State<_HeroCarousel> {
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
     final heroHeight = _heroHeight(screenWidth, screenHeight);
-    final primaryColor = AppThemeService.currentPalette.value.primaryColor;
+    final tokens = context.tokens;
     final totalSlides = _totalSlideCount;
 
     if (totalSlides == 0) {
@@ -1317,23 +1324,27 @@ class _HeroCarouselState extends State<_HeroCarousel> {
                   children: List.generate(totalSlides, (i) {
                     final active = i == _index;
                     final dotColor = active
-                        ? primaryColor
-                        : Colors.white.withValues(alpha: 0.30);
+                        ? tokens.accent
+                        : tokens.textDisabled;
                     return FocusableCard(
                       onTap: () => _goTo(i),
                       builder: (_, state) => AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOutCubic,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        curve: ZplayMotion.standard,
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: ZplaySpacing.s4,
+                        ),
                         width: active ? 22 : 7,
                         height: 7,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: ZplayRadius.fullAll,
                           color: dotColor,
                           boxShadow: active
                               ? [
                                   BoxShadow(
-                                    color: primaryColor.withValues(alpha: 0.55),
+                                    color: tokens.accent.withValues(
+                                      alpha: 0.55,
+                                    ),
                                     blurRadius: 8,
                                   ),
                                 ]
@@ -1387,27 +1398,29 @@ class _CarouselArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return FocusableCard(
       onTap: onTap,
       builder: (_, state) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: ZplayMotion.base,
         width: 52,
         height: 52,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
+          // Chrome over artwork, so it flattens to the raised token surfaces
+          // instead of the fork's translucent black discs.
           color: state.highlighted
-              ? Colors.black.withOpacity(0.6)
-              : Colors.black.withOpacity(0.3),
+              ? tokens.surfaceRaised
+              : tokens.surfaceOverlay,
           border: Border.all(
-            color: state.highlighted
-                ? Colors.white.withOpacity(0.6)
-                : Colors.white.withOpacity(0.2),
+            color: state.highlighted ? tokens.accent : tokens.borderStrong,
             width: 1.5,
           ),
         ),
         child: Icon(
           icon,
-          color: state.highlighted ? Colors.white : Colors.white70,
+          color: state.highlighted ? tokens.textPrimary : tokens.textEmphasis,
           size: 24,
         ),
       ),
@@ -1445,7 +1458,7 @@ class _HeroSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isCompact = screenWidth < 600;
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final heroStyle = HomePageSettings.heroStyle.value;
 
     final hasBackdrop =
@@ -1516,16 +1529,14 @@ class _HeroSlide extends StatelessWidget {
                                 alignment: Alignment.center,
                                 filterQuality: FilterQuality.low,
                                 placeholder: (_, __) =>
-                                    const ColoredBox(color: Color(0xFF151822)),
+                                    ColoredBox(color: tokens.surface),
                                 errorWidget: (_, __, ___) =>
-                                    const ColoredBox(color: Color(0xFF151822)),
+                                    ColoredBox(color: tokens.surface),
                               ),
                             ),
                           ),
                           ColoredBox(
-                            color: palette.scaffoldBackgroundColor.withValues(
-                              alpha: 0.50,
-                            ),
+                            color: tokens.bg.withValues(alpha: 0.50),
                           ),
                         ],
                       ),
@@ -1588,7 +1599,7 @@ class _HeroSlide extends StatelessWidget {
                             aspectRatio: 2 / 3,
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: ZplayRadius.lgAll,
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.65),
@@ -1599,7 +1610,7 @@ class _HeroSlide extends StatelessWidget {
                                 ],
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: ZplayRadius.lgAll,
                                 child: heroArtwork(
                                   url: imageUrl,
                                   fit: BoxFit.cover,
@@ -1617,7 +1628,7 @@ class _HeroSlide extends StatelessWidget {
             ),
           )
         else
-          const ColoredBox(color: Color(0xFF151822)),
+          ColoredBox(color: tokens.surface),
 
         // Left horizontal wash for cinematic readability
         Positioned.fill(
@@ -1628,8 +1639,8 @@ class _HeroSlide extends StatelessWidget {
                 end: Alignment.centerRight,
                 stops: const [0.0, 0.38, 0.85],
                 colors: [
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.95),
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.70),
+                  tokens.bg.withValues(alpha: 0.95),
+                  tokens.bg.withValues(alpha: 0.70),
                   Colors.transparent,
                 ],
               ),
@@ -1645,7 +1656,7 @@ class _HeroSlide extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.center,
                 colors: [
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.85),
+                  tokens.bg.withValues(alpha: 0.85),
                   Colors.transparent,
                 ],
               ),
@@ -1662,8 +1673,8 @@ class _HeroSlide extends StatelessWidget {
                 end: Alignment.topCenter,
                 stops: const [0.0, 0.28, 0.70],
                 colors: [
-                  palette.scaffoldBackgroundColor,
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.85),
+                  tokens.bg,
+                  tokens.bg.withValues(alpha: 0.85),
                   Colors.transparent,
                 ],
               ),
@@ -1673,11 +1684,15 @@ class _HeroSlide extends StatelessWidget {
 
         // ── Content overlay ──
         Positioned(
-          left: isCompact ? 20 : 48,
-          right: isCompact ? 20 : 48,
+          left: isCompact ? ZplaySpacing.s20 : ZplaySpacing.s48,
+          right: isCompact ? ZplaySpacing.s20 : ZplaySpacing.s48,
           bottom: isCompact
-              ? (heroStyle == HeroStyle.minimalist ? 18 : 32)
-              : (heroStyle == HeroStyle.minimalist ? 28 : 50),
+              ? (heroStyle == HeroStyle.minimalist
+                    ? ZplaySpacing.s16
+                    : ZplaySpacing.s32)
+              : (heroStyle == HeroStyle.minimalist
+                    ? ZplaySpacing.s24
+                    : ZplaySpacing.s48),
           child: Align(
             alignment: Alignment.bottomLeft,
             child: ConstrainedBox(
@@ -1694,73 +1709,71 @@ class _HeroSlide extends StatelessWidget {
                       if (rating != null && rating.isNotEmpty) ...[
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 5,
+                            horizontal: ZplaySpacing.s8,
+                            vertical: ZplaySpacing.s4,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(
-                              0xFFFFD700,
-                            ).withValues(alpha: 0.14),
-                            borderRadius: BorderRadius.circular(9),
+                            color: tokens.warning.withValues(
+                              alpha: ZplayOpacity.overlayHover,
+                            ),
+                            borderRadius: ZplayRadius.smAll,
                             border: Border.all(
-                              color: const Color(
-                                0xFFFFD700,
-                              ).withValues(alpha: 0.28),
+                              color: tokens.warning.withValues(alpha: 0.28),
                             ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.star_rounded,
                                 size: 16,
-                                color: Color(0xFFFFD700),
+                                color: tokens.warning,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: ZplaySpacing.s4),
                               Text(
                                 rating,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFFFFD700),
-                                ),
+                                style: ZplayType.bodyNumeric
+                                    .copyWith(weight: FontWeight.w700)
+                                    .toStyle(color: tokens.warning),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: ZplaySpacing.s8),
                       ],
                       if (year != null && year.isNotEmpty)
                         Text(
                           year,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            color: Colors.white.withValues(alpha: 0.55),
-                            fontWeight: FontWeight.w600,
+                          style: ZplayType.subtitle.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         ),
                       if (detail?.runtime != null) ...[
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: ZplaySpacing.s8,
+                          ),
                           child: Icon(
                             Icons.circle,
                             size: 4,
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: tokens.textDisabled,
                           ),
                         ),
                         Text(
                           detail!.runtime!,
-                          style: TextStyle(
-                            fontSize: 14.5,
-                            color: Colors.white.withValues(alpha: 0.55),
-                            fontWeight: FontWeight.w600,
+                          style: ZplayType.subtitle.toStyle(
+                            color: tokens.textSecondary,
                           ),
                         ),
                       ],
                     ],
                   ),
 
-                  SizedBox(height: heroStyle == HeroStyle.minimalist ? 8 : 14),
+                  SizedBox(
+                    height: heroStyle == HeroStyle.minimalist
+                        ? ZplaySpacing.s8
+                        : ZplaySpacing.s16,
+                  ),
 
                   // Title / clearlogo
                   _HeroTitle(
@@ -1773,7 +1786,9 @@ class _HeroSlide extends StatelessWidget {
                   if (heroStyle != HeroStyle.minimalist &&
                       description != null &&
                       description.isNotEmpty) ...[
-                    SizedBox(height: isCompact ? 10 : 14),
+                    SizedBox(
+                      height: isCompact ? ZplaySpacing.s12 : ZplaySpacing.s16,
+                    ),
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: isCompact ? double.infinity : 560,
@@ -1784,10 +1799,8 @@ class _HeroSlide extends StatelessWidget {
                             ? 1
                             : (isCompact ? 2 : 3),
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: isCompact ? 14.0 : 15.0,
-                          color: Colors.white.withValues(alpha: 0.65),
-                          height: 1.45,
+                        style: ZplayType.body.toStyle(
+                          color: tokens.textEmphasis,
                         ),
                       ),
                     ),
@@ -1796,30 +1809,26 @@ class _HeroSlide extends StatelessWidget {
                   // Genre chips (Immersive only)
                   if (heroStyle == HeroStyle.immersive &&
                       genres.isNotEmpty) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: ZplaySpacing.s16),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
+                      spacing: ZplaySpacing.s8,
+                      runSpacing: ZplaySpacing.s8,
                       children: genres.take(4).map((genre) {
                         return Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 5,
+                            horizontal: ZplaySpacing.s12,
+                            vertical: ZplaySpacing.s4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.12),
-                            ),
+                            color: tokens.surface,
+                            borderRadius: ZplayRadius.lgAll,
+                            border: Border.all(color: tokens.borderStrong),
                           ),
                           child: Text(
                             genre,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.white.withValues(alpha: 0.70),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: ZplayType.bodySmall
+                                .copyWith(weight: FontWeight.w600)
+                                .toStyle(color: tokens.textEmphasis),
                           ),
                         );
                       }).toList(),
@@ -1829,8 +1838,8 @@ class _HeroSlide extends StatelessWidget {
                   // Action buttons
                   SizedBox(
                     height: heroStyle == HeroStyle.minimalist
-                        ? 12
-                        : (isCompact ? 18 : 24),
+                        ? ZplaySpacing.s12
+                        : (isCompact ? ZplaySpacing.s16 : ZplaySpacing.s24),
                   ),
                   Row(
                     children: [
@@ -1846,22 +1855,23 @@ class _HeroSlide extends StatelessWidget {
                               Icons.play_arrow_rounded,
                               size: 22,
                             ),
-                            label: const Text(
+                            label: Text(
                               'Watch Now',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 15,
-                              ),
+                              style: ZplayType.subtitle.toStyle(),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: palette.primaryColor,
-                              foregroundColor: Colors.white,
+                              backgroundColor: tokens.accent,
+                              foregroundColor: tokens.onAccent,
                               padding: EdgeInsets.symmetric(
-                                horizontal: isCompact ? 16 : 24,
-                                vertical: isCompact ? 10 : 14,
+                                horizontal: isCompact
+                                    ? ZplaySpacing.s16
+                                    : ZplaySpacing.s24,
+                                vertical: isCompact
+                                    ? ZplaySpacing.s12
+                                    : ZplaySpacing.s16,
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: ZplayRadius.mdAll,
                               ),
                               elevation: 4,
                               shadowColor: Colors.black.withValues(alpha: 0.35),
@@ -1870,7 +1880,11 @@ class _HeroSlide extends StatelessWidget {
                         },
                       ),
                       if (heroStyle != HeroStyle.minimalist) ...[
-                        SizedBox(width: isCompact ? 8 : 12),
+                        SizedBox(
+                          width: isCompact
+                              ? ZplaySpacing.s8
+                              : ZplaySpacing.s12,
+                        ),
                         Builder(
                           builder: (context) {
                             return OutlinedButton.icon(
@@ -1878,28 +1892,27 @@ class _HeroSlide extends StatelessWidget {
                               icon: Icon(
                                 Icons.info_outline_rounded,
                                 size: isCompact ? 18 : 20,
-                                color: Colors.white.withValues(alpha: 0.80),
+                                color: tokens.textEmphasis,
                               ),
                               label: Text(
                                 'Details',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: isCompact ? 13.5 : 15,
-                                  color: Colors.white.withValues(alpha: 0.80),
+                                style: ZplayType.subtitle.toStyle(
+                                  color: tokens.textEmphasis,
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: isCompact ? 14 : 20,
-                                  vertical: isCompact ? 10 : 14,
+                                  horizontal: isCompact
+                                      ? ZplaySpacing.s16
+                                      : ZplaySpacing.s20,
+                                  vertical: isCompact
+                                      ? ZplaySpacing.s12
+                                      : ZplaySpacing.s16,
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: ZplayRadius.mdAll,
                                 ),
-                                side: BorderSide(
-                                  color: Colors.white.withValues(alpha: 0.18),
-                                  width: 1.2,
-                                ),
+                                side: tokens.hairlineStrong,
                               ),
                             );
                           },
@@ -1935,13 +1948,9 @@ class _HeroTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final maxHeight = isCompact ? 76.0 : 118.0;
-    final textStyle = TextStyle(
-      fontSize: isCompact ? 32 : 46,
-      fontWeight: FontWeight.w900,
-      letterSpacing: -1.2,
-      height: 1.05,
-      color: Colors.white,
-    );
+    final textStyle = ZplayType.display
+        .copyWith(size: isCompact ? 32 : 46)
+        .toStyle(color: context.tokens.textPrimary);
 
     final titleText = Text(
       title,
@@ -2038,29 +2047,30 @@ class _CustomScrollTrackState extends State<_CustomScrollTrack> {
     widget.controller.animateTo(
       target.clamp(0.0, widget.controller.position.maxScrollExtent),
       duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOutCubic,
+      curve: ZplayMotion.standard,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final thumbPosition = _thumbFraction * (_trackHeight - _thumbHeight);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
       child: AnimatedOpacity(
-        opacity: _isHovering || _isDragging ? 1.0 : 0.35,
-        duration: const Duration(milliseconds: 200),
+        opacity: _isHovering || _isDragging ? 1.0 : ZplayOpacity.textMuted,
+        duration: ZplayMotion.base,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          padding: const EdgeInsets.symmetric(
+            vertical: ZplaySpacing.s16,
+            horizontal: ZplaySpacing.s8,
+          ),
           decoration: BoxDecoration(
-            color: const Color(0xF01A1D27),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.12),
-              width: 1.5,
-            ),
+            color: tokens.surfaceOverlay,
+            borderRadius: ZplayRadius.lgAll,
+            border: Border.all(color: tokens.borderStrong, width: 1.5),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -2069,7 +2079,7 @@ class _CustomScrollTrackState extends State<_CustomScrollTrack> {
                 icon: Icons.keyboard_arrow_up_rounded,
                 onTap: () => _scroll(-1),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: ZplaySpacing.s16),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onVerticalDragStart: (_) => setState(() => _isDragging = true),
@@ -2084,8 +2094,8 @@ class _CustomScrollTrackState extends State<_CustomScrollTrack> {
                     height: _trackHeight,
                     width: 6, // Visual track
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
+                      color: tokens.borderStrong,
+                      borderRadius: ZplayRadius.smAll,
                     ),
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -2098,18 +2108,11 @@ class _CustomScrollTrackState extends State<_CustomScrollTrack> {
                           child: Container(
                             height: _thumbHeight,
                             decoration: BoxDecoration(
-                              color: AppThemeService
-                                  .currentPalette
-                                  .value
-                                  .primaryColor,
-                              borderRadius: BorderRadius.circular(10),
+                              color: tokens.accent,
+                              borderRadius: ZplayRadius.smAll,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppThemeService
-                                      .currentPalette
-                                      .value
-                                      .primaryColor
-                                      .withOpacity(0.6),
+                                  color: tokens.accent.withValues(alpha: 0.6),
                                   blurRadius: 12,
                                   spreadRadius: 2,
                                 ),
@@ -2122,7 +2125,7 @@ class _CustomScrollTrackState extends State<_CustomScrollTrack> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: ZplaySpacing.s16),
               _HoverArrow(
                 icon: Icons.keyboard_arrow_down_rounded,
                 onTap: () => _scroll(1),
@@ -2143,24 +2146,24 @@ class _HoverArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = AppThemeService.currentPalette.value.primaryColor;
+    final tokens = context.tokens;
 
     return FocusableCard(
       onTap: onTap,
       builder: (_, state) => AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: ZplayMotion.base,
         width: 38,
         height: 38,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: state.highlighted
-              ? Colors.white.withOpacity(0.15)
-              : Colors.white.withOpacity(0.05),
-          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+          color: state.highlighted ? tokens.surfaceRaised : tokens.surface,
+          border: Border.all(
+            color: state.highlighted ? tokens.accent : tokens.borderStrong,
+          ),
         ),
         child: Icon(
           icon,
-          color: state.highlighted ? primaryColor : Colors.white70,
+          color: state.highlighted ? tokens.textPrimary : tokens.textEmphasis,
           size: 22,
         ),
       ),

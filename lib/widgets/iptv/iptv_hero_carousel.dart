@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/home/home_page_settings.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_settings.dart';
@@ -97,7 +98,7 @@ class _IptvHeroCarouselState extends State<IptvHeroCarousel> {
     final screenHeight = MediaQuery.sizeOf(context).height;
     final heroHeight = _heroHeight(screenWidth, screenHeight);
     final isDesktop = _isDesktop();
-    final primaryColor = AppThemeService.currentPalette.value.primaryColor;
+    final tokens = context.tokens;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
@@ -188,21 +189,21 @@ class _IptvHeroCarouselState extends State<IptvHeroCarousel> {
                           },
                           builder: (context, state) => CardFocusRing(
                             focused: state.focused,
-                            radius: BorderRadius.circular(4),
+                            radius: ZplayRadius.xsAll,
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 250),
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              margin: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s4),
                               width: _currentIndex == index ? 26 : 7,
                               height: 7,
                               decoration: BoxDecoration(
                                 color: _currentIndex == index
-                                    ? primaryColor
-                                    : Colors.white.withValues(alpha: 0.25),
-                                borderRadius: BorderRadius.circular(4),
+                                    ? tokens.accent
+                                    : tokens.textDisabled,
+                                borderRadius: ZplayRadius.xsAll,
                                 boxShadow: _currentIndex == index
                                     ? [
                                         BoxShadow(
-                                          color: primaryColor.withValues(alpha: 0.6),
+                                          color: tokens.accent.withValues(alpha: 0.6),
                                           blurRadius: 8,
                                           spreadRadius: 1,
                                         )
@@ -237,11 +238,12 @@ class _IptvHeroSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final primaryColor =
-        channel.gradient.isNotEmpty ? channel.gradient.first : palette.primaryColor;
+        channel.gradient.isNotEmpty ? channel.gradient.first : tokens.accent;
+    // Second stop of a channel's data-driven gradient; falls back to the info hue.
     final secondaryColor =
-        channel.gradient.length > 1 ? channel.gradient.last : palette.accentColor;
+        channel.gradient.length > 1 ? channel.gradient.last : tokens.info;
 
     return Stack(
       fit: StackFit.expand,
@@ -255,7 +257,7 @@ class _IptvHeroSlide extends StatelessWidget {
               colors: [
                 primaryColor.withValues(alpha: 0.45),
                 secondaryColor.withValues(alpha: 0.20),
-                palette.scaffoldBackgroundColor,
+                tokens.bg,
               ],
               stops: const [0.0, 0.4, 0.9],
             ),
@@ -282,10 +284,10 @@ class _IptvHeroSlide extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.25),
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.60),
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.92),
-                  palette.scaffoldBackgroundColor,
+                  tokens.bg.withValues(alpha: 0.25),
+                  tokens.bg.withValues(alpha: 0.60),
+                  tokens.bg.withValues(alpha: 0.92),
+                  tokens.bg,
                 ],
                 stops: const [0.0, 0.42, 0.82, 1.0],
               ),
@@ -301,8 +303,8 @@ class _IptvHeroSlide extends StatelessWidget {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.88),
-                  palette.scaffoldBackgroundColor.withValues(alpha: 0.45),
+                  tokens.bg.withValues(alpha: 0.88),
+                  tokens.bg.withValues(alpha: 0.45),
                   Colors.transparent,
                 ],
                 stops: const [0.0, 0.50, 1.0],
@@ -326,29 +328,24 @@ class _IptvHeroSlide extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF3B30).withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(8),
+                      color: tokens.danger.withValues(alpha: 0.9),
+                      borderRadius: ZplayRadius.smAll,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFFF3B30).withValues(alpha: 0.5),
+                          color: tokens.danger.withValues(alpha: 0.5),
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.sensors_rounded, color: Colors.white, size: 14),
-                        SizedBox(width: 5),
+                        Icon(Icons.sensors_rounded, color: tokens.textPrimary, size: 14),
+                        const SizedBox(width: 5),
                         Text(
                           'LIVE BROADCAST',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                          ),
+                          style: ZplayType.caption.toStyle(color: tokens.textPrimary),
                         ),
                       ],
                     ),
@@ -357,18 +354,15 @@ class _IptvHeroSlide extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderStrong),
+                      borderRadius: ZplayRadius.smAll,
+                      border: Border.all(
+                        color: tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover),
+                      ),
                     ),
                     child: Text(
                       channel.category,
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.4,
-                      ),
+                      style: ZplayType.caption.toStyle(color: tokens.textEmphasis),
                     ),
                   ),
                 ],
@@ -391,25 +385,13 @@ class _IptvHeroSlide extends StatelessWidget {
                     memCacheWidth: 512,
                     errorWidget: (_, __, ___) => Text(
                       channel.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
-                        height: 1.1,
-                      ),
+                      style: ZplayType.display.toStyle(color: tokens.textPrimary),
                     )),
                 )
               else
                 Text(
                   channel.name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                    height: 1.1,
-                  ),
+                  style: ZplayType.display.toStyle(color: tokens.textPrimary),
                 ),
 
               const SizedBox(height: 12),
@@ -419,11 +401,7 @@ class _IptvHeroSlide extends StatelessWidget {
                 'Instant live multi-source streaming with real-time stream resolution & high-framerate playback.',
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.65),
-                  fontSize: 14,
-                  height: 1.3,
-                ),
+                style: ZplayType.body.toStyle(color: tokens.textEmphasis),
               ),
 
               const SizedBox(height: 18),
@@ -436,35 +414,33 @@ class _IptvHeroSlide extends StatelessWidget {
                     onTap: onWatchNow,
                     builder: (context, state) => CardFocusRing(
                       focused: state.focused,
-                      radius: BorderRadius.circular(14),
+                      radius: ZplayRadius.mdAll,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: ZplaySpacing.s24,
+                          vertical: ZplaySpacing.s12,
+                        ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: ZplayRadius.mdAll,
                           gradient: LinearGradient(
-                            colors: [palette.primaryColor, palette.accentColor],
+                            colors: [tokens.accent, tokens.info],
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: palette.primaryColor.withValues(alpha: 0.5),
+                              color: tokens.accent.withValues(alpha: 0.5),
                               blurRadius: 16,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
-                            SizedBox(width: 8),
+                            Icon(Icons.play_arrow_rounded, color: tokens.onAccent, size: 22),
+                            const SizedBox(width: ZplaySpacing.s8),
                             Text(
                               'Watch Live',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.2,
-                              ),
+                              style: ZplayType.subtitle.toStyle(color: tokens.onAccent),
                             ),
                           ],
                         ),
@@ -479,26 +455,22 @@ class _IptvHeroSlide extends StatelessWidget {
                     onTap: onSourcesTap,
                     builder: (context, state) => CardFocusRing(
                       focused: state.focused,
-                      radius: BorderRadius.circular(14),
+                      radius: ZplayRadius.mdAll,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: ZplaySpacing.s12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                          color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
+                          borderRadius: ZplayRadius.mdAll,
+                          border: Border.all(color: tokens.borderStrong),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.tune_rounded, color: Colors.white70, size: 18),
-                            SizedBox(width: 8),
+                            Icon(Icons.tune_rounded, color: tokens.textEmphasis, size: 18),
+                            const SizedBox(width: ZplaySpacing.s8),
                             Text(
                               'Stream Feeds',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                             ),
                           ],
                         ),
@@ -526,30 +498,32 @@ class _HeroArrowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return FocusableCard(
       onTap: onTap,
       builder: (context, state) => CardFocusRing(
         focused: state.focused,
-        radius: BorderRadius.circular(22),
+        radius: ZplayRadius.lgAll,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           width: 44,
           height: 44,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
+            // Arrow sits over the hero artwork: the black scrim keeps its alpha.
             color: state.highlighted
-                ? AppThemeService.currentPalette.value.primaryColor
-                : Colors.black.withValues(alpha: 0.55),
+                ? tokens.accent
+                : tokens.bg.withValues(alpha: 0.55),
             border: Border.all(
               color: state.highlighted
-                  ? AppThemeService.currentPalette.value.primaryColor
-                  : Colors.white.withValues(alpha: 0.2),
+                  ? tokens.accent
+                  : tokens.borderStrong,
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
                 color: state.highlighted
-                    ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.45)
+                    ? tokens.accent.withValues(alpha: 0.45)
                     : Colors.black45,
                 blurRadius: 12,
                 offset: const Offset(0, 4),
@@ -558,7 +532,7 @@ class _HeroArrowButton extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: Colors.white,
+            color: tokens.textPrimary,
             size: 26,
           ),
         ),

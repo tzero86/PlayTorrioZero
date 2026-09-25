@@ -5,7 +5,11 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/trakt/trakt_service.dart';
 import '../../services/my_list/my_list_service.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
-import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
+
+/// Trakt's brand red. It identifies the external service, so it stays outside
+/// the palette-derived token layer.
+const Color _traktBrand = Color(0xFFED1C24);
 
 class TraktSettingsPage extends StatefulWidget {
   const TraktSettingsPage({super.key});
@@ -133,35 +137,37 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // Opaque palette band with a bottom hairline, matching the settings family.
+        shape: Border(bottom: tokens.hairline),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Trakt.tv Synchronization',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 19),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s20,
+            ),
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: ZplaySpacing.s20),
                 child: Text(
                   'Connect your Trakt.tv account to seamlessly synchronize your watch history, watchlist, continue watching progress, and ratings across all your devices.',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: Colors.white.withValues(alpha: 0.5),
-                    height: 1.4,
-                  ),
+                  style: ZplayType.body.toStyle(color: tokens.textSecondary),
                 ),
               ),
 
@@ -169,12 +175,12 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF12151E),
-                  borderRadius: BorderRadius.circular(16),
+                  color: tokens.surface,
+                  borderRadius: ZplayRadius.mdAll,
                   border: Border.all(
                     color: _isAuthed
-                        ? const Color(0xFFED1C24).withValues(alpha: 0.35)
-                        : Colors.white.withValues(alpha: 0.08),
+                        ? _traktBrand.withValues(alpha: ZplayOpacity.textMuted)
+                        : tokens.borderDefault,
                   ),
                 ),
                 child: LayoutBuilder(
@@ -187,10 +193,10 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFED1C24).withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(12),
+                            color: _traktBrand.withValues(alpha: ZplayOpacity.borderStrong),
+                            borderRadius: ZplayRadius.smAll,
                           ),
-                          child: const Icon(Icons.movie_filter_rounded, color: Color(0xFFED1C24), size: 24),
+                          child: const Icon(Icons.movie_filter_rounded, color: _traktBrand, size: 24),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -202,23 +208,20 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                                 runSpacing: 4,
                                 crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Trakt.tv',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                                    style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: ZplaySpacing.s2),
                                     decoration: BoxDecoration(
-                                      color: (_isAuthed ? const Color(0xFF10B981) : Colors.white24).withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(6),
+                                      color: (_isAuthed ? tokens.success : tokens.borderDefault).withValues(alpha: ZplayOpacity.overlayHover),
+                                      borderRadius: ZplayRadius.xsAll,
                                     ),
                                     child: Text(
                                       _isAuthed ? 'CONNECTED' : 'DISCONNECTED',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        color: _isAuthed ? const Color(0xFF10B981) : Colors.white54,
-                                        letterSpacing: 0.5,
+                                      style: ZplayType.overline.toStyle(
+                                        color: _isAuthed ? tokens.success : tokens.textSecondary,
                                       ),
                                     ),
                                   ),
@@ -231,10 +234,7 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                                       : _isAuthed
                                           ? 'Logged in as ${_username ?? 'Trakt User'}'
                                           : 'Sign in to activate two-way cloud sync',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.white.withValues(alpha: 0.5),
-                                  ),
+                                  style: ZplayType.body.toStyle(color: tokens.textSecondary),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -248,25 +248,27 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                       if (_isAuthed) {
                         actionWidget = OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFFEF4444),
-                            side: BorderSide(color: const Color(0xFFEF4444).withValues(alpha: 0.4)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            foregroundColor: tokens.danger,
+                            side: BorderSide(
+                              color: tokens.danger.withValues(alpha: ZplayOpacity.textMuted),
+                            ),
+                            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           ),
                           onPressed: _logout,
-                          child: const Text('Disconnect', style: TextStyle(fontWeight: FontWeight.bold)),
+                          child: Text('Disconnect', style: ZplayType.label.toStyle()),
                         );
                       } else if (!_pairing) {
                         actionWidget = ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFED1C24),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            backgroundColor: _traktBrand,
+                            foregroundColor: tokens.textPrimary,
+                            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: 10),
                           ),
                           onPressed: _startPairing,
                           icon: const Icon(Icons.qr_code_rounded, size: 18),
-                          label: const Text('Pair Account', style: TextStyle(fontWeight: FontWeight.bold)),
+                          label: Text('Pair Account', style: ZplayType.label.toStyle()),
                         );
                       }
 
@@ -292,14 +294,14 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                           ],
                           if (_pairing && _userCode != null) ...[
                             const SizedBox(height: 20),
-                            const Divider(color: Colors.white10),
+                            Divider(color: tokens.borderStrong),
                             const SizedBox(height: 16),
                             Center(
                               child: Column(
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Enter this activation code at trakt.tv/activate:',
-                                    style: TextStyle(fontSize: 13, color: Colors.white70),
+                                    style: ZplayType.label.toStyle(color: tokens.textEmphasis),
                                   ),
                                   const SizedBox(height: 12),
                                   InkWell(
@@ -309,28 +311,27 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                                         const SnackBar(content: Text('Code copied to clipboard!')),
                                       );
                                     },
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: ZplayRadius.smAll,
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                                      padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s24, vertical: 14),
                                       decoration: BoxDecoration(
-                                        color: Colors.black45,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: const Color(0xFFED1C24).withValues(alpha: 0.5)),
+                                        color: tokens.bg,
+                                        borderRadius: ZplayRadius.smAll,
+                                        border: Border.all(color: _traktBrand.withValues(alpha: ZplayOpacity.textSecondary)),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Text(
                                             _userCode!,
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w900,
-                                              letterSpacing: 4,
-                                              color: Colors.white,
-                                            ),
+                                            // The code keeps its wide tracking; only the
+                                            // role's metrics come from the type scale.
+                                            style: ZplayType.titleLarge
+                                                .toStyle(color: tokens.textPrimary)
+                                                .copyWith(letterSpacing: 4),
                                           ),
                                           const SizedBox(width: 12),
-                                          const Icon(Icons.copy_rounded, color: Colors.white70, size: 20),
+                                          Icon(Icons.copy_rounded, color: tokens.textEmphasis, size: 20),
                                         ],
                                       ),
                                     ),
@@ -338,15 +339,15 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                                   const SizedBox(height: 14),
                                   ElevatedButton.icon(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white.withValues(alpha: 0.12),
-                                      foregroundColor: Colors.white,
+                                      backgroundColor: tokens.borderStrong,
+                                      foregroundColor: tokens.textPrimary,
                                       elevation: 0,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                                      padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
                                     ),
                                     onPressed: () => _openBrowser('https://trakt.tv/activate'),
                                     icon: const Icon(Icons.open_in_browser_rounded, size: 16),
-                                    label: const Text('Open trakt.tv/activate', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                    label: Text('Open trakt.tv/activate', style: ZplayType.label.toStyle()),
                                   ),
                                   const SizedBox(height: 14),
                                   Row(
@@ -355,12 +356,12 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
                                       const SizedBox(
                                         width: 16,
                                         height: 16,
-                                        child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFED1C24)),
+                                        child: CircularProgressIndicator(strokeWidth: 2, color: _traktBrand),
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
                                         'Waiting for authorization on trakt.tv...',
-                                        style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.6)),
+                                        style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                                       ),
                                     ],
                                   ),
@@ -378,21 +379,21 @@ class _TraktSettingsPageState extends State<TraktSettingsPage> {
 
               // Cloud Sync Actions
               if (_isAuthed) ...[
-                const Text(
+                Text(
                   'Cloud Sync Controls',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white70),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textEmphasis),
                 ),
                 const SizedBox(height: 12),
                 ListTile(
-                  tileColor: const Color(0xFF12151E),
+                  tileColor: tokens.surface,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+                    borderRadius: ZplayRadius.smAll,
+                    side: BorderSide(color: tokens.borderSubtle),
                   ),
-                  leading: Icon(Icons.sync_rounded, color: AppThemeService.currentPalette.value.primaryColor),
-                  title: const Text('Sync Watchlist & Continue Watching Now', style: TextStyle(color: Colors.white, fontSize: 14)),
-                  subtitle: const Text('Manually triggers an immediate pull from Trakt', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                  trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.white38),
+                  leading: Icon(Icons.sync_rounded, color: tokens.accent),
+                  title: Text('Sync Watchlist & Continue Watching Now', style: ZplayType.body.toStyle(color: tokens.textPrimary)),
+                  subtitle: Text('Manually triggers an immediate pull from Trakt', style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary)),
+                  trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: tokens.textMuted),
                   onTap: () async {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Syncing with Trakt.tv...')),

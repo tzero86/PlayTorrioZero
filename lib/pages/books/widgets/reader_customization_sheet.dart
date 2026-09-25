@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../services/books/reader_settings.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../widgets/common/focusable_card.dart';
 import 'reader_design_tokens.dart';
 
@@ -101,11 +102,11 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
               ? null
               : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.88),
           decoration: BoxDecoration(
-            color: settings.surfaceColor,
+            color: ReaderTokens.surfaceOverlay,
             borderRadius: isDesktop
                 ? const BorderRadius.horizontal(left: Radius.circular(ReaderTokens.radius24))
                 : const BorderRadius.vertical(top: Radius.circular(ReaderTokens.radius24)),
-            border: Border.all(color: settings.borderColor),
+            border: Border.all(color: ReaderTokens.borderDefault),
             boxShadow: const [ReaderTokens.shadowMd],
           ),
           child: Column(
@@ -118,7 +119,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                   width: 32,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: settings.secondaryTextColor.withValues(alpha: 0.30),
+                    color: ReaderTokens.textDisabled,
                     borderRadius: ReaderTokens.rounded4,
                   ),
                 ),
@@ -136,21 +137,22 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.tune_rounded, color: settings.accentColor, size: 18),
+                        Icon(Icons.tune_rounded, color: ReaderTokens.accent, size: 18),
                         const SizedBox(width: ReaderTokens.space8),
                         Text(
                           'Appearance',
-                          style: TextStyle(
-                            fontFamily: ReaderTokens.uiFont,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: settings.textColor,
+                          style: ZplayType.title.toStyle(
+                            color: ReaderTokens.textPrimary,
                           ),
                         ),
                       ],
                     ),
                     IconButton(
-                      icon: Icon(Icons.close_rounded, color: settings.secondaryTextColor, size: 18),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: ReaderTokens.textSecondary,
+                        size: 18,
+                      ),
                       tooltip: 'Close settings',
                       onPressed: () => Navigator.of(context).pop(),
                     ),
@@ -168,16 +170,16 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                   vertical: ReaderTokens.space8,
                 ),
                 decoration: BoxDecoration(
-                  border: Border(bottom: BorderSide(color: settings.borderColor)),
+                  border: Border(bottom: ReaderTokens.hairline),
                 ),
                 child: TabBar(
                   controller: _tabController,
                   indicatorSize: TabBarIndicatorSize.tab,
                   dividerColor: Colors.transparent,
-                  indicatorColor: settings.accentColor,
+                  indicatorColor: ReaderTokens.accent,
                   indicatorWeight: 2.5,
-                  labelColor: settings.accentColor,
-                  unselectedLabelColor: settings.secondaryTextColor,
+                  labelColor: ReaderTokens.accent,
+                  unselectedLabelColor: ReaderTokens.textSecondary,
                   labelStyle: ReaderTokens.tabLabel,
                   tabs: const [
                     Tab(text: 'Typography'),
@@ -194,16 +196,13 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                     trackHeight: 2.5,
                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
                     overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                    activeTrackColor: settings.accentColor,
-                    inactiveTrackColor: settings.borderColor,
-                    thumbColor: settings.accentColor,
+                    activeTrackColor: ReaderTokens.accent,
+                    inactiveTrackColor: ReaderTokens.borderDefault,
+                    thumbColor: ReaderTokens.accent,
                     showValueIndicator: ShowValueIndicator.onlyForContinuous,
-                    valueIndicatorColor: settings.accentColor,
-                    valueIndicatorTextStyle: const TextStyle(
-                      fontFamily: ReaderTokens.uiFont,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                    valueIndicatorColor: ReaderTokens.accent,
+                    valueIndicatorTextStyle: ZplayType.caption.toStyle(
+                      color: ReaderTokens.onAccent,
                     ),
                   ),
                   child: TabBarView(
@@ -224,7 +223,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                   vertical: ReaderTokens.space12,
                 ),
                 decoration: BoxDecoration(
-                  border: Border(top: BorderSide(color: settings.borderColor)),
+                  border: Border(top: ReaderTokens.hairline),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -233,25 +232,24 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                       icon: Icon(
                         _showResetSuccess ? Icons.check_rounded : Icons.restart_alt_rounded,
                         size: 16,
-                        color: _showResetSuccess ? const Color(0xFF10B981) : settings.secondaryTextColor,
+                        color: _showResetSuccess
+                            ? ReaderTokens.success
+                            : ReaderTokens.textSecondary,
                       ),
                       label: Text(
                         _showResetSuccess ? 'Reset ✓' : 'Reset to Defaults',
-                        style: TextStyle(
-                          fontFamily: ReaderTokens.uiFont,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: _showResetSuccess ? const Color(0xFF10B981) : settings.secondaryTextColor,
+                        style: ZplayType.label.toStyle(
+                          color: _showResetSuccess
+                              ? ReaderTokens.success
+                              : ReaderTokens.textSecondary,
                         ),
                       ),
                       onPressed: _triggerReset,
                     ),
                     Text(
                       'v2.0',
-                      style: TextStyle(
-                        fontFamily: ReaderTokens.uiFont,
-                        fontSize: 11,
-                        color: settings.secondaryTextColor.withValues(alpha: 0.5),
+                      style: ZplayType.caption.toStyle(
+                        color: ReaderTokens.textMuted,
                       ),
                     ),
                   ],
@@ -317,7 +315,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(ReaderTokens.space24),
       children: [
-        _buildSectionTitle('Font Family', settings),
+        _buildSectionTitle('Font Family'),
         const SizedBox(height: ReaderTokens.space8),
         Wrap(
           spacing: ReaderTokens.space8,
@@ -331,20 +329,21 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                 HapticFeedback.selectionClick();
                 ReaderSettings.updateFontFamily(f['key']!);
               },
-              selectedColor: settings.accentColor,
-              backgroundColor: settings.backgroundColor,
+              selectedColor: ReaderTokens.accent,
+              backgroundColor: ReaderTokens.surface,
               shape: RoundedRectangleBorder(
                 borderRadius: ReaderTokens.rounded8,
                 side: BorderSide(
-                  color: isSelected ? Colors.transparent : settings.borderColor,
+                  color: isSelected ? Colors.transparent : ReaderTokens.borderDefault,
                 ),
               ),
-              labelStyle: TextStyle(
-                fontFamily: f['key'],
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.white : settings.textColor,
-              ),
+              labelStyle: ZplayType.label
+                  .toStyle(
+                    color: isSelected
+                        ? ReaderTokens.onAccent
+                        : ReaderTokens.textPrimary,
+                  )
+                  .copyWith(fontFamily: f['key']),
             );
           }).toList(),
         ),
@@ -354,21 +353,18 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle('Font Size', settings),
+            _buildSectionTitle('Font Size'),
             Text(
               '${settings.fontSize.round()} px',
-              style: TextStyle(
-                fontFamily: ReaderTokens.uiFont,
-                fontSize: 12.5,
-                fontWeight: FontWeight.bold,
-                color: settings.textColor,
-              ),
+              style: ZplayType.label
+                  .copyWith(weight: FontWeight.w700)
+                  .toStyle(color: ReaderTokens.textPrimary),
             ),
           ],
         ),
         Row(
           children: [
-            Text('A', style: TextStyle(fontSize: 12, color: settings.secondaryTextColor, fontWeight: FontWeight.bold)),
+            Text('A', style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: ReaderTokens.textSecondary)),
             Expanded(
               child: Slider(
                 value: settings.fontSize,
@@ -379,7 +375,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                 onChanged: (val) => ReaderSettings.updateFontSize(val),
               ),
             ),
-            Text('A', style: TextStyle(fontSize: 22, color: settings.secondaryTextColor, fontWeight: FontWeight.bold)),
+            Text('A', style: ZplayType.titleLarge.toStyle(color: ReaderTokens.textSecondary)),
           ],
         ),
         const SizedBox(height: ReaderTokens.space16),
@@ -388,15 +384,12 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle('Line Height', settings),
+            _buildSectionTitle('Line Height'),
             Text(
               '${settings.lineSpacing.toStringAsFixed(2)}×',
-              style: TextStyle(
-                fontFamily: ReaderTokens.uiFont,
-                fontSize: 12.5,
-                fontWeight: FontWeight.bold,
-                color: settings.textColor,
-              ),
+              style: ZplayType.label
+                  .copyWith(weight: FontWeight.w700)
+                  .toStyle(color: ReaderTokens.textPrimary),
             ),
           ],
         ),
@@ -417,7 +410,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('Alignment', settings),
+                  _buildSectionTitle('Alignment'),
                   const SizedBox(height: ReaderTokens.space8),
                   Row(
                     children: [
@@ -433,11 +426,11 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle('First-Line Indent', settings),
+                  _buildSectionTitle('First-Line Indent'),
                   const SizedBox(height: ReaderTokens.space8),
                   Switch.adaptive(
                     value: settings.firstLineIndent,
-                    activeColor: settings.accentColor,
+                    activeColor: ReaderTokens.accent,
                     onChanged: (val) {
                       HapticFeedback.selectionClick();
                       ReaderSettings.updateFirstLineIndent(val);
@@ -461,7 +454,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(ReaderTokens.space24),
       children: [
-        _buildSectionTitle('Reading Themes', settings),
+        _buildSectionTitle('Reading Themes'),
         const SizedBox(height: ReaderTokens.space12),
         Row(
           children: [
@@ -508,21 +501,18 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle('Reader Brightness', settings),
+            _buildSectionTitle('Reader Brightness'),
             Text(
               '${(settings.brightness * 100).round()}%',
-              style: TextStyle(
-                fontFamily: ReaderTokens.uiFont,
-                fontSize: 12.5,
-                fontWeight: FontWeight.bold,
-                color: settings.textColor,
-              ),
+              style: ZplayType.label
+                  .copyWith(weight: FontWeight.w700)
+                  .toStyle(color: ReaderTokens.textPrimary),
             ),
           ],
         ),
         Row(
           children: [
-            Icon(Icons.brightness_low_rounded, color: settings.secondaryTextColor, size: 18),
+            Icon(Icons.brightness_low_rounded, color: ReaderTokens.textSecondary, size: 18),
             Expanded(
               child: Slider(
                 value: settings.brightness,
@@ -533,7 +523,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
                 onChanged: (val) => ReaderSettings.updateBrightness(val),
               ),
             ),
-            Icon(Icons.brightness_high_rounded, color: settings.secondaryTextColor, size: 20),
+            Icon(Icons.brightness_high_rounded, color: ReaderTokens.textSecondary, size: 20),
           ],
         ),
       ],
@@ -549,7 +539,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(ReaderTokens.space24),
       children: [
-        _buildSectionTitle('Page Margins', settings),
+        _buildSectionTitle('Page Margins'),
         const SizedBox(height: ReaderTokens.space12),
         Row(
           children: [
@@ -562,7 +552,7 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
         ),
         const SizedBox(height: ReaderTokens.space24),
 
-        _buildSectionTitle('Reading Mode', settings),
+        _buildSectionTitle('Reading Mode'),
         const SizedBox(height: ReaderTokens.space12),
         Row(
           children: [
@@ -593,15 +583,10 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
   // HELPER WIDGETS
   // ──────────────────────────────────────────────────────────────────────────
 
-  Widget _buildSectionTitle(String title, ReaderSettingsData settings) {
+  Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: TextStyle(
-        fontFamily: ReaderTokens.uiFont,
-        fontSize: 12.5,
-        fontWeight: FontWeight.w600,
-        color: settings.secondaryTextColor,
-      ),
+      style: ZplayType.label.toStyle(color: ReaderTokens.textSecondary),
     );
   }
 
@@ -626,10 +611,12 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
             color: bg,
             borderRadius: ReaderTokens.rounded12,
             border: Border.all(
-              color: isSelected ? const Color(0xFF7C3AED) : border,
+              color: isSelected ? ReaderTokens.accent : border,
               width: isSelected ? 2.2 : 1.0,
             ),
-            boxShadow: isSelected ? [ReaderTokens.shadowGlow(const Color(0xFF7C3AED))] : null,
+            boxShadow: isSelected
+                ? [ReaderTokens.shadowGlow(ReaderTokens.accent)]
+                : null,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -662,12 +649,11 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
               const SizedBox(height: ReaderTokens.space4),
               Text(
                 label,
-                style: TextStyle(
-                  fontFamily: ReaderTokens.uiFont,
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: textColor,
-                ),
+                style: ZplayType.caption
+                    .copyWith(
+                      weight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    )
+                    .toStyle(color: textColor),
               ),
             ],
           ),
@@ -685,9 +671,11 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
         ReaderSettings.updateTextAlign(align);
       },
       style: IconButton.styleFrom(
-        backgroundColor: isSelected ? settings.accentColor : settings.backgroundColor,
-        foregroundColor: isSelected ? Colors.white : settings.secondaryTextColor,
-        side: BorderSide(color: isSelected ? Colors.transparent : settings.borderColor),
+        backgroundColor: isSelected ? ReaderTokens.accent : ReaderTokens.surface,
+        foregroundColor: isSelected ? ReaderTokens.onAccent : ReaderTokens.textSecondary,
+        side: BorderSide(
+          color: isSelected ? Colors.transparent : ReaderTokens.borderDefault,
+        ),
         shape: const RoundedRectangleBorder(borderRadius: ReaderTokens.rounded8),
       ),
     );
@@ -697,24 +685,27 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
     final isSelected = settings.marginPreset == preset;
     return Expanded(
       child: ChoiceChip(
-        label: Text(label, style: const TextStyle(fontSize: 11.5)),
+        label: Text(label),
         selected: isSelected,
         onSelected: (_) {
           HapticFeedback.selectionClick();
           ReaderSettings.updateMarginPreset(preset);
         },
-        selectedColor: settings.accentColor,
-        backgroundColor: settings.backgroundColor,
+        selectedColor: ReaderTokens.accent,
+        backgroundColor: ReaderTokens.surface,
         shape: RoundedRectangleBorder(
           borderRadius: ReaderTokens.rounded8,
           side: BorderSide(
-            color: isSelected ? Colors.transparent : settings.borderColor,
+            color: isSelected ? Colors.transparent : ReaderTokens.borderDefault,
           ),
         ),
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : settings.textColor,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
+        labelStyle: ZplayType.caption
+            .copyWith(
+              weight: isSelected ? FontWeight.w700 : FontWeight.w400,
+            )
+            .toStyle(
+              color: isSelected ? ReaderTokens.onAccent : ReaderTokens.textPrimary,
+            ),
       ),
     );
   }
@@ -735,25 +726,32 @@ class _ReaderCustomizationSheetState extends State<ReaderCustomizationSheet>
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: ReaderTokens.space12),
         decoration: BoxDecoration(
-          color: isSelected ? settings.accentColor.withValues(alpha: 0.15) : settings.backgroundColor,
+          color: isSelected ? ReaderTokens.accentSubtle : ReaderTokens.surface,
           borderRadius: ReaderTokens.rounded12,
           border: Border.all(
-            color: isSelected ? settings.accentColor : settings.borderColor,
+            color: isSelected ? ReaderTokens.accent : ReaderTokens.borderDefault,
             width: isSelected ? 2.0 : 1.0,
           ),
         ),
         child: Column(
           children: [
-            Icon(icon, color: isSelected ? settings.accentColor : settings.secondaryTextColor, size: 20),
+            Icon(
+              icon,
+              color: isSelected ? ReaderTokens.accent : ReaderTokens.textSecondary,
+              size: 20,
+            ),
             const SizedBox(height: ReaderTokens.space4),
             Text(
               label,
-              style: TextStyle(
-                fontFamily: ReaderTokens.uiFont,
-                fontSize: 11.5,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? settings.accentColor : settings.textColor,
-              ),
+              style: ZplayType.caption
+                  .copyWith(
+                    weight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  )
+                  .toStyle(
+                    color: isSelected
+                        ? ReaderTokens.accent
+                        : ReaderTokens.textPrimary,
+                  ),
             ),
           ],
         ),

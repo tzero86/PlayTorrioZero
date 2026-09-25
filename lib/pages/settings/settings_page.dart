@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../services/addon/addon_manager.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/debrid/debrid_service.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/trakt/trakt_service.dart';
@@ -30,6 +31,12 @@ import '../../services/content/content_settings.dart';
 
 import '../../widgets/common/animated_ambient_background.dart';
 
+/// Third-party brand hues. These identify an external service, so they stay
+/// outside the palette-derived token layer.
+const Color _traktBrand = Color(0xFFED1C24);
+const Color _simklBrand = Color(0xFF00ADFF);
+const Color _discordBrand = Color(0xFF5865F2);
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -49,16 +56,17 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (ctx) {
+        final tokens = ctx.tokens;
         return Dialog(
-          backgroundColor: const Color(0xFF12151E),
+          backgroundColor: tokens.surfaceOverlay,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            borderRadius: ZplayRadius.lgAll,
+            side: tokens.hairlineStrong,
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Padding(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(ZplaySpacing.s24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,44 +76,41 @@ class _SettingsPageState extends State<SettingsPage> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF10B981,
-                          ).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
+                          color: tokens.success.withValues(
+                            alpha: ZplayOpacity.overlayHover,
+                          ),
+                          borderRadius: ZplayRadius.smAll,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.backup_rounded,
-                          color: Color(0xFF10B981),
+                          color: tokens.success,
                           size: 22,
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Backup & Restore',
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                              style: ZplayType.title.toStyle(
+                                color: tokens.textPrimary,
                               ),
                             ),
                             Text(
                               'Cross-device JSON configuration',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white54,
+                              style: ZplayType.bodySmall.toStyle(
+                                color: tokens.textSecondary,
                               ),
                             ),
                           ],
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.close_rounded,
-                          color: Colors.white54,
+                          color: tokens.textSecondary,
                         ),
                         onPressed: () => Navigator.pop(ctx),
                       ),
@@ -114,11 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   const SizedBox(height: 20),
                   Text(
                     'Export your configuration (installed addons, IPTV portals, Debrid keys & themes) to JSON or import on another device.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.7),
-                      height: 1.4,
-                    ),
+                    style: ZplayType.body.toStyle(color: tokens.textEmphasis),
                   ),
                   const SizedBox(height: 20),
                   Row(
@@ -126,20 +127,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       Expanded(
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF10B981),
+                            backgroundColor: tokens.success,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.smAll,
                             ),
                           ),
                           icon: const Icon(
                             Icons.file_upload_outlined,
                             size: 18,
                           ),
-                          label: const Text(
+                          label: Text(
                             'Export JSON',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: ZplayType.label.toStyle(),
                           ),
                           onPressed: () async {
                             final jsonStr =
@@ -151,12 +152,12 @@ class _SettingsPageState extends State<SettingsPage> {
                             Navigator.pop(ctx);
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
+                                SnackBar(
+                                  content: const Text(
                                     'Configuration JSON copied to clipboard! Save or paste it on any device.',
                                   ),
-                                  backgroundColor: Color(0xFF10B981),
-                                  duration: Duration(seconds: 4),
+                                  backgroundColor: tokens.success,
+                                  duration: const Duration(seconds: 4),
                                 ),
                               );
                             }
@@ -167,22 +168,20 @@ class _SettingsPageState extends State<SettingsPage> {
                       Expanded(
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.white,
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.2),
-                            ),
+                            foregroundColor: tokens.textPrimary,
+                            side: BorderSide(color: tokens.borderStrong),
                             padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: ZplayRadius.smAll,
                             ),
                           ),
                           icon: const Icon(
                             Icons.file_download_outlined,
                             size: 18,
                           ),
-                          label: const Text(
+                          label: Text(
                             'Import JSON',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: ZplayType.label.toStyle(),
                           ),
                           onPressed: () {
                             Navigator.pop(ctx);
@@ -206,16 +205,17 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (ctx) {
+        final tokens = ctx.tokens;
         return Dialog(
-          backgroundColor: const Color(0xFF12151E),
+          backgroundColor: tokens.surfaceOverlay,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            borderRadius: ZplayRadius.lgAll,
+            side: tokens.hairlineStrong,
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Padding(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(ZplaySpacing.s24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,23 +224,21 @@ class _SettingsPageState extends State<SettingsPage> {
                     children: [
                       Icon(
                         Icons.file_download_outlined,
-                        color: AppThemeService.currentPalette.value.primaryColor,
+                        color: tokens.accent,
                         size: 22,
                       ),
                       const SizedBox(width: 10),
-                      const Text(
+                      Text(
                         'Paste Configuration JSON',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        style: ZplayType.title.toStyle(
+                          color: tokens.textPrimary,
                         ),
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.close_rounded,
-                          color: Colors.white54,
+                          color: tokens.textSecondary,
                         ),
                         onPressed: () => Navigator.pop(ctx),
                       ),
@@ -250,21 +248,19 @@ class _SettingsPageState extends State<SettingsPage> {
                   TextField(
                     controller: textController,
                     maxLines: 8,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontFamily: 'monospace',
-                    ),
+                    style: ZplayType.bodySmall
+                        .toStyle(color: tokens.textPrimary)
+                        .copyWith(fontFamily: 'monospace'),
                     decoration: InputDecoration(
                       hintText: 'Paste backup JSON here...',
-                      hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.3),
+                      hintStyle: ZplayType.bodySmall.toStyle(
+                        color: tokens.textDisabled,
                       ),
                       filled: true,
-                      fillColor: const Color(0xFF0A0C12),
+                      fillColor: tokens.surface,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                        borderRadius: ZplayRadius.smAll,
+                        borderSide: BorderSide(color: tokens.borderDefault),
                       ),
                       contentPadding: const EdgeInsets.all(12),
                     ),
@@ -276,11 +272,11 @@ class _SettingsPageState extends State<SettingsPage> {
                         icon: Icon(
                           Icons.paste_rounded,
                           size: 16,
-                          color: AppThemeService.currentPalette.value.primaryColor,
+                          color: tokens.accent,
                         ),
                         label: Text(
                           'Paste from Clipboard',
-                          style: TextStyle(color: AppThemeService.currentPalette.value.primaryColor),
+                          style: ZplayType.label.toStyle(color: tokens.accent),
                         ),
                         onPressed: () async {
                           final data = await Clipboard.getData(
@@ -294,19 +290,19 @@ class _SettingsPageState extends State<SettingsPage> {
                       const Spacer(),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                          foregroundColor: Colors.black,
+                          backgroundColor: tokens.accent,
+                          foregroundColor: tokens.onAccent,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 18,
                             vertical: 10,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: ZplayRadius.smAll,
                           ),
                         ),
-                        child: const Text(
+                        child: Text(
                           'Restore Now',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                          style: ZplayType.label.toStyle(),
                         ),
                         onPressed: () async {
                           final txt = textController.text.trim();
@@ -323,7 +319,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(msg),
-                                  backgroundColor: const Color(0xFF10B981),
+                                  backgroundColor: tokens.success,
                                   duration: const Duration(seconds: 3),
                                 ),
                               );
@@ -333,7 +329,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             ScaffoldMessenger.of(ctx).showSnackBar(
                               SnackBar(
                                 content: Text('Import Failed: $e'),
-                                backgroundColor: Colors.redAccent,
+                                backgroundColor: tokens.danger,
                               ),
                             );
                           }
@@ -393,17 +389,21 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     final addonCount = AddonManager.instance.addons.length;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final tokens = context.tokens;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017).withValues(alpha: 0.85),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque palette band with a
+        // bottom hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         // No explicit leading: the framework already gates the back button on canPop,
         // so it vanishes in the shell and returns if this page is pushed.
-        title: const Text(
+        title: Text(
           'Settings',
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+          style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
         ),
       ),
       body: AnimatedAmbientBackground(
@@ -411,24 +411,20 @@ class _SettingsPageState extends State<SettingsPage> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
             child: ListView(
-              padding: EdgeInsets.fromLTRB(16, 20, 16, 32 + bottomInset),
+              padding: EdgeInsets.fromLTRB(
+                ZplaySpacing.s16,
+                ZplaySpacing.s20,
+                ZplaySpacing.s16,
+                ZplaySpacing.s32 + bottomInset,
+              ),
               children: [
                 // Header Intro Card
                 Container(
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(ZplaySpacing.s20),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.12),
-                        AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.04),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 20 / 100),
-                    ),
+                    color: tokens.surface,
+                    borderRadius: ZplayRadius.lgAll,
+                    border: Border.fromBorderSide(tokens.hairline),
                   ),
                   child: Row(
                     children: [
@@ -436,12 +432,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(14),
+                          color: tokens.accentSubtle,
+                          borderRadius: ZplayRadius.mdAll,
                         ),
                         child: Icon(
                           Icons.tune_rounded,
-                          color: AppThemeService.currentPalette.value.primaryColor,
+                          color: tokens.accent,
                           size: 26,
                         ),
                       ),
@@ -450,21 +446,17 @@ class _SettingsPageState extends State<SettingsPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Preferences & Configuration',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
+                              style: ZplayType.subtitle.toStyle(
+                                color: tokens.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 3),
                             Text(
                               'Manage streaming providers, addons, UI effects, and account sync.',
-                              style: TextStyle(
-                                fontSize: 12.5,
-                                color: Colors.white.withValues(alpha: 0.5),
-                                height: 1.35,
+                              style: ZplayType.bodySmall.toStyle(
+                                color: tokens.textSecondary,
                               ),
                             ),
                           ],
@@ -479,12 +471,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 // Section Label
                 Text(
                   'CATEGORIES',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white.withValues(alpha: 0.35),
-                    letterSpacing: 1.1,
-                  ),
+                  style: ZplayType.overline.toStyle(color: tokens.textMuted),
                 ),
                 const SizedBox(height: 12),
 
@@ -497,14 +484,14 @@ class _SettingsPageState extends State<SettingsPage> {
                       builder: (context, currentPalette, _) {
                         return _SettingsCategoryTile(
                           icon: Icons.palette_rounded,
-                          iconColor: currentPalette.primaryColor,
+                          iconColor: tokens.accent,
                           title: 'Appearance & Interface',
                           subtitle:
                               'Liquid Glass setup, color themes, and Home Page UI',
                           badgeText: glassEnabled
                               ? '${currentPalette.name} · Glass ON'
                               : currentPalette.name,
-                          badgeColor: currentPalette.primaryColor,
+                          badgeColor: tokens.accent,
                           onTap: () =>
                               _navigateTo(const AppearanceSettingsPage()),
                         );
@@ -518,7 +505,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   builder: (context, anime4kPreset, _) {
                     return _SettingsCategoryTile(
                       icon: Icons.auto_awesome_rounded,
-                      iconColor: AppThemeService.currentPalette.value.primaryColor,
+                      iconColor: tokens.accent,
                       title: 'Video & Upscaling',
                       subtitle:
                           'Anime4K neural GLSL shader presets and GPU pipeline',
@@ -526,8 +513,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           ? 'Off'
                           : anime4kPreset.label.split('(').first.trim(),
                       badgeColor: anime4kPreset == Anime4KPreset.off
-                          ? Colors.white38
-                          : AppThemeService.currentPalette.value.primaryColor,
+                          ? tokens.textMuted
+                          : tokens.accent,
                       onTap: () => _navigateTo(const VideoSettingsPage()),
                     );
                   },
@@ -538,16 +525,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 3. Debrid & Cloud Streaming
                 _SettingsCategoryTile(
                   icon: Icons.cloud_download_rounded,
-                  iconColor: AppThemeService.currentPalette.value.primaryColor,
+                  iconColor: tokens.accent,
                   title: 'Debrid & Cloud Streaming',
                   subtitle:
                       'Real-Debrid, TorBox, AllDebrid, Premiumize & Debrid-Link',
                   badgeText: _useDebrid
                       ? (_debridProvider != 'None' ? _debridProvider : 'Active')
                       : 'Disabled',
-                  badgeColor: _useDebrid
-                      ? AppThemeService.currentPalette.value.primaryColor
-                      : Colors.white38,
+                  badgeColor: _useDebrid ? tokens.accent : tokens.textMuted,
                   onTap: () => _navigateTo(const DebridSettingsPage()),
                 ),
 
@@ -556,11 +541,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 3. Metadata & Catalogs (Addons)
                 _SettingsCategoryTile(
                   icon: Icons.extension_rounded,
-                  iconColor: const Color(0xFF10B981),
+                  iconColor: tokens.accent,
                   title: 'Addons',
                   subtitle: 'Stremio catalogs and content providers',
                   badgeText: '$addonCount Installed',
-                  badgeColor: const Color(0xFF10B981),
+                  badgeColor: tokens.accent,
                   onTap: () => _navigateTo(const AddonsSettingsPage()),
                 ),
 
@@ -574,16 +559,12 @@ class _SettingsPageState extends State<SettingsPage> {
                         BuiltinProvidersSettingsService.instance.isCustom;
                     return _SettingsCategoryTile(
                       icon: Icons.dns_rounded,
-                      iconColor: isCustom
-                          ? AppThemeService.currentPalette.value.primaryColor
-                          : const Color(0xFF10B981),
+                      iconColor: isCustom ? tokens.accent : tokens.success,
                       title: 'Built-in Providers',
                       subtitle:
                           'ZPlayHTTP streaming sources, priority order & toggles',
                       badgeText: isCustom ? 'Custom' : 'Default',
-                      badgeColor: isCustom
-                          ? AppThemeService.currentPalette.value.primaryColor
-                          : const Color(0xFF10B981),
+                      badgeColor: isCustom ? tokens.accent : tokens.success,
                       onTap: () =>
                           _navigateTo(const BuiltinProvidersSettingsPage()),
                     );
@@ -598,17 +579,13 @@ class _SettingsPageState extends State<SettingsPage> {
                   builder: (context, isP2p, _) {
                     return _SettingsSwitchTile(
                       icon: Icons.hub_rounded,
-                      iconColor: isP2p
-                          ? const Color(0xFFF59E0B)
-                          : Colors.white54,
+                      iconColor: isP2p ? tokens.warning : tokens.textSecondary,
                       title: 'Built-in P2P Torrent Source',
                       subtitle: isP2p
                           ? 'ZPlay torrent swarms (Knaben, TorrentGalaxy) active'
                           : 'P2P disabled. Using only direct HTTP streaming (ZPlayHTTP)',
                       badgeText: isP2p ? 'P2P Active' : 'HTTP Only',
-                      badgeColor: isP2p
-                          ? const Color(0xFFF59E0B)
-                          : const Color(0xFF10B981),
+                      badgeColor: isP2p ? tokens.warning : tokens.success,
                       value: isP2p,
                       onChanged: (val) async {
                         await P2pSettingsService.setP2pEnabled(val);
@@ -632,16 +609,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     return _SettingsSwitchTile(
                       icon: Icons.calendar_month_rounded,
                       iconColor: isCalEnabled
-                          ? const Color(0xFF38BDF8)
-                          : Colors.white54,
+                          ? tokens.info
+                          : tokens.textSecondary,
                       title: 'TV Airing Calendar',
                       subtitle: isCalEnabled
                           ? 'Calendar buttons active on Home top bar and section headers'
                           : 'Calendar disabled and hidden across all pages',
                       badgeText: isCalEnabled ? 'Enabled' : 'Disabled',
-                      badgeColor: isCalEnabled
-                          ? const Color(0xFF38BDF8)
-                          : Colors.white38,
+                      badgeColor: isCalEnabled ? tokens.info : tokens.textMuted,
                       value: isCalEnabled,
                       onChanged: (val) async {
                         await HomePageSettings.setEnableCalendar(val);
@@ -659,16 +634,16 @@ class _SettingsPageState extends State<SettingsPage> {
                     return _SettingsSwitchTile(
                       icon: Icons.auto_awesome_rounded,
                       iconColor: isAiEnabled
-                          ? const Color(0xFFF472B6)
-                          : Colors.white54,
+                          ? tokens.accent
+                          : tokens.textSecondary,
                       title: 'AI Recommendation Quiz',
                       subtitle: isAiEnabled
                           ? 'AI Taste Profile Quiz active on Home and Search bars'
                           : 'AI quiz disabled and hidden across all pages',
                       badgeText: isAiEnabled ? 'Enabled' : 'Disabled',
                       badgeColor: isAiEnabled
-                          ? const Color(0xFFF472B6)
-                          : Colors.white38,
+                          ? tokens.accent
+                          : tokens.textMuted,
                       value: isAiEnabled,
                       onChanged: (val) async {
                         await HomePageSettings.setEnableAiQuiz(val);
@@ -686,16 +661,14 @@ class _SettingsPageState extends State<SettingsPage> {
                     return _SettingsSwitchTile(
                       icon: Icons.eighteen_up_rating_rounded,
                       iconColor: isAdultOn
-                          ? const Color(0xFFEF4444)
-                          : Colors.white54,
+                          ? tokens.danger
+                          : tokens.textSecondary,
                       title: 'Adult Content',
                       subtitle: isAdultOn
                           ? '18+ catalogs, search results and sources are enabled'
                           : 'Hidden. No 18+ catalogs, search results or sources are fetched',
                       badgeText: isAdultOn ? 'On' : 'Off',
-                      badgeColor: isAdultOn
-                          ? const Color(0xFFEF4444)
-                          : Colors.white38,
+                      badgeColor: isAdultOn ? tokens.danger : tokens.textMuted,
                       value: isAdultOn,
                       onChanged: (val) async {
                         await ContentSettings.setAdultEnabled(val);
@@ -716,16 +689,16 @@ class _SettingsPageState extends State<SettingsPage> {
                       return _SettingsSwitchTile(
                         icon: Icons.sports_esports_rounded,
                         iconColor: isDiscordEnabled
-                            ? const Color(0xFF5865F2)
-                            : Colors.white54,
+                            ? _discordBrand
+                            : tokens.textSecondary,
                         title: 'Discord Rich Presence',
                         subtitle: isDiscordEnabled
                             ? 'Broadcasting movies, shows, music & live activity to Discord'
                             : 'Disabled. Activity is hidden from Discord',
                         badgeText: isDiscordEnabled ? 'Active' : 'Disabled',
                         badgeColor: isDiscordEnabled
-                            ? const Color(0xFF5865F2)
-                            : Colors.white38,
+                            ? _discordBrand
+                            : tokens.textMuted,
                         value: isDiscordEnabled,
                         onChanged: (val) async {
                           await DiscordRpcService.instance.setEnabled(val);
@@ -739,14 +712,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 6. Trakt Sync
                 _SettingsCategoryTile(
                   icon: Icons.movie_filter_rounded,
-                  iconColor: const Color(0xFFED1C24),
+                  iconColor: _traktBrand,
                   title: 'Trakt.tv Sync',
                   subtitle:
                       'Cross-device watchlist, history & playback synchronization',
                   badgeText: _traktConnected ? 'Connected' : 'Offline',
-                  badgeColor: _traktConnected
-                      ? const Color(0xFFED1C24)
-                      : Colors.white38,
+                  badgeColor: _traktConnected ? _traktBrand : tokens.textMuted,
                   onTap: () => _navigateTo(const TraktSettingsPage()),
                 ),
 
@@ -755,13 +726,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 6. Simkl Sync
                 _SettingsCategoryTile(
                   icon: Icons.tv_rounded,
-                  iconColor: const Color(0xFF00ADFF),
+                  iconColor: _simklBrand,
                   title: 'Simkl Sync',
                   subtitle: 'Cross-device Movies, TV & Anime synchronization',
                   badgeText: _simklConnected ? 'Connected' : 'Offline',
-                  badgeColor: _simklConnected
-                      ? const Color(0xFF00ADFF)
-                      : Colors.white38,
+                  badgeColor: _simklConnected ? _simklBrand : tokens.textMuted,
                   onTap: () => _navigateTo(const SimklSettingsPage()),
                 ),
 
@@ -770,12 +739,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 7. Backup & Restore (JSON)
                 _SettingsCategoryTile(
                   icon: Icons.backup_rounded,
-                  iconColor: const Color(0xFF10B981),
+                  iconColor: tokens.accent,
                   title: 'Backup & Restore',
                   subtitle:
                       'Export or import your settings, addons & IPTV portals (JSON)',
                   badgeText: 'JSON',
-                  badgeColor: const Color(0xFF10B981),
+                  badgeColor: tokens.accent,
                   onTap: _showBackupRestoreDialog,
                 ),
 
@@ -784,11 +753,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 8. App Updates & System
                 _SettingsCategoryTile(
                   icon: Icons.system_update_rounded,
-                  iconColor: const Color(0xFFF59E0B),
+                  iconColor: tokens.accent,
                   title: 'App Updates',
                   subtitle: 'Check for latest software versions and patches',
                   badgeText: _appVersion != null ? 'v$_appVersion' : 'Check',
-                  badgeColor: const Color(0xFFF59E0B),
+                  badgeColor: tokens.accent,
                   onTap: () => _navigateTo(const UpdatesSettingsPage()),
                 ),
 
@@ -797,7 +766,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 // 9. About ZPlay
                 _SettingsCategoryTile(
                   icon: Icons.info_outline_rounded,
-                  iconColor: Colors.white70,
+                  iconColor: tokens.textEmphasis,
                   title: 'About ZPlay',
                   subtitle: 'Architecture, video engine, and credits',
                   onTap: () => _navigateTo(const AboutSettingsPage()),
@@ -836,17 +805,18 @@ class _SettingsCategoryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: ZplayRadius.mdAll,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF12151E),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            color: tokens.surface,
+            borderRadius: ZplayRadius.mdAll,
+            border: Border.fromBorderSide(tokens.hairline),
           ),
           child: Row(
             children: [
@@ -855,8 +825,8 @@ class _SettingsCategoryTile extends StatelessWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
+                  color: iconColor.withValues(alpha: ZplayOpacity.borderStrong),
+                  borderRadius: ZplayRadius.smAll,
                 ),
                 child: Icon(icon, color: iconColor, size: 22),
               ),
@@ -873,10 +843,8 @@ class _SettingsCategoryTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             title,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                            style: ZplayType.subtitle.toStyle(
+                              color: tokens.textPrimary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -891,15 +859,13 @@ class _SettingsCategoryTile extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: (badgeColor ?? iconColor).withValues(
-                                alpha: 0.14,
+                                alpha: ZplayOpacity.borderStrong,
                               ),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: ZplayRadius.xsAll,
                             ),
                             child: Text(
                               badgeText!,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                              style: ZplayType.caption.toStyle(
                                 color: badgeColor ?? iconColor,
                               ),
                               maxLines: 1,
@@ -911,10 +877,8 @@ class _SettingsCategoryTile extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.45),
-                        height: 1.25,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textSecondary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -929,7 +893,7 @@ class _SettingsCategoryTile extends StatelessWidget {
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 14,
-                color: Colors.white.withValues(alpha: 0.25),
+                color: tokens.textDisabled,
               ),
             ],
           ),
@@ -968,15 +932,14 @@ class _SettingsSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF12151E),
-        borderRadius: BorderRadius.circular(16),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
         border: Border.all(
-          color: value
-              ? iconColor.withValues(alpha: 0.20)
-              : Colors.white.withValues(alpha: 0.08),
+          color: value ? tokens.borderStrong : tokens.borderDefault,
         ),
       ),
       child: Row(
@@ -986,8 +949,8 @@ class _SettingsSwitchTile extends StatelessWidget {
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              color: iconColor.withValues(alpha: ZplayOpacity.borderStrong),
+              borderRadius: ZplayRadius.smAll,
             ),
             child: Icon(icon, color: iconColor, size: 22),
           ),
@@ -1004,10 +967,8 @@ class _SettingsSwitchTile extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                        style: ZplayType.subtitle.toStyle(
+                          color: tokens.textPrimary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -1016,10 +977,10 @@ class _SettingsSwitchTile extends StatelessWidget {
                     if (onInfoTap != null) ...[
                       const SizedBox(width: 4),
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.info_outline_rounded,
                           size: 16,
-                          color: Colors.white54,
+                          color: tokens.textSecondary,
                         ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
@@ -1036,15 +997,13 @@ class _SettingsSwitchTile extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: (badgeColor ?? iconColor).withValues(
-                            alpha: 0.14,
+                            alpha: ZplayOpacity.borderStrong,
                           ),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: ZplayRadius.xsAll,
                         ),
                         child: Text(
                           badgeText!,
-                          style: TextStyle(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w700,
+                          style: ZplayType.caption.toStyle(
                             color: badgeColor ?? iconColor,
                           ),
                           maxLines: 1,
@@ -1056,10 +1015,8 @@ class _SettingsSwitchTile extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    color: Colors.white.withValues(alpha: 0.45),
-                    height: 1.25,
+                  style: ZplayType.bodySmall.toStyle(
+                    color: tokens.textSecondary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -1075,10 +1032,14 @@ class _SettingsSwitchTile extends StatelessWidget {
             scale: 0.9,
             child: Switch.adaptive(
               value: value,
-              activeColor: const Color(0xFFF59E0B),
-              activeTrackColor: const Color(0xFFF59E0B).withValues(alpha: 0.35),
-              inactiveThumbColor: Colors.white60,
-              inactiveTrackColor: Colors.white10,
+              activeColor: tokens.accent,
+              activeTrackColor: tokens.accent.withValues(
+                alpha: ZplayOpacity.textMuted,
+              ),
+              inactiveThumbColor: tokens.textSecondary,
+              inactiveTrackColor: Colors.white.withValues(
+                alpha: ZplayOpacity.borderMedium,
+              ),
               onChanged: onChanged,
             ),
           ),

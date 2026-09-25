@@ -2,6 +2,25 @@
 
 All notable changes to ZPlay will be documented in this file.
 
+## [1.2.0] - 2026-09-25
+
+- Every screen now draws its colours, radii, spacing, type and opacity from the contract token layer in `lib/services/theme/design_tokens.dart`.
+- That covers the shell slots (Home, Browse, Search, Library, Settings), the settings family, the seven Browse verticals, the details screen, the media readers, the entity and modal screens, and the shared poster cards, rails, skeletons and dialogs.
+- The player and reader chrome follows the same tokens: `PlayerTheme` and `ReaderTokens` are now bridges onto the token layer that keep their member names, so the player and reader widgets repaint with the active palette.
+- A palette or accent change now applies everywhere. Screens no longer carry a fixed near-black palette, so the theme is no longer confined to the shell.
+- The fork's competing greens, cyans and violets collapsed onto the single accent plus the semantic status colours. Third-party service brands (Trakt, Simkl, Discord) and the per-quality and HDR badges keep their identity colours.
+- `flutter analyze` is clean. The project previously carried 18 info-level issues and now reports "No issues found!".
+- The GitHub release body is composed from this changelog in CI, so the release description leads with what changed instead of the fork notice.
+- The in-app update dialog shows only the changelog section, cut at the `<!-- zplay:changelog-end -->` marker.
+
+### Android: one-time reinstall
+
+- A release published before 1.1.9 was signed with a per-runner debug key that no longer exists, so Android refuses to install over the existing app with "App not installed as package conflicts with an existing package".
+- An install made from such a release needs a one-time uninstall and reinstall.
+- Before uninstalling, Settings, then Backup and Restore, exports settings, addons, IPTV portals and credentials as JSON, which can be imported afterwards.
+- Downloaded media files are not part of the JSON export.
+- 1.1.9 signs releases with a stored keystore instead of a per-runner debug key, so installs made from 1.1.9 or later update in place.
+
 ## [1.1.9] - 2026-09-24
 
 - Android release builds are now signed with a fixed keystore stored as a repository secret, instead of a debug key regenerated on each CI runner.

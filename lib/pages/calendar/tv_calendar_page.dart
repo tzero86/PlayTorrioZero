@@ -9,6 +9,7 @@ import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../details/details_page.dart';
 import '../../services/storage/app_image_cache.dart';
+import '../../services/theme/design_tokens.dart';
 
 class TvCalendarPage extends StatefulWidget {
   const TvCalendarPage({super.key});
@@ -188,12 +189,13 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
   @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isMobile = screenWidth < 650;
     final topInset = MediaQuery.paddingOf(context).top;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           // ── Ambient Background ──
@@ -219,7 +221,7 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
               Expanded(
                 child: RefreshIndicator(
                   color: palette.primaryColor,
-                  backgroundColor: const Color(0xFF131722),
+                  backgroundColor: tokens.surfaceRaised,
                   onRefresh: () => _loadEpisodesForSelectedDay(forceRefresh: true),
                   child: _buildEpisodesContent(palette, screenWidth, isMobile),
                 ),
@@ -232,19 +234,21 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
   }
 
   Widget _buildTopBar(AppThemePalette palette, bool isMobile) {
+    final tokens = context.tokens;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(isMobile ? 12 : 24, 12, isMobile ? 12 : 24, 6),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(ZplayRadius.lg),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(22),
+              color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+              borderRadius: BorderRadius.circular(ZplayRadius.lg),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.1),
+                color: tokens.borderStrong,
                 width: 1.2,
               ),
             ),
@@ -252,7 +256,7 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
               children: [
                 // Back Button
                 IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                  icon: Icon(Icons.arrow_back_rounded, color: tokens.textPrimary, size: 22),
                   onPressed: () => Navigator.of(context).pop(),
                   tooltip: 'Back',
                   splashRadius: 20,
@@ -263,8 +267,8 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: palette.primaryColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    color: tokens.accentSubtle,
+                    borderRadius: BorderRadius.circular(ZplayRadius.sm),
                   ),
                   child: Icon(
                     Icons.calendar_month_rounded,
@@ -279,27 +283,22 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'TV Shows Airing Calendar',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.3,
-                        ),
+                        style: ZplayType.title
+                            .copyWith(letterSpacing: -0.3)
+                            .toStyle(color: tokens.textPrimary),
                       ),
                       if (!isMobile)
                         Text(
                           'Upcoming broadcast & streaming episodes with live network filters',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.55),
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: ZplayType.caption
+                              .copyWith(size: 11.5, weight: FontWeight.w500)
+                              .toStyle(color: tokens.textSecondary),
                         ),
                     ],
                   ),
@@ -312,20 +311,17 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                   width: isMobile ? 110 : 180,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderSubtle),
+                    borderRadius: BorderRadius.circular(ZplayRadius.sm),
+                    border: Border.all(color: tokens.borderDefault),
                   ),
                   child: TextField(
                     controller: _searchController,
                     onChanged: _onSearchChanged,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: ZplayType.label.copyWith(size: 13).toStyle(color: tokens.textPrimary),
                     decoration: InputDecoration(
                       hintText: 'Filter shows...',
-                      hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.35),
-                        fontSize: 12,
-                      ),
+                      hintStyle: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                       prefixIcon: Icon(
                         Icons.search_rounded,
                         size: 16,
@@ -345,6 +341,7 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
   }
 
   Widget _buildDayTimeline(AppThemePalette palette, bool isMobile) {
+    final tokens = context.tokens;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
@@ -387,31 +384,27 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
 
                 return InkWell(
                   onTap: () => _onDaySelected(day),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(ZplayRadius.md),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOutCubic,
                     width: isToday ? 90 : 76,
                     padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? palette.primaryColor.withValues(alpha: 0.28)
-                          : (isToday
-                              ? Colors.white.withValues(alpha: 0.08)
-                              : Colors.white.withValues(alpha: 0.04)),
-                      borderRadius: BorderRadius.circular(16),
+                      color: isSelected ? tokens.accentSubtle : tokens.surface,
+                      borderRadius: BorderRadius.circular(ZplayRadius.md),
                       border: Border.all(
                         color: isSelected
-                            ? palette.primaryColor.withValues(alpha: 0.85)
+                            ? tokens.accent
                             : (isToday
-                                ? palette.primaryColor.withValues(alpha: 0.4)
-                                : Colors.white.withValues(alpha: 0.08)),
+                                ? tokens.accent.withValues(alpha: 0.4)
+                                : tokens.borderStrong),
                         width: isSelected ? 1.6 : 1.0,
                       ),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: palette.primaryColor.withValues(alpha: 0.3),
+                                color: tokens.accent.withValues(alpha: 0.3),
                                 blurRadius: 12,
                                 offset: const Offset(0, 3),
                               ),
@@ -423,14 +416,17 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                       children: [
                         Text(
                           weekdayStr,
-                          style: TextStyle(
-                            color: isSelected
-                                ? palette.primaryColor
-                                : (isToday ? Colors.white : Colors.white54),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.2,
-                          ),
+                          style: ZplayType.caption
+                              .copyWith(
+                                size: 10.5,
+                                weight: FontWeight.w800,
+                                letterSpacing: 0.2,
+                              )
+                              .toStyle(
+                                color: isSelected
+                                    ? tokens.accent
+                                    : (isToday ? tokens.textPrimary : tokens.textSecondary),
+                              ),
                         ),
                         const SizedBox(height: 3),
                         Row(
@@ -438,20 +434,17 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                           children: [
                             Text(
                               dayNumStr,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                                fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                              ),
+                              style: ZplayType.title
+                                  .copyWith(
+                                    size: 17,
+                                    weight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                  )
+                                  .toStyle(color: tokens.textPrimary),
                             ),
                             const SizedBox(width: 3),
                             Text(
                               monthStr,
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.5),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                             ),
                           ],
                         ),
@@ -476,6 +469,7 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
   }
 
   Widget _buildNetworkFilterBar(AppThemePalette palette, bool isMobile) {
+    final tokens = context.tokens;
     final networks = _computedNetworks;
     final counts = _networkCounts;
 
@@ -492,8 +486,8 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             margin: const EdgeInsets.only(right: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(10),
+              color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+              borderRadius: BorderRadius.circular(ZplayRadius.sm),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -505,13 +499,11 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                 ),
                 if (!isMobile) ...[
                   const SizedBox(width: 4),
-                  const Text(
+                  Text(
                     'Network:',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: ZplayType.caption
+                        .copyWith(size: 11.5, weight: FontWeight.w700)
+                        .toStyle(color: tokens.textEmphasis),
                   ),
                 ],
               ],
@@ -540,25 +532,23 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
 
                 return InkWell(
                   onTap: () => _onNetworkSelected(net),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(ZplayRadius.sm),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? palette.primaryColor.withValues(alpha: 0.26)
-                          : Colors.white.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
+                      color: isSelected ? tokens.accentSubtle : tokens.surface,
+                      borderRadius: BorderRadius.circular(ZplayRadius.sm),
                       border: Border.all(
                         color: isSelected
-                            ? palette.primaryColor.withValues(alpha: 0.8)
-                            : Colors.white.withValues(alpha: 0.08),
+                            ? tokens.accent
+                            : tokens.borderStrong,
                         width: isSelected ? 1.4 : 1.0,
                       ),
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: palette.primaryColor.withValues(alpha: 0.25),
+                                color: tokens.accent.withValues(alpha: 0.25),
                                 blurRadius: 10,
                                 offset: const Offset(0, 2),
                               ),
@@ -572,39 +562,39 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                           Icon(
                             Icons.all_inclusive_rounded,
                             size: 13,
-                            color: isSelected ? palette.primaryColor : Colors.white70,
+                            color: isSelected ? tokens.accent : tokens.textEmphasis,
                           )
                         else
                           Icon(
                             _getNetworkIcon(net),
                             size: 13,
-                            color: isSelected ? palette.primaryColor : Colors.white70,
+                            color: isSelected ? tokens.accent : tokens.textEmphasis,
                           ),
                         const SizedBox(width: 5),
                         Text(
                           net,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                          ),
+                          style: ZplayType.caption
+                              .copyWith(size: 12, weight: isSelected ? FontWeight.w800 : FontWeight.w600)
+                              .toStyle(
+                                color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
+                              ),
                         ),
                         const SizedBox(width: 5),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? palette.primaryColor.withValues(alpha: 0.35)
-                                : Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
+                                ? tokens.accent.withValues(alpha: 0.35)
+                                : tokens.borderDefault,
+                            borderRadius: BorderRadius.circular(ZplayRadius.xs),
                           ),
                           child: Text(
                             '$count',
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white54,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: ZplayType.overline
+                                .copyWith(weight: FontWeight.w700)
+                                .toStyle(
+                                  color: isSelected ? tokens.textPrimary : tokens.textSecondary,
+                                ),
                           ),
                         ),
                       ],
@@ -642,24 +632,26 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
     required AppThemePalette palette,
     required VoidCallback onTap,
   }) {
+    final tokens = context.tokens;
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(ZplayRadius.md),
       child: Container(
         width: 32,
         height: 74,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(14),
+          color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+          borderRadius: BorderRadius.circular(ZplayRadius.md),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: tokens.borderStrong,
             width: 1.0,
           ),
         ),
         child: Center(
           child: Icon(
             icon,
-            color: Colors.white70,
+            color: tokens.textEmphasis,
             size: 22,
           ),
         ),
@@ -671,24 +663,26 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
+    final tokens = context.tokens;
+
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(ZplayRadius.sm),
       child: Container(
         width: 24,
         height: 32,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(8),
+          color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+          borderRadius: BorderRadius.circular(ZplayRadius.sm),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: tokens.borderDefault,
             width: 1.0,
           ),
         ),
         child: Center(
           child: Icon(
             icon,
-            color: Colors.white70,
+            color: tokens.textEmphasis,
             size: 16,
           ),
         ),
@@ -697,9 +691,11 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
   }
 
   Widget _buildEpisodesContent(AppThemePalette palette, double screenWidth, bool isMobile) {
+    final tokens = context.tokens;
+
     if (_isLoadingEpisodes && _allDayEpisodes.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      return Center(
+        child: CircularProgressIndicator(color: tokens.accent),
       );
     }
 
@@ -714,28 +710,23 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
             Icon(
               isNetworkFiltered ? Icons.filter_alt_off_rounded : Icons.tv_off_rounded,
               size: 48,
-              color: Colors.white.withValues(alpha: 0.25),
+              color: tokens.textDisabled,
             ),
             const SizedBox(height: 12),
             Text(
               isNetworkFiltered
                   ? 'No episodes on $_selectedNetwork for this day'
                   : 'No episodes found for this day',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
+              style: ZplayType.title
+                  .copyWith(size: 16, weight: FontWeight.w700)
+                  .toStyle(color: tokens.textEmphasis),
             ),
             const SizedBox(height: 6),
             Text(
               isNetworkFiltered
                   ? 'Try selecting "All" or a different network above'
                   : 'Select another day from the timeline above',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
-                fontSize: 13,
-              ),
+              style: ZplayType.label.toStyle(color: tokens.textMuted),
             ),
             if (isNetworkFiltered) ...[
               const SizedBox(height: 12),
@@ -744,9 +735,9 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                 icon: const Icon(Icons.refresh_rounded, size: 16),
                 label: const Text('Show All Networks'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: palette.primaryColor,
-                  side: BorderSide(color: palette.primaryColor.withValues(alpha: 0.4)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  foregroundColor: tokens.accent,
+                  side: BorderSide(color: tokens.accent.withValues(alpha: 0.4)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(ZplayRadius.sm)),
                 ),
               ),
             ],
@@ -776,33 +767,28 @@ class _TvCalendarPageState extends State<TvCalendarPage> {
                     dateTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: isMobile ? 15 : 19,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.2,
-                    ),
+                    style: ZplayType.title
+                        .copyWith(size: isMobile ? 15 : 19, letterSpacing: -0.2)
+                        .toStyle(color: tokens.textPrimary),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: palette.primaryColor.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12),
+                    color: tokens.accentSubtle,
+                    borderRadius: BorderRadius.circular(ZplayRadius.sm),
                     border: Border.all(
-                      color: palette.primaryColor.withValues(alpha: 0.35),
+                      color: tokens.accent,
                     ),
                   ),
                   child: Text(
                     _selectedNetwork == 'All'
                         ? '${episodes.length} Episodes Airing'
                         : '${episodes.length} on $_selectedNetwork',
-                    style: TextStyle(
-                      color: palette.primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: ZplayType.bodySmall
+                        .copyWith(weight: FontWeight.w700)
+                        .toStyle(color: tokens.accent),
                   ),
                 ),
               ],
@@ -858,6 +844,7 @@ class _EpisodeCalendarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final posterUrl = entry.posterUrl ?? '';
     final airTimeStr = entry.airTimeFormatted ?? '';
     final epCode = entry.episodeCode;
@@ -871,13 +858,13 @@ class _EpisodeCalendarCard extends StatelessWidget {
           curve: Curves.easeOut,
           decoration: BoxDecoration(
             color: isHovered
-                ? const Color(0xFF161B29).withValues(alpha: 0.95)
-                : const Color(0xFF10131E).withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(18),
+                ? tokens.surfaceOverlay.withValues(alpha: 0.95)
+                : tokens.surface.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(ZplayRadius.md),
             border: Border.all(
               color: isHovered
-                  ? palette.primaryColor.withValues(alpha: 0.6)
-                  : Colors.white.withValues(alpha: 0.08),
+                  ? tokens.accent.withValues(alpha: 0.6)
+                  : tokens.borderDefault,
               width: isHovered ? 1.4 : 1.0,
             ),
             boxShadow: [
@@ -888,7 +875,7 @@ class _EpisodeCalendarCard extends StatelessWidget {
               ),
               if (isHovered)
                 BoxShadow(
-                  color: palette.primaryColor.withValues(alpha: 0.18),
+                  color: tokens.accent.withValues(alpha: 0.18),
                   blurRadius: 16,
                   offset: const Offset(0, 2),
                 ),
@@ -898,7 +885,7 @@ class _EpisodeCalendarCard extends StatelessWidget {
             children: [
               // Poster Thumbnail
               ClipRRect(
-                borderRadius: const BorderRadius.horizontal(left: Radius.circular(18)),
+                borderRadius: const BorderRadius.horizontal(left: Radius.circular(ZplayRadius.md)),
                 child: SizedBox(
                   width: 95,
                   height: double.infinity,
@@ -908,21 +895,21 @@ class _EpisodeCalendarCard extends StatelessWidget {
                           cacheManager: AppImageCache.manager,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => Container(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            child: const Center(
-                              child: Icon(Icons.tv_rounded, color: Colors.white24, size: 28),
+                            color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                            child: Center(
+                              child: Icon(Icons.tv_rounded, color: tokens.textDisabled, size: 28),
                             ),
                           ),
                           errorWidget: (_, __, ___) => Container(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            child: const Center(
-                              child: Icon(Icons.tv_rounded, color: Colors.white24, size: 28),
+                            color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                            child: Center(
+                              child: Icon(Icons.tv_rounded, color: tokens.textDisabled, size: 28),
                             ),
                           ))
                       : Container(
-                          color: Colors.white.withValues(alpha: 0.05),
-                          child: const Center(
-                            child: Icon(Icons.tv_rounded, color: Colors.white24, size: 28),
+                          color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                          child: Center(
+                            child: Icon(Icons.tv_rounded, color: tokens.textDisabled, size: 28),
                           ),
                         ),
                 ),
@@ -945,16 +932,14 @@ class _EpisodeCalendarCard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                             decoration: BoxDecoration(
-                              color: palette.primaryColor.withValues(alpha: 0.22),
-                              borderRadius: BorderRadius.circular(8),
+                              color: tokens.accentSubtle,
+                              borderRadius: BorderRadius.circular(ZplayRadius.sm),
                             ),
                             child: Text(
                               epCode,
-                              style: TextStyle(
-                                color: palette.primaryColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                              ),
+                              style: ZplayType.caption
+                                  .copyWith(weight: FontWeight.w800)
+                                  .toStyle(color: tokens.accent),
                             ),
                           ),
                           if (entry.network != null && entry.network!.isNotEmpty)
@@ -962,18 +947,16 @@ class _EpisodeCalendarCard extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               constraints: const BoxConstraints(maxWidth: 100),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(6),
+                                color: tokens.borderDefault,
+                                borderRadius: BorderRadius.circular(ZplayRadius.xs),
                               ),
                               child: Text(
                                 entry.network!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: ZplayType.caption
+                                    .copyWith(size: 10.5, weight: FontWeight.w600)
+                                    .toStyle(color: tokens.textEmphasis),
                               ),
                             ),
                           if (airTimeStr.isNotEmpty)
@@ -983,16 +966,14 @@ class _EpisodeCalendarCard extends StatelessWidget {
                                 Icon(
                                   Icons.access_time_rounded,
                                   size: 12,
-                                  color: Colors.white.withValues(alpha: 0.5),
+                                  color: tokens.textSecondary,
                                 ),
                                 const SizedBox(width: 3),
                                 Text(
                                   airTimeStr,
-                                  style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.6),
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: ZplayType.caption
+                                      .copyWith(weight: FontWeight.w600)
+                                      .toStyle(color: tokens.textEmphasis),
                                 ),
                               ],
                             ),
@@ -1005,12 +986,13 @@ class _EpisodeCalendarCard extends StatelessWidget {
                         entry.showTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.2,
-                        ),
+                        style: ZplayType.subtitle
+                            .copyWith(
+                              size: 14.5,
+                              weight: FontWeight.w800,
+                              letterSpacing: -0.2,
+                            )
+                            .toStyle(color: tokens.textPrimary),
                       ),
                       const SizedBox(height: 2),
 
@@ -1019,11 +1001,9 @@ class _EpisodeCalendarCard extends StatelessWidget {
                         entry.episodeTitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        style: ZplayType.bodySmall
+                            .copyWith(size: 12.5, weight: FontWeight.w500)
+                            .toStyle(color: tokens.textEmphasis),
                       ),
                       if (entry.overview != null && entry.overview!.isNotEmpty) ...[
                         const SizedBox(height: 3),
@@ -1031,10 +1011,7 @@ class _EpisodeCalendarCard extends StatelessWidget {
                           entry.overview!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.4),
-                            fontSize: 11,
-                          ),
+                          style: ZplayType.caption.toStyle(color: tokens.textMuted),
                         ),
                       ],
                     ],
@@ -1047,7 +1024,7 @@ class _EpisodeCalendarCard extends StatelessWidget {
                 padding: const EdgeInsets.only(right: 12),
                 child: Icon(
                   Icons.chevron_right_rounded,
-                  color: isHovered ? palette.primaryColor : Colors.white24,
+                  color: isHovered ? tokens.accent : tokens.textDisabled,
                   size: 22,
                 ),
               ),

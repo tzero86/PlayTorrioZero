@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../models/addon/addon.dart';
@@ -439,6 +438,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
   // Full Discover UI
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildDiscoverScaffold() {
+    final tokens = context.tokens;
     final mediaQuery = MediaQuery.of(context);
     final topPadding = mediaQuery.padding.top;
     final bottomInset = mediaQuery.padding.bottom;
@@ -456,7 +456,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
     final headerHeight = topPadding + toolbarH + selectorH + (hasExtras ? extrasH : 0);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           // ── Main Content Grid ──
@@ -484,21 +484,27 @@ class _DiscoverPageState extends State<DiscoverPage> {
   }
 
   Widget _buildDiscoverContent(double topOffset, MovieCardSizing sizing, double bottomInset) {
+    final tokens = context.tokens;
     if (_selectedCatalogEntry == null) {
       return Center(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, topOffset + 30, 20, 100),
+          padding: EdgeInsets.fromLTRB(
+            ZplaySpacing.s20,
+            topOffset + 30,
+            ZplaySpacing.s20,
+            100,
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.category_outlined, size: 48, color: Colors.white.withValues(alpha: 0.3)),
-              const SizedBox(height: 12),
+              Icon(Icons.category_outlined, size: 48, color: tokens.textDisabled),
+              const SizedBox(height: ZplaySpacing.s12),
               Text(
                 _selectedType == _adultType
                     ? 'No 18+ sources yet.\nMark an addon as 18+ in Settings → Addons, or install one.'
                     : 'No catalogs available for "$_selectedType"',
-                style: const TextStyle(color: Colors.white54, fontSize: 16),
+                style: ZplayType.subtitle.toStyle(color: tokens.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -522,7 +528,12 @@ class _DiscoverPageState extends State<DiscoverPage> {
       return Center(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, topOffset + 30, 20, 100),
+          padding: EdgeInsets.fromLTRB(
+            ZplaySpacing.s20,
+            topOffset + 30,
+            ZplaySpacing.s20,
+            100,
+          ),
           child: ErrorView(
             error: _error,
             onRetry: () => _loadItems(refresh: true),
@@ -535,15 +546,20 @@ class _DiscoverPageState extends State<DiscoverPage> {
       return Center(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(20, topOffset + 30, 20, 100),
+          padding: EdgeInsets.fromLTRB(
+            ZplaySpacing.s20,
+            topOffset + 30,
+            ZplaySpacing.s20,
+            100,
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.inbox_rounded, size: 48, color: Colors.white.withValues(alpha: 0.3)),
-              const SizedBox(height: 12),
-              const Text(
+              Icon(Icons.inbox_rounded, size: 48, color: tokens.textDisabled),
+              const SizedBox(height: ZplaySpacing.s12),
+              Text(
                 'No titles found in this catalog',
-                style: TextStyle(color: Colors.white54, fontSize: 16),
+                style: ZplayType.subtitle.toStyle(color: tokens.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -565,7 +581,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
       // and one gap are still owed here.
       padding: EdgeInsets.fromLTRB(
         sizing.sidePadding,
-        topOffset + 14,
+        topOffset + ZplaySpacing.s16,
         sizing.sidePadding,
         ZplaySpacing.s24 + bottomInset,
       ),
@@ -589,6 +605,7 @@ class _DiscoverPageState extends State<DiscoverPage> {
   }
 
   Widget _buildRequiredExtraGatingPrompt(double topOffset) {
+    final tokens = context.tokens;
     final missing = _missingRequiredExtras;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isNarrow = screenWidth < 420;
@@ -597,20 +614,20 @@ class _DiscoverPageState extends State<DiscoverPage> {
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: EdgeInsets.fromLTRB(
-          isNarrow ? 16 : 24,
-          topOffset + 20,
-          isNarrow ? 16 : 24,
+          isNarrow ? ZplaySpacing.s16 : ZplaySpacing.s24,
+          topOffset + ZplaySpacing.s20,
+          isNarrow ? ZplaySpacing.s16 : ZplaySpacing.s24,
           120 + MediaQuery.paddingOf(context).bottom,
         ),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 480),
           padding: EdgeInsets.symmetric(
-            horizontal: isNarrow ? 18 : 28,
-            vertical: isNarrow ? 20 : 28,
+            horizontal: isNarrow ? ZplaySpacing.s20 : ZplaySpacing.s32,
+            vertical: isNarrow ? ZplaySpacing.s20 : ZplaySpacing.s32,
           ),
           decoration: BoxDecoration(
-            color: const Color(0xFF131622).withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(20),
+            color: tokens.surfaceOverlay,
+            borderRadius: ZplayRadius.lgAll,
             border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3)),
             boxShadow: [
               BoxShadow(
@@ -624,79 +641,74 @@ class _DiscoverPageState extends State<DiscoverPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(ZplaySpacing.s16),
                 decoration: BoxDecoration(
                   color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.tune_rounded, color: Color(0xFF9D85FF), size: 30),
+                child: Icon(Icons.tune_rounded, color: tokens.accent, size: 30),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: ZplaySpacing.s16),
               Text(
                 'Select Required Filter',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: isNarrow ? 17 : 19,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: ZplayType.title.toStyle(color: tokens.textPrimary),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: ZplaySpacing.s8),
               Text(
                 'This catalog requires selecting ${missing.map((e) => e.name).join(' & ')} before loading titles.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: isNarrow ? 13 : 14,
-                  height: 1.4,
-                ),
+                style: ZplayType.body.toStyle(color: tokens.textEmphasis),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: ZplaySpacing.s20),
               // Quick selection chips for missing extras
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: ZplaySpacing.s8,
+                runSpacing: ZplaySpacing.s8,
                 alignment: WrapAlignment.center,
                 children: missing.map((extra) {
                   if (extra.options.isNotEmpty) {
                     return PopupMenuButton<String>(
                       tooltip: extra.name,
                       constraints: const BoxConstraints(maxHeight: 360),
-                      color: const Color(0xFF15171F),
+                      color: tokens.surface,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                        borderRadius: ZplayRadius.smAll,
+                        side: tokens.hairline,
                       ),
                       onSelected: (val) => _onExtraOptionSelected(extra.name, val),
                       itemBuilder: (context) => extra.options
                           .map(
                             (opt) => PopupMenuItem<String>(
                               value: opt,
-                              child: Text(opt, style: const TextStyle(color: Colors.white)),
+                              child: Text(
+                                opt,
+                                style: ZplayType.body.toStyle(
+                                  color: tokens.textPrimary,
+                                ),
+                              ),
                             ),
                           )
                           .toList(),
                       child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isNarrow ? 14 : 16,
-                          vertical: isNarrow ? 7 : 8,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: ZplaySpacing.s16,
+                          vertical: ZplaySpacing.s8,
                         ),
                         decoration: BoxDecoration(
                           color: AppThemeService.currentPalette.value.primaryColor,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: ZplayRadius.lgAll,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               'Select ${extra.name[0].toUpperCase()}${extra.name.substring(1)}',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: isNarrow ? 12.5 : 14,
-                              ),
+                              style: ZplayType.label
+                                  .copyWith(weight: FontWeight.w600)
+                                  .toStyle(color: tokens.onAccent),
                             ),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.arrow_drop_down, color: Colors.white, size: 20),
+                            const SizedBox(width: ZplaySpacing.s8),
+                            Icon(Icons.arrow_drop_down, color: tokens.onAccent, size: 20),
                           ],
                         ),
                       ),
@@ -706,17 +718,17 @@ class _DiscoverPageState extends State<DiscoverPage> {
                       onPressed: () => _showCustomExtraDialog(extra.name),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-                        foregroundColor: Colors.white,
+                        foregroundColor: tokens.onAccent,
                         padding: EdgeInsets.symmetric(
-                          horizontal: isNarrow ? 14 : 18,
-                          vertical: isNarrow ? 8 : 10,
+                          horizontal: isNarrow ? ZplaySpacing.s16 : ZplaySpacing.s20,
+                          vertical: isNarrow ? ZplaySpacing.s8 : ZplaySpacing.s12,
                         ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.lgAll),
                       ),
                       icon: const Icon(Icons.edit_rounded, size: 16),
                       label: Text(
                         'Enter ${extra.name}',
-                        style: TextStyle(fontSize: isNarrow ? 12.5 : 14),
+                        style: ZplayType.label.toStyle(),
                       ),
                     );
                   }
@@ -730,32 +742,33 @@ class _DiscoverPageState extends State<DiscoverPage> {
   }
 
   void _showCustomExtraDialog(String extraName) {
+    final tokens = context.tokens;
     final controller = TextEditingController(text: _selectedExtras[extraName] ?? '');
     final screenWidth = MediaQuery.sizeOf(context).width;
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF15171F),
+        backgroundColor: tokens.surfaceOverlay,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          borderRadius: ZplayRadius.mdAll,
+          side: tokens.hairline,
         ),
         title: Text(
           'Enter $extraName',
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          style: ZplayType.title.toStyle(color: tokens.textPrimary),
         ),
         content: SizedBox(
           width: (screenWidth - 64).clamp(260.0, 420.0),
           child: TextField(
             controller: controller,
             autofocus: true,
-            style: const TextStyle(color: Colors.white),
+            style: ZplayType.body.toStyle(color: tokens.textPrimary),
             decoration: InputDecoration(
               hintText: 'Type $extraName here...',
-              hintStyle: const TextStyle(color: Colors.white38),
+              hintStyle: ZplayType.body.toStyle(color: tokens.textDisabled),
               enabledBorder: UnderlineInputBorder(
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                borderSide: tokens.hairlineStrong,
               ),
               focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: AppThemeService.currentPalette.value.primaryColor),
@@ -770,13 +783,16 @@ class _DiscoverPageState extends State<DiscoverPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: Text(
+              'Cancel',
+              style: ZplayType.label.toStyle(color: tokens.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppThemeService.currentPalette.value.primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              foregroundColor: tokens.onAccent,
+              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
             ),
             onPressed: () {
               Navigator.pop(ctx);
@@ -797,398 +813,416 @@ class _DiscoverPageState extends State<DiscoverPage> {
     double selectorH = 50.0,
     double extrasH = 48.0,
   }) {
+    final tokens = context.tokens;
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final isDesktop = screenWidth >= 800;
     final isNarrow = screenWidth < 400;
 
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
-        child: Container(
-          padding: EdgeInsets.only(top: topPadding),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                const Color(0xFF080A0F).withValues(alpha: 0.95),
-                const Color(0xFF080A0F).withValues(alpha: 0.80),
-              ],
-            ),
-            border: Border(
-              bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // ── Top Title Row ──
-              SizedBox(
-                height: toolbarH,
-                child: Row(
-                  children: [
-                    const SizedBox(width: 8),
-                    // Discover is a Browse vertical now, so this page is normally
-                    // a shell slot with nothing below it to pop. Gated rather than
-                    // deleted so the legacy search and genre route, which is still
-                    // pushed with a query, keeps its back button. There is no
-                    // layout jump in practice: inside the shell the gate is always
-                    // false, so the row always starts at the gutter.
-                    if (Navigator.of(context).canPop())
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_rounded, size: 19, color: Colors.white),
-                        onPressed: () => Navigator.of(context).pop(),
+    return Container(
+      padding: EdgeInsets.only(top: topPadding),
+      decoration: BoxDecoration(
+        // Opaque, where this was a 95/80% `#080A0F` gradient behind a 25px
+        // blur. The blur is chrome, not artwork, and `#080A0F` is only the
+        // ocean palette's page fill, so the bar stayed ocean-black under the
+        // other palettes.
+        color: tokens.bg,
+        border: Border(bottom: tokens.hairline),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // ── Top Title Row ──
+          SizedBox(
+            height: toolbarH,
+            child: Row(
+              children: [
+                const SizedBox(width: ZplaySpacing.s8),
+                // Discover is a Browse vertical now, so this page is normally
+                // a shell slot with nothing below it to pop. Gated rather than
+                // deleted so the legacy search and genre route, which is still
+                // pushed with a query, keeps its back button. There is no
+                // layout jump in practice: inside the shell the gate is always
+                // false, so the row always starts at the gutter.
+                if (Navigator.of(context).canPop())
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_back_ios_rounded,
+                      size: 19,
+                      color: tokens.textPrimary,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                const SizedBox(width: ZplaySpacing.s2),
+                if (!_isSearching) ...[
+                  Icon(Icons.explore_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 21),
+                  const SizedBox(width: ZplaySpacing.s8),
+                  Text(
+                    'Discover',
+                    style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
+                  ),
+                ],
+                if (_isSearching)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: ZplaySpacing.s12,
                       ),
-                    const SizedBox(width: 2),
-                    if (!_isSearching) ...[
-                      Icon(Icons.explore_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 21),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Discover',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: isDesktop ? 20 : (isNarrow ? 17 : 18),
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                    if (_isSearching)
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: TextField(
-                            controller: _searchController,
-                            autofocus: true,
-                            style: const TextStyle(color: Colors.white, fontSize: 15),
-                            textInputAction: TextInputAction.search,
-                            onSubmitted: _onSearchSubmitted,
-                            decoration: InputDecoration(
-                              hintText: isNarrow
-                                  ? 'Search...'
-                                  : 'Search within ${_selectedCatalogEntry?.catalog.name ?? 'catalog'}...',
-                              hintStyle: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.4),
-                                fontSize: 14,
-                              ),
-                              border: InputBorder.none,
-                              suffixIcon: IconButton(
-                                icon: const Icon(Icons.close_rounded, size: 18, color: Colors.white70),
-                                onPressed: _clearSearch,
-                              ),
+                      child: TextField(
+                        controller: _searchController,
+                        autofocus: true,
+                        style: ZplayType.body.toStyle(color: tokens.textPrimary),
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: _onSearchSubmitted,
+                        decoration: InputDecoration(
+                          hintText: isNarrow
+                              ? 'Search...'
+                              : 'Search within ${_selectedCatalogEntry?.catalog.name ?? 'catalog'}...',
+                          hintStyle: ZplayType.body.toStyle(
+                            color: tokens.textSecondary,
+                          ),
+                          border: InputBorder.none,
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              Icons.close_rounded,
+                              size: 18,
+                              color: tokens.textEmphasis,
                             ),
+                            onPressed: _clearSearch,
                           ),
-                        ),
-                      )
-                    else
-                      const Spacer(),
-
-                    // Search toggle button
-                    if (!_isSearching && (_selectedCatalogEntry?.catalog.supportsSearch ?? false))
-                      IconButton(
-                        icon: const Icon(Icons.search_rounded, color: Colors.white70, size: 22),
-                        tooltip: 'Search catalog',
-                        onPressed: () => setState(() => _isSearching = true),
-                      ),
-                    const SizedBox(width: 8),
-                  ],
-                ),
-              ),
-
-              // ── Type and Catalog Selector Row ──
-              Container(
-                height: selectorH,
-                padding: EdgeInsets.symmetric(horizontal: isNarrow ? 10 : 16),
-                child: Row(
-                  children: [
-                    // Type selector popup/dropdown
-                    if (_availableTypes.isNotEmpty) ...[
-                      PopupMenuButton<String>(
-                        tooltip: 'Content Type',
-                        constraints: const BoxConstraints(maxHeight: 360),
-                        color: const Color(0xFF15171F),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                        ),
-                        onSelected: _onTypeChanged,
-                        itemBuilder: (context) => _availableTypes
-                            .map(
-                              (t) => PopupMenuItem<String>(
-                                value: t,
-                                child: Text(
-                                  '${t[0].toUpperCase()}${t.substring(1)}',
-                                  style: TextStyle(
-                                    color: t == _selectedType ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
-                                    fontWeight: t == _selectedType ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: isNarrow ? 10 : 14,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4)),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                '${_selectedType[0].toUpperCase()}${_selectedType.substring(1)}',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: isNarrow ? 12 : 13,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.arrow_drop_down, color: Colors.white70, size: 18),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: isNarrow ? 6 : 10),
-                    ],
-
-                    // Catalog selector horizontal scroll
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: _currentTypeCatalogs.map((entry) {
-                            final isSelected = _selectedCatalogEntry == entry;
-                            // The 18+ view mixes addons, so name the source.
-                            final name =
-                                '${AddonManager.instance.catalogDisplayName(entry.catalog)}'
-                                '${_selectedType == _adultType ? ' · ${entry.addon.manifest.name}' : ''}';
-                            final hasReq = entry.catalog.hasRequiredExtra;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: FocusableCard(
-                                onTap: () => _onCatalogChanged(entry),
-                                builder: (context, state) => AnimatedContainer(
-                                  duration: const Duration(milliseconds: 200),
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: isNarrow ? 11 : 14,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppThemeService.currentPalette.value.primaryColor
-                                        : Colors.white.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? AppThemeService.currentPalette.value.primaryColor
-                                          : Colors.white.withValues(alpha: 0.12),
-                                    ),
-                                    boxShadow: isSelected
-                                        ? [
-                                            BoxShadow(
-                                              color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
-                                              blurRadius: 8,
-                                            )
-                                          ]
-                                        : null,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        name,
-                                        style: TextStyle(
-                                          color: isSelected ? Colors.white : Colors.white70,
-                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                          fontSize: isNarrow ? 12 : 13,
-                                        ),
-                                      ),
-                                      if (hasReq) ...[
-                                        const SizedBox(width: 6),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                          decoration: BoxDecoration(
-                                            color: isSelected ? Colors.white24 : Colors.amber.withValues(alpha: 0.25),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            'Custom',
-                                            style: TextStyle(
-                                              fontSize: 9.5,
-                                              fontWeight: FontWeight.bold,
-                                              color: isSelected ? Colors.white : Colors.amber,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  )
+                else
+                  const Spacer(),
 
-              // ── Extra Selectors Row (Genre, Tag, Sort, Performer, etc.) ──
-              if (hasExtras) ...[
-                SizedBox(
-                  height: extrasH,
-                  child: ListView(
-                    controller: _filtersScrollController,
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: isNarrow ? 10 : 16, vertical: 6),
-                    physics: const BouncingScrollPhysics(),
-                    children: _selectedCatalogEntry!.catalog.extra.map((extra) {
-                      if (extra.name == 'skip' || (extra.name == 'search' && !extra.isRequired)) {
-                        return const SizedBox.shrink();
-                      }
+                // Search toggle button
+                if (!_isSearching && (_selectedCatalogEntry?.catalog.supportsSearch ?? false))
+                  IconButton(
+                    icon: Icon(
+                      Icons.search_rounded,
+                      color: tokens.textEmphasis,
+                      size: 22,
+                    ),
+                    tooltip: 'Search catalog',
+                    onPressed: () => setState(() => _isSearching = true),
+                  ),
+                const SizedBox(width: ZplaySpacing.s8),
+              ],
+            ),
+          ),
 
-                      final currentVal = _selectedExtras[extra.name];
-                      final isReq = extra.isRequired;
-                      final isSelected = currentVal != null && currentVal.isNotEmpty;
-
-                      // Dropdown for extras with predefined options
-                      if (extra.options.isNotEmpty) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: PopupMenuButton<String?>(
-                            tooltip: extra.name,
-                            constraints: const BoxConstraints(maxHeight: 360),
-                            color: const Color(0xFF15171F),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                            ),
-                            onSelected: (val) => _onExtraOptionSelected(extra.name, val),
-                            itemBuilder: (context) => [
-                              if (!isReq)
-                                PopupMenuItem<String?>(
-                                  value: null,
-                                  child: Text('All ${extra.name}', style: const TextStyle(color: Colors.white)),
-                                ),
-                              ...extra.options.map(
-                                (opt) => PopupMenuItem<String?>(
-                                  value: opt,
-                                  child: Text(
-                                    opt,
-                                    style: TextStyle(
-                                      color: opt == currentVal ? AppThemeService.currentPalette.value.primaryColor : Colors.white,
-                                      fontWeight: opt == currentVal ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
+          // ── Type and Catalog Selector Row ──
+          Container(
+            height: selectorH,
+            padding: EdgeInsets.symmetric(
+              horizontal: isNarrow ? ZplaySpacing.s12 : ZplaySpacing.s16,
+            ),
+            child: Row(
+              children: [
+                // Type selector popup/dropdown
+                if (_availableTypes.isNotEmpty) ...[
+                  PopupMenuButton<String>(
+                    tooltip: 'Content Type',
+                    constraints: const BoxConstraints(maxHeight: 360),
+                    color: tokens.surface,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: ZplayRadius.smAll,
+                      side: tokens.hairline,
+                    ),
+                    onSelected: _onTypeChanged,
+                    itemBuilder: (context) => _availableTypes
+                        .map(
+                          (t) => PopupMenuItem<String>(
+                            value: t,
+                            child: Text(
+                              '${t[0].toUpperCase()}${t.substring(1)}',
+                              style: ZplayType.body.toStyle(
+                                color: t == _selectedType
+                                    ? AppThemeService.currentPalette.value.primaryColor
+                                    : tokens.textPrimary,
                               ),
-                            ],
-                            child: Container(
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isNarrow ? ZplaySpacing.s12 : ZplaySpacing.s16,
+                        vertical: ZplaySpacing.s8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2),
+                        borderRadius: ZplayRadius.lgAll,
+                        border: Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${_selectedType[0].toUpperCase()}${_selectedType.substring(1)}',
+                            style: ZplayType.label.toStyle(
+                              color: tokens.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: ZplaySpacing.s4),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            color: tokens.textEmphasis,
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: isNarrow ? ZplaySpacing.s8 : ZplaySpacing.s12),
+                ],
+
+                // Catalog selector horizontal scroll
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: _currentTypeCatalogs.map((entry) {
+                        final isSelected = _selectedCatalogEntry == entry;
+                        // The 18+ view mixes addons, so name the source.
+                        final name =
+                            '${AddonManager.instance.catalogDisplayName(entry.catalog)}'
+                            '${_selectedType == _adultType ? ' · ${entry.addon.manifest.name}' : ''}';
+                        final hasReq = entry.catalog.hasRequiredExtra;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: ZplaySpacing.s8),
+                          child: FocusableCard(
+                            onTap: () => _onCatalogChanged(entry),
+                            builder: (context, state) => AnimatedContainer(
+                              duration: ZplayMotion.base,
                               padding: EdgeInsets.symmetric(
-                                horizontal: isNarrow ? 10 : 14,
-                                vertical: 6,
+                                horizontal: isNarrow ? ZplaySpacing.s12 : ZplaySpacing.s16,
+                                vertical: ZplaySpacing.s8,
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected
                                     ? AppThemeService.currentPalette.value.primaryColor
-                                    : (isReq ? Colors.amber.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08)),
-                                borderRadius: BorderRadius.circular(20),
+                                    : tokens.borderDefault,
+                                borderRadius: ZplayRadius.lgAll,
                                 border: Border.all(
                                   color: isSelected
                                       ? AppThemeService.currentPalette.value.primaryColor
-                                      : (isReq ? Colors.amber.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.12)),
+                                      : tokens.borderStrong,
                                 ),
+                                boxShadow: isSelected
+                                    ? [
+                                        BoxShadow(
+                                          color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.3),
+                                          blurRadius: 8,
+                                        )
+                                      ]
+                                    : null,
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Text(
-                                    '${extra.name.toUpperCase()}: ${currentVal ?? (isReq ? "Required *" : "All")}',
-                                    style: TextStyle(
+                                    name,
+                                    style: ZplayType.label.toStyle(
                                       color: isSelected
-                                          ? Colors.white
-                                          : (isReq ? Colors.amber : Colors.white.withValues(alpha: 0.8)),
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: isNarrow ? 11.5 : 12,
+                                          ? tokens.onAccent
+                                          : tokens.textEmphasis,
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  Icon(
-                                    Icons.arrow_drop_down,
-                                    size: 18,
-                                    color: isSelected
-                                        ? Colors.white
-                                        : (isReq ? Colors.amber : Colors.white70),
-                                  ),
+                                  if (hasReq) ...[
+                                    const SizedBox(width: ZplaySpacing.s8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? tokens.borderStrong
+                                            : tokens.warning.withValues(alpha: 0.25),
+                                        borderRadius: ZplayRadius.smAll,
+                                      ),
+                                      child: Text(
+                                        'Custom',
+                                        style: ZplayType.caption.toStyle(
+                                          color: isSelected
+                                              ? tokens.onAccent
+                                              : tokens.warning,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
                           ),
                         );
-                      }
-
-                      // Text input chip for freeform extras (or search if isRequired)
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FocusableCard(
-                          onTap: () => _showCustomExtraDialog(extra.name),
-                          builder: (context, state) => Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: isNarrow ? 10 : 14,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppThemeService.currentPalette.value.primaryColor
-                                  : (isReq ? Colors.amber.withValues(alpha: 0.15) : Colors.white.withValues(alpha: 0.08)),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppThemeService.currentPalette.value.primaryColor
-                                    : (isReq ? Colors.amber.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.12)),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '${extra.name.toUpperCase()}: ${currentVal ?? (isReq ? "Required *" : "Enter")}',
-                                  style: TextStyle(
-                                    color: isSelected
-                                        ? Colors.white
-                                        : (isReq ? Colors.amber : Colors.white.withValues(alpha: 0.8)),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: isNarrow ? 11.5 : 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Icon(
-                                  Icons.edit_rounded,
-                                  size: 14,
-                                  color: isSelected
-                                      ? Colors.white
-                                      : (isReq ? Colors.amber : Colors.white70),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                      }).toList(),
+                    ),
                   ),
                 ),
               ],
-            ],
+            ),
           ),
-        ),
+
+          // ── Extra Selectors Row (Genre, Tag, Sort, Performer, etc.) ──
+          if (hasExtras) ...[
+            SizedBox(
+              height: extrasH,
+              child: ListView(
+                controller: _filtersScrollController,
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(
+                  horizontal: isNarrow ? ZplaySpacing.s12 : ZplaySpacing.s16,
+                  vertical: ZplaySpacing.s8,
+                ),
+                physics: const BouncingScrollPhysics(),
+                children: _selectedCatalogEntry!.catalog.extra.map((extra) {
+                  if (extra.name == 'skip' || (extra.name == 'search' && !extra.isRequired)) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final currentVal = _selectedExtras[extra.name];
+                  final isReq = extra.isRequired;
+                  final isSelected = currentVal != null && currentVal.isNotEmpty;
+
+                  // Dropdown for extras with predefined options
+                  if (extra.options.isNotEmpty) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: ZplaySpacing.s8),
+                      child: PopupMenuButton<String?>(
+                        tooltip: extra.name,
+                        constraints: const BoxConstraints(maxHeight: 360),
+                        color: tokens.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: ZplayRadius.smAll,
+                          side: tokens.hairline,
+                        ),
+                        onSelected: (val) => _onExtraOptionSelected(extra.name, val),
+                        itemBuilder: (context) => [
+                          if (!isReq)
+                            PopupMenuItem<String?>(
+                              value: null,
+                              child: Text(
+                                'All ${extra.name}',
+                                style: ZplayType.body.toStyle(
+                                  color: tokens.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ...extra.options.map(
+                            (opt) => PopupMenuItem<String?>(
+                              value: opt,
+                              child: Text(
+                                opt,
+                                style: ZplayType.body.toStyle(
+                                  color: opt == currentVal
+                                      ? AppThemeService.currentPalette.value.primaryColor
+                                      : tokens.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isNarrow ? ZplaySpacing.s12 : ZplaySpacing.s16,
+                            vertical: ZplaySpacing.s8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppThemeService.currentPalette.value.primaryColor
+                                : (isReq
+                                    ? tokens.warning.withValues(alpha: ZplayOpacity.overlayHover)
+                                    : tokens.borderDefault),
+                            borderRadius: ZplayRadius.lgAll,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppThemeService.currentPalette.value.primaryColor
+                                  : (isReq
+                                      ? tokens.warning.withValues(alpha: 0.4)
+                                      : tokens.borderStrong),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${extra.name.toUpperCase()}: ${currentVal ?? (isReq ? "Required *" : "All")}',
+                                style: ZplayType.label.toStyle(
+                                  color: isSelected
+                                      ? tokens.onAccent
+                                      : (isReq ? tokens.warning : tokens.textEmphasis),
+                                ),
+                              ),
+                              const SizedBox(width: ZplaySpacing.s4),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                size: 18,
+                                color: isSelected
+                                    ? tokens.onAccent
+                                    : (isReq ? tokens.warning : tokens.textEmphasis),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Text input chip for freeform extras (or search if isRequired)
+                  return Padding(
+                    padding: const EdgeInsets.only(right: ZplaySpacing.s8),
+                    child: FocusableCard(
+                      onTap: () => _showCustomExtraDialog(extra.name),
+                      builder: (context, state) => Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isNarrow ? ZplaySpacing.s12 : ZplaySpacing.s16,
+                          vertical: ZplaySpacing.s8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppThemeService.currentPalette.value.primaryColor
+                              : (isReq
+                                  ? tokens.warning.withValues(alpha: ZplayOpacity.overlayHover)
+                                  : tokens.borderDefault),
+                          borderRadius: ZplayRadius.lgAll,
+                          border: Border.all(
+                            color: isSelected
+                                ? AppThemeService.currentPalette.value.primaryColor
+                                : (isReq
+                                    ? tokens.warning.withValues(alpha: 0.4)
+                                    : tokens.borderStrong),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '${extra.name.toUpperCase()}: ${currentVal ?? (isReq ? "Required *" : "Enter")}',
+                              style: ZplayType.label.toStyle(
+                                color: isSelected
+                                    ? tokens.onAccent
+                                    : (isReq ? tokens.warning : tokens.textEmphasis),
+                              ),
+                            ),
+                            const SizedBox(width: ZplaySpacing.s4),
+                            Icon(
+                              Icons.edit_rounded,
+                              size: 14,
+                              color: isSelected
+                                  ? tokens.onAccent
+                                  : (isReq ? tokens.warning : tokens.textEmphasis),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -1197,11 +1231,11 @@ class _DiscoverPageState extends State<DiscoverPage> {
   // Legacy Search/Genre Scaffold (Backwards compatibility)
   // ───────────────────────────────────────────────────────────────────────────
   Widget _buildLegacyScaffold() {
+    final tokens = context.tokens;
     final topPadding = MediaQuery.of(context).padding.top;
-    final isDesktop = MediaQuery.sizeOf(context).width >= 800;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           if (_legacyLoading)
@@ -1212,52 +1246,45 @@ class _DiscoverPageState extends State<DiscoverPage> {
             Center(
               child: Text(
                 'No results found for "${widget.query}"',
-                style: const TextStyle(color: Colors.white54, fontSize: 16),
+                style: ZplayType.subtitle.toStyle(color: tokens.textSecondary),
               ),
             )
           else
             _buildLegacySectionsList(topPadding + kToolbarHeight + 20),
 
-          // Glass App Bar
+          // App Bar — opaque like the shell's header, where this was a 60%
+          // `#0A0C16` fill behind a 15px blur.
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: Container(
-                  height: kToolbarHeight + topPadding,
-                  padding: EdgeInsets.only(top: topPadding, left: 16, right: 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0A0C16).withValues(alpha: 0.6),
-                    border: Border(
-                      bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05), width: 1),
+            child: Container(
+              height: kToolbarHeight + topPadding,
+              padding: EdgeInsets.only(
+                top: topPadding,
+                left: ZplaySpacing.s16,
+                right: ZplaySpacing.s16,
+              ),
+              decoration: BoxDecoration(
+                color: tokens.bg,
+                border: Border(bottom: tokens.hairline),
+              ),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back, color: tokens.textPrimary),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: ZplaySpacing.s8),
+                  Expanded(
+                    child: Text(
+                      widget.isGenre ? 'Genre: ${widget.query}' : 'Search: ${widget.query}',
+                      style: ZplayType.titleLarge.toStyle(color: tokens.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          widget.isGenre ? 'Genre: ${widget.query}' : 'Search: ${widget.query}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: isDesktop ? 22 : 20,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
           ),

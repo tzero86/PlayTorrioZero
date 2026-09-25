@@ -7,6 +7,7 @@ import '../../models/book/reading_progress.dart';
 import '../../services/books/continue_reading_service.dart';
 import '../../services/books/epub_parser_service.dart';
 import '../../services/books/reader_settings.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/window/window_service.dart';
 import '../../services/discord/discord_rpc_service.dart';
 import '../../widgets/common/custom_scroll_track.dart';
@@ -296,8 +297,8 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
           onKeyEvent: _handleKeyEvent,
           child: Scaffold(
             key: _scaffoldKey,
-            backgroundColor: isComicMode ? Colors.black : settings.backgroundColor,
-            drawer: _buildTocDrawer(settings),
+            backgroundColor: isComicMode ? ReaderTokens.bg : settings.backgroundColor,
+            drawer: _buildTocDrawer(),
             body: MouseRegion(
               onHover: (_) => _onUserActivity(),
               onEnter: (_) => _onUserActivity(),
@@ -354,7 +355,9 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                     Positioned.fill(
                       child: IgnorePointer(
                         child: Container(
-                          color: Colors.black.withValues(alpha: 1.0 - settings.brightness),
+                          color: ReaderTokens.bg.withValues(
+                            alpha: 1.0 - settings.brightness,
+                          ),
                         ),
                       ),
                     ),
@@ -414,7 +417,7 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                               _isHoveringControls = false;
                               _onUserActivity();
                             },
-                            child: _buildBottomChrome(settings),
+                            child: _buildBottomChrome(),
                           ),
                         ),
                       ),
@@ -478,8 +481,8 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            settings.backgroundColor.withValues(alpha: 0.94),
-            settings.backgroundColor.withValues(alpha: 0.0),
+            ReaderTokens.bg.withValues(alpha: 0.94),
+            ReaderTokens.bg.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -487,20 +490,28 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
         height: 56,
         padding: const EdgeInsets.symmetric(horizontal: ReaderTokens.space16),
         decoration: BoxDecoration(
-          color: settings.surfaceColor.withValues(alpha: 0.96),
-          border: Border(bottom: BorderSide(color: settings.borderColor)),
+          color: ReaderTokens.surfaceRaised.withValues(alpha: 0.96),
+          border: Border(bottom: ReaderTokens.hairline),
           boxShadow: const [ReaderTokens.shadowSm],
         ),
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: settings.textColor, size: 18),
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: ReaderTokens.textPrimary,
+                size: 18,
+              ),
               tooltip: 'Back to Library',
               onPressed: () => Navigator.of(context).pop(),
             ),
             const SizedBox(width: ReaderTokens.space4),
             IconButton(
-              icon: Icon(Icons.menu_book_rounded, color: settings.textColor, size: 20),
+              icon: Icon(
+                Icons.menu_book_rounded,
+                color: ReaderTokens.textPrimary,
+                size: 20,
+              ),
               tooltip: 'Table of Contents (T)',
               onPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
@@ -510,12 +521,9 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
             Expanded(
               child: Text(
                 '${widget.book.displayTitle} · $chapterTitle',
-                style: TextStyle(
-                  fontFamily: ReaderTokens.uiFont,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: settings.textColor,
-                ),
+                style: ZplayType.label
+                    .copyWith(weight: FontWeight.w600)
+                    .toStyle(color: ReaderTokens.textPrimary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -526,7 +534,9 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
               IconButton(
                 icon: Icon(
                   Icons.center_focus_strong_rounded,
-                  color: settings.focusModeActive ? settings.accentColor : settings.textColor,
+                  color: settings.focusModeActive
+                      ? ReaderTokens.accent
+                      : ReaderTokens.textPrimary,
                   size: 20,
                 ),
                 tooltip: 'Focus Mode (Line-by-Line)',
@@ -536,7 +546,11 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                 },
               ),
               IconButton(
-                icon: Icon(Icons.tune_rounded, color: settings.textColor, size: 20),
+                icon: Icon(
+                  Icons.tune_rounded,
+                  color: ReaderTokens.textPrimary,
+                  size: 20,
+                ),
                 tooltip: 'Appearance & Customization',
                 onPressed: () => ReaderCustomizationSheet.show(
                   context,
@@ -546,7 +560,11 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
             ],
 
             IconButton(
-              icon: Icon(Icons.fullscreen_rounded, color: settings.textColor, size: 22),
+              icon: Icon(
+                Icons.fullscreen_rounded,
+                color: ReaderTokens.textPrimary,
+                size: 22,
+              ),
               tooltip: 'Toggle Fullscreen (F)',
               onPressed: () => WindowService.instance.toggleFullscreen(),
             ),
@@ -560,7 +578,7 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
   // BOTTOM CHROME (64px Height + 24px Gradient Scrim)
   // ──────────────────────────────────────────────────────────────────────────
 
-  Widget _buildBottomChrome(ReaderSettingsData settings) {
+  Widget _buildBottomChrome() {
     if (_bookData == null || _bookData!.totalChapters == 0) return const SizedBox.shrink();
 
     final total = _bookData!.totalChapters;
@@ -578,8 +596,8 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
           begin: Alignment.bottomCenter,
           end: Alignment.topCenter,
           colors: [
-            settings.backgroundColor.withValues(alpha: 0.94),
-            settings.backgroundColor.withValues(alpha: 0.0),
+            ReaderTokens.bg.withValues(alpha: 0.94),
+            ReaderTokens.bg.withValues(alpha: 0.0),
           ],
         ),
       ),
@@ -587,14 +605,18 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
         height: 64,
         padding: const EdgeInsets.symmetric(horizontal: ReaderTokens.space16),
         decoration: BoxDecoration(
-          color: settings.surfaceColor.withValues(alpha: 0.96),
-          border: Border(top: BorderSide(color: settings.borderColor)),
+          color: ReaderTokens.surfaceRaised.withValues(alpha: 0.96),
+          border: Border(top: ReaderTokens.hairline),
           boxShadow: const [ReaderTokens.shadowSm],
         ),
         child: Row(
           children: [
             IconButton(
-              icon: Icon(Icons.chevron_left_rounded, color: settings.textColor, size: 26),
+              icon: Icon(
+                Icons.chevron_left_rounded,
+                color: ReaderTokens.textPrimary,
+                size: 26,
+              ),
               tooltip: 'Previous Chapter (Left Arrow)',
               onPressed: _currentChapterIndex > 0 ? () => _goToChapter(_currentChapterIndex - 1) : null,
             ),
@@ -606,19 +628,14 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                   children: [
                     Text(
                       'Ch. $current of $total',
-                      style: TextStyle(
-                        fontFamily: ReaderTokens.uiFont,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: settings.textColor,
-                      ),
+                      style: ZplayType.label
+                          .copyWith(weight: FontWeight.w600)
+                          .toStyle(color: ReaderTokens.textPrimary),
                     ),
                     Text(
                       '$percent% · ~$minsLeft min left',
-                      style: TextStyle(
-                        fontFamily: ReaderTokens.uiFont,
-                        fontSize: 12,
-                        color: settings.secondaryTextColor,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: ReaderTokens.textSecondary,
                       ),
                     ),
                   ],
@@ -626,7 +643,11 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.chevron_right_rounded, color: settings.textColor, size: 26),
+              icon: Icon(
+                Icons.chevron_right_rounded,
+                color: ReaderTokens.textPrimary,
+                size: 26,
+              ),
               tooltip: 'Next Chapter (Right Arrow)',
               onPressed: _currentChapterIndex < total - 1 ? () => _goToChapter(_currentChapterIndex + 1) : null,
             ),
@@ -653,7 +674,7 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                 height: 28,
                 width: 220,
                 decoration: BoxDecoration(
-                  color: settings.textColor.withValues(alpha: 0.08),
+                  color: settings.textColor.withValues(alpha: ZplayOpacity.borderDefault),
                   borderRadius: ReaderTokens.rounded8,
                 ),
               ),
@@ -663,7 +684,7 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                   height: 16,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: settings.textColor.withValues(alpha: 0.06),
+                    color: settings.textColor.withValues(alpha: ZplayOpacity.borderSubtle),
                     borderRadius: ReaderTokens.rounded4,
                   ),
                 ),
@@ -673,7 +694,7 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                 height: 16,
                 width: 180,
                 decoration: BoxDecoration(
-                  color: settings.textColor.withValues(alpha: 0.06),
+                  color: settings.textColor.withValues(alpha: ZplayOpacity.borderSubtle),
                   borderRadius: ReaderTokens.rounded4,
                 ),
               ),
@@ -691,15 +712,11 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.auto_stories_outlined, color: Colors.redAccent, size: 48),
+            Icon(Icons.auto_stories_outlined, color: ReaderTokens.danger, size: 48),
             const SizedBox(height: ReaderTokens.space16),
             Text(
               _error ?? 'Unable to open book',
-              style: TextStyle(
-                fontFamily: ReaderTokens.uiFont,
-                fontSize: 14,
-                color: settings.textColor,
-              ),
+              style: ZplayType.body.toStyle(color: settings.textColor),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: ReaderTokens.space24),
@@ -734,10 +751,8 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
             const SizedBox(height: ReaderTokens.space16),
             Text(
               'No readable chapters found.',
-              style: TextStyle(
-                fontFamily: ReaderTokens.uiFont,
+              style: ZplayType.body.toStyle(
                 color: settings.secondaryTextColor,
-                fontSize: 14,
               ),
             ),
           ],
@@ -750,11 +765,11 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
   // TABLE OF CONTENTS DRAWER
   // ──────────────────────────────────────────────────────────────────────────
 
-  Widget _buildTocDrawer(ReaderSettingsData settings) {
+  Widget _buildTocDrawer() {
     final toc = _bookData?.tableOfContents ?? [];
 
     return Drawer(
-      backgroundColor: settings.surfaceColor,
+      backgroundColor: ReaderTokens.surfaceOverlay,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -762,19 +777,20 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
             Container(
               padding: const EdgeInsets.all(ReaderTokens.space24),
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: settings.borderColor)),
+                border: Border(bottom: ReaderTokens.hairline),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.format_list_bulleted_rounded, color: settings.accentColor, size: 20),
+                  Icon(
+                    Icons.format_list_bulleted_rounded,
+                    color: ReaderTokens.accent,
+                    size: 20,
+                  ),
                   const SizedBox(width: ReaderTokens.space12),
                   Text(
                     'Table of Contents',
-                    style: TextStyle(
-                      fontFamily: ReaderTokens.uiFont,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: settings.textColor,
+                    style: ZplayType.title.toStyle(
+                      color: ReaderTokens.textPrimary,
                     ),
                   ),
                 ],
@@ -785,9 +801,8 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                   ? Center(
                       child: Text(
                         'No table of contents available',
-                        style: TextStyle(
-                          fontFamily: ReaderTokens.uiFont,
-                          color: settings.secondaryTextColor,
+                        style: ZplayType.bodySmall.toStyle(
+                          color: ReaderTokens.textMuted,
                         ),
                       ),
                     )
@@ -805,26 +820,40 @@ class _EpubReaderPageState extends State<EpubReaderPage> {
                           ),
                           leading: Text(
                             '${idx + 1}',
-                            style: TextStyle(
-                              fontFamily: ReaderTokens.uiFont,
-                              fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? settings.accentColor : settings.secondaryTextColor,
-                            ),
+                            style: ZplayType.caption
+                                .copyWith(
+                                  weight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                )
+                                .toStyle(
+                                  color: isSelected
+                                      ? ReaderTokens.accent
+                                      : ReaderTokens.textSecondary,
+                                ),
                           ),
                           title: Text(
                             item.title,
-                            style: TextStyle(
-                              fontFamily: ReaderTokens.uiFont,
-                              fontSize: 13,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? settings.accentColor : settings.textColor,
-                            ),
+                            style: ZplayType.label
+                                .copyWith(
+                                  weight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                )
+                                .toStyle(
+                                  color: isSelected
+                                      ? ReaderTokens.accent
+                                      : ReaderTokens.textPrimary,
+                                ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                           trailing: isSelected
-                              ? Icon(Icons.check_circle_rounded, color: settings.accentColor, size: 18)
+                              ? Icon(
+                                  Icons.check_circle_rounded,
+                                  color: ReaderTokens.accent,
+                                  size: 18,
+                                )
                               : null,
                           onTap: () {
                             Navigator.of(context).pop();

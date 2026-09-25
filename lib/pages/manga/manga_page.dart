@@ -219,20 +219,21 @@ class _MangaPageState extends State<MangaPage> {
 
   void _showMangaCustomizer(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     showDialog(
       context: context,
       builder: (ctx) {
         return Dialog(
-          backgroundColor: const Color(0xFF10131C),
+          backgroundColor: tokens.surfaceOverlay,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            borderRadius: ZplayRadius.lgAll,
+            side: tokens.hairlineStrong,
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Padding(
-              padding: const EdgeInsets.all(22),
+              padding: const EdgeInsets.all(ZplaySpacing.s20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,31 +241,27 @@ class _MangaPageState extends State<MangaPage> {
                   Row(
                     children: [
                       Icon(Icons.tune_rounded, color: palette.primaryColor, size: 20),
-                      const SizedBox(width: 10),
-                      const Text(
+                      const SizedBox(width: ZplaySpacing.s12),
+                      Text(
                         'Customize Manga Section',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16.5,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: ZplayType.title.toStyle(color: tokens.textPrimary),
                       ),
                       const Spacer(),
                       IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 20),
+                        icon: Icon(Icons.close_rounded, color: tokens.textSecondary, size: 20),
                         onPressed: () => Navigator.pop(ctx),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Divider(color: Colors.white.withValues(alpha: 0.08)),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: ZplaySpacing.s16),
+                  Divider(color: tokens.borderDefault),
+                  const SizedBox(height: ZplaySpacing.s12),
 
-                  const Text(
+                  Text(
                     'Poster Card Density',
-                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w700),
+                    style: ZplayType.label.toStyle(color: tokens.textPrimary),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: ZplaySpacing.s8),
                   ValueListenableBuilder<MangaCardDensity>(
                     valueListenable: MangaSettings.cardDensity,
                     builder: (context, density, _) {
@@ -283,14 +280,14 @@ class _MangaPageState extends State<MangaPage> {
                     },
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: ZplaySpacing.s16),
 
                   ValueListenableBuilder<bool>(
                     valueListenable: MangaSettings.enableAmbientLights,
                     builder: (context, enabled, _) {
                       return SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Moving Ambient Background Glow', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                        title: Text('Moving Ambient Background Glow', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                         value: enabled,
                         activeColor: palette.primaryColor,
                         onChanged: (val) => MangaSettings.setEnableAmbientLights(val),
@@ -303,7 +300,7 @@ class _MangaPageState extends State<MangaPage> {
                     builder: (context, show, _) {
                       return SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Show "Continue Reading" Slider', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                        title: Text('Show "Continue Reading" Slider', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                         value: show,
                         activeColor: palette.primaryColor,
                         onChanged: (val) => MangaSettings.setShowContinueReading(val),
@@ -316,7 +313,7 @@ class _MangaPageState extends State<MangaPage> {
                     builder: (context, show, _) {
                       return SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Show Content Type Badge on Posters', style: TextStyle(color: Colors.white, fontSize: 13.5)),
+                        title: Text('Show Content Type Badge on Posters', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                         value: show,
                         activeColor: palette.primaryColor,
                         onChanged: (val) => MangaSettings.setShowContentTypeBadge(val),
@@ -324,9 +321,9 @@ class _MangaPageState extends State<MangaPage> {
                     },
                   ),
 
-                  const SizedBox(height: 12),
-                  Divider(color: Colors.white.withValues(alpha: 0.08)),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: ZplaySpacing.s12),
+                  Divider(color: tokens.borderDefault),
+                  const SizedBox(height: ZplaySpacing.s12),
 
                   SizedBox(
                     width: double.infinity,
@@ -335,11 +332,11 @@ class _MangaPageState extends State<MangaPage> {
                         backgroundColor: palette.primaryColor.withValues(alpha: 0.15),
                         foregroundColor: palette.primaryColor,
                         side: BorderSide(color: palette.primaryColor.withValues(alpha: 0.4)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                        padding: const EdgeInsets.symmetric(vertical: ZplaySpacing.s12),
                       ),
                       icon: const Icon(Icons.settings_rounded, size: 18),
-                      label: const Text('More Appearance & Reader Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                      label: Text('More Appearance & Reader Settings', style: ZplayType.label.toStyle()),
                       onPressed: () {
                         Navigator.pop(ctx);
                         Navigator.push(
@@ -364,9 +361,10 @@ class _MangaPageState extends State<MangaPage> {
     final palette = AppThemeService.currentPalette.value;
     final ambientEnabled = MangaSettings.enableAmbientLights.value;
     final showScrollTrack = MangaSettings.showScrollTrack.value;
+    final tokens = context.tokens;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF080A0F),
+      backgroundColor: tokens.bg,
       body: Stack(
         children: [
           // ── Moving Ambient Background ──
@@ -410,6 +408,7 @@ class _MangaPageState extends State<MangaPage> {
     final isMobile = _screenWidth < 600;
     final topInset = MediaQuery.paddingOf(context).top;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final tokens = context.tokens;
 
     return CustomScrollView(
       controller: _scrollController,
@@ -429,12 +428,8 @@ class _MangaPageState extends State<MangaPage> {
               ),
               child: Text(
                 'Continue Reading',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: isMobile ? 22 : 28,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                ),
+                style: (isMobile ? ZplayType.titleLarge : ZplayType.display)
+                    .toStyle(color: tokens.textPrimary),
               ),
             ),
           ),
@@ -448,7 +443,7 @@ class _MangaPageState extends State<MangaPage> {
             ),
           ),
           SliverToBoxAdapter(
-            child: SizedBox(height: isMobile ? 24 : 40),
+            child: SizedBox(height: isMobile ? ZplaySpacing.s24 : ZplaySpacing.s40),
           ),
         ],
 
@@ -456,8 +451,8 @@ class _MangaPageState extends State<MangaPage> {
         SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 16.0 : 32.0,
-              vertical: isMobile ? 12.0 : 16.0,
+              horizontal: isMobile ? ZplaySpacing.s16 : ZplaySpacing.s32,
+              vertical: isMobile ? ZplaySpacing.s12 : ZplaySpacing.s16,
             ),
             child: isMobile
                 ? Column(
@@ -467,15 +462,12 @@ class _MangaPageState extends State<MangaPage> {
                         _searchQuery.isNotEmpty
                             ? 'Search Results'
                             : (_selectedGenre == 'All' ? 'Discover Manga' : '$_selectedGenre Manga'),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
+                        style: ZplayType.titleLarge.toStyle(
+                          color: tokens.textPrimary,
                         ),
                       ),
                       if (_searchQuery.isEmpty) ...[
-                        const SizedBox(height: 12),
+                        const SizedBox(height: ZplaySpacing.s12),
                         Row(
                           children: [
                             MangaCategoryDropdown(
@@ -484,30 +476,31 @@ class _MangaPageState extends State<MangaPage> {
                               onGenreSelected: _onGenreSelected,
                             ),
                             if (_selectedGenre != 'All') ...[
-                              const SizedBox(width: 8),
+                              const SizedBox(width: ZplaySpacing.s8),
                               InkWell(
                                 onTap: () => _onGenreSelected('All'),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: ZplayRadius.smAll,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: ZplaySpacing.s8,
+                                    vertical: ZplaySpacing.s8,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.06),
-                                    borderRadius: BorderRadius.circular(12),
+                                    color: tokens.borderSubtle,
+                                    borderRadius: ZplayRadius.smAll,
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.1),
+                                      color: tokens.borderDefault,
                                     ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.close_rounded, size: 14, color: Colors.white70),
-                                      const SizedBox(width: 4),
+                                      Icon(Icons.close_rounded, size: 14, color: tokens.textEmphasis),
+                                      const SizedBox(width: ZplaySpacing.s4),
                                       Text(
                                         'Clear',
-                                        style: TextStyle(
-                                          color: Colors.white.withValues(alpha: 0.8),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
+                                        style: ZplayType.bodySmall.toStyle(
+                                          color: tokens.textEmphasis,
                                         ),
                                       ),
                                     ],
@@ -531,22 +524,17 @@ class _MangaPageState extends State<MangaPage> {
                             _searchQuery.isNotEmpty
                                 ? 'Search Results'
                                 : (_selectedGenre == 'All' ? 'Discover Manga' : '$_selectedGenre Manga'),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.5,
+                            style: ZplayType.display.toStyle(
+                              color: tokens.textPrimary,
                             ),
                           ),
                           if (_searchQuery.isEmpty && _selectedGenre != 'All')
                             Padding(
-                              padding: const EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.only(top: ZplaySpacing.s4),
                               child: Text(
                                 'Filtered by category • $_selectedGenre',
-                                style: TextStyle(
+                                style: ZplayType.bodySmall.toStyle(
                                   color: palette.primaryColor,
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
@@ -561,25 +549,25 @@ class _MangaPageState extends State<MangaPage> {
                               onGenreSelected: _onGenreSelected,
                             ),
                             if (_selectedGenre != 'All') ...[
-                              const SizedBox(width: 10),
+                              const SizedBox(width: ZplaySpacing.s8),
                               Tooltip(
                                 message: 'Reset to All Categories',
                                 child: InkWell(
                                   onTap: () => _onGenreSelected('All'),
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: ZplayRadius.mdAll,
                                   child: Container(
-                                    padding: const EdgeInsets.all(9),
+                                    padding: const EdgeInsets.all(ZplaySpacing.s8),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.06),
-                                      borderRadius: BorderRadius.circular(14),
+                                      color: tokens.borderSubtle,
+                                      borderRadius: ZplayRadius.mdAll,
                                       border: Border.all(
-                                        color: Colors.white.withValues(alpha: 0.1),
+                                        color: tokens.borderDefault,
                                       ),
                                     ),
-                                    child: const Icon(
+                                    child: Icon(
                                       Icons.refresh_rounded,
                                       size: 18,
-                                      color: Colors.white70,
+                                      color: tokens.textEmphasis,
                                     ),
                                   ),
                                 ),
@@ -593,29 +581,29 @@ class _MangaPageState extends State<MangaPage> {
         ),
         
         if (_isLoading && _mangaList.isEmpty)
-          const SliverFillRemaining(
+          SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
-              child: CircularProgressIndicator(color: Colors.white),
+              child: CircularProgressIndicator(color: tokens.textPrimary),
             ),
           )
         else if (_mangaList.isEmpty)
-          const SliverFillRemaining(
+          SliverFillRemaining(
             hasScrollBody: false,
             child: Center(
               child: Text(
                 'No manga found',
-                style: TextStyle(color: Colors.white70, fontSize: 18),
+                style: ZplayType.title.toStyle(color: tokens.textEmphasis),
               ),
             ),
           )
         else
           SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: sizing.sidePadding, vertical: 8.0),
+            padding: EdgeInsets.symmetric(horizontal: sizing.sidePadding, vertical: ZplaySpacing.s8),
             sliver: SliverGrid(
               gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                 maxCrossAxisExtent: sizing.cardWidth + sizing.spacing * 2,
-                mainAxisSpacing: 32.0,
+                mainAxisSpacing: ZplaySpacing.s32,
                 crossAxisSpacing: sizing.spacing,
                 mainAxisExtent: sizing.totalHeight,
               ),
@@ -629,10 +617,10 @@ class _MangaPageState extends State<MangaPage> {
           ),
           
         if (_isLoadingMore)
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.all(32.0),
-              child: Center(child: CircularProgressIndicator(color: Colors.white)),
+              padding: const EdgeInsets.all(ZplaySpacing.s32),
+              child: Center(child: CircularProgressIndicator(color: tokens.textPrimary)),
             ),
           ),
         
@@ -647,78 +635,80 @@ class _MangaPageState extends State<MangaPage> {
     final topInset = MediaQuery.paddingOf(context).top;
     final isMobile = _screenWidth < 600;
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
 
     return Positioned(
-      top: 12.0 + topInset,
-      left: isMobile ? 12 : 24,
-      right: isMobile ? 12 : 24,
+      top: ZplaySpacing.s12 + topInset,
+      left: isMobile ? ZplaySpacing.s12 : ZplaySpacing.s24,
+      right: isMobile ? ZplaySpacing.s12 : ZplaySpacing.s24,
       child: Row(
         children: [
           
           // Search Bar
           Expanded(
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-                child: Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    border: Border.all(
-                      color: _searchQuery.isNotEmpty ? palette.primaryColor : Colors.white.withValues(alpha: 0.1),
-                      width: 1.5,
-                    ),
-                    borderRadius: BorderRadius.circular(24),
+              borderRadius: ZplayRadius.lgAll,
+              child: Container(
+                height: 52,
+                decoration: BoxDecoration(
+                  // Opaque, where this was a 5%-white wash behind a sigma-16
+                  // blur. Nothing needs the blur: the field floats over the
+                  // poster grid, so the fill only let artwork smear through the
+                  // text it is supposed to frame.
+                  color: tokens.surface,
+                  border: Border.all(
+                    color: _searchQuery.isNotEmpty ? palette.primaryColor : tokens.borderDefault,
+                    width: 1.5,
                   ),
-                  child: TextField(
-                    controller: _searchController,
-                    onSubmitted: _onSearchChanged,
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
-                    decoration: InputDecoration(
-                      hintText: 'Search Manga, Manhwa, Manhua...',
-                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-                      prefixIcon: Icon(Icons.search_rounded, color: palette.primaryColor),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.close_rounded, color: Colors.white54),
-                              onPressed: () {
-                                _searchController.clear();
-                                _onSearchChanged('');
-                              },
-                            )
-                          : null,
+                  borderRadius: ZplayRadius.lgAll,
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onSubmitted: _onSearchChanged,
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Search Manga, Manhwa, Manhua...',
+                    hintStyle: ZplayType.subtitle.toStyle(color: tokens.textSecondary),
+                    prefixIcon: Icon(Icons.search_rounded, color: palette.primaryColor),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: ZplaySpacing.s20,
+                      vertical: ZplaySpacing.s12,
                     ),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.close_rounded, color: tokens.textSecondary),
+                            onPressed: () {
+                              _searchController.clear();
+                              _onSearchChanged('');
+                            },
+                          )
+                        : null,
                   ),
                 ),
               ),
             ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(width: ZplaySpacing.s12),
 
           // Quick Customize Button
           ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
+            borderRadius: ZplayRadius.lgAll,
+            child: Container(
+              decoration: BoxDecoration(
+                color: tokens.surface,
+                border: Border.all(
+                  color: tokens.borderDefault,
+                  width: 1.5,
                 ),
-                child: IconButton(
-                  icon: const Icon(Icons.tune_rounded, color: Colors.white70),
-                  tooltip: 'Customize Manga Section',
-                  onPressed: () => _showMangaCustomizer(context),
-                  splashRadius: 20,
-                ),
+                borderRadius: ZplayRadius.lgAll,
+              ),
+              child: IconButton(
+                icon: Icon(Icons.tune_rounded, color: tokens.textEmphasis),
+                tooltip: 'Customize Manga Section',
+                onPressed: () => _showMangaCustomizer(context),
+                splashRadius: ZplayRadius.lg,
               ),
             ),
           ),
@@ -820,7 +810,7 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
             child: ListView.builder(
               controller: _scrollController,
               padding: EdgeInsets.symmetric(
-                horizontal: widget.isMobile ? 12.0 : 24.0,
+                horizontal: widget.isMobile ? ZplaySpacing.s12 : ZplaySpacing.s24,
               ),
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -835,7 +825,7 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
-              left: _canScrollLeft && _isHovering ? 12 : -60,
+              left: _canScrollLeft && _isHovering ? ZplaySpacing.s12 : -60,
               top: 0,
               bottom: 0,
               child: Center(
@@ -849,7 +839,7 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOutCubic,
-              right: _canScrollRight && _isHovering ? 12 : -60,
+              right: _canScrollRight && _isHovering ? ZplaySpacing.s12 : -60,
               top: 0,
               bottom: 0,
               child: Center(
@@ -867,6 +857,7 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
 
   Widget _buildHistoryCard(Map<String, dynamic> entry) {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final mangaJson = entry['manga'];
     final mangaId = (mangaJson['id'] ?? '').toString();
     final title = mangaJson['title'] ?? 'Unknown';
@@ -882,9 +873,9 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
       builder: (context, _) {
         return Container(
           width: widget.isMobile ? math.min(320.0, widget.screenWidth * 0.82) : 380,
-          margin: const EdgeInsets.symmetric(horizontal: 8.0),
+          margin: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: ZplayRadius.lgAll,
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.4),
@@ -894,7 +885,7 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
             ],
           ),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: ZplayRadius.lgAll,
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -905,34 +896,37 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
                     cacheManager: AppImageCache.manager,
                     fit: BoxFit.cover,
                     alignment: Alignment.topCenter),
-                // Gradient Overlay
+                // Legibility scrim over the cover art: the same transparent →
+                // opaque gradient, sourced from the palette instead of flat black.
                 Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Color(0xCC000000),
+                        tokens.bg.withValues(alpha: 0.80),
                       ],
                     ),
                   ),
                 ),
                 // Frosted Info Panel
                 Positioned(
-                  bottom: 16,
-                  left: 16,
-                  right: 16,
+                  bottom: ZplaySpacing.s16,
+                  left: ZplaySpacing.s16,
+                  right: ZplaySpacing.s16,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: ZplayRadius.mdAll,
                     child: BackdropFilter(
+                      // Kept: this blur frosts the cover art the panel sits on,
+                      // so it still depicts content rather than chrome.
                       filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
                       child: Container(
-                        padding: const EdgeInsets.all(12.0),
+                        padding: const EdgeInsets.all(ZplaySpacing.s12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                          borderRadius: BorderRadius.circular(16),
+                          color: tokens.bg.withValues(alpha: 0.50),
+                          border: Border.all(color: tokens.borderStrong),
+                          borderRadius: ZplayRadius.mdAll,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -942,25 +936,22 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
                               title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
+                              style: ZplayType.title.toStyle(
+                                color: tokens.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: ZplaySpacing.s4),
                             Row(
                               children: [
                                 Icon(Icons.menu_book_rounded, color: palette.primaryColor, size: 16),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: ZplaySpacing.s8),
                                 Expanded(
                                   child: Text(
                                     chapterTitle,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.8),
-                                      fontSize: 14,
+                                    style: ZplayType.body.toStyle(
+                                      color: tokens.textEmphasis,
                                     ),
                                   ),
                                 ),
@@ -974,22 +965,22 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
                 ),
                 // Remove from Continue Reading Button
                 Positioned(
-                  top: 16,
-                  left: 16,
+                  top: ZplaySpacing.s16,
+                  left: ZplaySpacing.s16,
                   child: Tooltip(
                     message: 'Remove from Continue Reading',
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () => widget.onRemove(mangaId),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: ZplayRadius.lgAll,
                         child: Container(
-                          padding: const EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(ZplaySpacing.s8),
                           decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.65),
+                            color: tokens.bg.withValues(alpha: 0.65),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: tokens.borderStrong,
                               width: 1.0,
                             ),
                             boxShadow: [
@@ -999,9 +990,9 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
                               ),
                             ],
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.close_rounded,
-                            color: Colors.white,
+                            color: tokens.textPrimary,
                             size: 16,
                           ),
                         ),
@@ -1011,10 +1002,10 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
                 ),
                 // Play/Resume Overlay Icon
                 Positioned(
-                  top: 16,
-                  right: 16,
+                  top: ZplaySpacing.s16,
+                  right: ZplaySpacing.s16,
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(ZplaySpacing.s12),
                     decoration: BoxDecoration(
                       color: palette.primaryColor.withValues(alpha: 0.85),
                       shape: BoxShape.circle,
@@ -1025,7 +1016,7 @@ class _ContinueReadingSliderState extends State<_ContinueReadingSlider> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
+                    child: Icon(Icons.play_arrow_rounded, color: tokens.textPrimary, size: 24),
                   ),
                 ),
               ],

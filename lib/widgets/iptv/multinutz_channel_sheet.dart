@@ -5,6 +5,7 @@ import '../../utils/navigation/route_transitions.dart';
 import '../../services/iptv/iptv_controller.dart';
 import '../../services/iptv/iptv_network.dart';
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/iptv/iptv_settings.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../pages/iptv/iptv_portal_browser_page.dart';
@@ -174,7 +175,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         SnackBar(
           content: Text('Removed $count portal${count == 1 ? "" : "s"}'),
           duration: const Duration(seconds: 2),
-          backgroundColor: const Color(0xFF1E2235),
+          backgroundColor: context.tokens.surfaceOverlay,
         ),
       );
     }
@@ -193,7 +194,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         SnackBar(
           content: Text('Removed all $count portals'),
           duration: const Duration(seconds: 2),
-          backgroundColor: const Color(0xFF1E2235),
+          backgroundColor: context.tokens.surfaceOverlay,
         ),
       );
     }
@@ -216,7 +217,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         SnackBar(
           content: Text('Removed $count playlist${count == 1 ? "" : "s"}'),
           duration: const Duration(seconds: 2),
-          backgroundColor: const Color(0xFF1E2235),
+          backgroundColor: context.tokens.surfaceOverlay,
         ),
       );
     }
@@ -235,7 +236,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         SnackBar(
           content: Text('Removed all $count playlists'),
           duration: const Duration(seconds: 2),
-          backgroundColor: const Color(0xFF1E2235),
+          backgroundColor: context.tokens.surfaceOverlay,
         ),
       );
     }
@@ -250,24 +251,23 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
   }) {
     final isSelected = _portalSourceFilter == filterKey;
     final color = activeColor ?? palette.primaryColor;
+    final tokens = context.tokens;
 
     return ChoiceChip(
       avatar: Icon(
         icon,
         size: 14,
-        color: isSelected ? Colors.white : Colors.white60,
+        color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
       ),
       label: Text(label),
       selected: isSelected,
       selectedColor: color.withValues(alpha: 0.3),
-      backgroundColor: const Color(0xFF141722),
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.white70,
-        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-        fontSize: 12,
-      ),
+      backgroundColor: tokens.surfaceOverlay,
+      labelStyle: ZplayType.bodySmall
+          .copyWith(weight: isSelected ? FontWeight.w700 : FontWeight.w500)
+          .toStyle(color: isSelected ? tokens.textPrimary : tokens.textEmphasis),
       side: BorderSide(
-        color: isSelected ? color.withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.08),
+        color: isSelected ? color.withValues(alpha: 0.6) : tokens.borderDefault,
       ),
       onSelected: (selected) {
         if (selected) {
@@ -281,14 +281,16 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     return Container(
-      color: const Color(0xFF0C0F17),
+      color: tokens.bg,
       child: widget.tabType == ChannelSheetTab.xtreme ? _buildXtremeTab() : _buildM3uTab(),
     );
   }
 
   Widget _buildXtremeTab() {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final groups = _filteredXtremeGroups;
     final portals = _filteredPortals;
     final allSelected = portals.isNotEmpty && _selectedPortalKeys.length == portals.length;
@@ -303,28 +305,28 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
       children: [
         // Search
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(ZplaySpacing.s16, ZplaySpacing.s16, ZplaySpacing.s16, ZplaySpacing.s8),
           child: TextField(
             controller: _searchController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: ZplayType.label.toStyle(color: tokens.textPrimary),
             decoration: InputDecoration(
               hintText: 'Search channels...',
-              hintStyle: const TextStyle(color: Colors.white24),
-              prefixIcon: const Icon(Icons.search_rounded, color: Colors.white24),
+              hintStyle: ZplayType.body.toStyle(color: tokens.textDisabled),
+              prefixIcon: Icon(Icons.search_rounded, color: tokens.textDisabled),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                borderRadius: ZplayRadius.smAll,
+                borderSide: tokens.hairlineStrong,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                borderRadius: ZplayRadius.smAll,
+                borderSide: tokens.hairlineStrong,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: ZplayRadius.smAll,
                 borderSide: BorderSide(color: palette.primaryColor),
               ),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.05),
+              fillColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
               isDense: true,
             ),
             onChanged: (v) => setState(() => _searchQuery = v),
@@ -333,7 +335,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
         // Action Buttons Bar
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
           child: Wrap(
             spacing: 6,
             runSpacing: 6,
@@ -342,21 +344,21 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: palette.primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
                   minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 icon: ctrl.isScraping
-                    ? const SizedBox(
+                    ? SizedBox(
                         width: 14,
                         height: 14,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: tokens.textPrimary),
                       )
-                    : const Icon(Icons.radar_rounded, size: 16, color: Colors.white),
+                    : Icon(Icons.radar_rounded, size: 16, color: tokens.textPrimary),
                 label: Text(
                   ctrl.isScraping ? 'Finding…' : 'Generate',
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                  style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                 ),
                 onPressed: ctrl.isScraping ? null : ctrl.scrape,
               ),
@@ -369,16 +371,16 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                   setState(() {});
                 },
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                  borderRadius: ZplayRadius.mdAll,
+                  side: tokens.hairlineStrong,
                 ),
-                color: const Color(0xFF161A26),
+                color: tokens.surfaceOverlay,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 7),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    color: tokens.borderDefault,
+                    borderRadius: ZplayRadius.smAll,
+                    border: Border.all(color: tokens.borderStrong),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -389,16 +391,16 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                             : Icons.forum_rounded,
                         size: 14,
                         color: ctrl.scrapeSource == CatalogSource.cloudVault
-                            ? const Color(0xFF00E5FF)
-                            : const Color(0xFFFF5722),
+                            ? tokens.info
+                            : tokens.danger,
                       ),
                       const SizedBox(width: 5),
                       Text(
                         ctrl.scrapeSource == CatalogSource.cloudVault ? 'Cloud Vault' : 'Reddit',
-                        style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700),
+                        style: ZplayType.caption.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                       ),
-                      const SizedBox(width: 2),
-                      const Icon(Icons.arrow_drop_down_rounded, size: 18, color: Colors.white70),
+                      const SizedBox(width: ZplaySpacing.s2),
+                      Icon(Icons.arrow_drop_down_rounded, size: 18, color: tokens.textEmphasis),
                     ],
                   ),
                 ),
@@ -408,20 +410,20 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.cloud_done_rounded, color: Color(0xFF00E5FF), size: 18),
+                        Icon(Icons.cloud_done_rounded, color: tokens.info, size: 18),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Row(
+                              Row(
                                 children: [
-                                  Text('Cloud Vault', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                                  SizedBox(width: 6),
+                                  Text('Cloud Vault', style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
+                                  const SizedBox(width: 6),
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                    child: Text('9.6k+', style: TextStyle(color: Color(0xFF00E5FF), fontSize: 9.5, fontWeight: FontWeight.w800)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    child: Text('9.6k+', style: ZplayType.overline.copyWith(weight: FontWeight.w700).toStyle(color: tokens.info)),
                                   ),
                                  ],
                                ),
@@ -436,15 +438,15 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.forum_rounded, color: Color(0xFFFF5722), size: 18),
+                        Icon(Icons.forum_rounded, color: tokens.danger, size: 18),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Text('Reddit Communities', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                              const Text('Live shared pastes from subreddits', style: TextStyle(color: Colors.white60, fontSize: 10.5)),
+                              Text('Reddit Communities', style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
+                              Text('Live shared pastes from subreddits', style: ZplayType.caption.toStyle(color: tokens.textEmphasis)),
                             ],
                           ),
                         ),
@@ -455,29 +457,29 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               ),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                foregroundColor: tokens.textPrimary,
+                side: BorderSide(color: tokens.borderStrong),
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
                 minimumSize: const Size(0, 36),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               icon: const Icon(Icons.add_rounded, size: 16),
-              label: const Text('Add Portal', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+              label: Text('Add Portal', style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle()),
               onPressed: () => setState(() => _showAddForm = !_showAddForm),
             ),
             if (ctrl.verified.isNotEmpty)
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: _isPortalsEditMode ? const Color(0xFF00D2EF) : Colors.white,
-                  side: BorderSide(color: _isPortalsEditMode ? const Color(0xFF00D2EF) : Colors.white.withValues(alpha: 0.2)),
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  foregroundColor: _isPortalsEditMode ? tokens.info : tokens.textPrimary,
+                  side: BorderSide(color: _isPortalsEditMode ? tokens.info : tokens.borderStrong),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
                   minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
                 icon: Icon(_isPortalsEditMode ? Icons.edit_off_rounded : Icons.edit_rounded, size: 15),
-                label: Text(_isPortalsEditMode ? 'Done' : 'Manage', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                label: Text(_isPortalsEditMode ? 'Done' : 'Manage', style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle()),
                 onPressed: () {
                   setState(() {
                     _isPortalsEditMode = !_isPortalsEditMode;
@@ -492,12 +494,12 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         // Selection Toolbar for Portals
         if (_isPortalsEditMode && ctrl.verified.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
               decoration: BoxDecoration(
                 color: palette.primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(color: palette.primaryColor.withValues(alpha: 0.3)),
               ),
               child: Wrap(
@@ -511,19 +513,19 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                     children: [
                       TextButton.icon(
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          foregroundColor: tokens.textPrimary,
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: ZplaySpacing.s4),
                           minimumSize: const Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         icon: Icon(
                           allSelected ? Icons.deselect_rounded : Icons.select_all_rounded,
                           size: 17,
-                          color: const Color(0xFF00D2EF),
+                          color: tokens.info,
                         ),
                         label: Text(
                           allSelected ? 'Deselect All' : 'Select All',
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+                          style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(),
                         ),
                         onPressed: () {
                           setState(() {
@@ -536,10 +538,10 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                           });
                         },
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                       Text(
                         '(${_selectedPortalKeys.length}/${portals.length})',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12, fontWeight: FontWeight.w700),
+                        style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textEmphasis),
                       ),
                     ],
                   ),
@@ -550,32 +552,32 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                     children: [
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
+                          backgroundColor: tokens.danger,
+                          foregroundColor: tokens.textPrimary,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 6),
+                          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                           minimumSize: const Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         icon: const Icon(Icons.delete_rounded, size: 14),
                         label: Text(
                           'Delete (${_selectedPortalKeys.length})',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(),
                         ),
                         onPressed: _selectedPortalKeys.isEmpty ? null : _deleteSelectedPortals,
                       ),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.redAccent,
-                          side: const BorderSide(color: Colors.redAccent),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          foregroundColor: tokens.danger,
+                          side: BorderSide(color: tokens.danger),
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 6),
+                          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                           minimumSize: const Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         onPressed: _deleteAllPortals,
-                        child: const Text('Delete All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: Text('Delete All', style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle()),
                       ),
                     ],
                   ),
@@ -587,10 +589,10 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
         if (ctrl.statusText.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
             child: Text(
               ctrl.statusText,
-              style: const TextStyle(color: Color(0xFF00D2EF), fontSize: 12, fontWeight: FontWeight.w600),
+              style: ZplayType.bodySmall.toStyle(color: tokens.info),
             ),
           ),
         ],
@@ -598,39 +600,39 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         // Add Manual Portal Form
         if (_showAddForm) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(ZplaySpacing.s16),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                borderRadius: ZplayRadius.mdAll,
+                border: Border.all(color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Add Xtream Codes Portal', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                  Text('Add Xtream Codes Portal', style: ZplayType.body.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _urlCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: ZplayType.label.toStyle(color: tokens.textPrimary),
                     decoration: const InputDecoration(labelText: 'Server URL (e.g. http://example.com:8080)', isDense: true, border: OutlineInputBorder()),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: ZplaySpacing.s8),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: _userCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: ZplayType.label.toStyle(color: tokens.textPrimary),
                           decoration: const InputDecoration(labelText: 'Username', isDense: true, border: OutlineInputBorder()),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: ZplaySpacing.s8),
                       Expanded(
                         child: TextField(
                           controller: _passCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          style: ZplayType.label.toStyle(color: tokens.textPrimary),
                           decoration: const InputDecoration(labelText: 'Password', isDense: true, border: OutlineInputBorder()),
                         ),
                       ),
@@ -638,7 +640,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                   ),
                   if (ctrl.addError != null) ...[
                     const SizedBox(height: 6),
-                    Text(ctrl.addError!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                    Text(ctrl.addError!, style: ZplayType.bodySmall.toStyle(color: tokens.danger)),
                   ],
                   const SizedBox(height: 10),
                   Align(
@@ -647,7 +649,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                       style: ElevatedButton.styleFrom(backgroundColor: AppThemeService.currentPalette.value.primaryColor),
                       onPressed: ctrl.isAdding ? null : _submitAddPortal,
                       child: ctrl.isAdding
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: tokens.textPrimary))
                           : const Text('Verify & Save'),
                     ),
                   ),
@@ -657,12 +659,12 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
           ),
         ],
 
-        const SizedBox(height: 8),
+        const SizedBox(height: ZplaySpacing.s8),
 
         // Source Filter Bar
         if (ctrl.verified.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
@@ -673,18 +675,18 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                   _buildSourceChip('custom', 'My Portals (${ctrl.verified.where((p) {
                     final s = p.portal.source.toLowerCase();
                     return s.isEmpty || s.contains('custom') || s.contains('manual');
-                  }).length})', Icons.lock_rounded, palette, activeColor: const Color(0xFF10B981)),
+                  }).length})', Icons.lock_rounded, palette, activeColor: tokens.success),
                   const SizedBox(width: 6),
-                  _buildSourceChip('cloud', 'Cloud Vault (${ctrl.verified.where((p) => p.portal.source.toLowerCase().contains('cloud') || p.portal.source.toLowerCase().contains('vault')).length})', Icons.cloud_done_rounded, palette, activeColor: const Color(0xFF00E5FF)),
+                  _buildSourceChip('cloud', 'Cloud Vault (${ctrl.verified.where((p) => p.portal.source.toLowerCase().contains('cloud') || p.portal.source.toLowerCase().contains('vault')).length})', Icons.cloud_done_rounded, palette, activeColor: tokens.info),
                   const SizedBox(width: 6),
-                  _buildSourceChip('reddit', 'Reddit (${ctrl.verified.where((p) => p.portal.source.toLowerCase().contains('reddit')).length})', Icons.forum_rounded, palette, activeColor: const Color(0xFFFF5722)),
+                  _buildSourceChip('reddit', 'Reddit (${ctrl.verified.where((p) => p.portal.source.toLowerCase().contains('reddit')).length})', Icons.forum_rounded, palette, activeColor: tokens.danger),
                   const SizedBox(width: 6),
-                  _buildSourceChip('fav', 'Favorites ⭐ (${ctrl.verified.where((p) => ctrl.isFavoritePortal(p.key)).length})', Icons.star_rounded, palette, activeColor: const Color(0xFFFFC107)),
+                  _buildSourceChip('fav', 'Favorites ⭐ (${ctrl.verified.where((p) => ctrl.isFavoritePortal(p.key)).length})', Icons.star_rounded, palette, activeColor: tokens.warning),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: ZplaySpacing.s8),
         ],
 
         // Portal List
@@ -695,11 +697,11 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.tv_off_rounded, size: 48, color: Colors.white24),
-                    const SizedBox(height: 16),
+                    Icon(Icons.tv_off_rounded, size: 48, color: tokens.textDisabled),
+                    const SizedBox(height: ZplaySpacing.s16),
                     Text(
                       _searchQuery.isEmpty ? 'No Xtream portals loaded' : 'No matching channels',
-                      style: const TextStyle(color: Colors.white54),
+                      style: ZplayType.body.toStyle(color: tokens.textMuted),
                     ),
                   ],
                 ),
@@ -708,9 +710,9 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
           else if (!_isPortalsEditMode && _searchQuery.isEmpty)
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
                 itemCount: portals.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: ZplaySpacing.s8),
                 itemBuilder: (context, index) {
                   final p = portals[index];
                   return _buildXtremePortalCard(p, palette);
@@ -720,9 +722,9 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
           else
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
                 itemCount: groups.length,
-                separatorBuilder: (_, _) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: ZplaySpacing.s8),
                 itemBuilder: (context, index) {
                   final group = groups[index];
                   return _buildPortalChannelGroup(group, palette);
@@ -737,6 +739,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
   }
 
   Widget _buildXtremePortalCard(VerifiedPortal p, AppThemePalette palette) {
+    final tokens = context.tokens;
     final showExp = IptvSettings.showPortalExpiry.value && p.expiry.isNotEmpty;
     final showConn = IptvSettings.showPortalConnections.value && p.maxConnections.isNotEmpty;
     final isFav = ctrl.isFavoritePortal(p.key);
@@ -745,7 +748,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
     Widget buildCopyBtn() {
       return IconButton(
-        icon: const Icon(Icons.copy_rounded, color: Colors.white60, size: 17),
+        icon: Icon(Icons.copy_rounded, color: tokens.textEmphasis, size: 17),
         tooltip: 'Copy Login (url:user:pass)',
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.all(5),
@@ -757,7 +760,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
             SnackBar(
               content: Text('Copied: $text'),
               duration: const Duration(seconds: 2),
-              backgroundColor: const Color(0xFF1E2235),
+              backgroundColor: context.tokens.surfaceOverlay,
             ),
           );
         },
@@ -768,7 +771,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
       return IconButton(
         icon: Icon(
           isFav ? Icons.star_rounded : Icons.star_outline_rounded,
-          color: isFav ? const Color(0xFFFFC107) : Colors.white38,
+          color: isFav ? tokens.warning : tokens.textMuted,
           size: 19,
         ),
         tooltip: isFav ? 'Remove Favorite' : 'Add to Favorites',
@@ -781,7 +784,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
     Widget buildDeleteBtn() {
       return IconButton(
-        icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+        icon: Icon(Icons.delete_outline_rounded, color: tokens.danger, size: 18),
         tooltip: 'Remove Portal',
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.all(5),
@@ -793,12 +796,15 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: ZplayRadius.smAll,
         onTap: () {
           if (_isPortalsEditMode) {
             setState(() {
-              if (isSelected) _selectedPortalKeys.remove(p.key);
-              else _selectedPortalKeys.add(p.key);
+              if (isSelected) {
+                _selectedPortalKeys.remove(p.key);
+              } else {
+                _selectedPortalKeys.add(p.key);
+              }
             });
 } else {
             Navigator.push(
@@ -814,14 +820,14 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
           }
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: ZplaySpacing.s12),
           decoration: BoxDecoration(
             color: isSelected
                 ? palette.primaryColor.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(12),
+                : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+            borderRadius: ZplayRadius.smAll,
             border: Border.all(
-              color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
+              color: isSelected ? palette.primaryColor : tokens.borderDefault,
               width: isSelected ? 1.5 : 1.0,
             ),
           ),
@@ -838,43 +844,43 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                       decoration: BoxDecoration(
                         color: isSelected ? palette.primaryColor : Colors.transparent,
                         shape: BoxShape.circle,
-                        border: Border.all(color: isSelected ? palette.primaryColor : Colors.white38, width: 2),
+                        border: Border.all(color: isSelected ? palette.primaryColor : tokens.textMuted, width: 2),
                       ),
-                      child: isSelected ? const Icon(Icons.check_rounded, color: Colors.white, size: 14) : null,
+                      child: isSelected ? Icon(Icons.check_rounded, color: tokens.textPrimary, size: 14) : null,
                     )
                   else
-                    const SizedBox(width: 18, height: 8, child: DecoratedBox(decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle))),
+                    SizedBox(width: 18, height: 8, child: DecoratedBox(decoration: BoxDecoration(color: tokens.success, shape: BoxShape.circle))),
                   Expanded(
                     child: Text(
                       p.name.isNotEmpty ? p.name : p.portal.url,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+                      style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   if (!_isPortalsEditMode) ...[
-                    const SizedBox(width: 4),
+                    const SizedBox(width: ZplaySpacing.s4),
                     buildCopyBtn(),
-                    const SizedBox(width: 2),
+                    const SizedBox(width: ZplaySpacing.s2),
                     buildFavBtn(),
-                    const SizedBox(width: 2),
+                    const SizedBox(width: ZplaySpacing.s2),
                     buildDeleteBtn(),
                   ],
-                  const SizedBox(width: 2),
-                  Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 18),
+                  const SizedBox(width: ZplaySpacing.s2),
+                  Icon(Icons.chevron_right_rounded, color: tokens.textMuted, size: 18),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: ZplaySpacing.s4),
               Row(
                 children: [
-                  const Icon(Icons.link_rounded, size: 13, color: Colors.white38),
-                  const SizedBox(width: 4),
+                  Icon(Icons.link_rounded, size: 13, color: tokens.textMuted),
+                  const SizedBox(width: ZplaySpacing.s4),
                   Expanded(
                     child: Text(
                       p.portal.url,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 11),
+                      style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                     ),
                   ),
                 ],
@@ -894,41 +900,41 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                               decoration: BoxDecoration(
                                 color: palette.primaryColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
-                              child: Text('Exp: ${p.expiry}', style: TextStyle(color: palette.primaryColor, fontSize: 10, fontWeight: FontWeight.w700)),
+                              child: Text('Exp: ${p.expiry}', style: ZplayType.overline.copyWith(weight: FontWeight.w700).toStyle(color: palette.primaryColor)),
                             ),
                           if (showConn)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(4),
+                                color: tokens.borderDefault,
+                                borderRadius: ZplayRadius.xsAll,
                               ),
-                              child: Text('Conn: ${p.activeConnections}/${p.maxConnections}', style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600)),
+                              child: Text('Conn: ${p.activeConnections}/${p.maxConnections}', style: ZplayType.overline.toStyle(color: tokens.textEmphasis)),
                             ),
                           if (p.portal.source.isNotEmpty)
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                               decoration: BoxDecoration(
                                 color: p.portal.source.toLowerCase().contains('cloud') || p.portal.source.toLowerCase().contains('vault')
-                                    ? const Color(0xFF00E5FF).withValues(alpha: 0.15)
+                                    ? tokens.info.withValues(alpha: 0.15)
                                     : (p.portal.source.toLowerCase().contains('reddit')
-                                        ? const Color(0xFFFF5722).withValues(alpha: 0.15)
-                                        : Colors.white.withValues(alpha: 0.08)),
-                                borderRadius: BorderRadius.circular(4),
+                                        ? tokens.danger.withValues(alpha: 0.15)
+                                        : tokens.borderDefault),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
                               child: Text(
                                 p.portal.source,
-                                style: TextStyle(
-                                  color: p.portal.source.toLowerCase().contains('cloud') || p.portal.source.toLowerCase().contains('vault')
-                                      ? const Color(0xFF00E5FF)
-                                      : (p.portal.source.toLowerCase().contains('reddit')
-                                          ? const Color(0xFFFF7043)
-                                          : Colors.white70),
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: ZplayType.overline
+                                    .copyWith(weight: FontWeight.w700)
+                                    .toStyle(
+                                      color: p.portal.source.toLowerCase().contains('cloud') || p.portal.source.toLowerCase().contains('vault')
+                                          ? tokens.info
+                                          : (p.portal.source.toLowerCase().contains('reddit')
+                                              ? tokens.danger
+                                              : tokens.textEmphasis),
+                                    ),
                               ),
                             ),
 ],
@@ -946,6 +952,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
   }
 
   Widget _buildPortalChannelGroup(PortalChannelGroup group, AppThemePalette palette) {
+    final tokens = context.tokens;
     final isRich = IptvSettings.portalCardStyle.value == PortalCardStyle.rich;
     final showExp = IptvSettings.showPortalExpiry.value && group.portal.expiry.isNotEmpty;
     final showConn = IptvSettings.showPortalConnections.value && group.portal.maxConnections.isNotEmpty;
@@ -954,7 +961,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
     Widget buildCopyBtn() {
       return IconButton(
-        icon: const Icon(Icons.copy_rounded, color: Colors.white60, size: 17),
+        icon: Icon(Icons.copy_rounded, color: tokens.textEmphasis, size: 17),
         tooltip: 'Copy Login (url:user:pass)',
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.all(5),
@@ -966,7 +973,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
             SnackBar(
               content: Text('Copied: $text'),
               duration: const Duration(seconds: 2),
-              backgroundColor: const Color(0xFF1E2235),
+              backgroundColor: context.tokens.surfaceOverlay,
             ),
           );
         },
@@ -977,7 +984,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
       return IconButton(
         icon: Icon(
           isFav ? Icons.star_rounded : Icons.star_outline_rounded,
-          color: isFav ? const Color(0xFFFFC107) : Colors.white38,
+          color: isFav ? tokens.warning : tokens.textMuted,
           size: 19,
         ),
         tooltip: isFav ? 'Remove Favorite' : 'Add to Favorites',
@@ -990,7 +997,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
     Widget buildDeleteBtn() {
       return IconButton(
-        icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+        icon: Icon(Icons.delete_outline_rounded, color: tokens.danger, size: 18),
         tooltip: 'Remove Portal',
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.all(5),
@@ -1010,23 +1017,23 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
               decoration: BoxDecoration(
                 color: palette.primaryColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: ZplayRadius.xsAll,
               ),
               child: Text(
                 'Exp: ${group.portal.expiry}',
-                style: TextStyle(color: palette.primaryColor, fontSize: 10, fontWeight: FontWeight.w700),
+                style: ZplayType.overline.copyWith(weight: FontWeight.w700).toStyle(color: palette.primaryColor),
               ),
             ),
           if (showConn)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(4),
+                color: tokens.borderDefault,
+                borderRadius: ZplayRadius.xsAll,
               ),
               child: Text(
                 'Conn: ${group.portal.activeConnections}/${group.portal.maxConnections}',
-                style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w600),
+                style: ZplayType.overline.toStyle(color: tokens.textEmphasis),
               ),
             ),
           if (group.portal.portal.source.isNotEmpty)
@@ -1034,23 +1041,23 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
               decoration: BoxDecoration(
                 color: group.portal.portal.source.toLowerCase().contains('cloud') || group.portal.portal.source.toLowerCase().contains('vault')
-                    ? const Color(0xFF00E5FF).withValues(alpha: 0.15)
+                    ? tokens.info.withValues(alpha: 0.15)
                     : (group.portal.portal.source.toLowerCase().contains('reddit')
-                        ? const Color(0xFFFF5722).withValues(alpha: 0.15)
-                        : Colors.white.withValues(alpha: 0.08)),
-                borderRadius: BorderRadius.circular(4),
+                        ? tokens.danger.withValues(alpha: 0.15)
+                        : tokens.borderDefault),
+                borderRadius: ZplayRadius.xsAll,
               ),
               child: Text(
                 group.portal.portal.source,
-                style: TextStyle(
-                  color: group.portal.portal.source.toLowerCase().contains('cloud') || group.portal.portal.source.toLowerCase().contains('vault')
-                      ? const Color(0xFF00E5FF)
-                      : (group.portal.portal.source.toLowerCase().contains('reddit')
-                          ? const Color(0xFFFF7043)
-                          : Colors.white70),
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: ZplayType.overline
+                    .copyWith(weight: FontWeight.w700)
+                    .toStyle(
+                      color: group.portal.portal.source.toLowerCase().contains('cloud') || group.portal.portal.source.toLowerCase().contains('vault')
+                          ? tokens.info
+                          : (group.portal.portal.source.toLowerCase().contains('reddit')
+                              ? tokens.danger
+                              : tokens.textEmphasis),
+                    ),
               ),
             ),
         ],
@@ -1059,7 +1066,9 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
     return ExpansionTile(
       collapsedShape: const RoundedRectangleBorder(),
-      shape: const RoundedRectangleBorder(side: BorderSide(color: Color(0x1AFFFFFF))),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium)),
+      ),
       backgroundColor: Colors.transparent,
       collapsedBackgroundColor: Colors.transparent,
       title: Row(
@@ -1072,16 +1081,16 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               decoration: BoxDecoration(
                 color: isSelected ? palette.primaryColor : Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(color: isSelected ? palette.primaryColor : Colors.white38, width: 2),
+                border: Border.all(color: isSelected ? palette.primaryColor : tokens.textMuted, width: 2),
               ),
-              child: isSelected ? const Icon(Icons.check_rounded, color: Colors.white, size: 14) : null,
+              child: isSelected ? Icon(Icons.check_rounded, color: tokens.textPrimary, size: 14) : null,
             )
           else
             Container(
               width: 8,
               height: 8,
               margin: const EdgeInsets.only(right: 10),
-              decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
+              decoration: BoxDecoration(color: tokens.success, shape: BoxShape.circle),
             ),
           Expanded(
             child: Column(
@@ -1092,30 +1101,30 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                     Expanded(
                       child: Text(
                         group.portal.name.isNotEmpty ? group.portal.name : group.portal.portal.url,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+                        style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     if (!_isPortalsEditMode) ...[
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                       buildCopyBtn(),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: ZplaySpacing.s2),
                       buildFavBtn(),
-                      const SizedBox(width: 2),
+                      const SizedBox(width: ZplaySpacing.s2),
                       buildDeleteBtn(),
                     ],
                   ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: ZplaySpacing.s2),
                 Text(
                   group.portal.portal.url,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 11),
+                  style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                 ),
                 if ((showExp || showConn || group.portal.portal.source.isNotEmpty) && isRich) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: ZplaySpacing.s4),
                   buildBadgesWrap(),
                 ],
               ],
@@ -1123,27 +1132,27 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
           ),
           if ((_isPortalsEditMode || !(showExp || showConn || group.portal.portal.source.isNotEmpty) || !isRich))
             const SizedBox(width: 6),
-          Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 18),
+          Icon(Icons.chevron_right_rounded, color: tokens.textMuted, size: 18),
         ],
       ),
       children: group.hits.isEmpty
           ? [
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(ZplaySpacing.s16),
                 child: Center(
                   child: Text(
                     'No live channels available for this portal',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12),
+                    style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                   ),
                 ),
               ),
             ]
           : [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
                 child: Text(
                   '${group.hits.length} live channels',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11, fontWeight: FontWeight.w600),
+                  style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                 ),
               ),
                ConstrainedBox(
@@ -1151,9 +1160,9 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                  child: ListView.separated(
                    shrinkWrap: false,
                    physics: const ClampingScrollPhysics(),
-                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                   padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
                    itemCount: group.hits.length,
-                   separatorBuilder: (_, _) => const SizedBox(height: 4),
+                   separatorBuilder: (_, _) => const SizedBox(height: ZplaySpacing.s4),
                    itemBuilder: (context, hitIndex) {
                      final hit = group.hits[hitIndex];
                      return _buildChannelHitItem(hit, hitIndex);
@@ -1165,31 +1174,32 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
   }
 
   Widget _buildChannelHitItem(ChannelHit hit, int hitIndex) {
+    final tokens = context.tokens;
     return Material(
       color: Colors.transparent,
       child: ListTile(
         leading: hit.stream.icon.isNotEmpty
             ? ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: ZplayRadius.xsAll,
                 child: CachedNetworkImage(imageUrl: hit.stream.icon, cacheManager: AppImageCache.manager,
- memCacheWidth: 96, width: 24, height: 24, fit: BoxFit.cover, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white30)),
+ memCacheWidth: 96, width: 24, height: 24, fit: BoxFit.cover, errorWidget: (_, __, ___) => Icon(Icons.tv, color: tokens.textDisabled)),
               )
-            : const Icon(Icons.tv, color: Colors.white30, size: 24),
+            : Icon(Icons.tv, color: tokens.textDisabled, size: 24),
         title: Text(
           hit.stream.name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
+          style: ZplayType.label.toStyle(color: tokens.textPrimary),
         ),
         subtitle: Text(
           hit.stream.containerExt.toUpperCase(),
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 10),
+          style: ZplayType.overline.toStyle(color: tokens.textMuted),
         ),
         dense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
-        tileColor: Colors.white.withValues(alpha: 0.04),
-        hoverColor: Colors.white.withValues(alpha: 0.08),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s4),
+        shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+        tileColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+        hoverColor: tokens.borderDefault,
         onTap: () {
           Navigator.pop(context);
           widget.onChannelSelected(hit.streamUrl, hit.stream.name);
@@ -1200,6 +1210,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
   Widget _buildM3uTab() {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final groups = _filteredM3uGroups;
     final allSelected = ctrl.m3uPlaylists.isNotEmpty && _selectedM3uIds.length == ctrl.m3uPlaylists.length;
 
@@ -1213,28 +1224,28 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
       children: [
         // Search
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          padding: const EdgeInsets.fromLTRB(ZplaySpacing.s16, ZplaySpacing.s16, ZplaySpacing.s16, ZplaySpacing.s8),
           child: TextField(
             controller: _searchController,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
+            style: ZplayType.label.toStyle(color: tokens.textPrimary),
             decoration: InputDecoration(
               hintText: 'Search channels...',
-              hintStyle: const TextStyle(color: Colors.white24),
-              prefixIcon: const Icon(Icons.search_rounded, color: Colors.white24),
+              hintStyle: ZplayType.body.toStyle(color: tokens.textDisabled),
+              prefixIcon: Icon(Icons.search_rounded, color: tokens.textDisabled),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                borderRadius: ZplayRadius.smAll,
+                borderSide: tokens.hairlineStrong,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+                borderRadius: ZplayRadius.smAll,
+                borderSide: tokens.hairlineStrong,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: ZplayRadius.smAll,
                 borderSide: BorderSide(color: palette.primaryColor),
               ),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.05),
+              fillColor: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
               isDense: true,
             ),
             onChanged: (v) => setState(() => _searchQuery = v),
@@ -1243,34 +1254,34 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
         // Action Buttons Bar
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
           child: Row(
             children: [
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: palette.primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
                   minimumSize: const Size(0, 36),
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                icon: const Icon(Icons.playlist_add_rounded, size: 17, color: Colors.white),
-                label: const Text('Add M3U URL', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                icon: Icon(Icons.playlist_add_rounded, size: 17, color: tokens.textPrimary),
+                label: Text('Add M3U URL', style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle()),
                 onPressed: () => setState(() => _showM3uForm = !_showM3uForm),
               ),
               if (ctrl.m3uPlaylists.isNotEmpty) ...[
-                const SizedBox(width: 8),
+                const SizedBox(width: ZplaySpacing.s8),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: _isM3uEditMode ? const Color(0xFF00D2EF) : Colors.white,
-                    side: BorderSide(color: _isM3uEditMode ? const Color(0xFF00D2EF) : Colors.white.withValues(alpha: 0.2)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                    foregroundColor: _isM3uEditMode ? tokens.info : tokens.textPrimary,
+                    side: BorderSide(color: _isM3uEditMode ? tokens.info : tokens.borderStrong),
+                    shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
                     minimumSize: const Size(0, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   icon: Icon(_isM3uEditMode ? Icons.edit_off_rounded : Icons.edit_rounded, size: 15),
-                  label: Text(_isM3uEditMode ? 'Done' : 'Manage', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                  label: Text(_isM3uEditMode ? 'Done' : 'Manage', style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle()),
                   onPressed: () {
                     setState(() {
                       _isM3uEditMode = !_isM3uEditMode;
@@ -1286,12 +1297,12 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         // Selection Toolbar for M3U
         if (_isM3uEditMode && ctrl.m3uPlaylists.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
               decoration: BoxDecoration(
                 color: palette.primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: ZplayRadius.smAll,
                 border: Border.all(color: palette.primaryColor.withValues(alpha: 0.3)),
               ),
               child: Wrap(
@@ -1305,19 +1316,19 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                     children: [
                       TextButton.icon(
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          foregroundColor: tokens.textPrimary,
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: ZplaySpacing.s4),
                           minimumSize: const Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         icon: Icon(
                           allSelected ? Icons.deselect_rounded : Icons.select_all_rounded,
                           size: 17,
-                          color: const Color(0xFF00D2EF),
+                          color: tokens.info,
                         ),
                         label: Text(
                           allSelected ? 'Deselect All' : 'Select All',
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5),
+                          style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(),
                         ),
                         onPressed: () {
                           setState(() {
@@ -1330,10 +1341,10 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                           });
                         },
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                       Text(
                         '(${_selectedM3uIds.length}/${ctrl.m3uPlaylists.length})',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12, fontWeight: FontWeight.w700),
+                        style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textEmphasis),
                       ),
                     ],
                   ),
@@ -1344,32 +1355,32 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                     children: [
                       ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
-                          foregroundColor: Colors.white,
+                          backgroundColor: tokens.danger,
+                          foregroundColor: tokens.textPrimary,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 6),
+                          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                           minimumSize: const Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         icon: const Icon(Icons.delete_rounded, size: 14),
                         label: Text(
                           'Delete (${_selectedM3uIds.length})',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle(),
                         ),
                         onPressed: _selectedM3uIds.isEmpty ? null : _deleteSelectedM3u,
                       ),
                       OutlinedButton(
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.redAccent,
-                          side: const BorderSide(color: Colors.redAccent),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          foregroundColor: tokens.danger,
+                          side: BorderSide(color: tokens.danger),
+                          padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s8, vertical: 6),
+                          shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                           minimumSize: const Size(0, 0),
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         onPressed: _deleteAllM3u,
-                        child: const Text('Delete All', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: Text('Delete All', style: ZplayType.bodySmall.copyWith(weight: FontWeight.w700).toStyle()),
                       ),
                     ],
                   ),
@@ -1382,28 +1393,28 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         // Add M3U Form
         if (_showM3uForm) ...[
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
             child: Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(ZplaySpacing.s16),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                borderRadius: ZplayRadius.mdAll,
+                border: Border.all(color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Add M3U Playlist Subscription', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+                  Text('Add M3U Playlist Subscription', style: ZplayType.body.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary)),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _m3uNameCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: ZplayType.label.toStyle(color: tokens.textPrimary),
                     decoration: const InputDecoration(labelText: 'Playlist Name', isDense: true, border: OutlineInputBorder()),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: ZplaySpacing.s8),
                   TextField(
                     controller: _m3uUrlCtrl,
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: ZplayType.label.toStyle(color: tokens.textPrimary),
                     decoration: const InputDecoration(labelText: 'M3U / M3U8 URL', isDense: true, border: OutlineInputBorder()),
                   ),
                   const SizedBox(height: 10),
@@ -1413,7 +1424,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                       style: ElevatedButton.styleFrom(backgroundColor: AppThemeService.currentPalette.value.primaryColor),
                       onPressed: ctrl.isM3uLoading ? null : _submitAddM3u,
                       child: ctrl.isM3uLoading
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: tokens.textPrimary))
                           : const Text('Fetch & Save'),
                     ),
                   ),
@@ -1423,7 +1434,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
           ),
         ],
 
-        const SizedBox(height: 8),
+        const SizedBox(height: ZplaySpacing.s8),
 
         // Channel Groups List
         if (groups.isEmpty)
@@ -1432,11 +1443,11 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.playlist_play_rounded, size: 48, color: Colors.white24),
-                  const SizedBox(height: 16),
+                  Icon(Icons.playlist_play_rounded, size: 48, color: tokens.textDisabled),
+                  const SizedBox(height: ZplaySpacing.s16),
                   Text(
                     _searchQuery.isEmpty ? 'No M3U playlists loaded' : 'No matching channels',
-                    style: const TextStyle(color: Colors.white54),
+                    style: ZplayType.body.toStyle(color: tokens.textMuted),
                   ),
                 ],
               ),
@@ -1445,9 +1456,9 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
         else
           Expanded(
             child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s8),
               itemCount: groups.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 8),
+              separatorBuilder: (_, _) => const SizedBox(height: ZplaySpacing.s8),
               itemBuilder: (context, index) {
                 final group = groups[index];
                 return _buildM3uChannelGroup(group, palette);
@@ -1461,11 +1472,12 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
   }
 
   Widget _buildM3uChannelGroup(M3uChannelGroup group, AppThemePalette palette) {
+    final tokens = context.tokens;
     final isSelected = _isM3uEditMode && _selectedM3uIds.contains(group.playlist.id);
 
     Widget buildCopyBtn() {
       return IconButton(
-        icon: const Icon(Icons.copy_rounded, color: Colors.white60, size: 17),
+        icon: Icon(Icons.copy_rounded, color: tokens.textEmphasis, size: 17),
         tooltip: 'Copy Playlist URL',
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.all(5),
@@ -1478,7 +1490,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               SnackBar(
                 content: Text('Copied: $text'),
                 duration: const Duration(seconds: 2),
-                backgroundColor: const Color(0xFF1E2235),
+                backgroundColor: context.tokens.surfaceOverlay,
               ),
             );
           }
@@ -1488,7 +1500,7 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
     Widget buildDeleteBtn() {
       return IconButton(
-        icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 18),
+        icon: Icon(Icons.delete_outline_rounded, color: tokens.danger, size: 18),
         tooltip: 'Remove Playlist',
         visualDensity: VisualDensity.compact,
         padding: const EdgeInsets.all(5),
@@ -1499,7 +1511,9 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
 
     return ExpansionTile(
       collapsedShape: const RoundedRectangleBorder(),
-      shape: const RoundedRectangleBorder(side: BorderSide(color: Color(0x1AFFFFFF))),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium)),
+      ),
       backgroundColor: Colors.transparent,
       collapsedBackgroundColor: Colors.transparent,
       title: Row(
@@ -1512,9 +1526,9 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               decoration: BoxDecoration(
                 color: isSelected ? palette.primaryColor : Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(color: isSelected ? palette.primaryColor : Colors.white38, width: 2),
+                border: Border.all(color: isSelected ? palette.primaryColor : tokens.textMuted, width: 2),
               ),
-              child: isSelected ? const Icon(Icons.check_rounded, color: Colors.white, size: 14) : null,
+              child: isSelected ? Icon(Icons.check_rounded, color: tokens.textPrimary, size: 14) : null,
             )
           else
             Container(
@@ -1527,16 +1541,16 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
               children: [
                 Text(
                   group.playlist.name,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13.5),
+                  style: ZplayType.label.copyWith(weight: FontWeight.w700).toStyle(color: tokens.textPrimary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: ZplaySpacing.s2),
                 Text(
                   '${group.channels.length} channels${group.playlist.sourceUrl != null ? ' · ${group.playlist.sourceUrl!}' : ''}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
+                  style: ZplayType.caption.toStyle(color: tokens.textMuted),
                 ),
               ],
             ),
@@ -1544,31 +1558,31 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
           if (!_isM3uEditMode) ...[
             const SizedBox(width: 6),
             buildCopyBtn(),
-            const SizedBox(width: 2),
+            const SizedBox(width: ZplaySpacing.s2),
             buildDeleteBtn(),
           ],
-          const SizedBox(width: 2),
-          Icon(Icons.chevron_right_rounded, color: Colors.white38, size: 18),
+          const SizedBox(width: ZplaySpacing.s2),
+          Icon(Icons.chevron_right_rounded, color: tokens.textMuted, size: 18),
         ],
       ),
       children: group.channels.isEmpty
           ? [
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(ZplaySpacing.s16),
                 child: Center(
                   child: Text(
                     'No channels in this playlist',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12),
+                    style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
                   ),
                 ),
               ),
             ]
           : [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
                 child: Text(
                   '${group.channels.length} channels',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11, fontWeight: FontWeight.w600),
+                  style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                 ),
               ),
                ConstrainedBox(
@@ -1576,36 +1590,36 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                  child: ListView.separated(
                    shrinkWrap: false,
                    physics: const ClampingScrollPhysics(),
-                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                   padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s16, vertical: ZplaySpacing.s4),
                    itemCount: group.channels.length,
-                   separatorBuilder: (_, _) => const SizedBox(height: 4),
+                   separatorBuilder: (_, _) => const SizedBox(height: ZplaySpacing.s4),
                    itemBuilder: (context, chIndex) {
                   final ch = group.channels[chIndex];
                   return Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: ZplayRadius.smAll,
                       onTap: () {
                         Navigator.pop(context);
                         widget.onChannelSelected(ch.url, ch.name);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: ZplaySpacing.s8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                          color: tokens.textPrimary.withValues(alpha: ZplayOpacity.borderFaint),
+                          borderRadius: ZplayRadius.smAll,
+                          border: Border.all(color: tokens.borderSubtle),
                         ),
                         child: Row(
                           children: [
                             if (ch.logo.isNotEmpty)
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: ZplayRadius.xsAll,
                                 child: CachedNetworkImage(imageUrl: ch.logo, cacheManager: AppImageCache.manager,
- memCacheWidth: 96, width: 24, height: 24, fit: BoxFit.cover, errorWidget: (_, __, ___) => const Icon(Icons.tv, color: Colors.white30)),
+ memCacheWidth: 96, width: 24, height: 24, fit: BoxFit.cover, errorWidget: (_, __, ___) => Icon(Icons.tv, color: tokens.textDisabled)),
                               )
                             else
-                              const Icon(Icons.tv, color: Colors.white30, size: 24),
+                              Icon(Icons.tv, color: tokens.textDisabled, size: 24),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -1615,17 +1629,17 @@ class _MultiNutzChannelSheetState extends State<MultiNutzChannelSheet>
                                     ch.name,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(color: Colors.white, fontSize: 12.5, fontWeight: FontWeight.w600),
+                                    style: ZplayType.label.toStyle(color: tokens.textPrimary),
                                   ),
                                   if (ch.group.isNotEmpty)
                                     Text(
                                       ch.group,
-                                      style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 10),
+                                      style: ZplayType.overline.toStyle(color: tokens.textMuted),
                                     ),
                                 ],
                               ),
                             ),
-                            const Icon(Icons.play_arrow_rounded, color: Color(0xFF10B981), size: 18),
+                            Icon(Icons.play_arrow_rounded, color: tokens.success, size: 18),
                           ],
                         ),
                       ),

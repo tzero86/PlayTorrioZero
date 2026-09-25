@@ -9,6 +9,7 @@ import '../../services/stream/stream_service.dart';
 import '../../services/anime/anime_scraper_service.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
 import '../../services/anime_arabic/anime_arabic_extractor.dart';
+import '../../services/theme/design_tokens.dart';
 import 'player_glass.dart';
 import '../common/focusable_card.dart';
 
@@ -247,6 +248,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final isCompact = screenWidth < 680;
     final drawerWidth = isCompact ? screenWidth * 0.94 : 440.0;
@@ -260,13 +262,13 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
         height: MediaQuery.sizeOf(context).height,
         child: Container(
           decoration: BoxDecoration(
-          color: const Color(0xF2080C14),
-          border: const Border(
-            left: BorderSide(color: Color(0x33FFFFFF), width: 1.2),
+          color: tokens.surfaceOverlay.withValues(alpha: 0.95),
+          border: Border(
+            left: BorderSide(color: tokens.borderStrong, width: 1.2),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.85),
+              color: tokens.bg.withValues(alpha: 0.85),
               offset: const Offset(-8, 0),
               blurRadius: 36,
             ),
@@ -285,7 +287,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                 if (widget.errorMessage != null && widget.errorMessage!.isNotEmpty)
                   _buildErrorBanner(widget.errorMessage!, isCompact),
 
-                const Divider(height: 1, color: Color(0x1AFFFFFF)),
+                Divider(height: 1, color: tokens.borderDefault),
 
                 // ── Sources List / Loading / Empty State ──
                 Expanded(
@@ -305,14 +307,15 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
   }
 
   Widget _buildHeader(int sNum, int eNum, bool isCompact) {
+    final tokens = context.tokens;
     return Container(
       padding: EdgeInsets.only(
-        top: MediaQuery.paddingOf(context).top + 12,
-        left: isCompact ? 12 : 16,
-        right: isCompact ? 12 : 16,
-        bottom: 12,
+        top: MediaQuery.paddingOf(context).top + ZplaySpacing.s12,
+        left: isCompact ? ZplaySpacing.s12 : ZplaySpacing.s16,
+        right: isCompact ? ZplaySpacing.s12 : ZplaySpacing.s16,
+        bottom: ZplaySpacing.s12,
       ),
-      color: const Color(0x66000000),
+      color: tokens.bg.withValues(alpha: 0.4),
       child: Row(
         children: [
           // Back to Episodes Button
@@ -322,7 +325,8 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
               iconSize: 20,
               icon: const Icon(Icons.chevron_left_rounded),
               tooltip: 'Back to Episodes',
-              backgroundColor: Colors.white.withValues(alpha: 0.08),
+              backgroundColor: tokens.textPrimary
+                  .withValues(alpha: ZplayOpacity.borderDefault),
               onPressed: widget.onBackToEpisodes,
             ),
           const SizedBox(width: 10),
@@ -338,17 +342,14 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: PlayerTheme.accent.withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(5),
+                        borderRadius: ZplayRadius.xsAll,
                         border: Border.all(color: PlayerTheme.accent.withValues(alpha: 0.50)),
                       ),
                       child: Text(
                         'S$sNum : E$eNum',
-                        style: const TextStyle(
-                          color: Color(0xFF9D84FF),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
-                        ),
+                        style: ZplayType.caption
+                            .copyWith(weight: FontWeight.w800, letterSpacing: 0.4)
+                            .toStyle(color: tokens.accent),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -357,12 +358,9 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                         widget.episode.title.isNotEmpty
                             ? widget.episode.title
                             : 'Episode $eNum',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
-                        ),
+                        style: ZplayType.subtitle
+                            .copyWith(weight: FontWeight.w700, letterSpacing: -0.2)
+                            .toStyle(color: tokens.textPrimary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -372,11 +370,9 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                 const SizedBox(height: 2),
                 Text(
                   'Provider: ${widget.currentAddonName}',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.50),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: ZplayType.bodySmall
+                      .copyWith(weight: FontWeight.w500)
+                      .toStyle(color: tokens.textSecondary),
                 ),
               ],
             ),
@@ -388,7 +384,8 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
             iconSize: 18,
             icon: const Icon(Icons.close_rounded),
             tooltip: 'Close',
-            backgroundColor: Colors.white.withValues(alpha: 0.08),
+            backgroundColor: tokens.textPrimary
+                .withValues(alpha: ZplayOpacity.borderDefault),
             onPressed: widget.onClose,
           ),
         ],
@@ -397,34 +394,32 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
   }
 
   Widget _buildErrorBanner(String message, bool isCompact) {
+    final tokens = context.tokens;
     return Container(
       margin: EdgeInsets.all(isCompact ? 10 : 14),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: const Color(0x33EF4444),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0x99EF4444), width: 1.2),
-        boxShadow: const [
+        color: tokens.danger.withValues(alpha: 0.20),
+        borderRadius: ZplayRadius.smAll,
+        border: Border.all(color: tokens.danger.withValues(alpha: 0.60), width: 1.2),
+        boxShadow: [
           BoxShadow(
-            color: Color(0x33EF4444),
+            color: tokens.danger.withValues(alpha: 0.20),
             blurRadius: 12,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Color(0xFFFCA5A5), size: 22),
+          Icon(Icons.warning_amber_rounded, color: tokens.danger, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                height: 1.3,
-              ),
+              style: ZplayType.bodySmall
+                  .copyWith(weight: FontWeight.w600)
+                  .toStyle(color: tokens.textPrimary),
             ),
           ),
         ],
@@ -433,6 +428,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
   }
 
   Widget _buildLoadingState() {
+    final tokens = context.tokens;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -445,14 +441,12 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
               valueColor: AlwaysStoppedAnimation<Color>(PlayerTheme.accent),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: ZplaySpacing.s16),
           Text(
             'Scraping sources (${widget.currentAddonName})...',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.70),
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
+            style: ZplayType.label
+                .copyWith(weight: FontWeight.w600)
+                .toStyle(color: tokens.textEmphasis),
           ),
         ],
       ),
@@ -460,40 +454,36 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
   }
 
   Widget _buildEmptyState() {
+    final tokens = context.tokens;
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(ZplaySpacing.s24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off_rounded, color: Colors.white.withValues(alpha: 0.30), size: 48),
-            const SizedBox(height: 12),
+            Icon(Icons.search_off_rounded, color: tokens.textDisabled, size: 48),
+            const SizedBox(height: ZplaySpacing.s12),
             Text(
               widget.showBackToEpisodes ? 'No streams found for this episode' : 'No streams found for this title',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14.5,
-                fontWeight: FontWeight.w700,
-              ),
+              style: ZplayType.subtitle
+                  .copyWith(weight: FontWeight.w700)
+                  .toStyle(color: tokens.textPrimary),
             ),
             const SizedBox(height: 6),
             Text(
               'Try going back to episodes and choosing another episode or provider.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.50),
-                fontSize: 12,
-              ),
+              style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: ZplaySpacing.s16),
             ElevatedButton.icon(
               onPressed: _startScraping,
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: const Text('Rescrape Sources'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: PlayerTheme.accent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                foregroundColor: tokens.onAccent,
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
               ),
             ),
           ],
@@ -503,14 +493,15 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
   }
 
   Widget _buildSourcesList(bool isCompact) {
+    final tokens = context.tokens;
     return ListView.separated(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(
-        horizontal: isCompact ? 12 : 16,
+        horizontal: isCompact ? ZplaySpacing.s12 : ZplaySpacing.s16,
         vertical: 14,
       ),
       itemCount: _sources.length + (_isLoading ? 1 : 0),
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, __) => const SizedBox(height: ZplaySpacing.s8),
       itemBuilder: (context, index) {
         if (index == _sources.length && _isLoading) {
           return Container(
@@ -530,10 +521,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                 const SizedBox(width: 10),
                 Text(
                   'Scraping additional sources...',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.60),
-                    fontSize: 11.5,
-                  ),
+                  style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                 ),
               ],
             ),
@@ -551,6 +539,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
     StreamSource source,
     bool isCompact,
   ) {
+    final tokens = context.tokens;
     final title = source.title ?? source.name ?? 'Stream Source';
     final isTorrent = source.infoHash != null && source.infoHash!.isNotEmpty;
     final resolution = _extractResolution(title);
@@ -562,16 +551,18 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
         return AnimatedScale(
           scale: isHovered ? 1.015 : 1.0,
           duration: const Duration(milliseconds: 160),
-          curve: Curves.easeOutCubic,
+          curve: ZplayMotion.standard,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             decoration: BoxDecoration(
-              color: isHovered ? const Color(0x331E2435) : const Color(0x1F121722),
-              borderRadius: BorderRadius.circular(12),
+              color: isHovered
+                  ? tokens.textPrimary.withValues(alpha: ZplayOpacity.overlayHover)
+                  : tokens.bg.withValues(alpha: 0.12),
+              borderRadius: ZplayRadius.smAll,
               border: Border.all(
                 color: isHovered
                     ? PlayerTheme.accent.withValues(alpha: 0.80)
-                    : Colors.white.withValues(alpha: 0.10),
+                    : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderMedium),
                 width: isHovered ? 1.4 : 1.0,
               ),
               boxShadow: [
@@ -583,7 +574,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                   ),
               ],
             ),
-            padding: EdgeInsets.all(isCompact ? 10 : 12),
+            padding: EdgeInsets.all(isCompact ? 10 : ZplaySpacing.s12),
             child: Row(
               children: [
                 // Icon / Type Badge
@@ -591,17 +582,17 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isTorrent
-                        ? const Color(0x33F59E0B)
+                        ? tokens.warning.withValues(alpha: 0.20)
                         : PlayerTheme.accent.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: ZplayRadius.smAll,
                   ),
                   child: Icon(
                     isTorrent ? Icons.cloud_download_rounded : Icons.play_arrow_rounded,
-                    color: isTorrent ? const Color(0xFFFBBF24) : const Color(0xFF9D84FF),
+                    color: isTorrent ? tokens.warning : tokens.accent,
                     size: 18,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: ZplaySpacing.s12),
 
                 // Source Info
                 Expanded(
@@ -617,16 +608,13 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                               margin: const EdgeInsets.only(right: 6),
                               decoration: BoxDecoration(
                                 color: _getResolutionColor(resolution),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: ZplayRadius.xsAll,
                               ),
                               child: Text(
                                 resolution,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9.5,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 0.4,
-                                ),
+                                style: ZplayType.overline
+                                    .copyWith(weight: FontWeight.w800, letterSpacing: 0.4)
+                                    .toStyle(color: tokens.textPrimary),
                               ),
                             ),
                           ],
@@ -635,16 +623,15 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                             margin: const EdgeInsets.only(right: 6),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.10),
-                              borderRadius: BorderRadius.circular(4),
+                              color: tokens.textPrimary
+                                  .withValues(alpha: ZplayOpacity.borderMedium),
+                              borderRadius: ZplayRadius.xsAll,
                             ),
                             child: Text(
                               isTorrent ? 'P2P' : 'HTTP',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.70),
-                                fontSize: 9.5,
-                                fontWeight: FontWeight.w700,
-                              ),
+                              style: ZplayType.overline
+                                  .copyWith(weight: FontWeight.w700)
+                                  .toStyle(color: tokens.textEmphasis),
                             ),
                           ),
 
@@ -652,11 +639,7 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                             Flexible(
                               child: Text(
                                 source.name!,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.50),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -665,17 +648,14 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                         ],
                       ),
 
-                      const SizedBox(height: 4),
+                      const SizedBox(height: ZplaySpacing.s4),
 
                       // Title
                       Text(
                         title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          height: 1.25,
-                        ),
+                        style: ZplayType.bodySmall
+                            .copyWith(weight: FontWeight.w600)
+                            .toStyle(color: tokens.textPrimary),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -683,37 +663,35 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                   ),
                 ),
 
-                const SizedBox(width: 8),
+                const SizedBox(width: ZplaySpacing.s8),
 
                 if (source.isMagnet && source.magnetUrl != null) ...[
                   Material(
                     color: Colors.transparent,
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: ZplayRadius.mdAll,
                       onTap: () {
                         Clipboard.setData(ClipboardData(text: source.magnetUrl!));
                         HapticFeedback.lightImpact();
                         ScaffoldMessenger.of(context).hideCurrentSnackBar();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: const Row(
+                            content: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.check_circle_rounded, color: Color(0xFF10B981), size: 18),
-                                SizedBox(width: 8),
+                                Icon(Icons.check_circle_rounded, color: tokens.success, size: 18),
+                                const SizedBox(width: ZplaySpacing.s8),
                                 Text(
                                   'Magnet link copied to clipboard',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: ZplayType.label
+                                      .copyWith(weight: FontWeight.w600)
+                                      .toStyle(color: tokens.textPrimary),
                                 ),
                               ],
                             ),
-                            backgroundColor: const Color(0xFF1A1D26),
+                            backgroundColor: tokens.surfaceOverlay,
                             behavior: SnackBarBehavior.floating,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
                             duration: const Duration(seconds: 2),
                           ),
                         );
@@ -721,12 +699,13 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                       child: Container(
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: tokens.textPrimary
+                              .withValues(alpha: ZplayOpacity.borderDefault),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.link_rounded,
-                          color: Colors.white70,
+                          color: tokens.textEmphasis,
                           size: 16,
                         ),
                       ),
@@ -739,12 +718,14 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
                 Container(
                   padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    color: (isHovered ? PlayerTheme.accent : Colors.white.withValues(alpha: 0.08)),
+                    color: (isHovered
+                        ? PlayerTheme.accent
+                        : tokens.textPrimary.withValues(alpha: ZplayOpacity.borderDefault)),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.play_arrow_rounded,
-                    color: Colors.white,
+                    color: tokens.textPrimary,
                     size: 16,
                   ),
                 ),
@@ -766,15 +747,16 @@ class _PlayerSourcesPanelState extends State<PlayerSourcesPanel> {
   }
 
   Color _getResolutionColor(String res) {
+    final tokens = context.tokens;
     switch (res) {
       case '4K':
-        return const Color(0xFF8B5CF6);
+        return tokens.accent;
       case '1080P':
-        return const Color(0xFF10B981);
+        return tokens.success;
       case '720P':
-        return const Color(0xFF3B82F6);
+        return tokens.info;
       default:
-        return Colors.white.withValues(alpha: 0.20);
+        return tokens.textPrimary.withValues(alpha: 0.20);
     }
   }
 }

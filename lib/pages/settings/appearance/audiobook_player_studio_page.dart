@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 
 import '../../../services/theme/app_theme_service.dart';
+import '../../../services/theme/design_tokens.dart';
 import '../../../services/audiobook/audiobook_settings.dart';
 import '../../../widgets/audiobook/audiobook_interactive_physics_button.dart';
 import '../../../widgets/audiobook/audiobook_waveform_seekbar.dart';
@@ -65,23 +66,27 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
   @override
   Widget build(BuildContext context) {
     final palette = AppThemeService.currentPalette.value;
+    final tokens = context.tokens;
     final screenW = MediaQuery.sizeOf(context).width;
     final isDesktop = screenW >= 960;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF07090E),
+      backgroundColor: tokens.bg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF0D1017),
+        backgroundColor: tokens.bg,
         surfaceTintColor: Colors.transparent,
+        // The shell family draws this header as an opaque palette band with a
+        // bottom hairline rather than a translucent wash over the page.
+        shape: Border(bottom: tokens.hairline),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         title: screenW < 600
-            ? const Text(
+            ? Text(
                 'Player Studio',
-                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                style: ZplayType.title.toStyle(color: tokens.textPrimary),
               )
             : Row(
                 children: [
@@ -93,22 +98,22 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                         colors: [palette.primaryColor, palette.accentColor],
                       ),
                     ),
-                    child: const Icon(Icons.dashboard_customize_rounded, color: Colors.white, size: 18),
+                    child: Icon(Icons.dashboard_customize_rounded, color: tokens.onAccent, size: 18),
                   ),
                   const SizedBox(width: 12),
-                  const Flexible(
+                  Flexible(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           'Custom Audiobook Player Studio',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: -0.3),
+                          style: ZplayType.title.toStyle(color: tokens.textPrimary),
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           'Drag components, transform seekbars, customize button physics',
-                          style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.normal),
+                          style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -144,12 +149,12 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                   ),
                 );
               },
-              icon: const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-              label: const Text('Apply As Active Player', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5)),
+              icon: Icon(Icons.check_circle_rounded, color: tokens.onAccent, size: 18),
+              label: Text('Apply As Active Player', style: ZplayType.label.toStyle(color: tokens.onAccent)),
               style: TextButton.styleFrom(
                 backgroundColor: palette.primaryColor.withValues(alpha: 0.25),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
               ),
             ),
           const SizedBox(width: 10),
@@ -163,7 +168,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                   flex: 5,
                   child: _buildLivePlayerCanvas(palette, isDesktop: true),
                 ),
-                VerticalDivider(width: 1, color: Colors.white.withValues(alpha: 0.08)),
+                VerticalDivider(width: 1, color: tokens.borderDefault),
                 // Right Panel: Customizer Studio Controls
                 Expanded(
                   flex: 6,
@@ -177,22 +182,22 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0C0F17),
-                    border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
+                    color: tokens.surfaceRaised,
+                    border: Border(bottom: BorderSide(color: tokens.borderDefault)),
                   ),
                   child: Row(
                     children: [
                       Expanded(
                         child: InkWell(
                           onTap: () => setState(() => _mobileViewMode = 0),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: ZplayRadius.smAll,
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: _mobileViewMode == 0 ? palette.primaryColor.withValues(alpha: 0.2) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: ZplayRadius.smAll,
                               border: Border.all(
-                                color: _mobileViewMode == 0 ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
+                                color: _mobileViewMode == 0 ? palette.primaryColor : tokens.borderSubtle,
                               ),
                             ),
                             child: Row(
@@ -201,15 +206,15 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                                 Icon(
                                   Icons.tune_rounded,
                                   size: 15,
-                                  color: _mobileViewMode == 0 ? palette.primaryColor : Colors.white60,
+                                  color: _mobileViewMode == 0 ? palette.primaryColor : tokens.textSecondary,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Studio Designer',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: _mobileViewMode == 0 ? FontWeight.bold : FontWeight.w500,
-                                    color: _mobileViewMode == 0 ? Colors.white : Colors.white60,
+                                  style: ZplayType.label.toStyle(
+                                    color: _mobileViewMode == 0
+                                        ? tokens.textPrimary
+                                        : tokens.textSecondary,
                                   ),
                                 ),
                               ],
@@ -221,14 +226,14 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                       Expanded(
                         child: InkWell(
                           onTap: () => setState(() => _mobileViewMode = 1),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: ZplayRadius.smAll,
                           child: Container(
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             decoration: BoxDecoration(
                               color: _mobileViewMode == 1 ? palette.primaryColor.withValues(alpha: 0.2) : Colors.transparent,
-                              borderRadius: BorderRadius.circular(10),
+                              borderRadius: ZplayRadius.smAll,
                               border: Border.all(
-                                color: _mobileViewMode == 1 ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
+                                color: _mobileViewMode == 1 ? palette.primaryColor : tokens.borderSubtle,
                               ),
                             ),
                             child: Row(
@@ -237,15 +242,15 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                                 Icon(
                                   Icons.play_circle_fill_rounded,
                                   size: 15,
-                                  color: _mobileViewMode == 1 ? palette.primaryColor : Colors.white60,
+                                  color: _mobileViewMode == 1 ? palette.primaryColor : tokens.textSecondary,
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   'Live Preview Canvas',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: _mobileViewMode == 1 ? FontWeight.bold : FontWeight.w500,
-                                    color: _mobileViewMode == 1 ? Colors.white : Colors.white60,
+                                  style: ZplayType.label.toStyle(
+                                    color: _mobileViewMode == 1
+                                        ? tokens.textPrimary
+                                        : tokens.textSecondary,
                                   ),
                                 ),
                               ],
@@ -268,10 +273,10 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                               child: FloatingActionButton.extended(
                                 onPressed: () => setState(() => _mobileViewMode = 1),
                                 backgroundColor: palette.primaryColor,
-                                icon: const Icon(Icons.touch_app_rounded, color: Colors.white, size: 18),
-                                label: const Text(
+                                icon: Icon(Icons.touch_app_rounded, color: tokens.onAccent, size: 18),
+                                label: Text(
                                   'Test Live Canvas',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                  style: ZplayType.label.toStyle(color: tokens.onAccent),
                                 ),
                               ),
                             ),
@@ -285,11 +290,11 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                               left: 16,
                               child: FloatingActionButton.extended(
                                 onPressed: () => setState(() => _mobileViewMode = 0),
-                                backgroundColor: const Color(0xFF161A28),
+                                backgroundColor: tokens.surfaceRaised,
                                 icon: Icon(Icons.arrow_back_rounded, color: palette.primaryColor, size: 18),
-                                label: const Text(
+                                label: Text(
                                   'Back to Customizer',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                  style: ZplayType.label.toStyle(color: tokens.textPrimary),
                                 ),
                               ),
                             ),
@@ -305,12 +310,13 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
   // ── LEFT: INTERACTIVE LIVE PLAYER CANVAS PREVIEW ──
   // ═══════════════════════════════════════════════════════════════
   Widget _buildLivePlayerCanvas(AppThemePalette palette, {bool isDesktop = true}) {
+    final tokens = context.tokens;
     final order = AudiobookSettings.componentOrder.value;
     final seekStyle = AudiobookSettings.customSeekbarStyle.value;
     final artStyle = AudiobookSettings.customArtworkStyle.value;
 
     return Container(
-      color: const Color(0xFF06080D),
+      color: tokens.bg,
       child: Stack(
         alignment: Alignment.center,
         children: [
@@ -342,8 +348,8 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                 child: Container(
                   padding: EdgeInsets.all(isDesktop ? 22 : 14),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0F121C).withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(28),
+                    color: tokens.surface.withValues(alpha: 0.9),
+                    borderRadius: ZplayRadius.xlAll,
                     border: Border.all(
                       color: palette.primaryColor.withValues(alpha: 0.35),
                       width: 1.2,
@@ -367,7 +373,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
                               color: palette.primaryColor.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: ZplayRadius.xsAll,
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -376,14 +382,14 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                                 const SizedBox(width: 4),
                                 Text(
                                   'LIVE INTERACTIVE CANVAS',
-                                  style: TextStyle(color: palette.primaryColor, fontSize: 9.5, fontWeight: FontWeight.bold),
+                                  style: ZplayType.overline.toStyle(color: palette.primaryColor),
                                 ),
                               ],
                             ),
                           ),
                           Text(
                             'CUSTOM STUDIO',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 10, fontWeight: FontWeight.bold),
+                            style: ZplayType.overline.toStyle(color: tokens.textSecondary),
                           ),
                         ],
                       ),
@@ -414,6 +420,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
     AudiobookSeekbarStyle seekStyle,
     AudiobookArtworkStyle artStyle,
   ) {
+    final tokens = context.tokens;
     switch (key) {
       case 'artwork':
         if (artStyle == AudiobookArtworkStyle.hidden) return const SizedBox.shrink();
@@ -427,10 +434,10 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
           padding: const EdgeInsets.only(bottom: 14),
           child: Column(
             children: [
-              const Text(
+              Text(
                 'Chapter 4: The Secrets of the Night',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900),
+                style: ZplayType.title.toStyle(color: tokens.textPrimary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -438,7 +445,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
               Text(
                 'Chapter 4 of 24 • Harry Potter & The Sorcerer\'s Stone',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 11.5),
+                style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -496,17 +503,17 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                   final next = speeds[(speeds.indexOf(_previewSpeed) + 1) % speeds.length];
                   setState(() => _previewSpeed = next);
                 },
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: ZplayRadius.smAll,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    color: tokens.borderDefault,
+                    borderRadius: ZplayRadius.smAll,
+                    border: Border.all(color: tokens.borderDefault),
                   ),
                   child: Text(
                     '${_previewSpeed}x Speed',
-                    style: TextStyle(color: palette.primaryColor, fontSize: 11.5, fontWeight: FontWeight.bold),
+                    style: ZplayType.labelNumeric.toStyle(color: palette.primaryColor),
                   ),
                 ),
               ),
@@ -521,8 +528,8 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                     trackHeight: 3,
                     thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 4),
                     activeTrackColor: palette.primaryColor,
-                    inactiveTrackColor: Colors.white12,
-                    thumbColor: Colors.white,
+                    inactiveTrackColor: Colors.white.withValues(alpha: ZplayOpacity.borderMedium),
+                    thumbColor: tokens.textPrimary,
                   ),
                   child: Slider(
                     value: _previewVolume,
@@ -542,10 +549,10 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
           child: OutlinedButton.icon(
             onPressed: () => setState(() => _showChaptersPreview = true),
             icon: Icon(Icons.format_list_bulleted_rounded, color: palette.primaryColor, size: 16),
-            label: const Text('Premade Chapters Panel', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            label: Text('Premade Chapters Panel', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: palette.primaryColor.withValues(alpha: 0.4)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: const RoundedRectangleBorder(borderRadius: ZplayRadius.smAll),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             ),
           ),
@@ -557,6 +564,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
   }
 
   Widget _buildPreviewArtwork(AppThemePalette palette, AudiobookArtworkStyle artStyle) {
+    final tokens = context.tokens;
     if (artStyle == AudiobookArtworkStyle.vinylDisc) {
       return AnimatedBuilder(
         animation: _discController,
@@ -569,8 +577,8 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
           height: 130,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: const Color(0xFF141724),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 3),
+            color: tokens.surface,
+            border: Border.all(color: tokens.borderStrong, width: 3),
             boxShadow: [
               BoxShadow(
                 color: palette.primaryColor.withValues(alpha: 0.35),
@@ -584,7 +592,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
               height: 32,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF080A0F),
+                color: tokens.bg,
                 border: Border.all(color: palette.primaryColor, width: 2),
               ),
             ),
@@ -598,13 +606,13 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
         width: 130,
         height: 130,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: ZplayRadius.mdAll,
           gradient: LinearGradient(
-            colors: [palette.primaryColor.withValues(alpha: 0.4), const Color(0xFF161A28)],
+            colors: [palette.primaryColor.withValues(alpha: 0.4), tokens.surface],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+          border: Border.all(color: tokens.borderStrong),
           boxShadow: [
             BoxShadow(
               color: palette.primaryColor.withValues(alpha: 0.3),
@@ -613,7 +621,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
             ),
           ],
         ),
-        child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 48),
+        child: Icon(Icons.headphones_rounded, color: tokens.onAccent, size: 48),
       );
     }
 
@@ -622,8 +630,8 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
       width: 130,
       height: 130,
       decoration: BoxDecoration(
-        color: const Color(0xFF161A28),
-        borderRadius: BorderRadius.circular(18),
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
         border: Border.all(color: palette.primaryColor.withValues(alpha: 0.4), width: 1.2),
         boxShadow: [
           BoxShadow(
@@ -632,11 +640,12 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
           ),
         ],
       ),
-      child: const Icon(Icons.menu_book_rounded, color: Colors.white70, size: 46),
+      child: Icon(Icons.menu_book_rounded, color: tokens.textEmphasis, size: 46),
     );
   }
 
   Widget _buildCustomPlayPauseButton(AppThemePalette palette) {
+    final tokens = context.tokens;
     final style = AudiobookSettings.customPlayButtonStyle.value;
     final hoverEffect = AudiobookSettings.customHoverEffect.value;
     final icon = _previewIsPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded;
@@ -645,16 +654,16 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
     BorderRadius borderRadius;
 
     if (style == AudiobookPlayButtonStyle.liquidGlassNeo) {
-      borderRadius = BorderRadius.circular(18);
+      borderRadius = ZplayRadius.mdAll;
       final glassStyle = LiquidGlassStyle(
-        shape: const LiquidGlassShape.continuousRoundedRectangle(
+        shape: LiquidGlassShape.continuousRoundedRectangle(
           cornerRadius: 18,
           clipQuality: LiquidGlassClipQuality.exact,
           borderWidth: 1.5,
           lightIntensity: 1.5,
-          lightColor: Color(0xE6FFFFFF),
+          lightColor: Colors.white.withValues(alpha: ZplayOpacity.textPrimary),
           lightDirection: 115,
-          borderType: OpticalBorder(
+          borderType: const OpticalBorder(
             borderSaturation: 1.5,
             ambientIntensity: 1.2,
             borderSolidity: 0.2,
@@ -690,11 +699,11 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
           width: 52,
           height: 52,
           alignment: Alignment.center,
-          child: Icon(icon, color: Colors.white, size: 30),
+          child: Icon(icon, color: tokens.onAccent, size: 30),
         ),
       );
     } else if (style == AudiobookPlayButtonStyle.roundedSquare) {
-      borderRadius = BorderRadius.circular(14);
+      borderRadius = ZplayRadius.mdAll;
       buttonCore = Container(
         width: 50,
         height: 50,
@@ -708,10 +717,10 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
             ),
           ],
         ),
-        child: Icon(icon, color: Colors.white, size: 28),
+        child: Icon(icon, color: tokens.onAccent, size: 28),
       );
     } else if (style == AudiobookPlayButtonStyle.accentPill) {
-      borderRadius = BorderRadius.circular(20);
+      borderRadius = ZplayRadius.lgAll;
       buttonCore = Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
         decoration: BoxDecoration(
@@ -727,17 +736,17 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white, size: 20),
+            Icon(icon, color: tokens.onAccent, size: 20),
             const SizedBox(width: 4),
             Text(
               _previewIsPlaying ? 'PAUSE' : 'PLAY',
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+              style: ZplayType.label.toStyle(color: tokens.onAccent),
             ),
           ],
         ),
       );
     } else {
-      borderRadius = BorderRadius.circular(26);
+      borderRadius = ZplayRadius.xlAll;
       buttonCore = Container(
         width: 52,
         height: 52,
@@ -752,7 +761,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
             ),
           ],
         ),
-        child: Icon(icon, color: Colors.white, size: 32),
+        child: Icon(icon, color: tokens.onAccent, size: 32),
       );
     }
 
@@ -766,6 +775,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
   }
 
   Widget _buildCanvasIconButton(IconData icon, double size, AppThemePalette palette, VoidCallback onTap) {
+    final tokens = context.tokens;
     return AudiobookInteractivePhysicsButton(
       effect: AudiobookSettings.customHoverEffect.value,
       glowColor: palette.primaryColor,
@@ -773,16 +783,17 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Icon(icon, size: size, color: Colors.white70),
+        child: Icon(icon, size: size, color: tokens.textEmphasis),
       ),
     );
   }
 
   Widget _buildChaptersPreviewOverlay(AppThemePalette palette) {
+    final tokens = context.tokens;
     return GestureDetector(
       onTap: () => setState(() => _showChaptersPreview = false),
       child: Container(
-        color: Colors.black.withValues(alpha: 0.7),
+        color: tokens.bg.withValues(alpha: 0.7),
         child: Align(
           alignment: Alignment.bottomCenter,
           child: GestureDetector(
@@ -790,21 +801,21 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
             child: Container(
               height: 280,
               decoration: BoxDecoration(
-                color: const Color(0xFF0F121C),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                color: tokens.surfaceOverlay,
+                borderRadius: ZplayRadius.sheetTop,
+                border: Border.all(color: tokens.borderStrong),
               ),
               child: Column(
                 children: [
-                  Container(width: 36, height: 4, margin: const EdgeInsets.only(top: 8, bottom: 6), decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+                  Container(width: 36, height: 4, margin: const EdgeInsets.only(top: 8, bottom: 6), decoration: BoxDecoration(color: tokens.textDisabled, borderRadius: ZplayRadius.xsAll)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Premade Chapters Panel Preview', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        Text('Premade Chapters Panel Preview', style: ZplayType.label.toStyle(color: tokens.textPrimary)),
                         IconButton(
-                          icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 18),
+                          icon: Icon(Icons.close_rounded, color: tokens.textSecondary, size: 18),
                           onPressed: () => setState(() => _showChaptersPreview = false),
                         ),
                       ],
@@ -832,22 +843,23 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
   }
 
   Widget _buildSampleChapterTile(int num, String title, bool isCurrent, AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isCurrent ? palette.primaryColor.withValues(alpha: 0.22) : Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isCurrent ? palette.primaryColor : Colors.white.withValues(alpha: 0.06)),
+        color: isCurrent ? palette.primaryColor.withValues(alpha: 0.22) : tokens.surface,
+        borderRadius: ZplayRadius.smAll,
+        border: Border.all(color: isCurrent ? palette.primaryColor : tokens.borderSubtle),
       ),
       child: Row(
         children: [
-          Icon(isCurrent ? Icons.graphic_eq_rounded : Icons.play_arrow_rounded, color: isCurrent ? palette.primaryColor : Colors.white54, size: 18),
+          Icon(isCurrent ? Icons.graphic_eq_rounded : Icons.play_arrow_rounded, color: isCurrent ? palette.primaryColor : tokens.textSecondary, size: 18),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               title,
-              style: TextStyle(color: isCurrent ? Colors.white : Colors.white70, fontSize: 12.5, fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal),
+              style: ZplayType.bodySmall.toStyle(color: isCurrent ? tokens.textPrimary : tokens.textEmphasis),
             ),
           ),
         ],
@@ -859,8 +871,9 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
   // ── RIGHT: STUDIO CUSTOMIZATION CONTROLS PANEL ──
   // ═══════════════════════════════════════════════════════════════
   Widget _buildStudioControlsPanel(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Container(
-      color: const Color(0xFF090B10),
+      color: tokens.bg,
       child: Column(
         children: [
           // Studio Sub-Tabs
@@ -868,8 +881,8 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFF0C0F17),
-              border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
+              color: tokens.surfaceRaised,
+              border: Border(bottom: BorderSide(color: tokens.borderDefault)),
             ),
             child: ListView(
               scrollDirection: Axis.horizontal,
@@ -901,22 +914,21 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
   }
 
   Widget _buildTabChip(int index, IconData icon, String label, AppThemePalette palette) {
+    final tokens = context.tokens;
     final isSelected = _selectedStudioTab == index;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: ChoiceChip(
-        avatar: Icon(icon, color: isSelected ? Colors.white : Colors.white54, size: 16),
+        avatar: Icon(icon, color: isSelected ? tokens.onAccent : tokens.textSecondary, size: 16),
         label: Text(label),
         selected: isSelected,
         selectedColor: palette.primaryColor,
-        backgroundColor: const Color(0xFF121520),
-        labelStyle: TextStyle(
-          color: isSelected ? Colors.white : Colors.white70,
-          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-          fontSize: 12,
+        backgroundColor: tokens.surface,
+        labelStyle: ZplayType.label.toStyle(
+          color: isSelected ? tokens.onAccent : tokens.textEmphasis,
         ),
-        side: BorderSide(color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08)),
+        side: BorderSide(color: isSelected ? palette.primaryColor : tokens.borderDefault),
         onSelected: (val) {
           if (val) setState(() => _selectedStudioTab = index);
         },
@@ -926,6 +938,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
 
   // ── Tab 0: Drag & Drop Reorderable Components ──
   Widget _buildDragAndDropLayoutSection(AppThemePalette palette) {
+    final tokens = context.tokens;
     final componentNames = {
       'artwork': 'Artwork & Vinyl Frame',
       'title': 'Chapter & Book Titles',
@@ -954,16 +967,16 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
               children: [
                 Icon(Icons.drag_indicator_rounded, color: palette.primaryColor, size: 18),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Drag & Drop Component Arranger',
-                  style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
               ],
             ),
             const SizedBox(height: 6),
             Text(
               'Hold and drag any block to reorder the vertical layout of your audio player in real-time.',
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 12),
+              style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
             ),
             const SizedBox(height: 16),
 
@@ -986,9 +999,9 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF121622),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                      color: tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
+                      border: Border.all(color: tokens.borderDefault),
                     ),
                     child: Row(
                       children: [
@@ -1012,11 +1025,11 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                             children: [
                               Text(
                                 name,
-                                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                                style: ZplayType.label.toStyle(color: tokens.textPrimary),
                               ),
                               Text(
                                 'Position #${index + 1}',
-                                style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 10.5),
+                                style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                               ),
                             ],
                           ),
@@ -1035,6 +1048,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
 
   // ── Tab 1: Seekbar Canvas Styles ──
   Widget _buildSeekbarCanvasSection(AppThemePalette palette) {
+    final tokens = context.tokens;
     return ValueListenableBuilder<AudiobookSeekbarStyle>(
       valueListenable: AudiobookSettings.customSeekbarStyle,
       builder: (context, currentStyle, _) {
@@ -1045,16 +1059,16 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
               children: [
                 Icon(Icons.graphic_eq_rounded, color: palette.primaryColor, size: 18),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Seek Bar Canvas & Scrubber Styles',
-                  style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
               ],
             ),
             const SizedBox(height: 6),
             Text(
               'Select how your progress bar and scrubber render inside your custom player canvas.',
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 12),
+              style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
             ),
             const SizedBox(height: 16),
 
@@ -1062,15 +1076,15 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
               final isSelected = s == currentStyle;
               return InkWell(
                 onTap: () => AudiobookSettings.setCustomSeekbarStyle(s),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: ZplayRadius.mdAll,
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : const Color(0xFF121622),
-                    borderRadius: BorderRadius.circular(14),
+                    color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : tokens.surface,
+                    borderRadius: ZplayRadius.mdAll,
                     border: Border.all(
-                      color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
+                      color: isSelected ? palette.primaryColor : tokens.borderDefault,
                       width: isSelected ? 1.5 : 1.0,
                     ),
                   ),
@@ -1081,7 +1095,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                         height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
+                          color: isSelected ? palette.primaryColor : tokens.borderSubtle,
                         ),
                         child: Icon(
                           s == AudiobookSeekbarStyle.audioWaveformCanvas
@@ -1091,7 +1105,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                                   : s == AudiobookSeekbarStyle.standardSlider
                                       ? Icons.tune_rounded
                                       : Icons.radio_button_checked_rounded,
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected ? tokens.onAccent : tokens.textEmphasis,
                           size: 20,
                         ),
                       ),
@@ -1102,15 +1116,11 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                           children: [
                             Text(
                               s.label,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
-                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                fontSize: 13.5,
-                              ),
+                              style: ZplayType.label.toStyle(color: tokens.textPrimary),
                             ),
                             Text(
                               s.description,
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11.5),
+                              style: ZplayType.caption.toStyle(color: tokens.textSecondary),
                             ),
                           ],
                         ),
@@ -1130,6 +1140,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
 
   // ── Tab 2: Play Button & Hover Physics ──
   Widget _buildPlayButtonPhysicsSection(AppThemePalette palette) {
+    final tokens = context.tokens;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1137,9 +1148,9 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
           children: [
             Icon(Icons.touch_app_rounded, color: palette.primaryColor, size: 18),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'Play / Pause Button Style',
-              style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800),
+              style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
             ),
           ],
         ),
@@ -1152,31 +1163,29 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                 final isSelected = b == currentBtnStyle;
                 return InkWell(
                   onTap: () => AudiobookSettings.setCustomPlayButtonStyle(b),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: ZplayRadius.mdAll,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : const Color(0xFF121622),
-                      borderRadius: BorderRadius.circular(14),
+                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
-                        color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
+                        color: isSelected ? palette.primaryColor : tokens.borderDefault,
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-                          color: isSelected ? palette.primaryColor : Colors.white38,
+                          color: isSelected ? palette.primaryColor : tokens.textMuted,
                           size: 18,
                         ),
                         const SizedBox(width: 12),
                         Text(
                           b.label,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                            fontSize: 13,
+                          style: ZplayType.label.toStyle(
+                            color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
                           ),
                         ),
                       ],
@@ -1194,9 +1203,9 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
           children: [
             Icon(Icons.animation_rounded, color: palette.primaryColor, size: 18),
             const SizedBox(width: 8),
-            const Text(
+            Text(
               'Hover & Touch Physics',
-              style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800),
+              style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
             ),
           ],
         ),
@@ -1209,31 +1218,29 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                 final isSelected = h == currentHover;
                 return InkWell(
                   onTap: () => AudiobookSettings.setCustomHoverEffect(h),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: ZplayRadius.mdAll,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : const Color(0xFF121622),
-                      borderRadius: BorderRadius.circular(14),
+                      color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : tokens.surface,
+                      borderRadius: ZplayRadius.mdAll,
                       border: Border.all(
-                        color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
+                        color: isSelected ? palette.primaryColor : tokens.borderDefault,
                       ),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           isSelected ? Icons.check_circle_rounded : Icons.circle_outlined,
-                          color: isSelected ? palette.primaryColor : Colors.white38,
+                          color: isSelected ? palette.primaryColor : tokens.textMuted,
                           size: 18,
                         ),
                         const SizedBox(width: 12),
                         Text(
                           h.label,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white70,
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
-                            fontSize: 13,
+                          style: ZplayType.label.toStyle(
+                            color: isSelected ? tokens.textPrimary : tokens.textEmphasis,
                           ),
                         ),
                       ],
@@ -1254,8 +1261,8 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
             return Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: const Color(0xFF101420),
-                borderRadius: BorderRadius.circular(18),
+                color: tokens.surface,
+                borderRadius: ZplayRadius.mdAll,
                 border: Border.all(color: palette.primaryColor.withValues(alpha: 0.4), width: 1.2),
               ),
               child: Column(
@@ -1265,23 +1272,23 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                     children: [
                       Icon(Icons.touch_app_rounded, color: palette.primaryColor, size: 18),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'Live Touch & Hover Physics Playground',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13.5),
+                        style: ZplayType.label.toStyle(color: tokens.textPrimary),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Hover your cursor or tap below to feel "${currentHover.label}" in real-time:',
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                    style: ZplayType.bodySmall.toStyle(color: tokens.textSecondary),
                   ),
                   const SizedBox(height: 18),
                   Center(
                     child: AudiobookInteractivePhysicsButton(
                       effect: currentHover,
                       glowColor: palette.primaryColor,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: ZplayRadius.lgAll,
                       onTap: () {},
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 16),
@@ -1291,7 +1298,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: ZplayRadius.lgAll,
                           boxShadow: [
                             BoxShadow(
                               color: palette.primaryColor.withValues(alpha: 0.4),
@@ -1303,16 +1310,11 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.touch_app_rounded, color: Colors.white, size: 22),
+                            Icon(Icons.touch_app_rounded, color: tokens.onAccent, size: 22),
                             const SizedBox(width: 10),
                             Text(
                               'Test "${currentHover.label}"',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 14,
-                                letterSpacing: 0.2,
-                              ),
+                              style: ZplayType.label.toStyle(color: tokens.onAccent),
                             ),
                           ],
                         ),
@@ -1330,6 +1332,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
 
   // ── Tab 3: Artwork & Frame Styles ──
   Widget _buildArtworkFrameSection(AppThemePalette palette) {
+    final tokens = context.tokens;
     return ValueListenableBuilder<AudiobookArtworkStyle>(
       valueListenable: AudiobookSettings.customArtworkStyle,
       builder: (context, currentArtStyle, _) {
@@ -1340,9 +1343,9 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
               children: [
                 Icon(Icons.image_rounded, color: palette.primaryColor, size: 18),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Artwork Display Mode',
-                  style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800),
+                  style: ZplayType.subtitle.toStyle(color: tokens.textPrimary),
                 ),
               ],
             ),
@@ -1352,15 +1355,15 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
               final isSelected = a == currentArtStyle;
               return InkWell(
                 onTap: () => AudiobookSettings.setCustomArtworkStyle(a),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: ZplayRadius.mdAll,
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : const Color(0xFF121622),
-                    borderRadius: BorderRadius.circular(14),
+                    color: isSelected ? palette.primaryColor.withValues(alpha: 0.16) : tokens.surface,
+                    borderRadius: ZplayRadius.mdAll,
                     border: Border.all(
-                      color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
+                      color: isSelected ? palette.primaryColor : tokens.borderDefault,
                     ),
                   ),
                   child: Row(
@@ -1370,7 +1373,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                         height: 38,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
+                          color: isSelected ? palette.primaryColor : tokens.borderSubtle,
                         ),
                         child: Icon(
                           a == AudiobookArtworkStyle.square3D
@@ -1380,7 +1383,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                                   : a == AudiobookArtworkStyle.floatingCard
                                       ? Icons.layers_rounded
                                       : Icons.visibility_off_rounded,
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected ? tokens.onAccent : tokens.textEmphasis,
                           size: 20,
                         ),
                       ),
@@ -1388,11 +1391,7 @@ class _AudiobookPlayerStudioPageState extends State<AudiobookPlayerStudioPage> w
                       Expanded(
                         child: Text(
                           a.label,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
-                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                            fontSize: 13.5,
-                          ),
+                          style: ZplayType.label.toStyle(color: tokens.textPrimary),
                         ),
                       ),
                       if (isSelected)
