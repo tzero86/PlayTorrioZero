@@ -2,6 +2,10 @@
 
 All notable changes to ZPlay will be documented in this file.
 
+## [1.1.7] — 2026-09-24
+
+- Refreshed the README and redesigned the GitHub Pages presentation.
+
 ## [3.0.0-early] — 2026-08-11
 
 ### Added
