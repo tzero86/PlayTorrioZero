@@ -249,14 +249,17 @@ class _MyListPageState extends State<MyListPage> {
       ),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 18),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.06),
-              padding: const EdgeInsets.all(8),
+          // My List is a tab of the library shell slot, not a pushed overlay, so the
+          // back button only belongs here when there is genuinely a route underneath.
+          if (Navigator.of(context).canPop())
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 18),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withValues(alpha: 0.06),
+                padding: const EdgeInsets.all(8),
+              ),
             ),
-          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

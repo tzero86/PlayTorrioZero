@@ -20,7 +20,6 @@ abstract final class GlassSettings {
   static const _keyEnabled = 'full_liquid_glass_enabled';
   static const _keyPreset = 'glass_preset';
   static const _keyHoverScale = 'glass_hover_scale';
-  static const _keyHoverProximity = 'glass_hover_proximity';
   static const _keyWobbleIntensity = 'glass_wobble_intensity';
   static const _keyRefractionIndex = 'glass_refraction_index';
   static const _keyMagnification = 'glass_magnification';
@@ -33,7 +32,6 @@ abstract final class GlassSettings {
   static final ValueNotifier<bool> enabled = ValueNotifier<bool>(false);
   static final ValueNotifier<GlassPreset> preset = ValueNotifier<GlassPreset>(GlassPreset.standard);
   static final ValueNotifier<double> hoverScale = ValueNotifier<double>(1.15);
-  static final ValueNotifier<double> hoverProximity = ValueNotifier<double>(2.6);
   static final ValueNotifier<double> wobbleIntensity = ValueNotifier<double>(1.0);
   static final ValueNotifier<double> refractionIndex = ValueNotifier<double>(1.52);
   static final ValueNotifier<double> magnification = ValueNotifier<double>(1.035);
@@ -56,7 +54,6 @@ abstract final class GlassSettings {
     );
 
     hoverScale.value = prefs.getDouble(_keyHoverScale) ?? 1.15;
-    hoverProximity.value = prefs.getDouble(_keyHoverProximity) ?? 2.6;
     wobbleIntensity.value = prefs.getDouble(_keyWobbleIntensity) ?? 1.0;
     refractionIndex.value = prefs.getDouble(_keyRefractionIndex) ?? 1.52;
     magnification.value = prefs.getDouble(_keyMagnification) ?? 1.035;
@@ -79,7 +76,6 @@ abstract final class GlassSettings {
     switch (p) {
       case GlassPreset.subtle:
         hoverScale.value = 1.06;
-        hoverProximity.value = 1.8;
         wobbleIntensity.value = 0.5;
         refractionIndex.value = 1.25;
         magnification.value = 1.015;
@@ -90,7 +86,6 @@ abstract final class GlassSettings {
         break;
       case GlassPreset.standard:
         hoverScale.value = 1.15;
-        hoverProximity.value = 2.6;
         wobbleIntensity.value = 1.0;
         refractionIndex.value = 1.52;
         magnification.value = 1.035;
@@ -101,7 +96,6 @@ abstract final class GlassSettings {
         break;
       case GlassPreset.hyperJelly:
         hoverScale.value = 1.30;
-        hoverProximity.value = 3.6;
         wobbleIntensity.value = 2.2;
         refractionIndex.value = 1.75;
         magnification.value = 1.07;
@@ -112,7 +106,6 @@ abstract final class GlassSettings {
         break;
       case GlassPreset.crystalPrism:
         hoverScale.value = 1.12;
-        hoverProximity.value = 2.4;
         wobbleIntensity.value = 0.8;
         refractionIndex.value = 2.0;
         magnification.value = 1.055;
@@ -123,7 +116,6 @@ abstract final class GlassSettings {
         break;
       case GlassPreset.frostedCyber:
         hoverScale.value = 1.18;
-        hoverProximity.value = 2.8;
         wobbleIntensity.value = 1.2;
         refractionIndex.value = 1.40;
         magnification.value = 1.025;
@@ -141,7 +133,6 @@ abstract final class GlassSettings {
 
   static Future<void> updateCustom({
     double? newHoverScale,
-    double? newHoverProximity,
     double? newWobbleIntensity,
     double? newRefractionIndex,
     double? newMagnification,
@@ -152,7 +143,6 @@ abstract final class GlassSettings {
   }) async {
     preset.value = GlassPreset.custom;
     if (newHoverScale != null) hoverScale.value = newHoverScale;
-    if (newHoverProximity != null) hoverProximity.value = newHoverProximity;
     if (newWobbleIntensity != null) wobbleIntensity.value = newWobbleIntensity;
     if (newRefractionIndex != null) refractionIndex.value = newRefractionIndex;
     if (newMagnification != null) magnification.value = newMagnification;
@@ -173,7 +163,6 @@ abstract final class GlassSettings {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyPreset, preset.value.name);
     await prefs.setDouble(_keyHoverScale, hoverScale.value);
-    await prefs.setDouble(_keyHoverProximity, hoverProximity.value);
     await prefs.setDouble(_keyWobbleIntensity, wobbleIntensity.value);
     await prefs.setDouble(_keyRefractionIndex, refractionIndex.value);
     await prefs.setDouble(_keyMagnification, magnification.value);

@@ -14,6 +14,8 @@ import '../../services/music/music_library_service.dart';
 import '../../services/music/music_player_controller.dart';
 import '../../services/music/music_service.dart';
 import '../../services/music/music_settings.dart';
+import '../../services/playback/music_now_playing_bridge.dart';
+import '../../shell/app_shell_scope.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/performance_liquid_lens.dart';
@@ -22,8 +24,6 @@ import '../../widgets/music/music_interactive_physics_button.dart';
 import '../../widgets/music/music_waveform_seekbar.dart';
 import '../settings/appearance/music_player_studio_page.dart';
 import '../settings/appearance/music_settings_page.dart';
-import '../settings/settings_page.dart';
-import '../../utils/navigation/route_transitions.dart';
 import '../../services/storage/app_image_cache.dart';
 
 class MusicPage extends StatefulWidget {
@@ -80,6 +80,7 @@ class _MusicPageState extends State<MusicPage> {
     MusicDownloadService.instance.addListener(_onStateChanged);
     MusicSettings.changeNotifier.addListener(_onStateChanged);
     AppThemeService.currentPalette.addListener(_onStateChanged);
+    MusicNowPlayingBridge.expandRequests.addListener(_onExpandRequested);
     _libraryService.init();
     MusicDownloadService.instance.init();
     _loadMusicData();
@@ -94,6 +95,7 @@ class _MusicPageState extends State<MusicPage> {
     MusicDownloadService.instance.removeListener(_onStateChanged);
     MusicSettings.changeNotifier.removeListener(_onStateChanged);
     AppThemeService.currentPalette.removeListener(_onStateChanged);
+    MusicNowPlayingBridge.expandRequests.removeListener(_onExpandRequested);
     _searchController.dispose();
     _scrollController.dispose();
     _searchFocusNode.dispose();
@@ -103,6 +105,13 @@ class _MusicPageState extends State<MusicPage> {
 
   void _onStateChanged() {
     if (mounted) setState(() {});
+  }
+
+  /// The shell's bar cannot reach this page's expansion flag and must not import
+  /// it, so its expand tap arrives through the bridge instead.
+  void _onExpandRequested() {
+    if (!mounted || !_playerController.hasTrack) return;
+    setState(() => _isPlayerExpanded = true);
   }
 
   void _showToast(String message) {
@@ -164,6 +173,11 @@ class _MusicPageState extends State<MusicPage> {
         _hasSearched = false;
         _searchData = MusicSearchData.empty;
         _activeQuery = '';
+        // The page used to return to its featured view from the Home row of its
+        // own sidebar and bottom bar, both of which the shell replaced, so an
+        // emptied field has to do it here or the search view would be a one way
+        // trip.
+        _activeTab = 'Home';
       });
       return;
     }
@@ -255,6 +269,9 @@ class _MusicPageState extends State<MusicPage> {
             key == LogicalKeyboardKey.slash)) {
       setState(() => _showShortcutsModal = !_showShortcutsModal);
     } else if (key == LogicalKeyboardKey.escape) {
+      // Escape unwinds whatever overlay is open and stops there. Leaving Music is
+      // the shell rail's job now, and a pop from inside a slot would take the
+      // shell route with it.
       if (_isPlayerExpanded) {
         setState(() => _isPlayerExpanded = false);
       } else if (_showQueueDrawer) {
@@ -276,8 +293,6 @@ class _MusicPageState extends State<MusicPage> {
           _activeUserPlaylistModal = null;
           _showDownloadsModal = false;
         });
-      } else {
-        Navigator.maybePop(context);
       }
     }
   }
@@ -742,101 +757,37 @@ class _MusicPageState extends State<MusicPage> {
                 child: AnimatedAmbientBackground(),
               ),
 
-            // Main App Shell Layout
-            Row(
-              children: [
-                if (isDesktop)
-                  _MusicSidebar(
-                    activeTab: _activeTab,
-                    onTabSelected: (tab) {
-                      setState(() {
-                        _activeTab = tab;
-                        if (tab != 'Search') _hasSearched = false;
-                      });
-                    },
-                    onShortcutsTap: () => setState(() => _showShortcutsModal = true),
-                  ),
+            // Page content area. The shell owns navigation and the now playing
+            // bar now, so this page is its own content with its own header over
+            // it and nothing else.
+            SizedBox.expand(
+              child: Stack(
+                children: [
+                  Positioned.fill(child: _buildTabContent()),
 
-                // Main Page Content Area
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: _buildTabContent(isDesktop),
-                      ),
-
-                      // Sticky Top Header (Search bar, status, settings)
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: _MusicTopHeader(
-                          isDesktop: isDesktop,
-                          searchController: _searchController,
-                          searchFocusNode: _searchFocusNode,
-                          isSearching: _isSearching,
-                          onSearchChanged: _onSearchChanged,
-                          onClearSearch: _clearSearch,
-                          onSettingsTap: () {
-                            Navigator.push(
-                              context,
-                              LiquidRevealRoute(
-                                page: const SettingsPage(),
-                                tapPosition: null,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
+                  // Sticky Top Header (Search bar, status, settings)
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: _MusicTopHeader(
+                      isDesktop: isDesktop,
+                      searchController: _searchController,
+                      searchFocusNode: _searchFocusNode,
+                      isSearching: _isSearching,
+                      onSearchChanged: _onSearchChanged,
+                      onClearSearch: _clearSearch,
+                      onSettingsTap: () {
+                        // Settings is a shell slot, so this switches the shell
+                        // instead of pushing a second copy of the page over it.
+                        // Null outside the shell, where this then does nothing.
+                        AppShellScope.of(context)?.go(ShellSlot.settings);
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-
-            // Mobile Bottom Navigation Bar
-            if (!isDesktop)
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: _MusicMobileBottomNav(
-                  activeTab: _activeTab,
-                  onTabSelected: (tab) {
-                    setState(() {
-                      _activeTab = tab;
-                      if (tab != 'Search') _hasSearched = false;
-                    });
-                  },
-                ),
-              ),
-
-            // Floating Mini-Player Bar
-            if (_playerController.hasTrack && !_isPlayerExpanded)
-              Positioned(
-                left: isDesktop ? 260 : 12,
-                right: 12,
-                bottom: isDesktop ? 16 : (64.0 + MediaQuery.paddingOf(context).bottom + 10.0),
-                child: _MusicBottomPlayerBar(
-                  playerController: _playerController,
-                  isSaved: _libraryService.isTrackLiked(
-                    _playerController.currentTrack?.id ?? '',
-                  ),
-                  onToggleSave: () {
-                    if (_playerController.currentTrack != null) {
-                      _libraryService.toggleLikeTrack(_playerController.currentTrack!);
-                    }
-                  },
-                  onExpandTap: () => setState(() => _isPlayerExpanded = true),
-                  onQueueTap: () => setState(() => _showQueueDrawer = true),
-                  onLyricsTap: () => setState(() => _showLyricsDrawer = true),
-                  onAddToPlaylist: () {
-                    if (_playerController.currentTrack != null) {
-                      _showAddToPlaylistMenu(_playerController.currentTrack!);
-                    }
-                  },
-                ),
-              ),
 
             // Queue Drawer
             if (_showQueueDrawer)
@@ -994,7 +945,7 @@ class _MusicPageState extends State<MusicPage> {
     );
   }
 
-  Widget _buildTabContent(bool isDesktop) {
+  Widget _buildTabContent() {
     if (_isLoading) {
       return Center(
         child: CircularProgressIndicator(color: AppThemeService.currentPalette.value.primaryColor),
@@ -1008,15 +959,16 @@ class _MusicPageState extends State<MusicPage> {
     if (_activeTab == 'Radio') return _buildRadioView();
     if (_activeTab == 'Library') return _buildLibraryView();
 
-    final bottomPad = isDesktop ? 120.0 : 160.0;
-
+    // The shell reserves the space for its own now playing bar and rail, so the
+    // page keeps a plain scroll margin instead of clearance for a bar that used
+    // to float over the content.
     return RefreshIndicator(
       color: AppThemeService.currentPalette.value.primaryColor,
       backgroundColor: const Color(0xFF151822),
       onRefresh: _loadMusicData,
       child: ListView(
         controller: _scrollController,
-        padding: EdgeInsets.only(top: 75, bottom: bottomPad),
+        padding: const EdgeInsets.only(top: 75, bottom: 24),
         physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         children: [
           if (MusicSettings.enableSpotlight.value && _heroTrack != null)
@@ -1077,7 +1029,7 @@ class _MusicPageState extends State<MusicPage> {
 
     return ListView(
       controller: _scrollController,
-      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 150),
+      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 24),
       children: [
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -1363,7 +1315,7 @@ class _MusicPageState extends State<MusicPage> {
 
     return ListView(
       controller: _scrollController,
-      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 150),
+      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 24),
       children: [
         const Text(
           'Browse Moods & Genres',
@@ -1448,7 +1400,7 @@ class _MusicPageState extends State<MusicPage> {
 
     return ListView(
       controller: _scrollController,
-      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 150),
+      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 24),
       children: [
         const Text(
           'Radio Stations & Live Streams',
@@ -1525,7 +1477,7 @@ class _MusicPageState extends State<MusicPage> {
 
     return ListView(
       controller: _scrollController,
-      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 150),
+      padding: const EdgeInsets.only(top: 80, left: 24, right: 24, bottom: 24),
       children: [
         Row(
           children: [
@@ -2085,300 +2037,6 @@ class _MusicHorizontalScrollSectionState extends State<_MusicHorizontalScrollSec
 // Components & Widgets
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _MusicSidebar extends StatelessWidget {
-  final String activeTab;
-  final Function(String) onTabSelected;
-  final VoidCallback onShortcutsTap;
-
-  const _MusicSidebar({
-    required this.activeTab,
-    required this.onTabSelected,
-    required this.onShortcutsTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 240,
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C0E17),
-        border: Border(
-          right: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-            child: Row(
-              children: [
-                _MusicHoverable(
-                  scaleFactor: 1.08,
-                  child: IconButton(
-                    tooltip: 'Back to Home (Esc)',
-                    icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.08),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-                      ),
-                      padding: const EdgeInsets.all(10),
-                    ),
-                    onPressed: () => Navigator.maybePop(context),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppThemeService.currentPalette.value.primaryColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.music_note_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'MUSIC',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(color: Colors.white10),
-          const SizedBox(height: 8),
-          _sidebarActionItem(
-            'Exit Music',
-            Icons.logout_rounded,
-            () => Navigator.maybePop(context),
-          ),
-          const SizedBox(height: 4),
-          _sidebarItem('Home', Icons.home_rounded),
-          _sidebarItem('Browse', Icons.explore_rounded),
-          _sidebarItem('Radio', Icons.radio_rounded),
-          _sidebarItem('Library', Icons.library_music_rounded),
-          const SizedBox(height: 12),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            child: Text(
-              'AUDIO SOURCE',
-              style: TextStyle(
-                color: Colors.white38,
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-          _sidebarAudioSourceSelector(),
-          const Spacer(),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: InkWell(
-              onTap: onShortcutsTap,
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.keyboard_rounded, color: Colors.white54, size: 18),
-                    SizedBox(width: 10),
-                    Text(
-                      'Shortcuts ( ? )',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _sidebarAudioSourceSelector() {
-    final player = MusicPlayerController.instance;
-    return ListenableBuilder(
-      listenable: player,
-      builder: (context, _) {
-        final isFlac = player.audioSource == MusicAudioSource.flac;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: () => player.setAudioSource(MusicAudioSource.flac),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isFlac ? const Color(0xFF00D2EF).withValues(alpha: 0.2) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        border: isFlac ? Border.all(color: const Color(0xFF00D2EF).withValues(alpha: 0.4)) : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.diamond_rounded, size: 14, color: isFlac ? const Color(0xFF00D2EF) : Colors.white54),
-                          const SizedBox(width: 4),
-                          Text(
-                            'FLAC',
-                            style: TextStyle(
-                              color: isFlac ? Colors.white : Colors.white60,
-                              fontSize: 11,
-                              fontWeight: isFlac ? FontWeight.bold : FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => player.setAudioSource(MusicAudioSource.youtube),
-                    borderRadius: BorderRadius.circular(10),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: !isFlac ? const Color(0xFFFF3366).withValues(alpha: 0.2) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                        border: !isFlac ? Border.all(color: const Color(0xFFFF3366).withValues(alpha: 0.4)) : null,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.play_circle_fill_rounded, size: 14, color: !isFlac ? const Color(0xFFFF3366) : Colors.white54),
-                          const SizedBox(width: 4),
-                          Text(
-                            'YouTube',
-                            style: TextStyle(
-                              color: !isFlac ? Colors.white : Colors.white60,
-                              fontSize: 11,
-                              fontWeight: !isFlac ? FontWeight.bold : FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _sidebarActionItem(String label, IconData icon, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: _MusicHoverable(
-        scaleFactor: 1.02,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.04),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: const Color(0xFF00D2EF),
-                  size: 20,
-                ),
-                const SizedBox(width: 14),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _sidebarItem(String label, IconData icon) {
-    final isSelected = activeTab == label;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: _MusicHoverable(
-        scaleFactor: 1.02,
-        child: InkWell(
-          onTap: () => onTabSelected(label),
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.2)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
-              border: isSelected
-                  ? Border.all(color: AppThemeService.currentPalette.value.primaryColor.withValues(alpha: 0.4))
-                  : null,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white60,
-                  size: 20,
-                ),
-                const SizedBox(width: 14),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white70,
-                    fontSize: 14,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _MusicTopHeader extends StatelessWidget {
   final bool isDesktop;
   final TextEditingController searchController;
@@ -2423,23 +2081,6 @@ class _MusicTopHeader extends StatelessWidget {
         ),
         child: Row(
           children: [
-            _MusicHoverable(
-              scaleFactor: 1.08,
-              child: IconButton(
-                tooltip: 'Back to Home (Esc)',
-                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 20),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.08),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
-                  ),
-                  padding: const EdgeInsets.all(8),
-                ),
-                onPressed: () => Navigator.maybePop(context),
-              ),
-            ),
-            SizedBox(width: isMobile ? 8 : 12),
             Expanded(
               child: Container(
                 height: 40,
@@ -2774,75 +2415,6 @@ class _AudioSourceSelectorButton extends StatelessWidget {
                 Icon(Icons.check_circle_rounded, color: iconColor, size: 22)
               else
                 const Icon(Icons.radio_button_unchecked_rounded, color: Colors.white30, size: 22),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MusicMobileBottomNav extends StatelessWidget {
-  final String activeTab;
-  final Function(String) onTabSelected;
-
-  const _MusicMobileBottomNav({
-    required this.activeTab,
-    required this.onTabSelected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-
-    return PerformanceLiquidLens(
-      style: PerformanceGlassStyles.dock,
-      child: Container(
-        height: 60 + bottomInset,
-        padding: EdgeInsets.only(bottom: bottomInset),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0C0E17).withValues(alpha: 0.95),
-          border: Border(
-            top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _navItem('Home', Icons.home_rounded),
-            _navItem('Browse', Icons.explore_rounded),
-            _navItem('Radio', Icons.radio_rounded),
-            _navItem('Library', Icons.library_music_rounded),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _navItem(String label, IconData icon) {
-    final isSelected = activeTab == label;
-    return Expanded(
-      child: FocusableCard(
-        onTap: () => onTabSelected(label),
-        builder: (context, _) => SizedBox(
-          height: 60,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: isSelected ? AppThemeService.currentPalette.value.primaryColor : Colors.white54,
-                size: 24,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white54,
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                ),
-              ),
             ],
           ),
         ),
@@ -3544,402 +3116,6 @@ class _MusicCardSizing {
 // ─────────────────────────────────────────────────────────────────────────────
 // Drawers & Modals
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _MusicBottomPlayerBar extends StatelessWidget {
-  final MusicPlayerController playerController;
-  final bool isSaved;
-  final VoidCallback onToggleSave;
-  final VoidCallback onExpandTap;
-  final VoidCallback onQueueTap;
-  final VoidCallback onLyricsTap;
-  final VoidCallback onAddToPlaylist;
-
-  const _MusicBottomPlayerBar({
-    required this.playerController,
-    required this.isSaved,
-    required this.onToggleSave,
-    required this.onExpandTap,
-    required this.onQueueTap,
-    required this.onLyricsTap,
-    required this.onAddToPlaylist,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final track = playerController.currentTrack;
-    if (track == null) return const SizedBox.shrink();
-    final isMobile = MediaQuery.sizeOf(context).width < 600;
-    final palette = AppThemeService.currentPalette.value;
-    final preset = MusicSettings.selectedMiniPreset.value;
-
-    return FocusableCard(
-      onTap: onExpandTap,
-      builder: (context, _) => PerformanceLiquidLens(
-        style: PerformanceGlassStyles.dock,
-        child: _buildPresetContainer(preset, palette, isMobile, track),
-      ),
-    );
-  }
-
-  Widget _buildPresetContainer(MusicMiniPlayerPreset preset, AppThemePalette palette, bool isMobile, MusicTrack track) {
-    if (preset == MusicMiniPlayerPreset.compactPill) {
-      return Container(
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F121C).withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: palette.primaryColor.withValues(alpha: 0.4), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: palette.primaryColor.withValues(alpha: 0.25),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            _buildArtwork(track, size: 38, radius: 19),
-            const SizedBox(width: 10),
-            Expanded(child: _buildTrackInfo(track, isMobile, palette)),
-            _buildControls(isMobile, palette, mini: true),
-          ],
-        ),
-      );
-    }
-
-    if (preset == MusicMiniPlayerPreset.gradientWave) {
-      return Container(
-        height: 64,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              palette.primaryColor.withValues(alpha: 0.28),
-              const Color(0xFF10131E).withValues(alpha: 0.95),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: palette.primaryColor.withValues(alpha: 0.5), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: palette.primaryColor.withValues(alpha: 0.3),
-              blurRadius: 26,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            _buildArtwork(track, size: 44, radius: 12),
-            const SizedBox(width: 12),
-            Expanded(child: _buildTrackInfo(track, isMobile, palette)),
-            _buildControls(isMobile, palette),
-          ],
-        ),
-      );
-    }
-
-    if (preset == MusicMiniPlayerPreset.minimalistLine) {
-      return Container(
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0B0D14).withValues(alpha: 0.98),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Row(
-          children: [
-            _buildArtwork(track, size: 34, radius: 6),
-            const SizedBox(width: 10),
-            Expanded(child: _buildTrackInfo(track, isMobile, palette, compact: true)),
-            _buildControls(isMobile, palette, mini: true),
-          ],
-        ),
-      );
-    }
-
-    if (preset == MusicMiniPlayerPreset.customStudio) {
-      final order = MusicSettings.componentOrderMini.value;
-      return Container(
-        height: 64,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF131522).withValues(alpha: 0.95),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: palette.primaryColor.withValues(alpha: 0.4), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: palette.primaryColor.withValues(alpha: 0.25),
-              blurRadius: 24,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          children: order.map((key) {
-            switch (key) {
-              case 'artwork':
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildArtwork(track, size: 44, radius: 10),
-                    const SizedBox(width: 12),
-                  ],
-                );
-              case 'trackInfo':
-                return Expanded(child: _buildTrackInfo(track, isMobile, palette));
-              case 'mainControls':
-                return _buildControls(isMobile, palette);
-              case 'extraActions':
-                return !isMobile
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: Icon(
-                              isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                              color: isSaved ? const Color(0xFFFF4B72) : Colors.white60,
-                              size: 20,
-                            ),
-                            onPressed: onToggleSave,
-                          ),
-                        ],
-                      )
-                    : const SizedBox.shrink();
-              default:
-                return const SizedBox.shrink();
-            }
-          }).toList(),
-        ),
-      );
-    }
-
-    // Default: Floating Glass Island
-    return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF131522).withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: palette.primaryColor.withValues(alpha: 0.35), width: 1.2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.6),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: palette.primaryColor.withValues(alpha: 0.2),
-            blurRadius: 18,
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          _buildArtwork(track, size: 44, radius: 10),
-          const SizedBox(width: 12),
-          Expanded(child: _buildTrackInfo(track, isMobile, palette)),
-          _buildControls(isMobile, palette),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildArtwork(MusicTrack track, {required double size, required double radius}) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: CachedNetworkImage(
-        imageUrl: track.coverUrl,
-        cacheManager: AppImageCache.manager,
-        width: size,
-        height: size,
-        fit: BoxFit.cover,
-        errorWidget: (_, __, ___) => Container(
-          width: size,
-          height: size,
-          color: const Color(0xFF1A1D2E),
-          child: const Icon(Icons.music_note_rounded, color: Colors.white54, size: 20),
-        )),
-    );
-  }
-
-  Widget _buildTrackInfo(MusicTrack track, bool isMobile, AppThemePalette palette, {bool compact = false}) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          track.title,
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: compact ? 12 : 13,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                track.artist,
-                style: const TextStyle(color: Colors.white54, fontSize: 11),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            if (MusicSettings.showLosslessBadge.value) ...[
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: playerController.isCurrentTrackLossless
-                      ? const Color(0xFF00D2EF).withValues(alpha: 0.15)
-                      : const Color(0xFFFF3366).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: playerController.isCurrentTrackLossless
-                        ? const Color(0xFF00D2EF).withValues(alpha: 0.35)
-                        : const Color(0xFFFF3366).withValues(alpha: 0.35),
-                  ),
-                ),
-                child: Text(
-                  playerController.currentQualityLabel,
-                  style: TextStyle(
-                    color: playerController.isCurrentTrackLossless
-                        ? const Color(0xFF00D2EF)
-                        : const Color(0xFFFF6688),
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildControls(bool isMobile, AppThemePalette palette, {bool mini = false}) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (!isMobile) ...[
-          IconButton(
-            icon: Icon(
-              isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-              color: isSaved ? const Color(0xFFFF4B72) : Colors.white60,
-              size: 20,
-            ),
-            onPressed: onToggleSave,
-          ),
-          IconButton(
-            icon: const Icon(Icons.format_quote_rounded, color: Colors.white60, size: 20),
-            onPressed: onLyricsTap,
-          ),
-          IconButton(
-            icon: const Icon(Icons.skip_previous_rounded, color: Colors.white),
-            onPressed: playerController.playPrevious,
-          ),
-        ],
-        _buildPlayPauseButton(palette, mini: mini),
-        IconButton(
-          icon: const Icon(Icons.skip_next_rounded, color: Colors.white),
-          onPressed: playerController.playNext,
-        ),
-        if (!isMobile)
-          IconButton(
-            icon: const Icon(Icons.queue_music_rounded, color: Colors.white60, size: 20),
-            onPressed: onQueueTap,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildPlayPauseButton(AppThemePalette palette, {bool mini = false}) {
-    final hoverEffect = MusicSettings.customHoverEffect.value;
-    final playBtnStyle = MusicSettings.customPlayButtonStyle.value;
-
-    return MusicInteractivePhysicsButton(
-      effect: hoverEffect,
-      glowColor: palette.primaryColor,
-      borderRadius: BorderRadius.circular(mini ? 16 : 22),
-      onTap: playerController.togglePlayPause,
-      child: playerController.isLoading
-          ? SizedBox(
-              width: mini ? 24 : 32,
-              height: mini ? 24 : 32,
-              child: CircularProgressIndicator(
-                color: palette.primaryColor,
-                strokeWidth: 2.5,
-              ),
-            )
-          : _buildPlayButtonIcon(playBtnStyle, palette, mini),
-    );
-  }
-
-  Widget _buildPlayButtonIcon(MusicPlayButtonStyle style, AppThemePalette palette, bool mini) {
-    final isPlaying = playerController.isPlaying;
-    final icon = isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded;
-    final size = mini ? 32.0 : 40.0;
-    final iconSize = mini ? 20.0 : 26.0;
-
-    if (style == MusicPlayButtonStyle.liquidGlassNeo) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: palette.primaryColor.withValues(alpha: 0.25),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 1.2),
-          boxShadow: [
-            BoxShadow(
-              color: palette.primaryColor.withValues(alpha: 0.4),
-              blurRadius: 12,
-            ),
-          ],
-        ),
-        child: Icon(icon, color: Colors.white, size: iconSize),
-      );
-    }
-
-    if (style == MusicPlayButtonStyle.neonSquare) {
-      return Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(mini ? 8 : 12),
-          gradient: LinearGradient(colors: [palette.primaryColor, palette.accentColor]),
-          boxShadow: [
-            BoxShadow(color: palette.primaryColor.withValues(alpha: 0.5), blurRadius: 12),
-          ],
-        ),
-        child: Icon(icon, color: Colors.white, size: iconSize),
-      );
-    }
-
-    // Default: Circle Glow
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(colors: [palette.primaryColor, palette.accentColor]),
-        boxShadow: [
-          BoxShadow(color: palette.primaryColor.withValues(alpha: 0.55), blurRadius: 14),
-        ],
-      ),
-      child: Icon(icon, color: Colors.white, size: iconSize),
-    );
-  }
-}
 
 class _MusicLyricsDrawer extends StatelessWidget {
   final MusicTrack track;

@@ -4,9 +4,8 @@ import 'package:flutter/material.dart';
 import '../../models/book/book_result.dart';
 import '../../services/books/bookracy_service.dart';
 import '../../services/books/continue_reading_service.dart';
-import '../../services/theme/dock_settings.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/animated_ambient_background.dart';
-import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
 import '../../widgets/common/focusable_card.dart';
 import 'book_detail_sheet.dart';
@@ -299,8 +298,9 @@ class _BooksPageState extends State<BooksPage> {
                     ),
                   ),
 
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 60),
+                SliverToBoxAdapter(
+                  // The SafeArea above is bottom:false, so the trailing gap carries the gesture inset.
+                  child: SizedBox(height: ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom),
                 ),
               ],
             ),
@@ -313,15 +313,6 @@ class _BooksPageState extends State<BooksPage> {
               child: CustomScrollTrack(controller: _scrollController),
             ),
 
-          // ── Bottom Liquid Dock Navbar ──
-          Positioned(
-            bottom: 12.0 + MediaQuery.paddingOf(context).bottom,
-            left: 0,
-            right: 0,
-            child: const Center(
-              child: AppLiquidDock(currentDestination: DockItemKey.books),
-            ),
-          ),
         ],
       ),
     );
@@ -332,14 +323,6 @@ class _BooksPageState extends State<BooksPage> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: Row(
         children: [
-          // Back button
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-            tooltip: 'Back to Home',
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          const SizedBox(width: 8),
-
           // Title
           Row(
             children: [

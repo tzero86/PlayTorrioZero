@@ -2,6 +2,17 @@
 
 All notable changes to ZPlay will be documented in this file.
 
+## [1.1.8] - 2026-09-24
+
+- Replaced the per-page floating dock with one adaptive shell, mounted once at the app root, so every destination always has navigation.
+- Added five destinations (Home, Browse, Search, Library, Settings), shown on a left rail on tablet, desktop and TV and on a bottom bar on phones.
+- Moved the seven media verticals into a single switcher inside Browse, each keeping its own scroll position and filters.
+- Grouped My List and Downloads as tabs of Library.
+- Moved playback into the shell, through one now-playing bar that follows the user between destinations.
+- Gated the back buttons on the framework's canPop rule, so a page only shows back when it can actually pop.
+- Replaced the ad-hoc breakpoints with one form-factor classifier built on shortestSide and remote-input detection.
+- Deleted the dock widget, its settings page and its tests.
+
 ## [1.1.7] — 2026-09-24
 
 - Refreshed the README and redesigned the GitHub Pages presentation.

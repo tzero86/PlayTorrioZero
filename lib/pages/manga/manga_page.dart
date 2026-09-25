@@ -7,12 +7,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/manga/manga.dart';
 import '../../models/manga/manga_chapter.dart';
 import '../../services/theme/app_theme_service.dart';
-import '../../services/theme/dock_settings.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/manga/manga_service.dart';
 import '../../services/manga/manga_settings.dart';
 import '../../widgets/common/animated_ambient_background.dart';
 import '../../widgets/common/segmented_tabs.dart';
-import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/slider_arrow.dart';
@@ -395,15 +394,6 @@ class _MangaPageState extends State<MangaPage> {
                     child: CustomScrollTrack(controller: _scrollController),
                   ),
 
-                // ── Bottom Liquid Dock Navbar ──
-                Positioned(
-                  bottom: 12.0 + MediaQuery.paddingOf(context).bottom,
-                  left: 0,
-                  right: 0,
-                  child: const Center(
-                    child: AppLiquidDock(currentDestination: DockItemKey.manga),
-                  ),
-                ),
               ],
             ),
           ),
@@ -647,7 +637,7 @@ class _MangaPageState extends State<MangaPage> {
           ),
         
         SliverToBoxAdapter(
-          child: SizedBox(height: 110.0 + bottomInset), // Bottom padding for dock
+          child: SizedBox(height: ZplaySpacing.s24 + bottomInset), // Trailing gap only; the dock needed 110 px here
         ),
       ],
     );
@@ -664,29 +654,6 @@ class _MangaPageState extends State<MangaPage> {
       right: isMobile ? 12 : 24,
       child: Row(
         children: [
-          // Back Button
-          ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 16.0, sigmaY: 16.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
-                  splashRadius: 20,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
           
           // Search Bar
           Expanded(

@@ -10,16 +10,15 @@ import '../../services/anime/anime_library_service.dart';
 import '../../services/anime_arabic/anime_arabic_service.dart';
 import '../../services/content/content_settings.dart';
 import '../../services/theme/app_theme_service.dart';
-import '../../services/theme/dock_settings.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
+import '../../shell/app_shell_scope.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/anime/anime_slider_section.dart';
 import '../../widgets/common/animated_ambient_background.dart';
-import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/home/continue_watching_slider.dart';
-import '../settings/settings_page.dart';
 import 'anime_details_page.dart';
 import 'anime_stream_sheet.dart';
 import 'anime_search_page.dart';
@@ -265,14 +264,12 @@ class _AnimePageState extends State<AnimePage> {
     );
   }
 
-  void _navigateToSettings(Offset? tapPosition) {
-    Navigator.push(
-      context,
-      LiquidRevealRoute(
-        page: const SettingsPage(),
-        tapPosition: tapPosition,
-      ),
-    );
+  /// Settings is a shell slot now, so this switches the shell instead of pushing
+  /// a route that would stack a second navigation model above it. The lookup is
+  /// nullable because widget tests and entity routes mount this page outside the
+  /// shell, where the no-op is the correct outcome.
+  void _navigateToSettings() {
+    AppShellScope.of(context)?.go(ShellSlot.settings);
   }
 
   void _navigateToSearch(Offset? tapPosition) {
@@ -490,7 +487,8 @@ class _AnimePageState extends State<AnimePage> {
                         ),
                       ],
 
-                      SizedBox(height: 110.0 + MediaQuery.paddingOf(context).bottom),
+                      // Trailing gap only: the dock used to reserve 110 px of clearance here.
+                      SizedBox(height: ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom),
                     ],
                   ),
                 ),
@@ -521,19 +519,6 @@ class _AnimePageState extends State<AnimePage> {
               child: CustomScrollTrack(controller: _scrollController),
             ),
 
-          // Liquid Dock Navbar (Home Page Style)
-          Positioned(
-            bottom: 12.0 + MediaQuery.paddingOf(context).bottom,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: AppLiquidDock(
-                currentDestination: DockItemKey.anime,
-                onSettingsTap: () => _navigateToSettings(null),
-                onSearchTap: () => _navigateToSearch(null),
-              ),
-            ),
-          ),
         ];
 
         return Scaffold(
@@ -578,7 +563,7 @@ class _AnimeGlassAppBar extends StatelessWidget {
   final bool isArabicMode;
   final ValueChanged<bool> onModeChanged;
   final void Function(Offset?) onSearchTap;
-  final void Function(Offset?) onSettingsTap;
+  final VoidCallback onSettingsTap;
 
   const _AnimeGlassAppBar({
     required this.topPadding,
@@ -602,29 +587,24 @@ class _AnimeGlassAppBar extends StatelessWidget {
           right: 8,
         ),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xF5080A0F), Color(0xE6080A0F)],
-          ),
+          // Opaque, where this was a 90-96% `#080A0F` gradient. Nothing blurs
+          // behind this bar: it has no lens wrapper, and the glass gate
+          // (`GlassSettings.enabled`) defaults false, so a translucent fill only
+          // let the bright anime artwork smear through underneath and left the
+          // bar's own text on a moving background. Kept byte-identical to Home's
+          // `_GlassAppBar`, which had the same treatment for the same reason.
+          //
+          // `tokens.bg` over the literal also fixes a palette mismatch: `#080A0F`
+          // is only the ocean palette's background, so the bar stayed ocean-black
+          // under all eleven other palettes.
+          color: context.tokens.bg,
           border: Border(
-            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+            bottom: BorderSide(color: context.tokens.borderSubtle),
           ),
         ),
         child: Row(
           children: [
-            // Back button
-            IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
             if (!isMobile) ...[
-              const SizedBox(width: 4),
-
               // Logo
               Image.asset(
                 'assets/icon_small.png',
@@ -702,22 +682,14 @@ class _AnimeGlassAppBar extends StatelessWidget {
               },
             ),
 
-            // Settings Button
-            Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: Icon(
-                    Icons.settings_rounded,
-                    color: Colors.white.withValues(alpha: 0.65),
-                    size: 24,
-                  ),
-                  onPressed: () {
-                    final box = context.findRenderObject() as RenderBox?;
-                    final offset = box?.localToGlobal(box.size.center(Offset.zero));
-                    onSettingsTap(offset);
-                  },
-                );
-              },
+            // Settings takes no reveal origin, unlike Search: it is a shell slot.
+            IconButton(
+              icon: Icon(
+                Icons.settings_rounded,
+                color: Colors.white.withValues(alpha: 0.65),
+                size: 24,
+              ),
+              onPressed: onSettingsTap,
             ),
           ],
         ),

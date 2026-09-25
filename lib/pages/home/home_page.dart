@@ -31,13 +31,10 @@ import '../../widgets/common/segmented_tabs.dart';
 import '../../widgets/home/continue_watching_slider.dart';
 import '../../widgets/movie/movie_card.dart';
 import '../../widgets/movie/movie_slider_section.dart';
-import '../search/search_page.dart';
 import '../ai/wewatch_quiz_page.dart';
 import '../calendar/tv_calendar_page.dart';
-import '../discover/discover_page.dart';
-import '../settings/settings_page.dart';
-import '../../services/theme/dock_settings.dart';
-import '../../widgets/common/app_liquid_dock.dart';
+import '../../shell/app_shell_scope.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/updater/app_updater_service.dart';
 import '../../widgets/updater/update_dialog.dart';
 import '../../services/p2p/p2p_settings_service.dart';
@@ -94,6 +91,13 @@ class _HomePageState extends State<HomePage> {
   /// [_similarDebounce] so a toggle never fans out into overlapping home loads.
   Timer? _adultReloadDebounce;
   Timer? _animeRefreshDebounce;
+
+  /// The shell controller this page is subscribed to, if it is mounted inside
+  /// the shell at all, plus the slot the last notification reported. Both are
+  /// needed to spot a *return* to Home rather than any other switch.
+  AppShellController? _shellController;
+  ShellSlot? _lastSlot;
+
   List<MovieSection> get _visibleSections => _sections
       .map(_filterSection)
       .where((section) => section.movies.isNotEmpty)
@@ -129,33 +133,6 @@ class _HomePageState extends State<HomePage> {
     return movie.type.trim().toLowerCase() == 'movie'
         ? _HomeFilter.movies
         : _HomeFilter.series;
-  }
-
-  /// How many catalogue titles each filter matches, counted in one pass.
-  ///
-  /// Counts describe *catalogue* content, which is exactly what All, Movies and
-  /// Series show. The Anime tab additionally surfaces AniList discovery rows
-  /// that are fetched separately on first open, so its number can be smaller
-  /// than the number of tiles on screen. The alternative — leaving the count
-  /// out until those rows arrive — would make one tab silently disagree with
-  /// the other three.
-  Map<_HomeFilter, int> get _filterCounts {
-    var all = 0, movies = 0, series = 0, anime = 0;
-    for (final section in _sections) {
-      for (final movie in section.movies) {
-        all++;
-        final partition = _partitionOf(movie);
-        if (partition == _HomeFilter.movies) movies++;
-        if (partition == _HomeFilter.series) series++;
-        if (partition == _HomeFilter.anime) anime++;
-      }
-    }
-    return {
-      _HomeFilter.all: all,
-      _HomeFilter.movies: movies,
-      _HomeFilter.series: series,
-      _HomeFilter.anime: anime,
-    };
   }
 
   /// Mirrors the `anime` filter in [ContinueWatchingSlider] so both agree on
@@ -312,6 +289,32 @@ class _HomePageState extends State<HomePage> {
   static bool _hasRunStartupDialogs = false;
   static bool _hasAutoCheckedUpdate = false;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Read here rather than in initState, where an inherited lookup is not yet
+    // legal. The shell keeps one controller for its whole life, but a rebuild
+    // that replaces the scope can hand over a new instance, so the listener is
+    // swapped only when the instance actually differs.
+    final controller = AppShellScope.of(context);
+    if (identical(controller, _shellController)) return;
+    _shellController?.current.removeListener(_onSlotChanged);
+    _shellController = controller;
+    _lastSlot = controller?.current.value;
+    controller?.current.addListener(_onSlotChanged);
+  }
+
+  /// Addons are added and removed from Settings, so their catalogs are stale by
+  /// the time the user comes back. The shell keeps every slot alive in an
+  /// IndexedStack, so returning to Home rebuilds nothing on its own and this
+  /// notification is the only cue that a reload is due.
+  void _onSlotChanged() {
+    final slot = _shellController?.current.value;
+    final returnedHome = slot == ShellSlot.home && _lastSlot != ShellSlot.home;
+    _lastSlot = slot;
+    if (returnedHome && mounted) _loadHome();
+  }
+
   Future<void> _runStartupDialogs() async {
     if (_hasRunStartupDialogs || !mounted) return;
     _hasRunStartupDialogs = true;
@@ -366,6 +369,7 @@ class _HomePageState extends State<HomePage> {
     MyListService.items.removeListener(_onSettingsChanged);
     ContinueWatchingService.activeItems.removeListener(_onSettingsChanged);
     ContentSettings.adultEnabled.removeListener(_onAdultContentChanged);
+    _shellController?.current.removeListener(_onSlotChanged);
     _scrollController.dispose();
     super.dispose();
   }
@@ -465,7 +469,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _playIntro() async {
-    // Show intro for 1.8 seconds so it feels fast and allows full dock shader pre-warming
+    // Show intro for 1.8 seconds so it feels fast and allows full shader pre-warming
     await Future.delayed(const Duration(milliseconds: 1800));
 
     // If still loading critical data, wait a bit longer (up to a timeout or until ready)
@@ -579,22 +583,6 @@ class _HomePageState extends State<HomePage> {
     return featured;
   }
 
-  void _navigateToSettings(Offset? tapPosition) async {
-    await Navigator.push(
-      context,
-      LiquidRevealRoute(page: const SettingsPage(), tapPosition: tapPosition),
-    );
-    // Reload when returning from settings (addons may have changed)
-    _loadHome();
-  }
-
-  void _navigateToSearch(Offset? tapPosition) {
-    Navigator.push(
-      context,
-      LiquidRevealRoute(page: const SearchPage(), tapPosition: tapPosition),
-    );
-  }
-
   /// Height of the floating glass app bar below `MediaQuery` top padding
   /// (10 top pad + 34 logo + 14 bottom pad).
   static const double _appBarHeight = 58;
@@ -611,19 +599,22 @@ class _HomePageState extends State<HomePage> {
   static bool _filtersInAppBar(BuildContext context) =>
       MediaQuery.sizeOf(context).width >= _appBarFilterBreakpoint;
 
+  /// Labels only, no counts.
+  ///
+  /// The tabs used to carry a count of the catalogue titles each filter
+  /// matches, and those numbers described the *catalogue* while the tabs
+  /// describe what is actually on screen. The Anime tab additionally surfaces
+  /// AniList discovery rows fetched separately on first open, so its count sat
+  /// at 0 next to a screenful of tiles. A number that contradicts the content
+  /// beside it is worse than no number, and naming the filter is the tab's job.
   Widget _buildFilterTabs() {
-    final counts = _filterCounts;
     return SegmentedTabs<_HomeFilter>(
       semanticsLabel: 'Home content filter',
       selected: _selectedFilter,
       onSelected: _setFilter,
       options: [
         for (final (filter, label) in _homeFilterLabels)
-          SegmentedTabOption(
-            value: filter,
-            label: label,
-            count: counts[filter],
-          ),
+          SegmentedTabOption(value: filter, label: label),
       ],
     );
   }
@@ -719,7 +710,10 @@ class _HomePageState extends State<HomePage> {
         ),
       // All is a superset: anime discovery content trails the usual rows.
       if (!isAnimeTab) ...animeRowWidgets,
-      SizedBox(height: 110.0 + MediaQuery.paddingOf(context).bottom),
+      // The shell reserves its own chrome's space, so the old 110px dock
+      // clearance collapses to one gap; a phone still has a gesture bar, so the
+      // safe-area term stays.
+      SizedBox(height: ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom),
     ];
 
     final backgroundContent = AnimatedAmbientBackground(
@@ -797,7 +791,6 @@ class _HomePageState extends State<HomePage> {
     double topPadding,
     BuildContext context,
   ) {
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
     final overlayChildren = <Widget>[
       // ── Floating glass app bar ──
       Positioned(
@@ -806,8 +799,6 @@ class _HomePageState extends State<HomePage> {
         right: 0,
         child: _GlassAppBar(
           topPadding: topPadding,
-          onSearchTap: _navigateToSearch,
-          onSettingsTap: _navigateToSettings,
           filterTabs: _filtersInAppBar(context) ? _buildFilterTabs() : null,
         ),
       ),
@@ -819,20 +810,6 @@ class _HomePageState extends State<HomePage> {
           bottom: 40,
           child: _CustomScrollTrack(controller: _scrollController),
         ),
-
-      // ── Liquid Dock Navbar ──
-      Positioned(
-        bottom: 12.0 + bottomInset,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: AppLiquidDock(
-            currentDestination: DockItemKey.home,
-            onSettingsTap: () => _navigateToSettings(null),
-            onSearchTap: () => _navigateToSearch(null),
-          ),
-        ),
-      ),
 
       // ── Intro Splash Screen ──
       Positioned.fill(child: _buildIntroOverlay(context)),
@@ -989,14 +966,10 @@ class _HomeSkeleton extends StatelessWidget {
 
 class _GlassAppBar extends StatelessWidget {
   final double topPadding;
-  final void Function(Offset?) onSearchTap;
-  final void Function(Offset?) onSettingsTap;
   final Widget? filterTabs;
 
   const _GlassAppBar({
     required this.topPadding,
-    required this.onSearchTap,
-    required this.onSettingsTap,
     this.filterTabs,
   });
 
@@ -1011,13 +984,18 @@ class _GlassAppBar extends StatelessWidget {
           right: 8,
         ),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xF5080A0F), Color(0xE6080A0F)],
-          ),
+          // Opaque, where this was a 90-96% `#080A0F` gradient. Nothing blurs
+          // behind this bar: it has no lens wrapper, and the glass gate
+          // (`GlassSettings.enabled`) defaults false, so a translucent fill only
+          // let the hero smear through underneath and left the bar's own text on
+          // a moving background. Content now passes behind a solid bar.
+          //
+          // `tokens.bg` over the literal also fixes a palette mismatch: `#080A0F`
+          // is only the ocean palette's background, so the bar stayed ocean-black
+          // under all eleven other palettes.
+          color: context.tokens.bg,
           border: Border(
-            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+            bottom: BorderSide(color: context.tokens.borderSubtle),
           ),
         ),
         child: Row(
@@ -1099,60 +1077,6 @@ class _GlassAppBar extends StatelessWidget {
                       context,
                       MaterialPageRoute(builder: (_) => const TvCalendarPage()),
                     );
-                  },
-                );
-              },
-            ),
-            // Discover Catalogs
-            IconButton(
-              icon: Icon(
-                Icons.explore_rounded,
-                color: Colors.white.withValues(alpha: 0.75),
-                size: 23,
-              ),
-              tooltip: 'Discover Catalogs',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const DiscoverPage()),
-                );
-              },
-            ),
-            // Search
-            Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: Icon(
-                    Icons.search_rounded,
-                    color: Colors.white.withValues(alpha: 0.65),
-                    size: 25,
-                  ),
-                  onPressed: () {
-                    final box = context.findRenderObject() as RenderBox?;
-                    final offset = box?.localToGlobal(
-                      box.size.center(Offset.zero),
-                    );
-                    onSearchTap(offset);
-                  },
-                );
-              },
-            ),
-            // Settings
-            Builder(
-              builder: (context) {
-                return IconButton(
-                  icon: Icon(
-                    Icons.settings_rounded,
-                    color: Colors.white.withValues(alpha: 0.65),
-                    size: 24,
-                  ),
-                  tooltip: 'Settings',
-                  onPressed: () {
-                    final box = context.findRenderObject() as RenderBox?;
-                    final offset = box?.localToGlobal(
-                      box.size.center(Offset.zero),
-                    );
-                    onSettingsTap(offset);
                   },
                 );
               },

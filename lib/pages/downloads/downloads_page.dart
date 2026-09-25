@@ -124,10 +124,8 @@ class _DownloadsPageState extends State<DownloadsPage> with SingleTickerProvider
             backgroundColor: palette.appBarBackgroundColor,
             elevation: 0,
             surfaceTintColor: Colors.transparent,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white, size: 20),
-              onPressed: () => Navigator.pop(context),
-            ),
+            // No explicit leading: the framework already gates the back button on
+            // canPop, so it vanishes in the shell and returns if this page is pushed.
             title: Row(
               children: [
                 Container(

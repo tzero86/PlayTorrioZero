@@ -65,19 +65,13 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
               _buildDiscoveryConfigCard(palette),
               const SizedBox(height: 28),
 
-              // 5. Mini Player Bar Presets
-              _buildSectionHeader('MINI PLAYER BAR PRESETS'),
-              const SizedBox(height: 12),
-              _buildMiniPlayerPresetSelector(palette),
-              const SizedBox(height: 28),
-
-              // 6. Fullscreen Player Presets
+              // 5. Fullscreen Player Presets
               _buildSectionHeader('FULLSCREEN PLAYER PRESETS'),
               const SizedBox(height: 12),
               _buildFullscreenPlayerPresetSelector(palette),
               const SizedBox(height: 28),
 
-              // 7. Custom Player Quick Customizer
+              // 6. Custom Player Quick Customizer
               _buildSectionHeader('CUSTOM PLAYER ENGINE DESIGNER'),
               const SizedBox(height: 12),
               _buildCustomPlayerStudioCard(palette),
@@ -343,73 +337,6 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
     );
   }
 
-  Widget _buildMiniPlayerPresetSelector(AppThemePalette palette) {
-    return ValueListenableBuilder<MusicMiniPlayerPreset>(
-      valueListenable: MusicSettings.selectedMiniPreset,
-      builder: (context, selectedPreset, _) {
-        return Column(
-          children: MusicMiniPlayerPreset.values.map((preset) {
-            final isSelected = selectedPreset == preset;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: isSelected ? palette.primaryColor.withValues(alpha: 0.12) : const Color(0xFF12151E),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.08),
-                  width: isSelected ? 1.8 : 1.0,
-                ),
-              ),
-              child: ListTile(
-                onTap: () => MusicSettings.setSelectedMiniPreset(preset),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                leading: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: isSelected ? palette.primaryColor : Colors.white.withValues(alpha: 0.06),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    preset == MusicMiniPlayerPreset.floatingGlassIsland
-                        ? Icons.blur_on_rounded
-                        : preset == MusicMiniPlayerPreset.compactPill
-                            ? Icons.crop_portrait_rounded
-                            : preset == MusicMiniPlayerPreset.gradientWave
-                                ? Icons.graphic_eq_rounded
-                                : preset == MusicMiniPlayerPreset.minimalistLine
-                                    ? Icons.linear_scale_rounded
-                                    : Icons.dashboard_customize_rounded,
-                    color: isSelected ? Colors.white : Colors.white70,
-                    size: 20,
-                  ),
-                ),
-                title: Text(
-                  preset.label,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.9),
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                subtitle: Text(
-                  preset.description,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    fontSize: 11.5,
-                  ),
-                ),
-                trailing: isSelected
-                    ? Icon(Icons.check_circle_rounded, color: palette.primaryColor, size: 22)
-                    : null,
-              ),
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
-
   Widget _buildFullscreenPlayerPresetSelector(AppThemePalette palette) {
     return ValueListenableBuilder<MusicFullscreenPreset>(
       valueListenable: MusicSettings.selectedFullscreenPreset,
@@ -546,7 +473,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'DUAL ENGINE',
+                          'FULL PLAYER ENGINE',
                           style: TextStyle(color: palette.primaryColor, fontSize: 9.5, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -554,7 +481,7 @@ class _MusicSettingsPageState extends State<MusicSettingsPage> {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    'Customize BOTH Mini Player Dock and Fullscreen Player. Drag & drop blocks, waveform equalizers, vinyl turntable & liquid glass buttons.',
+                    'Customize the Fullscreen Player. Drag & drop blocks, waveform equalizers, vinyl turntable & liquid glass buttons.',
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.7),
                       fontSize: 12,

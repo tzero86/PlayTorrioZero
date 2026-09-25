@@ -7,7 +7,7 @@ import 'package:media_kit/media_kit.dart';
 
 import 'package:window_manager/window_manager.dart';
 
-import './pages/home/home_page.dart';
+import './shell/app_shell.dart';
 import './services/addon/addon_manager.dart';
 import './services/cloudstream/cloudstream_manager.dart';
 import './services/theme/app_theme_service.dart';
@@ -16,7 +16,6 @@ import './services/books/continue_reading_service.dart';
 import './services/books/reader_settings.dart';
 import './services/continue_watching/continue_watching_service.dart';
 import './services/theme/custom_background_service.dart';
-import './services/theme/dock_settings.dart';
 import './services/theme/glass_settings.dart';
 import './services/audiobook/audiobook_settings.dart';
 import './services/home/home_page_settings.dart';
@@ -29,6 +28,7 @@ import './services/music/qobuz_music_service.dart';
 import './services/my_list/my_list_service.dart';
 import './services/stream/torrent_stream_service.dart';
 import './services/player/player_settings.dart';
+import './services/playback/music_now_playing_bridge.dart';
 import './services/content/content_settings.dart';
 import './services/download/download_service.dart';
 import './services/config/env_service.dart';
@@ -65,13 +65,13 @@ void main() async {
   await PlayerSettings.initialize();
   await Future.wait([
     AppThemeService.initialize(),
-    // The first frame mounts HomePage, which immediately listens to these.
+    // The first frame mounts the shell, which mounts HomePage, and HomePage
+    // listens to these.
     HomePageSettings.initialize(),
     MyListService.initialize(),
     ContinueWatchingService.initialize(),
     CustomBackgroundService.initialize(),
     GlassSettings.initialize(),
-    DockSettings.initialize(),
     ContentSettings.initialize(),
     RendererBackendSettings.initialize(),
   ]);
@@ -109,6 +109,10 @@ Future<void> _initializeDeferredServices() async {
     guard('IptvSettings', IptvSettings.initialize),
     guard('MangaSettings', MangaSettings.initialize),
     guard('MusicSettings', MusicSettings.initialize),
+    // Music constructs its player only when the user opens the tab, but the
+    // shell's bar needs an owner from the first track it publishes, so the
+    // bridge registers itself here rather than on first Music visit.
+    guard('MusicNowPlayingBridge', () async => MusicNowPlayingBridge.initialize()),
     guard('MusicDownloadService', MusicDownloadService.instance.init),
     guard('QobuzMusicService', QobuzMusicService.instance.initialize),
     guard('P2pSettingsService', P2pSettingsService.initialize),
@@ -205,7 +209,7 @@ class _ZPlayAppState extends State<ZPlayApp>
           scrollBehavior: const MaterialScrollBehavior().copyWith(
             overscroll: false,
           ),
-          home: const HomePage(),
+          home: const AppShell(),
           builder: (context, child) {
             if (!kDebugMode) return child ?? const SizedBox.shrink();
             return Stack(

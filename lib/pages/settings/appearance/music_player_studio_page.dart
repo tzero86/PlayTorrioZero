@@ -17,9 +17,6 @@ class MusicPlayerStudioPage extends StatefulWidget {
 }
 
 class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with SingleTickerProviderStateMixin {
-  // Studio Player Mode: 0 = Fullscreen Player Studio, 1 = Mini Player Studio
-  int _studioPlayerTarget = 0;
-
   // Live Studio Preview State
   bool _previewIsPlaying = true;
   Duration _previewPosition = const Duration(minutes: 1, seconds: 48);
@@ -111,7 +108,7 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
-                          'Design mini & fullscreen players, drag components, customize physics & liquid glass',
+                          'Design the fullscreen player, drag components, customize physics & liquid glass',
                           style: TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.normal),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -121,64 +118,6 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
                 ],
               ),
         actions: [
-          // Target Switcher Pill (Fullscreen vs Mini Player)
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF141724),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                InkWell(
-                  onTap: () => setState(() => _studioPlayerTarget = 0),
-                  borderRadius: BorderRadius.circular(9),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _studioPlayerTarget == 0 ? palette.primaryColor : Colors.transparent,
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.fullscreen_rounded, size: 14, color: _studioPlayerTarget == 0 ? Colors.white : Colors.white60),
-                        if (screenW >= 480) ...[
-                          const SizedBox(width: 4),
-                          Text('Fullscreen', style: TextStyle(color: _studioPlayerTarget == 0 ? Colors.white : Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                InkWell(
-                  onTap: () => setState(() => _studioPlayerTarget = 1),
-                  borderRadius: BorderRadius.circular(9),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _studioPlayerTarget == 1 ? palette.primaryColor : Colors.transparent,
-                      borderRadius: BorderRadius.circular(9),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.dock_rounded, size: 14, color: _studioPlayerTarget == 1 ? Colors.white : Colors.white60),
-                        if (screenW >= 480) ...[
-                          const SizedBox(width: 4),
-                          Text('Mini Bar', style: TextStyle(color: _studioPlayerTarget == 1 ? Colors.white : Colors.white60, fontSize: 11, fontWeight: FontWeight.bold)),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-
           if (screenW < 520)
             IconButton(
               tooltip: 'Apply As Active Player',
@@ -347,25 +286,14 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
 
   void _applyAsActivePlayer() {
     final palette = AppThemeService.currentPalette.value;
-    if (_studioPlayerTarget == 0) {
-      MusicSettings.setSelectedFullscreenPreset(MusicFullscreenPreset.customStudio);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Custom Fullscreen Player Studio layout set as active player!'),
-          backgroundColor: palette.primaryColor,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      MusicSettings.setSelectedMiniPreset(MusicMiniPlayerPreset.customStudio);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Custom Mini Player Studio layout set as active bottom bar!'),
-          backgroundColor: palette.primaryColor,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+    MusicSettings.setSelectedFullscreenPreset(MusicFullscreenPreset.customStudio);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Custom Fullscreen Player Studio layout set as active player!'),
+        backgroundColor: palette.primaryColor,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -396,15 +324,13 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
             ),
           ),
 
-          // Player Container Sandbox (Fullscreen vs Mini)
+          // Player Container Sandbox
           Center(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: isDesktop ? 24 : 12, vertical: 16),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 440),
-                child: _studioPlayerTarget == 0
-                    ? _buildFullscreenPlayerCard(palette, isDesktop)
-                    : _buildMiniPlayerCard(palette, isDesktop),
+                child: _buildFullscreenPlayerCard(palette, isDesktop),
               ),
             ),
           ),
@@ -656,136 +582,6 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
     }
   }
 
-  Widget _buildMiniPlayerCard(AppThemePalette palette, bool isDesktop) {
-    final order = MusicSettings.componentOrderMini.value;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0F121C).withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: palette.primaryColor.withValues(alpha: 0.35),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: palette.primaryColor.withValues(alpha: 0.25),
-            blurRadius: 30,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            margin: const EdgeInsets.only(bottom: 10),
-            decoration: BoxDecoration(
-              color: palette.primaryColor.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.dock_rounded, color: palette.primaryColor, size: 12),
-                const SizedBox(width: 4),
-                Text(
-                  'MINI PLAYER DOCK PREVIEW',
-                  style: TextStyle(color: palette.primaryColor, fontSize: 9.5, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-
-          Row(
-            children: order.map((key) => _buildMiniPreviewComponent(key, palette)).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMiniPreviewComponent(String key, AppThemePalette palette) {
-    switch (key) {
-      case 'artwork':
-        return Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: const Color(0xFF181C2E),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-              boxShadow: [
-                BoxShadow(
-                  color: palette.primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: const Icon(Icons.music_note_rounded, color: Colors.white, size: 22),
-          ),
-        );
-
-      case 'trackInfo':
-        return const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Starboy (feat. Daft Punk)',
-                style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 2),
-              Text(
-                'The Weeknd • Lossless',
-                style: TextStyle(color: Colors.white54, fontSize: 11),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        );
-
-      case 'mainControls':
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildCanvasIconButton(Icons.skip_previous_rounded, 20, palette, () {}),
-            const SizedBox(width: 4),
-            _buildCustomPlayPauseButton(palette, mini: true),
-            const SizedBox(width: 4),
-            _buildCanvasIconButton(Icons.skip_next_rounded, 20, palette, () {}),
-          ],
-        );
-
-      case 'extraActions':
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(
-                _previewIsLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                color: _previewIsLiked ? const Color(0xFFFF4B72) : Colors.white60,
-                size: 18,
-              ),
-              onPressed: () => setState(() => _previewIsLiked = !_previewIsLiked),
-            ),
-          ],
-        );
-
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
   Widget _buildPreviewArtwork(AppThemePalette palette, MusicArtworkStyle artStyle) {
     if (artStyle == MusicArtworkStyle.vinylSpinningDisc) {
       return AnimatedBuilder(
@@ -895,27 +691,27 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
     );
   }
 
-  Widget _buildCustomPlayPauseButton(AppThemePalette palette, {bool mini = false}) {
+  Widget _buildCustomPlayPauseButton(AppThemePalette palette) {
     final style = MusicSettings.customPlayButtonStyle.value;
     final hoverEffect = MusicSettings.customHoverEffect.value;
     final icon = _previewIsPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded;
-    final size = mini ? 38.0 : 54.0;
-    final iconSize = mini ? 22.0 : 32.0;
+    const size = 54.0;
+    const iconSize = 32.0;
 
     Widget buttonCore;
     BorderRadius borderRadius;
 
     if (style == MusicPlayButtonStyle.liquidGlassNeo) {
-      borderRadius = BorderRadius.circular(mini ? 12 : 18);
+      borderRadius = BorderRadius.circular(18);
       final glassStyle = LiquidGlassStyle(
-        shape: LiquidGlassShape.continuousRoundedRectangle(
-          cornerRadius: mini ? 12 : 18,
+        shape: const LiquidGlassShape.continuousRoundedRectangle(
+          cornerRadius: 18,
           clipQuality: LiquidGlassClipQuality.exact,
           borderWidth: 1.5,
           lightIntensity: 1.5,
-          lightColor: const Color(0xE6FFFFFF),
+          lightColor: Color(0xE6FFFFFF),
           lightDirection: 115,
-          borderType: const OpticalBorder(
+          borderType: OpticalBorder(
             borderSaturation: 1.5,
             ambientIntensity: 1.2,
             borderSolidity: 0.2,
@@ -955,7 +751,7 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
         ),
       );
     } else if (style == MusicPlayButtonStyle.neonSquare) {
-      borderRadius = BorderRadius.circular(mini ? 10 : 16);
+      borderRadius = BorderRadius.circular(16);
       buttonCore = Container(
         width: size,
         height: size,
@@ -977,7 +773,7 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
     } else if (style == MusicPlayButtonStyle.pillPulse) {
       borderRadius = BorderRadius.circular(30);
       buttonCore = Container(
-        width: mini ? 48 : 72,
+        width: 72,
         height: size,
         decoration: BoxDecoration(
           borderRadius: borderRadius,
@@ -1221,17 +1017,15 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
 
   // ── Tab 0: Drag & Drop Reorderable Components ──
   Widget _buildDragAndDropLayoutSection(AppThemePalette palette) {
-    final isMini = _studioPlayerTarget == 1;
-
     final componentNames = {
-      'artwork': isMini ? 'Mini Cover Art' : 'Album Art & Vinyl Turntable',
+      'artwork': 'Album Art & Vinyl Turntable',
       'title': 'Track, Artist & Album Titles',
       'trackInfo': 'Track Title & Quality Badge',
       'qualityBadge': 'Lossless Hi-Res Audio Quality Badge',
       'seekbar': 'Seek Bar Scrubber Canvas',
       'mainControls': 'Primary Controls (Play, Pause, Skip, Shuffle, Repeat)',
       'secondaryControls': 'Secondary Controls (Volume Slider)',
-      'extraActions': isMini ? 'Like Track Action' : 'Synced Lyrics & Queue Quick Buttons',
+      'extraActions': 'Synced Lyrics & Queue Quick Buttons',
     };
 
     final componentIcons = {
@@ -1246,7 +1040,7 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
     };
 
     return ValueListenableBuilder<List<String>>(
-      valueListenable: isMini ? MusicSettings.componentOrderMini : MusicSettings.componentOrderFullscreen,
+      valueListenable: MusicSettings.componentOrderFullscreen,
       builder: (context, order, _) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1255,15 +1049,15 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
               children: [
                 Icon(Icons.drag_indicator_rounded, color: palette.primaryColor, size: 18),
                 const SizedBox(width: 8),
-                Text(
-                  isMini ? 'Mini Player Drag & Drop Arranger' : 'Fullscreen Player Drag & Drop Arranger',
-                  style: const TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800),
+                const Text(
+                  'Fullscreen Player Drag & Drop Arranger',
+                  style: TextStyle(color: Colors.white, fontSize: 14.5, fontWeight: FontWeight.w800),
                 ),
               ],
             ),
             const SizedBox(height: 6),
             Text(
-              'Hold and drag any block to reorder the layout of your ${isMini ? "mini player bar" : "fullscreen player"} in real-time.',
+              'Hold and drag any block to reorder the layout of your fullscreen player in real-time.',
               style: TextStyle(color: Colors.white.withValues(alpha: 0.55), fontSize: 12),
             ),
             const SizedBox(height: 16),
@@ -1273,11 +1067,7 @@ class _MusicPlayerStudioPageState extends State<MusicPlayerStudioPage> with Sing
               physics: const NeverScrollableScrollPhysics(),
               buildDefaultDragHandles: false,
               onReorder: (oldIdx, newIdx) {
-                if (isMini) {
-                  MusicSettings.reorderMiniComponents(oldIdx, newIdx);
-                } else {
-                  MusicSettings.reorderFullscreenComponents(oldIdx, newIdx);
-                }
+                MusicSettings.reorderFullscreenComponents(oldIdx, newIdx);
               },
               children: List.generate(order.length, (index) {
                 final key = order[index];

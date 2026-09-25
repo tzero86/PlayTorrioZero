@@ -385,11 +385,16 @@ class _SearchPageState extends State<SearchPage> {
               child: Row(
                 children: [
                   const SizedBox(width: 8),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
-                    color: Colors.white,
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  // Search is a shell slot, so it usually has nothing to pop back to
+                  // and popping would dismiss the shell itself. Keeping the gate means a
+                  // pushed SearchPage still shows the button and neither state shifts
+                  // the field, since the inset above is unconditional.
+                  if (Navigator.of(context).canPop())
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
+                      color: Colors.white,
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.only(right: 16),

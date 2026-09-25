@@ -8,13 +8,13 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../services/theme/app_theme_service.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/iptv/iptv_controller.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../services/iptv/iptv_storage.dart';
 import '../../services/player/player_settings.dart';
 import '../../widgets/common/animated_ambient_background.dart';
-import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/iptv/multinutz_channel_sheet.dart';
 import '../../services/iptv/hardcoded_channels.dart';
@@ -873,7 +873,8 @@ final gridContent = _fullscreenIndex != null
         : (_isRearrangeMode
             ? _buildRearrangeGrid(crossAxisCount, childAspectRatio, topPadding)
             : GridView.builder(
-                padding: EdgeInsets.fromLTRB(16, topPadding + 88, 16, 96),
+                // The 96 px bottom was dock clearance; the shell reserves its own space now.
+                padding: EdgeInsets.fromLTRB(16, topPadding + 88, 16, ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 12,
@@ -894,12 +895,6 @@ final gridContent = _fullscreenIndex != null
         left: 0,
         right: 0,
         child: _buildSlidingMenuBars(topPadding: topPadding),
-      ),
-      const Positioned(
-        bottom: 24,
-        left: 0,
-        right: 0,
-        child: Center(child: AppLiquidDock(currentDestination: null)),
       ),
     ];
 

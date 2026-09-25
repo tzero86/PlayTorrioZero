@@ -4,7 +4,7 @@ import 'package:liquid_glass_easy/liquid_glass_easy.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../services/theme/app_theme_service.dart';
-import '../../services/theme/dock_settings.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/iptv/hardcoded_channels.dart';
 import '../../services/iptv/iptv_controller.dart';
@@ -12,15 +12,14 @@ import '../../services/iptv/iptv_settings.dart';
 import '../../services/iptv/iptv_storage.dart';
 import '../../models/iptv/iptv_models.dart';
 import '../../services/discord/discord_rpc_service.dart';
+import '../../shell/app_shell_scope.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
-import '../../widgets/common/app_liquid_dock.dart';
 import '../../widgets/common/custom_scroll_track.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/iptv/iptv_hero_carousel.dart';
 import '../../widgets/iptv/iptv_slider_section.dart';
 import '../multinutz/multinutz_page.dart';
-import '../settings/settings_page.dart';
 import 'iptv_channel_sheet.dart';
 import 'iptv_player_page.dart';
 import 'iptv_portals_modal.dart';
@@ -172,11 +171,12 @@ class _IptvPageState extends State<IptvPage> {
     }
   }
 
-  void _navigateToSettings(Offset? tapPosition) {
-    Navigator.push(
-      context,
-      LiquidRevealRoute(page: const SettingsPage(), tapPosition: tapPosition),
-    );
+  /// Settings is a shell slot now, so this switches the shell instead of pushing
+  /// a route that would stack a second navigation model above it. The lookup is
+  /// nullable because widget tests and entity routes mount this page outside the
+  /// shell, where the no-op is the correct outcome.
+  void _navigateToSettings() {
+    AppShellScope.of(context)?.go(ShellSlot.settings);
   }
 
   void _navigateToSearch(Offset? tapPosition) {
@@ -312,7 +312,8 @@ class _IptvPageState extends State<IptvPage> {
                 onChannelTap: _openChannel,
               ),
 
-          const SizedBox(height: 90),
+          // Trailing gap only: the dock used to reserve 90 px of clearance here.
+          SizedBox(height: ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom),
         ],
       ),
     );
@@ -347,19 +348,6 @@ class _IptvPageState extends State<IptvPage> {
           child: CustomScrollTrack(controller: _scrollController),
         ),
 
-      // Liquid Dock Navbar (Home & Anime Page Style)
-      Positioned(
-        bottom: 24,
-        left: 0,
-        right: 0,
-        child: Center(
-          child: AppLiquidDock(
-            currentDestination: DockItemKey.liveTv,
-            onSettingsTap: () => _navigateToSettings(null),
-            onSearchTap: () => _navigateToSearch(null),
-          ),
-        ),
-      ),
     ];
 
     return Scaffold(
@@ -398,7 +386,7 @@ class _IptvPageState extends State<IptvPage> {
 class _IptvGlassAppBar extends StatelessWidget {
   final double topPadding;
   final Function(Offset? tapPosition) onSearchTap;
-  final Function(Offset? tapPosition) onSettingsTap;
+  final VoidCallback onSettingsTap;
   final Function(Offset? tapPosition) onMultiStreamsTap;
   final VoidCallback onSourcesTap;
 
@@ -530,12 +518,12 @@ class _IptvGlassAppBar extends StatelessWidget {
 
           SizedBox(width: buttonSpacing),
 
-          // Settings button
+          // Settings takes no reveal position, unlike Search: it is a shell slot.
           _GlassActionButton(
             size: buttonSize,
             icon: Icons.settings_rounded,
             tooltip: 'Settings',
-            onTapWithPosition: onSettingsTap,
+            onTap: onSettingsTap,
           ),
         ],
       ),

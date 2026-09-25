@@ -8,8 +8,7 @@ import '../../services/addon/addon_manager.dart';
 import '../../services/content/content_settings.dart';
 import '../../services/metadata/metadata_service.dart';
 import '../../services/theme/app_theme_service.dart';
-import '../../services/theme/dock_settings.dart';
-import '../../widgets/common/app_liquid_dock.dart';
+import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/error_view.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/movie/movie_card.dart';
@@ -479,18 +478,6 @@ class _DiscoverPageState extends State<DiscoverPage> {
               extrasH: extrasH,
             ),
           ),
-
-          // ── Liquid Dock Navbar ──
-          Positioned(
-            bottom: 12.0 + bottomInset,
-            left: 0,
-            right: 0,
-            child: const Center(
-              child: AppLiquidDock(
-                currentDestination: DockItemKey.discover,
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -574,11 +561,13 @@ class _DiscoverPageState extends State<DiscoverPage> {
 
     return GridView.builder(
       controller: _scrollController,
+      // The shell reserves its own chrome's space, so only the device safe area
+      // and one gap are still owed here.
       padding: EdgeInsets.fromLTRB(
         sizing.sidePadding,
         topOffset + 14,
         sizing.sidePadding,
-        110 + bottomInset,
+        ZplaySpacing.s24 + bottomInset,
       ),
       physics: const BouncingScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -839,10 +828,17 @@ class _DiscoverPageState extends State<DiscoverPage> {
                 child: Row(
                   children: [
                     const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back_ios_rounded, size: 19, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
+                    // Discover is a Browse vertical now, so this page is normally
+                    // a shell slot with nothing below it to pop. Gated rather than
+                    // deleted so the legacy search and genre route, which is still
+                    // pushed with a query, keeps its back button. There is no
+                    // layout jump in practice: inside the shell the gate is always
+                    // false, so the row always starts at the gutter.
+                    if (Navigator.of(context).canPop())
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_rounded, size: 19, color: Colors.white),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
                     const SizedBox(width: 2),
                     if (!_isSearching) ...[
                       Icon(Icons.explore_rounded, color: AppThemeService.currentPalette.value.primaryColor, size: 21),

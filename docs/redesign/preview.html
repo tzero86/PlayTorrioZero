@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ZPlay shell redesign: one shell, three chromes</title>
+<!--
+  Design prototype for the ZPlay navigation/shell rewrite. Not shipped, not the
+  landing site (docs/redesign/ is excluded from the Pages deploy in
+  .github/workflows/pages.yml).
+
+  Every colour below is copied from lib/services/theme/design_tokens.dart and the
+  Signal Teal preset in lib/services/theme/app_theme_service.dart. Nothing here
+  invents a token; where a value is derived (surfaceOverlay, accentSubtle) the
+  derivation from ZplayTokens.derive is applied by hand and named in a comment.
+-->
+<style>
+/* ── Fonts: the two families the app actually bundles, read from the repo ─── */
+@font-face{font-family:Poppins;src:url("../../assets/fonts/Poppins-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:Poppins;src:url("../../assets/fonts/Poppins-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
+@font-face{font-family:Poppins;src:url("../../assets/fonts/Poppins-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:Poppins;src:url("../../assets/fonts/Poppins-Bold.ttf") format("truetype");font-weight:700;font-display:swap}
+
+/* ── Tokens: dark (Signal Teal) ───────────────────────────────────────────── */
+:root{
+  --bg:#0A0D12;            /* palette.scaffoldBackgroundColor */
+  --surface:#111621;       /* palette.cardBackgroundColor */
+  --raised:#161C29;        /* palette.appBarBackgroundColor */
+  --overlay:#292E3A;       /* raised lifted 8% toward white (ZplayTokens.derive) */
+
+  --line-faint:rgba(255,255,255,.06);   /* ZplayOpacity.borderSubtle */
+  --line:rgba(255,255,255,.08);         /* ZplayOpacity.borderDefault */
+  --line-strong:rgba(255,255,255,.12);  /* ZplayOpacity.borderStrong */
+
+  --fg:rgba(255,255,255,.90);           /* ZplayOpacity.textPrimary */
+  --fg-2:rgba(255,255,255,.80);         /* textEmphasis */
+  --fg-3:rgba(255,255,255,.50);         /* textSecondary */
+  --fg-4:rgba(255,255,255,.35);         /* textMuted */
+
+  --accent:#2FD0C0;                     /* palette.primaryColor */
+  --accent-hover:#5ADFD2;
+  --accent-press:#22B3A5;
+  --accent-subtle:#16343A;              /* surface lerped 16% to accent */
+  --on-accent:#07231F;                  /* chosen by contrast, not luminance */
+
+  --ok:#10B981; --warn:#F59E0B; --danger:#EF4444; --info:#00D2EF;
+
+  --r-xs:6px; --r-sm:10px; --r-md:14px; --r-lg:20px; --r-xl:28px;
+  --s2:2px; --s4:4px; --s8:8px; --s12:12px; --s16:16px; --s20:20px;
+  --s24:24px; --s32:32px; --s40:40px; --s48:48px; --s64:64px;
+
+  --fast:120ms; --base:200ms; --slow:320ms;
+  --ease:cubic-bezier(.215,.61,.355,1);
+  --shadow:0 18px 48px rgba(0,0,0,.55);
+  --max:1320px;
+}
+/* ── Tokens: light. Same semantic roles, inverted neutral ramp, same accent ── */
+.light{
+  --bg:#F7F8FA; --surface:#FFFFFF; --raised:#FFFFFF; --overlay:#FFFFFF;
+  --line-faint:rgba(10,13,18,.06); --line:rgba(10,13,18,.10); --line-strong:rgba(10,13,18,.16);
+  --fg:#0A0D12; --fg-2:rgba(10,13,18,.78); --fg-3:rgba(10,13,18,.58); --fg-4:rgba(10,13,18,.42);
+  --accent-subtle:#DCF5F1;
+  --shadow:0 14px 40px rgba(10,13,18,.14);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--fg);
+  font:400 14px/1.4 Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.18;letter-spacing:-.02em}
+p{margin:0}
+a{color:inherit}
+img{display:block}
+code,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+
+.wrap{max-width:var(--max);margin:0 auto;padding:0 var(--s24)}
+section{padding:var(--s64) 0;border-top:1px solid var(--line)}
+section.flat{border-top:0}
+.lead{color:var(--fg-3);max-width:74ch}
+.eyebrow{font:600 10px/1.2 Poppins,sans-serif;letter-spacing:1.2px;text-transform:uppercase;color:var(--fg-4);margin-bottom:var(--s12)}
+
+/* ── Masthead ─────────────────────────────────────────────────────────────── */
+.mast{display:flex;gap:var(--s24);align-items:flex-start;flex-wrap:wrap;padding:var(--s48) 0 var(--s32)}
+.mast img.mark{width:64px;height:64px;border-radius:var(--r-md)}
+.mast h1{font-size:32px}
+.mast .read{margin-top:var(--s8);max-width:78ch;color:var(--fg-2)}
+.dials{display:flex;gap:var(--s8);flex-wrap:wrap;margin-top:var(--s16)}
+.dial{border:1px solid var(--line);background:var(--raised);border-radius:var(--r-sm);padding:var(--s8) var(--s12);font-size:11px;font-weight:500}
+.dial b{color:var(--accent);font-weight:600}
+.note{border-left:2px solid var(--accent);padding:var(--s8) 0 var(--s8) var(--s16);margin-top:var(--s24);color:var(--fg-2);max-width:80ch;font-size:13px}
+
+/* ── Generic grid ─────────────────────────────────────────────────────────── */
+.grid{display:grid;gap:var(--s16);margin-top:var(--s24)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(248px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s20)}
+.card h4{font-size:15px;font-weight:600;margin-bottom:var(--s8)}
+.card p{color:var(--fg-3);font-size:12.5px;line-height:1.55}
+.metric{font-size:28px;font-weight:700;letter-spacing:-.02em;color:var(--fg)}
+.metric span{font-size:13px;font-weight:500;color:var(--fg-3);letter-spacing:0}
+.cite{font-size:11px;color:var(--fg-4);margin-top:var(--s8);font-family:ui-monospace,Menlo,Consolas,monospace}
+
+/* ── Before: the dock as it ships ─────────────────────────────────────────── */
+.dockshot{background:var(--raised);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s12);overflow-x:auto}
+.dockitems{display:flex;gap:var(--s8);align-items:center;min-width:max-content}
+.dockitem{width:42px;height:42px;display:grid;place-items:center;border-radius:var(--r-sm);color:var(--fg-3);background:rgba(255,255,255,.04);position:relative}
+.dockitem.on{width:auto;padding:0 var(--s12);gap:var(--s8);display:flex;color:var(--fg);background:var(--accent-subtle);box-shadow:inset 0 0 0 1px var(--accent)}
+.dockitem.on label{font-size:13.5px;font-weight:600}
+.docklabels{display:flex;gap:var(--s8);margin-top:var(--s8);min-width:max-content}
+.docklabels i{font-style:normal;font-size:10px;color:var(--fg-4);width:42px;text-align:center;flex:none}
+
+/* ── Destination model ───────────────────────────────────────────────────── */
+.tier{border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s16);background:var(--surface)}
+.tier .tier-head{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s12);margin-bottom:var(--s12)}
+.tier .tier-head b{font-size:13px;font-weight:600}
+.tier .tier-head em{font-style:normal;font-size:11px;color:var(--fg-4)}
+.chips{display:flex;flex-wrap:wrap;gap:var(--s8)}
+.chip{border:1px solid var(--line);border-radius:999px;padding:var(--s8) var(--s12);font-size:12px;font-weight:500;color:var(--fg-2);background:var(--raised)}
+.chip.accent{border-color:transparent;background:var(--accent);color:var(--on-accent);font-weight:600}
+.chip.slot{border-color:var(--accent);color:var(--accent)}
+.maprow{display:grid;grid-template-columns:1fr auto 1fr;gap:var(--s12);align-items:center;padding:var(--s8) 0;border-bottom:1px solid var(--line-faint);font-size:12.5px}
+.maprow:last-child{border-bottom:0}
+.maprow .to{color:var(--accent);font-weight:600}
+.arrow{color:var(--fg-4)}
+.strike{color:var(--fg-4);text-decoration:line-through}
+
+/* ── The switcher + device frame ─────────────────────────────────────────── */
+.segbar{display:inline-flex;gap:var(--s4);padding:var(--s4);border:1px solid var(--line);border-radius:999px;background:var(--raised);margin-top:var(--s24)}
+.segbar button{appearance:none;border:0;background:transparent;color:var(--fg-3);font:600 12.5px/1 Poppins,sans-serif;padding:var(--s12) var(--s20);border-radius:999px;cursor:pointer;transition:background var(--base) var(--ease),color var(--base) var(--ease);min-height:44px}
+.segbar button:hover{color:var(--fg)}
+.segbar button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+
+.stagewrap{display:block;margin-top:var(--s24)}
+.stage{background:#05070A;border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s20);display:grid;place-items:center;overflow:hidden}
+.spec{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:var(--s20);margin-top:var(--s16);display:grid;grid-template-columns:260px 1fr;gap:var(--s24)}
+@media (max-width:760px){.spec{grid-template-columns:1fr}}
+.spec h4{font-size:13px;font-weight:600;margin-bottom:var(--s12)}
+.spec dl{display:grid;grid-template-columns:auto 1fr;gap:var(--s8) var(--s12);margin:0;font-size:12px}
+.spec dt{color:var(--fg-4)}
+.spec dd{margin:0;color:var(--fg-2);font-weight:500}
+
+/* device: width/height per chrome, set by data-chrome on .stage */
+.shell{width:390px;height:760px;background:var(--bg);border-radius:var(--r-xl);overflow:hidden;border:1px solid var(--line-strong);display:grid;transition:width var(--slow) var(--ease),height var(--slow) var(--ease);
+  grid-template-areas:"content" "nowbar" "rail";grid-template-rows:1fr auto auto;grid-template-columns:1fr}
+.stage[data-chrome="tablet"] .shell{width:820px;height:900px;border-radius:var(--r-lg);grid-template-areas:"rail content" "rail nowbar";grid-template-columns:88px 1fr;grid-template-rows:1fr auto}
+.stage[data-chrome="desktop"] .shell{width:100%;max-width:1240px;height:800px;border-radius:var(--r-md);grid-template-areas:"rail content" "rail nowbar";grid-template-columns:88px 1fr;grid-template-rows:1fr auto}
+.stage[data-chrome="tv"] .shell{width:100%;height:700px;border-radius:var(--r-sm);grid-template-areas:"rail content" "rail nowbar";grid-template-columns:236px 1fr;grid-template-rows:1fr auto}
+
+/* ── Rail: one element, three placements ─────────────────────────────────── */
+.rail{grid-area:rail;background:var(--raised);border-top:1px solid var(--line);display:flex;padding:var(--s8);gap:var(--s4);overflow:hidden}
+.rail a{display:grid;place-items:center;gap:var(--s4);text-decoration:none;color:var(--fg-4);border-radius:var(--r-sm);padding:var(--s8) var(--s4);flex:1;min-height:48px;transition:color var(--base) var(--ease),background var(--base) var(--ease)}
+.rail a .ms{font-size:22px}
+.rail a label{font-size:10.5px;font-weight:600;letter-spacing:.2px}
+.rail a:hover{color:var(--fg-2)}
+.rail a[aria-current="page"]{color:var(--accent);background:var(--accent-subtle)}
+/* Search is a nav row on phone and TV, where the primary input is a thumb or a
+   remote. It is a persistent field in the top bar on tablet and desktop, where a
+   keyboard exists. Never both on one form factor. */
+.rail a.searchslot{display:grid}
+.stage[data-chrome="tablet"] .rail a.searchslot,
+.stage[data-chrome="desktop"] .rail a.searchslot{display:none}
+.stage[data-chrome="tablet"] .rail,.stage[data-chrome="desktop"] .rail,.stage[data-chrome="tv"] .rail{
+  border-top:0;border-right:1px solid var(--line);flex-direction:column;justify-content:flex-start;padding:var(--s12) var(--s8);gap:var(--s4)}
+.stage[data-chrome="tablet"] .rail a,.stage[data-chrome="desktop"] .rail a,.stage[data-chrome="tv"] .rail a{flex:0 0 auto;width:100%}
+.stage[data-chrome="tv"] .rail{padding:var(--s16) var(--s12);gap:var(--s8)}
+.stage[data-chrome="tv"] .rail a{grid-auto-flow:column;grid-template-columns:32px 1fr;place-items:center start;gap:var(--s12);padding:var(--s16);min-height:64px;font-size:15px}
+.stage[data-chrome="tv"] .rail a .ms{font-size:30px}
+.stage[data-chrome="tv"] .rail a label{font-size:15px;font-weight:600}
+.stage[data-chrome="tv"] .rail a[aria-current="page"],.stage[data-chrome="tv"] .rail a.focused{box-shadow:inset 0 0 0 2px var(--accent)}
+.rail .railtop{display:flex;align-items:center;justify-content:center;padding:var(--s8) 0 var(--s16)}
+.rail .railtop img{width:36px;height:36px;border-radius:var(--r-sm)}
+.rail .railtop b{display:none}
+/* The wordmark needs 236 px of rail, so it only appears on TV. At 88 px the mark
+   alone carries the brand, which is what the collapsed rail can actually hold. */
+.stage[data-chrome="tv"] .rail .railtop{justify-content:flex-start;gap:var(--s12);padding:var(--s12) var(--s16) var(--s20)}
+.stage[data-chrome="tv"] .rail .railtop img{width:48px;height:48px;border-radius:var(--r-md)}
+.stage[data-chrome="tv"] .rail .railtop b{display:block;font-size:20px;font-weight:700}
+.rail .railspacer{display:none}
+.stage[data-chrome="tablet"] .rail .railspacer,.stage[data-chrome="desktop"] .rail .railspacer,.stage[data-chrome="tv"] .rail .railspacer{display:block;flex:1}
+
+/* ── Content ─────────────────────────────────────────────────────────────── */
+.content{grid-area:content;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+.topbar{display:flex;align-items:center;gap:var(--s12);padding:var(--s16) var(--s20);border-bottom:1px solid var(--line-faint);background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px)}
+.topbar h3{font-size:18px;font-weight:600}
+.topbar .spacer{flex:1}
+.iconbtn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line);border-radius:var(--r-sm);color:var(--fg-3);background:transparent;flex:none}
+.topsearch{display:none}
+.stage[data-chrome="tablet"] .topsearch,.stage[data-chrome="desktop"] .topsearch{display:flex;align-items:center;gap:var(--s8);flex:1;max-width:420px;min-width:200px;border:1px solid var(--line);border-radius:var(--r-sm);padding:var(--s8) var(--s12);color:var(--fg-4);font-size:12.5px;background:var(--surface)}
+.topsearch span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.switcher{display:flex;gap:var(--s8);padding:var(--s16) var(--s20) var(--s12);overflow-x:auto;scrollbar-width:none}
+.switcher::-webkit-scrollbar{display:none}
+.switcher .chip{white-space:nowrap;min-height:36px;display:flex;align-items:center}
+.stage[data-chrome="tv"] .switcher{padding:var(--s20) var(--s32) var(--s16);gap:var(--s12)}
+.stage[data-chrome="tv"] .switcher .chip{min-height:52px;font-size:16px;padding:0 var(--s20)}
+
+.scroll{flex:1;overflow-y:auto;padding-bottom:var(--s24);scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.stage[data-chrome="tv"] .scroll{padding-bottom:var(--s40)}
+
+.hero{position:relative;height:200px;margin:0 var(--s20);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.stage[data-chrome="tv"] .hero{height:300px;margin:0 var(--s32);border-radius:var(--r-lg)}
+.hero img{width:100%;height:100%;object-fit:cover}
+.hero .veil{position:absolute;inset:0;background:linear-gradient(90deg,var(--bg) 8%,rgba(10,13,18,.55) 46%,transparent 78%)}
+.hero .body{position:absolute;left:var(--s20);bottom:var(--s20);right:var(--s20);max-width:460px}
+.hero h2{font-size:26px}
+.stage[data-chrome="tv"] .hero h2{font-size:38px}
+.hero p{color:var(--fg-2);font-size:12.5px;margin-top:var(--s8);max-width:52ch}
+.stage[data-chrome="tv"] .hero p{font-size:16px;margin-top:var(--s12)}
+.actions{display:flex;gap:var(--s8);margin-top:var(--s16);flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:var(--s8);border:1px solid var(--line);border-radius:var(--r-sm);padding:var(--s12) var(--s20);font:600 12.5px/1 Poppins,sans-serif;color:var(--fg);background:var(--raised);min-height:44px;cursor:pointer}
+.btn.primary{background:var(--accent);color:var(--on-accent);border-color:transparent}
+.stage[data-chrome="tv"] .btn{min-height:56px;font-size:16px;padding:var(--s16) var(--s24)}
+.railrow{margin-top:var(--s24)}
+.railhead{display:flex;align-items:center;gap:var(--s12);padding:0 var(--s20) var(--s12)}
+.stage[data-chrome="tv"] .railhead{padding:0 var(--s32) var(--s16)}
+.railhead b{font-size:15px;font-weight:600}
+.stage[data-chrome="tv"] .railhead b{font-size:20px}
+.railhead .see{margin-left:auto;color:var(--fg-3);font-size:12px;display:flex;align-items:center;gap:var(--s4);min-height:44px}
+.posterstrip{display:flex;gap:var(--s12);padding:0 var(--s20);overflow-x:hidden}
+.stage[data-chrome="tv"] .posterstrip{gap:var(--s20);padding:0 var(--s32)}
+.poster{width:132px;flex:none;border-radius:var(--r-sm);overflow:hidden;background:var(--surface);border:1px solid var(--line)}
+.stage[data-chrome="tv"] .poster{width:196px}
+.poster img{width:100%;aspect-ratio:2/3;object-fit:cover}
+.poster .meta{padding:var(--s8)}
+.poster .meta b{display:block;font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.poster .meta i{font-style:normal;font-size:10.5px;color:var(--fg-4)}
+.stage[data-chrome="tv"] .poster .meta b{font-size:15px}
+.stage[data-chrome="tv"] .poster .meta i{font-size:13px}
+.poster.wide{width:228px}
+.stage[data-chrome="tv"] .poster.wide{width:340px}
+.poster.wide img{aspect-ratio:16/9}
+.poster.focus{box-shadow:0 0 0 2px var(--accent),0 0 0 6px rgba(47,208,192,.22)}
+
+/* ── Now-playing bar: the element Music and Audiobooks currently own privately ── */
+.nowbar{grid-area:nowbar;display:flex;align-items:center;gap:var(--s12);padding:var(--s8) var(--s12);background:var(--raised);border-top:1px solid var(--line)}
+.stage[data-chrome="tv"] .nowbar{padding:var(--s16) var(--s24);gap:var(--s20)}
+.nowbar .cover{width:40px;height:40px;border-radius:var(--r-sm);overflow:hidden;flex:none}
+.stage[data-chrome="tv"] .nowbar .cover{width:56px;height:56px}
+.nowbar .cover img{width:100%;height:100%;object-fit:cover}
+.nowbar .id{min-width:0;flex:1}
+.nowbar .id b{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nowbar .id i{font-style:normal;font-size:11px;color:var(--fg-4)}
+.stage[data-chrome="tv"] .nowbar .id b{font-size:17px}
+.stage[data-chrome="tv"] .nowbar .id i{font-size:14px}
+.transport{display:flex;align-items:center;gap:var(--s4)}
+.transport button{width:36px;height:36px;display:grid;place-items:center;border:0;background:transparent;color:var(--fg-2);border-radius:999px;cursor:pointer}
+.transport button.play{background:var(--accent);color:var(--on-accent);width:40px;height:40px}
+.stage[data-chrome="tv"] .transport button{width:48px;height:48px}
+.stage[data-chrome="tv"] .transport button.play{width:56px;height:56px}
+.nowbar .progress{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--line-faint)}
+.nowbar{position:relative}
+.nowbar .progress i{display:block;height:100%;width:38%;background:var(--accent)}
+
+/* ── Reading the layout: annotation callouts ─────────────────────────────── */
+.calls{margin-top:var(--s16);display:grid;gap:var(--s8);font-size:12px;color:var(--fg-3)}
+.calls div{display:flex;gap:var(--s8)}
+.calls b{color:var(--accent);font-weight:600;flex:none;min-width:112px}
+
+/* ── Settings / Details composition sketches ─────────────────────────────── */
+.pane{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);overflow:hidden}
+.pane .pane-head{padding:var(--s12) var(--s16);border-bottom:1px solid var(--line);font-size:12px;font-weight:600;color:var(--fg-3);display:flex;justify-content:space-between}
+.pane .pane-head span{color:var(--fg-4);font-weight:500}
+.pane .pane-body{padding:var(--s12) var(--s16)}
+.row{display:flex;align-items:center;gap:var(--s12);padding:var(--s12) 0;border-bottom:1px solid var(--line-faint);font-size:12.5px}
+.row:last-child{border-bottom:0}
+.row .ic{width:32px;height:32px;border-radius:var(--r-sm);display:grid;place-items:center;background:rgba(255,255,255,.05);color:var(--fg-3);flex:none}
+.row .tx{flex:1;min-width:0}
+.row .tx b{display:block;font-weight:500}
+.row .tx i{font-style:normal;font-size:11px;color:var(--fg-4)}
+.row .ctl{flex:none;color:var(--fg-4);font-size:11px;display:flex;align-items:center;gap:var(--s8)}
+.row .ctl .switch{width:38px;height:22px;border-radius:999px;background:var(--accent);position:relative}
+.row .ctl .switch::after{content:"";position:absolute;top:3px;right:3px;width:16px;height:16px;border-radius:999px;background:var(--on-accent)}
+.row .ctl .switch.off{background:var(--line-strong)}
+.row .ctl .switch.off::after{right:auto;left:3px;background:var(--fg-3)}
+.grouphead{font:600 10px/1.2 Poppins,sans-serif;letter-spacing:1.2px;text-transform:uppercase;color:var(--fg-4);padding:var(--s16) 0 var(--s4)}
+.dsearch{display:flex;align-items:center;gap:var(--s8);border:1px solid var(--line);border-radius:var(--r-sm);padding:var(--s12);color:var(--fg-4);font-size:12.5px;background:var(--bg);margin-bottom:var(--s8)}
+
+/* ── Platform matrix ─────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;margin-top:var(--s24);font-size:12.5px}
+th,td{text-align:left;padding:var(--s12) var(--s12) var(--s12) 0;border-bottom:1px solid var(--line-faint);vertical-align:top}
+th{color:var(--fg-4);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+td{color:var(--fg-2)}
+td:first-child{color:var(--fg);font-weight:600;white-space:nowrap}
+
+/* ── Phases ──────────────────────────────────────────────────────────────── */
+.phase{display:grid;grid-template-columns:56px 1fr;gap:var(--s16);padding:var(--s20) 0;border-bottom:1px solid var(--line-faint)}
+.phase:last-child{border-bottom:0}
+.phase .n{width:44px;height:44px;border-radius:var(--r-sm);display:grid;place-items:center;border:1px solid var(--accent);color:var(--accent);font-weight:700;font-size:15px}
+.phase h4{font-size:15px;margin-bottom:var(--s4)}
+.phase ul{margin:var(--s8) 0 0;padding-left:var(--s20);color:var(--fg-3);font-size:12.5px;line-height:1.7}
+.phase .ok{margin-top:var(--s8);font-size:12px;color:var(--accent)}
+
+/* ── Accent-only theming demo ────────────────────────────────────────────── */
+.accentdemo{display:grid;gap:var(--s12);margin-top:var(--s24)}
+.accentdemo .swatchrow{display:flex;gap:var(--s8);flex-wrap:wrap}
+.swatch{border:1px solid var(--line);background:var(--raised);border-radius:var(--r-sm);padding:var(--s8) var(--s12);font:600 12px/1 Poppins,sans-serif;cursor:pointer;color:var(--fg-2);display:flex;align-items:center;gap:var(--s8);min-height:44px}
+.swatch i{width:14px;height:14px;border-radius:999px;background:var(--sw);flex:none}
+.swatch[aria-pressed="true"]{border-color:var(--accent);color:var(--fg)}
+.accentdemo .proof{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--s12)}
+.mini{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--bg)}
+.mini .bar{display:flex;align-items:center;gap:var(--s8);padding:var(--s12);background:var(--raised);border-bottom:1px solid var(--line)}
+.mini .bar b{font-size:12.5px}
+.mini .body{padding:var(--s16);display:grid;gap:var(--s8)}
+.mini .pill{display:inline-flex;align-items:center;gap:var(--s8);background:var(--accent);color:var(--on-accent);border-radius:var(--r-sm);padding:var(--s8) var(--s12);font:600 12px/1 Poppins,sans-serif;width:max-content}
+.mini .line{height:8px;border-radius:999px;background:rgba(255,255,255,.10)}
+.mini .line.short{width:56%}
+.mini .table{height:64px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--line)}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
+footer{padding:var(--s40) 0;border-top:1px solid var(--line);color:var(--fg-4);font-size:12px}
+.tiny{font-size:11px;color:var(--fg-4)}
+</style>
+</head>
+<body>
+
+<!-- Material Symbols Round: the icon family the app already uses via Icons.*.
+     CDN here only because this is a throwaway preview; every nav item also has a
+     visible text label, so a font failure degrades to a labelled nav. -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&display=swap">
+<style>.ms{font-family:"Material Symbols Rounded";font-weight:400;font-style:normal;font-size:22px;line-height:1;letter-spacing:normal;display:inline-block;font-variation-settings:'FILL' 0,'wght' 400}</style>
+
+<div class="wrap">
+
+<!-- ═══ MASTHEAD ══════════════════════════════════════════════════════════ -->
+<header class="mast">
+  <img class="mark" src="../icon.png" alt="ZPlay">
+  <div>
+    <h1>One shell, three chromes</h1>
+    <p class="read">
+      Reading this as: a daily-driver media client for phone, tablet, desktop and TV, where the
+      chrome should be calm and the artwork should be loud. Keeping the existing token layer and
+      the shared primitives that already work, replacing the four competing navigation models
+      with one adaptive shell.
+    </p>
+    <div class="dials">
+      <span class="dial">DESIGN_VARIANCE <b>4</b></span>
+      <span class="dial">MOTION_INTENSITY <b>4</b></span>
+      <span class="dial">VISUAL_DENSITY <b>5</b></span>
+      <span class="dial">accent <b>Signal Teal</b></span>
+      <span class="dial">theme <b>dark + light</b></span>
+    </div>
+    <p class="note">
+      Scope note, stated up front: the design-taste skill that prompted this review is built for
+      landing pages and portfolios, and it puts dense product UI and native mobile explicitly out
+      of scope. So its rules are applied here where they apply (one accent, one radius system, no
+      em-dashes, no AI tells, real images, button and form contrast) and the app's own screens are
+      designed against the platform conventions Flutter already gives us: an adaptive shell, real
+      focus traversal, 44 to 48 px targets.
+    </p>
+  </div>
+</header>
+
+<!-- ═══ DIAGNOSIS ═════════════════════════════════════════════════════════ -->
+<section class="flat">
+  <h2>The diagnosis</h2>
+  <p class="lead">Every number below is measured off the current tree at the commit this review was written against.</p>
+  <div class="grid g3">
+    <div class="card">
+      <div class="metric">13 <span>dock destinations</span></div>
+      <p>All enabled by default. Only <code>home</code> and <code>settings</code> can be hidden, so a fresh install shows the worst case.</p>
+      <p class="cite">lib/services/theme/dock_settings.dart:4-95</p>
+    </div>
+    <div class="card">
+      <div class="metric">7 <span>of 19 surfaces mount it</span></div>
+      <p>Home, Discover, Anime, Manga, Books, Live TV, MultiNutz. Absent from Search, My List, Downloads, Music, Audiobooks, Settings, Catalog, Details and every reader.</p>
+      <p class="cite">AppLiquidDock( across lib/pages</p>
+    </div>
+    <div class="card">
+      <div class="metric">4 <span>navigation models</span></div>
+      <p>The dock, Home's app-bar icons, Home's All/Movies/Series/Anime filter tabs, and Music, which is a private shell of its own: a 240 px desktop sidebar, a 60 px mobile bottom nav, a floating player bar and two drawers. Anime is reachable from two of the four.</p>
+      <p class="cite">music_page.dart:2088, 2785, 3548 · home_page.dart:879-905</p>
+    </div>
+    <div class="card">
+      <div class="metric">0 <span>traversal groups, 0 key maps</span></div>
+      <p>Android TV ships with D-pad and leanback support, and no code can tell it is running there. The a11y groundwork is done, since the poster cards were moved onto <code>FocusableCard</code>, but <code>FocusTraversalGroup</code> and <code>Shortcuts</code> appear zero times in the whole app, so focus order is Flutter's geometric guess and there is no remote Back.</p>
+      <p class="cite">grep FocusTraversalGroup / Shortcuts( / isTV across lib: none</p>
+    </div>
+    <div class="card">
+      <div class="metric">11 <span>width breakpoints in 58 files</span></div>
+      <p>11 distinct numbers in 58 files, plus 25 files reading a <code>LayoutBuilder</code> on their own terms. No <code>shortestSide</code>, and no <code>NavigationRail</code> or <code>NavigationBar</code> anywhere, so Flutter's own adaptive navigation is entirely unused.</p>
+      <p class="cite">600 / 640 / 700 / 800 / 900 / 1024 / 1100 / 1200, in 58 files</p>
+    </div>
+    <div class="card">
+      <div class="metric">6 <span>of 336 files read the tokens</span></div>
+      <p>The token layer is built and correct. Adoption is the work. 421 distinct hardcoded colours are still live, three screens keep private <code>_Space</code> and <code>_Palette</code> copies beside it, and the book reader has grown a second full token file of its own with the only elevation scale and the only reduced-motion branch in the app.</p>
+      <p class="cite">ZplayTokens / context.tokens: 6 files. reader_design_tokens.dart: elevation and reduced motion, nowhere else</p>
+    </div>
+    <div class="card">
+      <div class="metric">47 <span>files with a bare spinner</span></div>
+      <p>86 <code>CircularProgressIndicator</code> call sites against three skeleton implementations. Home already ships a shaped skeleton, so the reference exists; it just has not been generalised into a shared loading primitive.</p>
+      <p class="cite">86 occurrences across 47 files</p>
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div>
+      <h3 style="font-size:16px;margin-top:32px">The dock as it ships today</h3>
+      <p class="lead" style="margin-top:8px">One active label, twelve tooltips, and a hover magnification that touch and TV cannot produce. Labels shown below are annotations, not rendered by the app.</p>
+      <div class="dockshot" style="margin-top:16px">
+        <div class="dockitems">
+          <span class="dockitem on"><span class="ms">home</span><label>Home</label></span>
+          <span class="dockitem"><span class="ms">explore</span></span>
+          <span class="dockitem"><span class="ms">auto_stories</span></span>
+          <span class="dockitem"><span class="ms">menu_book</span></span>
+          <span class="dockitem"><span class="ms">headphones</span></span>
+          <span class="dockitem"><span class="ms">music_note</span></span>
+          <span class="dockitem"><span class="ms">animation</span></span>
+          <span class="dockitem"><span class="ms">live_tv</span></span>
+          <span class="dockitem"><span class="ms">extension</span></span>
+          <span class="dockitem"><span class="ms">download</span></span>
+          <span class="dockitem"><span class="ms">favorite</span></span>
+          <span class="dockitem"><span class="ms">search</span></span>
+          <span class="dockitem"><span class="ms">settings</span></span>
+        </div>
+        <div class="docklabels">
+          <i>Home</i><i>Disc.</i><i>Manga</i><i>Books</i><i>Audio</i><i>Music</i><i>Anime</i>
+          <i>Live</i><i>Addons</i><i>Dl.</i><i>List</i><i>Search</i><i>Settings</i>
+        </div>
+      </div>
+      <p class="tiny" style="margin-top:12px">
+        Manga and Books are <code>auto_stories</code> and <code>menu_book</code>. Anime and Live TV are
+        <code>animation</code> and <code>live_tv</code>. Unlabelled, those are guesses.
+      </p>
+    </div>
+    <div>
+      <h3 style="font-size:16px;margin-top:32px">Why it feels inconsistent, structurally</h3>
+      <p class="lead" style="margin-top:8px">The dock is not a navigation model, it is a per-page ornament. Each page builds its own <code>Scaffold</code> and stacks its own copy.</p>
+      <div class="card" style="margin-top:16px">
+        <h4>Switching sections destroys the section</h4>
+        <p>
+          <code>_navigateToPage</code> pushes only from Home and uses <code>pushReplacement</code>
+          everywhere else. Home to Manga to Books leaves a stack of two. Going back skips a section,
+          and every switch rebuilds the page, so scroll position, catalogue filters and search text
+          are gone.
+        </p>
+        <p class="cite">lib/widgets/common/app_liquid_dock.dart:41-58</p>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h4>There is no shell to fix</h4>
+        <p>
+          A page cannot forget to render the shell the way it can forget to render a dock. That is
+          the whole argument: the fix is not a better dock, it is moving navigation out of the pages
+          and into one frame that owns it.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ DESTINATION MODEL ═════════════════════════════════════════════════ -->
+<section>
+  <h2>The destination model</h2>
+  <p class="lead">
+    Thirteen peers is the root cause. Content types are not peers of Settings, and they will
+    keep growing. Split into three tiers, one owner per destination, five shell slots at most.
+  </p>
+
+  <div class="grid g3" style="margin-top:24px">
+    <div class="tier">
+      <div class="tier-head"><b>Tier 1. Shell slots</b><em>persistent, 4 or 5</em></div>
+      <div class="chips">
+        <span class="chip slot">Home</span>
+        <span class="chip slot">Browse</span>
+        <span class="chip slot">Library</span>
+        <span class="chip slot">Settings</span>
+        <span class="chip slot">Search</span>
+      </div>
+      <p class="tiny" style="margin-top:12px">
+        Search takes a slot on phones only. On tablet, desktop and TV it becomes a field pinned at
+        the head of the rail plus a keyboard shortcut, and the rail keeps four rows.
+      </p>
+    </div>
+    <div class="tier">
+      <div class="tier-head"><b>Tier 2. The vertical switcher</b><em>inside Browse</em></div>
+      <div class="chips">
+        <span class="chip accent">Movies &amp; TV</span>
+        <span class="chip">Live TV</span>
+        <span class="chip">Anime</span>
+        <span class="chip">Manga</span>
+        <span class="chip">Books</span>
+        <span class="chip">Audiobooks</span>
+        <span class="chip">Music</span>
+      </div>
+      <p class="tiny" style="margin-top:12px">
+        Seven destinations become one segmented control. Adding an eighth vertical later costs a
+        chip, not a nav slot. Each vertical keeps its own scroll and filter state because Browse
+        switches an index instead of replacing a route.
+      </p>
+    </div>
+    <div class="tier">
+      <div class="tier-head"><b>Tier 3. Entity routes</b><em>pushed, with their own back</em></div>
+      <div class="chips">
+        <span class="chip">Details</span>
+        <span class="chip">Player</span>
+        <span class="chip">Readers</span>
+        <span class="chip">Stream sheet</span>
+        <span class="chip">Portal browser</span>
+      </div>
+      <p class="tiny" style="margin-top:12px">
+        These never get shell chrome, which is the correct answer to "Details has no dock". They
+        are a level below the shell, not a peer of it.
+      </p>
+    </div>
+  </div>
+
+  <h3 style="font-size:16px;margin-top:40px">Where each of the 13 dock items goes</h3>
+  <div class="card" style="margin-top:16px">
+    <div class="maprow"><span>Home</span><span class="arrow">&rarr;</span><span class="to">Slot 1, unchanged</span></div>
+    <div class="maprow"><span>Settings</span><span class="arrow">&rarr;</span><span class="to">Slot 4, unchanged</span></div>
+    <div class="maprow"><span>Search</span><span class="arrow">&rarr;</span><span class="to">Slot 5 on phone, rail field plus shortcut elsewhere</span></div>
+    <div class="maprow"><span>Discover</span><span class="arrow">&rarr;</span><span class="to">Browse, the catalog feed for the selected vertical</span></div>
+    <div class="maprow"><span>Anime</span><span class="arrow">&rarr;</span><span class="to">Browse vertical. Its duplicate Home tab is deleted</span></div>
+    <div class="maprow"><span>Manga</span><span class="arrow">&rarr;</span><span class="to">Browse vertical</span></div>
+    <div class="maprow"><span>Books</span><span class="arrow">&rarr;</span><span class="to">Browse vertical</span></div>
+    <div class="maprow"><span>Audiobooks</span><span class="arrow">&rarr;</span><span class="to">Browse vertical, transport moves to the shell</span></div>
+    <div class="maprow"><span>Music</span><span class="arrow">&rarr;</span><span class="to">Browse vertical, transport moves to the shell, sidebar deleted</span></div>
+    <div class="maprow"><span>Live TV</span><span class="arrow">&rarr;</span><span class="to">Browse vertical. MultiNutz is its channel list, not a peer</span></div>
+    <div class="maprow"><span>My List</span><span class="arrow">&rarr;</span><span class="to">Library tab 1</span></div>
+    <div class="maprow"><span>Downloads</span><span class="arrow">&rarr;</span><span class="to">Library tab 2</span></div>
+    <div class="maprow"><span>Addons</span><span class="arrow">&rarr;</span><span class="to">Settings &rarr; Addons, where it already lives</span></div>
+    <div class="maprow"><span>Catalog, Calendar, anime-arabic, quiz</span><span class="arrow">&rarr;</span><span class="to">Folded into Browse or Home. Nothing is deleted, each gets one owner</span></div>
+  </div>
+
+  <div class="card" style="margin-top:24px;border-color:var(--accent)">
+    <h4>The now-playing bar, which is the real fix for Music and Audiobooks</h4>
+    <p>
+      Music currently ships four private mini-player presets and Audiobooks ships its own transport,
+      which is exactly why neither can host the dock. Move playback to one shell-owned bar. Audio
+      gets full transport: artwork, title, prev and play and next, a 2 px accent progress line, and
+      tap-to-expand. Video gets a resume entry, so closing the player leaves something to come back
+      to instead of nothing.
+    </p>
+    <p class="tiny" style="margin-top:12px">
+      One component, present in every chrome, above the bottom bar on phone and at the foot of the
+      content column elsewhere. That is the element that makes the app feel seamless rather than
+      stitched: playback state stops belonging to a page.
+    </p>
+  </div>
+</section>
+
+<!-- ═══ THE SHELL ════════════════════════════════════════════════════════ -->
+<section>
+  <h2>One shell, three chromes</h2>
+  <p class="lead">
+    Same markup, same components, same tokens. Only the placement of the rail changes. Switch the
+    form factor and watch the rail move without the content being rebuilt.
+  </p>
+
+  <div class="segbar" role="group" aria-label="Form factor">
+    <button type="button" data-chrome="phone" aria-pressed="true">Phone</button>
+    <button type="button" data-chrome="tablet" aria-pressed="false">Tablet</button>
+    <button type="button" data-chrome="desktop" aria-pressed="false">Desktop</button>
+    <button type="button" data-chrome="tv" aria-pressed="false">Android TV</button>
+  </div>
+
+  <div class="stagewrap">
+    <div class="stage" id="stage" data-chrome="phone">
+      <div class="shell">
+
+        <!-- rail: bottom bar on phone, left rail elsewhere. One DOM node. -->
+        <nav class="rail" aria-label="Primary">
+          <div class="railtop">
+            <img src="../icon.png" alt="">
+            <b>ZPlay</b>
+          </div>
+          <a href="#" aria-current="page"><span class="ms">home</span><label>Home</label></a>
+          <a href="#"><span class="ms">grid_view</span><label>Browse</label></a>
+          <a href="#" class="searchslot"><span class="ms">search</span><label>Search</label></a>
+          <a href="#"><span class="ms">bookmark</span><label>Library</label></a>
+          <div class="railspacer"></div>
+          <a href="#"><span class="ms">settings</span><label>Settings</label></a>
+        </nav>
+
+        <main class="content">
+          <div class="topbar">
+            <h3>Browse</h3>
+            <div class="topsearch"><span class="ms">search</span><span>Search movies, shows, channels</span></div>
+            <div class="spacer"></div>
+            <span class="iconbtn"><span class="ms">cast</span></span>
+            <span class="iconbtn"><span class="ms">account_circle</span></span>
+          </div>
+
+          <div class="switcher">
+            <span class="chip accent">Movies &amp; TV</span>
+            <span class="chip">Live TV</span>
+            <span class="chip">Anime</span>
+            <span class="chip">Manga</span>
+            <span class="chip">Books</span>
+            <span class="chip">Audiobooks</span>
+            <span class="chip">Music</span>
+          </div>
+
+          <div class="scroll">
+            <div class="hero">
+              <img src="https://picsum.photos/seed/zplay-browse-verity/1200/500" alt="">
+              <div class="veil"></div>
+              <div class="body">
+                <h2>Verity of the Long Winter</h2>
+                <p>2024, Series, 3 seasons. Sci-fi thriller</p>
+                <div class="actions">
+                  <span class="btn primary"><span class="ms" style="font-size:18px">play_arrow</span>Resume S02E04</span>
+                  <span class="btn"><span class="ms" style="font-size:18px">add</span>My List</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="railrow">
+              <div class="railhead"><b>Continue watching</b><span class="see">See all<span class="ms" style="font-size:16px">chevron_right</span></span></div>
+              <div class="posterstrip">
+                <div class="poster wide focus"><img src="https://picsum.photos/seed/zplay-cont-1/480/270" alt=""><div class="meta"><b>The Salt Harbour</b><i>S01E06 &middot; 12 min left</i></div></div>
+                <div class="poster wide"><img src="https://picsum.photos/seed/zplay-cont-2/480/270" alt=""><div class="meta"><b>Nordbahn</b><i>S03E01 &middot; 38 min left</i></div></div>
+                <div class="poster wide"><img src="https://picsum.photos/seed/zplay-cont-3/480/270" alt=""><div class="meta"><b>The Quiet Floor</b><i>2023 &middot; 51 min left</i></div></div>
+              </div>
+            </div>
+
+            <div class="railrow">
+              <div class="railhead"><b>Trending this week</b><span class="see">See all<span class="ms" style="font-size:16px">chevron_right</span></span></div>
+              <div class="posterstrip">
+                <div class="poster"><img src="https://picsum.photos/seed/zplay-tr-1/300/450" alt=""><div class="meta"><b>Ashfall</b><i>2025 &middot; Film</i></div></div>
+                <div class="poster"><img src="https://picsum.photos/seed/zplay-tr-2/300/450" alt=""><div class="meta"><b>Perihelion</b><i>2025 &middot; Series</i></div></div>
+                <div class="poster"><img src="https://picsum.photos/seed/zplay-tr-3/300/450" alt=""><div class="meta"><b>Kestrel Road</b><i>2024 &middot; Film</i></div></div>
+                <div class="poster"><img src="https://picsum.photos/seed/zplay-tr-4/300/450" alt=""><div class="meta"><b>Longshore</b><i>2024 &middot; Series</i></div></div>
+                <div class="poster"><img src="https://picsum.photos/seed/zplay-tr-5/300/450" alt=""><div class="meta"><b>Winter Bastion</b><i>2023 &middot; Film</i></div></div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- shell-owned transport: shown by default here so the placement is visible -->
+        <div class="nowbar">
+          <div class="cover"><img src="https://picsum.photos/seed/zplay-now-art/120/120" alt=""></div>
+          <div class="id"><b>Bruise Colours</b><i>Marlow Hale &middot; Quartertone</i></div>
+          <div class="transport">
+            <button type="button" aria-label="Previous"><span class="ms">skip_previous</span></button>
+            <button type="button" class="play" aria-label="Pause"><span class="ms">pause</span></button>
+            <button type="button" aria-label="Next"><span class="ms">skip_next</span></button>
+          </div>
+          <div class="progress"><i></i></div>
+        </div>
+
+      </div>
+    </div>
+
+    <aside class="spec" id="spec">
+      <h4 id="spec-title">Phone</h4>
+      <dl id="spec-list"></dl>
+      <div class="calls" id="spec-calls"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ═══ SETTINGS + DETAILS ═══════════════════════════════════════════════ -->
+<section>
+  <h2>Settings and Details, recomposed</h2>
+  <p class="lead">
+    These are the two surfaces named in the brief, and both have a structural problem rather than a
+    styling problem. Nothing new is added to either; content is regrouped and given one row
+    anatomy, drawn from the existing tokens.
+  </p>
+
+  <div class="grid g2" style="margin-top:24px">
+    <div>
+      <div class="pane">
+        <div class="pane-head">Settings today <span>15 flat rows, two row behaviours</span></div>
+        <div class="pane-body">
+          <div class="grouphead">Categories</div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">palette</span></div><div class="tx"><b>Appearance</b><i>Tap navigates</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">play_circle</span></div><div class="tx"><b>Video</b><i>Tap navigates</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">discord</span></div><div class="tx"><b>Discord Rich Presence</b><i>Tap toggles, no chevron</i></div><div class="ctl"><span class="switch"></span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">sync</span></div><div class="tx"><b>Trakt</b><i>Tap navigates</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">extension</span></div><div class="tx"><b>Addons</b><i>Tap navigates</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">backup</span></div><div class="tx"><b>Backup</b><i>Tap navigates</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">info</span></div><div class="tx"><b>About</b><i>Tap navigates</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="tx" style="color:var(--fg-4)"><i>8 more rows below the fold, no search, no grouping</i></div></div>
+        </div>
+      </div>
+      <p class="tiny" style="margin-top:12px">lib/pages/settings/settings_page.dart:415-820</p>
+    </div>
+
+    <div>
+      <div class="pane" style="border-color:var(--accent)">
+        <div class="pane-head">Settings, proposed <span>search, four groups, one row anatomy</span></div>
+        <div class="pane-body">
+          <div class="dsearch"><span class="ms" style="font-size:18px">search</span><span>Find a setting</span></div>
+          <div class="grouphead">Playback</div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">play_circle</span></div><div class="tx"><b>Video and player</b><i>Decoder, subtitles, skips</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">graphic_eq</span></div><div class="tx"><b>Audio</b><i>Presets, quality, sleep timer</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">download</span></div><div class="tx"><b>Downloads and torrents</b><i>Limits, seeding, storage</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="grouphead">Sources</div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">extension</span></div><div class="tx"><b>Addons</b><i>4 installed</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">hub</span></div><div class="tx"><b>Providers</b><i>Priority and toggles</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">sync</span></div><div class="tx"><b>Accounts</b><i>Trakt, Simkl, debrid</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="grouphead">Appearance</div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">palette</span></div><div class="tx"><b>Theme</b><i>Accent and light or dark</i></div><div class="ctl">Signal Teal<span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">view_carousel</span></div><div class="tx"><b>Home layout</b><i>Rails and order</i></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="grouphead">System</div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">backup</span></div><div class="tx"><b>Backup and restore</b></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">system_update</span></div><div class="tx"><b>Updates</b><i>Automatic</i></div><div class="ctl"><span class="switch"></span></div></div>
+          <div class="row"><div class="ic"><span class="ms" style="font-size:18px">info</span></div><div class="tx"><b>About</b></div><div class="ctl"><span class="ms">chevron_right</span></div></div>
+        </div>
+      </div>
+      <p class="tiny" style="margin-top:12px">
+        Every row keeps the same anatomy: 32 px icon tile, title, one line of supporting text, and a
+        right-hand control column that is either a switch or a chevron. Never both, never neither.
+      </p>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:32px">
+    <div>
+      <div class="pane">
+        <div class="pane-head">Details today <span>three sources of truth for one colour</span></div>
+        <div class="pane-body">
+          <div class="row"><div class="tx"><b>Accent</b><i>Was pinned to #E50914, a Netflix red belonging to no palette. Now reads the palette, but through a private <code>_Palette</code> class that duplicates the token layer.</i></div></div>
+          <div class="row"><div class="tx"><b>Spacing</b><i>A private <code>_Space</code> class with its own numbers, beside <code>ZplaySpacing</code>.</i></div></div>
+          <div class="row"><div class="tx"><b>Composition</b><i>Backdrop, title lockup, actions, episodes and related all on one scroll with no shared rhythm, and a floating back button whose glyph differs from Search and My List.</i></div></div>
+          <div class="row"><div class="tx"><b>Navigation</b><i>Related picks use <code>pushReplacement</code>, so the back stack is squashed and the previous title is unreachable.</i></div></div>
+        </div>
+      </div>
+      <p class="tiny" style="margin-top:12px">lib/pages/details/details_page.dart:22-53, 431-435</p>
+    </div>
+    <div>
+      <div class="pane" style="border-color:var(--accent)">
+        <div class="pane-head">Details, proposed <span>one rhythm, tokens only, real back stack</span></div>
+        <div class="pane-body">
+          <div class="row"><div class="tx"><b>Backdrop band</b><i>Artwork, scrim, then the title lockup on the same 24 px gutter the rails use. Back affordance is the shared 44 px control, same glyph everywhere.</i></div></div>
+          <div class="row"><div class="tx"><b>Action row</b><i>Resume is primary and filled with the accent. My List, Trailer and Share are outline. No fifth action.</i></div></div>
+          <div class="row"><div class="tx"><b>Spec strip</b><i>Year, runtime, rating, genres as one line of label text rather than a card of its own, so it stops competing with the actions.</i></div></div>
+          <div class="row"><div class="tx"><b>Episodes</b><i>Season selector as SegmentedTabs, which already carries 44 px targets and a focus ring. Episode rows keep the watched-progress line.</i></div></div>
+          <div class="row"><div class="tx"><b>Related</b><i>Same poster rail component as Home, and it pushes instead of replacing, so Back returns to the title you came from.</i></div></div>
+          <div class="row"><div class="tx"><b>Everything derived from tokens</b><i><code>_Palette</code> and <code>_Space</code> are deleted. That is 3 of the 3 private duplicates in the app gone.</i></div></div>
+        </div>
+      </div>
+      <p class="tiny" style="margin-top:12px">
+        The reference to copy is module 8 of the UX findings, which already lists the screens doing
+        this well.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ IDENTITY ═════════════════════════════════════════════════════════ -->
+<section>
+  <h2>Why it will stop looking like the app it forked</h2>
+  <p class="lead">
+    The largest single cause is that the theme picker changes the app's <em>backgrounds</em>. Preset
+    two is upstream's Amethyst Violet with upstream's near-blacks, so switching to it makes ZPlay
+    look like PlayTorrio by design. Make the picker move only the accent.
+  </p>
+
+  <div class="accentdemo">
+    <div class="swatchrow" role="group" aria-label="Accent">
+      <button class="swatch" type="button" data-accent="#2FD0C0" aria-pressed="true"><i style="--sw:#2FD0C0"></i>Signal Teal</button>
+      <button class="swatch" type="button" data-accent="#7C5CFF" aria-pressed="false"><i style="--sw:#7C5CFF"></i>Amethyst</button>
+      <button class="swatch" type="button" data-accent="#F59E0B" aria-pressed="false"><i style="--sw:#F59E0B"></i>Amber</button>
+      <button class="swatch" type="button" data-accent="#3B82F6" aria-pressed="false"><i style="--sw:#3B82F6"></i>Sapphire</button>
+      <button class="swatch" type="button" data-accent="#E50914" aria-pressed="false"><i style="--sw:#E50914"></i>Vampire</button>
+    </div>
+    <div class="proof">
+      <div class="mini">
+        <div class="bar"><span class="ms" style="font-size:18px">grid_view</span><b>Browse</b></div>
+        <div class="body">
+          <span class="pill">Resume S02E04</span>
+          <div class="line"></div>
+          <div class="line short"></div>
+          <div class="table"></div>
+        </div>
+      </div>
+      <div class="mini">
+        <div class="bar"><span class="ms" style="font-size:18px">home</span><b>Home</b></div>
+        <div class="body">
+          <span class="pill">Resume S02E04</span>
+          <div class="line"></div>
+          <div class="line short"></div>
+          <div class="table"></div>
+        </div>
+      </div>
+    </div>
+    <p class="tiny">
+      Change the accent above: the surfaces, borders and type stay put. That is the difference
+      between a palette picker and a brand. The accent is used as a fill and an indicator only,
+      never as body text, which is what lets one accent work on both the dark and the light ramp.
+    </p>
+  </div>
+
+  <div class="grid g3" style="margin-top:32px">
+    <div class="card"><h4>One accent, six jobs</h4><p>Signal Teal means one thing everywhere: this is live, active or now. The current nav slot, the focus ring, playback progress, a live channel badge, the selected segment. Nothing else gets teal, so the colour teaches the app.</p></div>
+    <div class="card"><h4>Retire upstream's theatre</h4><p>The 380 ms circular liquid reveal on every push, the jelly magnification that needs a pointer, and a splash overlay that replays on every launch are upstream's signature moves. Replace with a fade-through and one skippable cold-start brand moment.</p></div>
+    <div class="card"><h4>Light mode becomes possible</h4><p>The theme hardcodes <code>Brightness.dark</code> and no file mentions a light brightness, which blocks light mode and blocks <code>SegmentedTabs</code> on a light surface. Every colour is already a semantic token, so the ramp is the only thing missing.</p></div>
+    <div class="card"><h4>One radius rule</h4><p>Cards 14, controls and inputs 10, pills fully round, sheets 20 on the top corners only. Fourteen ad-hoc radii collapse to one documented rule, which is what makes screens read as one product.</p></div>
+    <div class="card"><h4>Density stays where it helps</h4><p>Chrome calms down, content stays dense: rails keep nine to twelve cards visible, server rows keep their badges, and tabular figures stop timers and sizes from jittering as they animate.</p></div>
+    <div class="card"><h4>Delete the dead</h4><p><code>PlayfairDisplay-SemiBoldItalic</code> ships in the bundle and is referenced nowhere in <code>lib/</code>. Adding a decorative italic serif next to a geometric sans is also the exact mixed-family move the taste rules ban. Drop it, or give it one deliberate job.</p></div>
+  </div>
+</section>
+
+<!-- ═══ PLATFORM MATRIX ═════════════════════════════════════════════════ -->
+<section>
+  <h2>What each platform actually gets</h2>
+  <p class="lead">
+    One classifier decides once, at the shell, so no page ever branches on width again. Today 58
+    files branch on 11 different numbers; after this, the shell knows the form factor and pages
+    receive a layout budget.
+  </p>
+  <table>
+    <thead>
+      <tr><th>Form factor</th><th>Chrome</th><th>Slots</th><th>Targets</th><th>Focus and input</th><th>Motion</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Phone<br><span class="tiny">shortestSide &lt; 600</span></td>
+        <td>Bottom bar, translucent, content scrolls under it</td>
+        <td>5, Search takes a slot</td>
+        <td>44 px min, 48 for the primary action</td>
+        <td>Touch. No hover-only affordance ships. Swipe back honoured on iOS</td>
+        <td>Fade-through, bottom sheet 320 ms</td>
+      </tr>
+      <tr>
+        <td>Tablet<br><span class="tiny">600 to 1024</span></td>
+        <td>Left rail 88 px, icon over label</td>
+        <td>4 plus a top-bar field</td>
+        <td>48 px</td>
+        <td>Touch plus keyboard. Both tablet orientations</td>
+        <td>Same as phone, rail does not animate on entry</td>
+      </tr>
+      <tr>
+        <td>Desktop<br><span class="tiny">Windows, macOS, Linux</span></td>
+        <td>Left rail 88 px, window-managed minimum width</td>
+        <td>4 plus a top-bar field and Ctrl or Cmd K</td>
+        <td>44 px, hover and pressed states on everything</td>
+        <td>Full keyboard: search, back, transport, rail traversal. Pointer magnification is a bonus, never the only path</td>
+        <td>120 / 200 / 320 ms from the motion scale</td>
+      </tr>
+      <tr>
+        <td>Android TV<br><span class="tiny">the gap today</span></td>
+        <td>Expanded left rail 236 px, always labelled for 10-foot reading</td>
+        <td>5, Search is a rail row</td>
+        <td>56 to 64 px</td>
+        <td>A real TV detector, FocusTraversalGroup, one accent focus ring, and every primary card focusable. Back walks up the hierarchy and never exits the app by surprise</td>
+        <td>Crossfade only. No parallax, no magnification tied to pointers</td>
+      </tr>
+      <tr>
+        <td>Reduced motion<br><span class="tiny">all platforms</span></td>
+        <td colspan="5">Every duration collapses to zero, every curve is kept, every looping animation stops. Today exactly one surface does this, the EPUB reader, which branches on <code>MediaQuery.disableAnimations</code>; the rest of the app, including the player chrome and the dock, ignores the setting entirely. The token layer already holds the durations, so the branch is a phase 1 item.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══ PHASES ═══════════════════════════════════════════════════════════ -->
+<section>
+  <h2>Order of work</h2>
+  <p class="lead">
+    Each phase ships on its own and is visible on its own. The enabling work comes first because
+    every later phase gets cheaper as a result.
+  </p>
+  <div class="card" style="margin-top:24px;padding:var(--s8) var(--s24)">
+    <div class="phase">
+      <div class="n">1</div>
+      <div>
+        <h4>Shell skeleton, behind the current entry point</h4>
+        <ul>
+          <li>Form-factor classifier, TV detector, and the reduced-motion branch the motion scale is missing</li>
+          <li>Shell widget: rail plus content plus now-playing, keeping the four slots alive in an IndexedStack so section state survives</li>
+          <li>Route entity screens above the shell, leaving the current pages untouched inside it</li>
+        </ul>
+        <div class="ok">Acceptance: switch slots four times and return. Scroll position, filters and search text are all still there, and Back is the same gesture from every slot.</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="n">2</div>
+      <div>
+        <h4>Now-playing bar, and Music and Audiobooks hand over their transport</h4>
+        <ul>
+          <li>One shell-owned playback bar reading the existing music and audiobook services</li>
+          <li>Delete Music's four mini-player presets and its 240 px sidebar, delete the Audiobooks transport</li>
+          <li>Video gets a resume entry so leaving the player is not a dead end</li>
+        </ul>
+        <div class="ok">Acceptance: start audio in Music, navigate to Settings, and the transport is still there and still playing.</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="n">3</div>
+      <div>
+        <h4>Browse and the vertical switcher, then delete the duplicates</h4>
+        <ul>
+          <li>Seven verticals behind one segmented control built from the existing SegmentedTabs</li>
+          <li>Delete Home's Anime tab and its second anime content model</li>
+          <li>Fold Catalog, Calendar, MultiNutz and anime-arabic in as views of a vertical</li>
+        </ul>
+        <div class="ok">Acceptance: every one of the 13 old dock destinations is reachable in at most two actions from the shell, and exactly once.</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="n">4</div>
+      <div>
+        <h4>Token migration, screen by screen, on the shells that now exist</h4>
+        <ul>
+          <li>Delete the three private <code>_Space</code> and <code>_Palette</code> copies and the 423 literals, starting with Details then Settings then the verticals</li>
+          <li>Fill in the missing Material sub-themes so components inherit instead of being restyled per screen</li>
+          <li>Extract the shared empty, loading, error and section-header components the findings already call for</li>
+        </ul>
+        <div class="ok">Acceptance: changing the accent repaints the whole app correctly. Zero literal hex colours outside provider brand marks.</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="n">5</div>
+      <div>
+        <h4>Identity pass, last because it is the cheapest</h4>
+        <ul>
+          <li>Accent-only theming, and a real light ramp</li>
+          <li>Retire the liquid reveal, the splash replay and the jelly-only magnification</li>
+          <li>Drop the unused display serif, or give it exactly one role</li>
+        </ul>
+        <div class="ok">Acceptance: no preset makes the app look like its upstream, and light mode passes the same contrast checks as dark.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>
+    Prototype for review. Surfaces are drawn from the token layer in
+    <code>lib/services/theme/design_tokens.dart</code>; measurements are cited inline. Poster and
+    backdrop art is placeholder photography, and the icons are the same family the app uses.
+  </p>
+  <p style="margin-top:8px" class="tiny">
+    The one decision this document does not make for you: whether Library is a single slot with
+    three tabs, or whether My List and Downloads stay as two separate slots. Both are defensible and
+    the rest of the plan is unaffected either way.
+  </p>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  var title = document.getElementById('spec-title');
+  var list  = document.getElementById('spec-list');
+  var calls = document.getElementById('spec-calls');
+
+  var spec = {
+    phone: {
+      title: 'Phone',
+      rows: [
+        ['Frame','390 x 760'],
+        ['Chrome','Bottom bar, 64 px'],
+        ['Slots','5, Search is a slot'],
+        ['Targets','44 px, 48 for primary'],
+        ['Classify by','shortestSide < 600']
+      ],
+      calls: [
+        ['Rail','Becomes the bottom bar. Content scrolls under a translucent top bar.'],
+        ['Transport','Sits above the bar, full width, 40 px artwork.'],
+        ['Switcher','Scrolls horizontally. Never wraps, never truncates a label.']
+      ]
+    },
+    tablet: {
+      title: 'Tablet',
+      rows: [
+        ['Frame','820 x 900'],
+        ['Chrome','Left rail, 88 px'],
+        ['Slots','4 plus a top-bar field'],
+        ['Targets','48 px'],
+        ['Classify by','shortestSide 600 to 1024']
+      ],
+      calls: [
+        ['Rail','Icon over label. Keeps working in landscape and portrait.'],
+        ['Search','Leaves the slots and becomes a field in the top bar, because a keyboard is present.'],
+        ['Transport','At the foot of the content column, not the rail.']
+      ]
+    },
+    desktop: {
+      title: 'Desktop',
+      rows: [
+        ['Frame','fluid, 88 px rail'],
+        ['Chrome','Left rail, 88 px'],
+        ['Slots','4 plus a top-bar field, Ctrl K'],
+        ['Targets','44 px, hover and pressed on all'],
+        ['Classify by','shortestSide >= 1024']
+      ],
+      calls: [
+        ['Rail','88 px holds the mark and a labelled icon. The wordmark appears only where the rail is 236 px, which is TV.'],
+        ['Keyboard','Ctrl K search, Space transport, Back on every entity screen.'],
+        ['Hover','An enhancement. Every hover-revealed control also exists without it.']
+      ]
+    },
+    tv: {
+      title: 'Android TV',
+      rows: [
+        ['Frame','full, 236 px rail'],
+        ['Chrome','Expanded left rail'],
+        ['Slots','5, Search is a rail row'],
+        ['Targets','56 to 64 px'],
+        ['Classify by','the TV detector that does not exist yet']
+      ],
+      calls: [
+        ['Rail','Always labelled, mark plus wordmark. A 10-foot UI cannot rely on recognising a glyph.'],
+        ['Search','Stays in the rail, one press of Up from Home. No second search field on screen.'],
+        ['Focus','One accent ring, inset 2 px, on the focused rail item and the focused card.'],
+        ['Back','Walks up the hierarchy: player to details to vertical to slot, never a surprise exit.']
+      ]
+    }
+  };
+
+  function render(key){
+    var s = spec[key];
+    title.textContent = s.title;
+    list.innerHTML = s.rows.map(function(r){
+      return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>';
+    }).join('');
+    calls.innerHTML = s.calls.map(function(c){
+      return '<div><b>' + c[0] + '</b><span>' + c[1] + '</span></div>';
+    }).join('');
+  }
+
+  var buttons = document.querySelectorAll('.segbar button');
+  Array.prototype.forEach.call(buttons, function(b){
+    b.addEventListener('click', function(){
+      Array.prototype.forEach.call(buttons, function(o){ o.setAttribute('aria-pressed','false'); });
+      b.setAttribute('aria-pressed','true');
+      var key = b.getAttribute('data-chrome');
+      stage.setAttribute('data-chrome', key);
+      render(key);
+    });
+  });
+
+  // Accent-only theming demo: swap --accent and its derived states, leave the
+  // neutral ramp alone. Hover and pressed are lighten and darken by 20%, which is
+  // what ZplayTokens.derive does when a palette pins no states of its own.
+  var root = document.documentElement;
+  function hexToRgb(h){
+    h = h.replace('#','');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  }
+  function mix(a, b, t){
+    var A = hexToRgb(a), B = hexToRgb(b);
+    return '#' + A.map(function(v,i){
+      return ('0' + Math.round(v + (B[i]-v)*t).toString(16)).slice(-2);
+    }).join('');
+  }
+  var swatches = document.querySelectorAll('.swatch');
+  Array.prototype.forEach.call(swatches, function(s){
+    s.addEventListener('click', function(){
+      Array.prototype.forEach.call(swatches, function(o){ o.setAttribute('aria-pressed','false'); });
+      s.setAttribute('aria-pressed','true');
+      var a = s.getAttribute('data-accent');
+      root.style.setProperty('--accent', a);
+      root.style.setProperty('--accent-hover', mix(a, '#ffffff', 0.20));
+      root.style.setProperty('--accent-press', mix(a, '#000000', 0.20));
+    });
+  });
+
+  render('phone');
+})();
+</script>
+</body>
+</html>

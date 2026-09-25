@@ -18,6 +18,11 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    # The Flutter SDK is vendored at the repository root as a gitlink, so
+    # `flutter analyze` from the root walks into it and reports hundreds of
+    # errors from the SDK's own test fixtures, which makes the command useless
+    # as a signal. None of it is this project's Dart.
+    - flutter/**
   errors:
     deprecated_member_use: ignore
     avoid_print: ignore

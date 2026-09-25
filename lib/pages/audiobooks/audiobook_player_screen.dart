@@ -15,6 +15,7 @@ import '../../services/debrid/debrid_service.dart';
 import '../../services/stream/torrent_stream_service.dart';
 import '../../services/discord/discord_rpc_service.dart';
 import '../../services/player/player_settings.dart';
+import '../../services/playback/now_playing_service.dart';
 import '../../widgets/audiobook/audiobook_interactive_physics_button.dart';
 import '../../widgets/audiobook/audiobook_waveform_seekbar.dart';
 import '../../widgets/common/focusable_card.dart';
@@ -40,7 +41,16 @@ class AudiobookPlayerScreen extends StatefulWidget {
   State<AudiobookPlayerScreen> createState() => _AudiobookPlayerScreenState();
 }
 
-class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with SingleTickerProviderStateMixin {
+/// Audiobook playback lives here rather than in a controller, so the shell's bar
+/// is fed from this screen while it is mounted and falls silent when it is
+/// disposed.
+///
+/// Lifting playback into a controller is a deliberate follow up rather than an
+/// oversight: it would be a product change, not a refactor, because playback
+/// would then survive the route. Until then this screen is the audiobook owner
+/// and registers itself as such.
+class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen>
+    with SingleTickerProviderStateMixin implements NowPlayingCommands {
   Player? _player;
   final List<StreamSubscription> _playerSubscriptions = [];
   late int _currentChapterIndex;
@@ -76,6 +86,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
     AudiobookSettings.changeNotifier.addListener(_onSettingsChanged);
     AppThemeService.currentPalette.addListener(_onSettingsChanged);
 
+    NowPlayingService.register(this);
+    _publishNowPlaying();
+
     _initChapter(_currentChapterIndex);
 
     // Save progress every 5 seconds
@@ -89,10 +102,83 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
     setState(() {});
   }
 
+  AudiobookChapter? get _currentChapter =>
+      (widget.chapters.isNotEmpty && _currentChapterIndex < widget.chapters.length)
+          ? widget.chapters[_currentChapterIndex]
+          : null;
+
+  /// Publishes this screen's frame to the shell's bar.
+  ///
+  /// Called from the few places that move a published field rather than from
+  /// `build`: a position tick rebuilds far more often than the bar needs to hear
+  /// about, and every publish allocates a snapshot.
+  void _publishNowPlaying() {
+    final chapter = _currentChapter;
+    final author = widget.audiobook.author?.trim() ?? '';
+    final chapterTitle = chapter == null ? '' : chapter.title.trim();
+    final cover = widget.audiobook.coverImage.trim();
+
+    // The bar gives the subtitle one line, so it reads "author · chapter". Either
+    // half can be missing on a sideloaded file, and a stranded separator reads
+    // worse than the half that is there.
+    final subtitle = author.isEmpty
+        ? chapterTitle
+        : (chapterTitle.isEmpty ? author : '$author · $chapterTitle');
+
+    NowPlayingService.publish(
+      NowPlayingSnapshot(
+        kind: NowPlayingKind.audiobook,
+        title: widget.audiobook.title,
+        subtitle: subtitle,
+        artworkUrl: cover.isEmpty ? null : cover,
+        isPlaying: _isPlaying,
+        position: _position,
+        duration: _duration,
+        // Chapters are this player's queue, so the transport walks them. The bar
+        // greys a button instead of hiding it, which keeps the four controls in
+        // place for a book that is one long chapter.
+        canPrevious: _currentChapterIndex > 0,
+        canNext: _currentChapterIndex < widget.chapters.length - 1,
+      ),
+    );
+  }
+
+  /// Nothing to expand into: this screen is already the full size surface, and it
+  /// only owns the bar for as long as it is mounted on top of the shell.
+  @override
+  void openFullPlayer(BuildContext context) {}
+
+  @override
+  Future<void> togglePlayPause() async {
+    _togglePlayPause();
+  }
+
+  @override
+  Future<void> next() async {
+    if (_currentChapterIndex >= widget.chapters.length - 1) return;
+    await _initChapter(_currentChapterIndex + 1);
+  }
+
+  @override
+  Future<void> previous() async {
+    // The first chapter has nowhere to go back to, so the button restarts it,
+    // which is what a listener reaching for it at the start of a book expects.
+    if (_currentChapterIndex == 0) {
+      await _player?.seek(Duration.zero);
+      return;
+    }
+    await _initChapter(_currentChapterIndex - 1);
+  }
+
+  @override
+  Future<void> seek(Duration position) async {
+    await _player?.seek(position);
+    if (!mounted) return;
+    setState(() => _position = position);
+  }
+
   void _updateDiscordRpc({bool? isPaused}) {
-    final chapter = (widget.chapters.isNotEmpty && _currentChapterIndex < widget.chapters.length)
-        ? widget.chapters[_currentChapterIndex]
-        : null;
+    final chapter = _currentChapter;
     DiscordRpcService.instance.setListeningAudiobook(
       title: widget.audiobook.title,
       author: widget.audiobook.author,
@@ -106,6 +192,11 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
 
   @override
   void dispose() {
+    // The music bridge is the owner underneath once this screen goes away, so
+    // give the commands back and clear the frame instead of leaving the bar on a
+    // snapshot that no owner will ever update again.
+    NowPlayingService.unregister(this);
+    NowPlayingService.publish(null);
     _saveProgress();
     _progressTimer?.cancel();
     AudiobookSettings.changeNotifier.removeListener(_onSettingsChanged);
@@ -156,6 +247,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
       _position = Duration.zero;
       _duration = Duration.zero;
     });
+    _publishNowPlaying();
 
     final chapter = widget.chapters[index];
     String? streamUrl;
@@ -222,6 +314,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
           if (mounted) {
             setState(() => _isPlaying = playing);
             _updateDiscordRpc(isPaused: !playing);
+            _publishNowPlaying();
             if (playing && !_discAnimController.isAnimating) {
               _discAnimController.repeat();
             } else if (!playing && _discAnimController.isAnimating) {
@@ -232,6 +325,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
         player.stream.position.listen((pos) {
           if (mounted) {
             setState(() => _position = pos);
+            _publishNowPlaying();
           }
         }),
         player.stream.duration.listen((dur) {
@@ -241,6 +335,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
               _isLoading = false;
             });
             _updateDiscordRpc();
+            _publishNowPlaying();
           }
         }),
         player.stream.completed.listen((completed) {
@@ -284,6 +379,7 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
         _isLoading = false;
         _isPlaying = true;
       });
+      _publishNowPlaying();
 
       _discAnimController.repeat();
     } catch (e) {
@@ -307,6 +403,9 @@ class _AudiobookPlayerScreenState extends State<AudiobookPlayerScreen> with Sing
       _discAnimController.repeat();
       setState(() => _isPlaying = true);
     }
+    // Paused playback produces no position ticks, so the bar would otherwise keep
+    // the play state from before the tap.
+    _publishNowPlaying();
   }
 
   void _seekRelative(int seconds) {

@@ -399,10 +399,8 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF0D1017).withValues(alpha: 0.85),
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
+        // No explicit leading: the framework already gates the back button on canPop,
+        // so it vanishes in the shell and returns if this page is pushed.
         title: const Text(
           'Settings',
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),

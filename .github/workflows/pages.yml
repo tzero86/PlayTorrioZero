@@ -6,7 +6,8 @@ name: Deploy landing site
 #
 # Only docs/index.html, docs/icon.png and friends are published: the *.md files
 # in docs/ are internal planning notes and are deliberately excluded from the
-# site, even though they remain public in the repository itself.
+# site, and docs/redesign/ holds an unpublished design prototype. Both remain
+# public in the repository itself, which is intended.
 
 on:
   push:
@@ -37,7 +38,7 @@ jobs:
       - name: Stage site (exclude internal notes)
         run: |
           mkdir -p _site
-          rsync -a --exclude='*.md' docs/ _site/
+          rsync -a --exclude='*.md' --exclude='redesign/' docs/ _site/
           echo "Publishing:"
           find _site -type f | sort
 

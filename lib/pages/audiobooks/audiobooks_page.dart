@@ -360,7 +360,13 @@ class _AudiobooksPageState extends State<AudiobooksPage> {
                               border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
                             ),
                             child: IconButton(
-                              onPressed: () => Navigator.pop(context),
+                              // A Browse vertical is never pushed, so there is
+                              // normally nothing above this page; the guard keeps
+                              // a tap from popping the shell route instead, and
+                              // the button goes inert rather than wrong.
+                              onPressed: Navigator.of(context).canPop()
+                                  ? () => Navigator.pop(context)
+                                  : null,
                               icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
                             ),
                           ),

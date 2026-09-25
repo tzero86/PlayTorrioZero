@@ -2,18 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../home/home_page_settings.dart';
 
-enum MusicMiniPlayerPreset {
-  floatingGlassIsland('Floating Glass Island', 'Sleek floating glassmorphic dock with ambient glow and lossless badge'),
-  compactPill('Compact Neon Capsule', 'Streamlined compact rounded pill with essential playback controls'),
-  gradientWave('Gradient Wave Dock', 'Dynamic audio frequency gradient wave background with glowing controls'),
-  minimalistLine('Minimalist Edge Rail', 'Ultra-thin edge-to-edge floating sleek rail'),
-  customStudio('Custom Drag & Drop Mini Player', 'Your fully customized, arranged and styled mini player');
-
-  final String label;
-  final String description;
-  const MusicMiniPlayerPreset(this.label, this.description);
-}
-
 enum MusicFullscreenPreset {
   vinylStudio('Vinyl Turntable Studio', 'Rotating 33rpm vinyl disc with tonearm and warm studio atmosphere'),
   cyberWaveform('Cyberpunk Wave Visualizer', 'Real-time animated audio visualizer canvas with neon glow'),
@@ -92,10 +80,6 @@ abstract final class MusicSettings {
   static const _keyShowLosslessBadge = 'music_show_lossless_badge';
   static const _keyCardHoverGlow = 'music_card_hover_glow';
 
-  // Mini Player Keys
-  static const _keySelectedMiniPreset = 'music_selected_mini_preset';
-  static const _keyComponentOrderMini = 'music_component_order_mini';
-
   // Fullscreen Player Keys
   static const _keySelectedFullscreenPreset = 'music_selected_fullscreen_preset';
   static const _keyCustomSeekbarStyle = 'music_custom_seekbar_style';
@@ -121,16 +105,6 @@ abstract final class MusicSettings {
       ValueNotifier<MusicCardDensity>(MusicCardDensity.standard);
   static final ValueNotifier<bool> showLosslessBadge = ValueNotifier<bool>(true);
   static final ValueNotifier<bool> cardHoverGlow = ValueNotifier<bool>(true);
-
-  // Mini Player Notifiers
-  static final ValueNotifier<MusicMiniPlayerPreset> selectedMiniPreset =
-      ValueNotifier<MusicMiniPlayerPreset>(MusicMiniPlayerPreset.floatingGlassIsland);
-  static final ValueNotifier<List<String>> componentOrderMini = ValueNotifier<List<String>>([
-    'artwork',
-    'trackInfo',
-    'mainControls',
-    'extraActions',
-  ]);
 
   // Fullscreen Player Notifiers
   static final ValueNotifier<MusicFullscreenPreset> selectedFullscreenPreset =
@@ -179,17 +153,6 @@ abstract final class MusicSettings {
     );
     showLosslessBadge.value = prefs.getBool(_keyShowLosslessBadge) ?? true;
     cardHoverGlow.value = prefs.getBool(_keyCardHoverGlow) ?? true;
-
-    final miniPresetStr = prefs.getString(_keySelectedMiniPreset);
-    selectedMiniPreset.value = MusicMiniPlayerPreset.values.firstWhere(
-      (p) => p.name == miniPresetStr,
-      orElse: () => MusicMiniPlayerPreset.floatingGlassIsland,
-    );
-
-    final miniOrderList = prefs.getStringList(_keyComponentOrderMini);
-    if (miniOrderList != null && miniOrderList.isNotEmpty) {
-      componentOrderMini.value = miniOrderList;
-    }
 
     final fullPresetStr = prefs.getString(_keySelectedFullscreenPreset);
     selectedFullscreenPreset.value = MusicFullscreenPreset.values.firstWhere(
@@ -288,13 +251,6 @@ abstract final class MusicSettings {
     _notify();
   }
 
-  static Future<void> setSelectedMiniPreset(MusicMiniPlayerPreset preset) async {
-    selectedMiniPreset.value = preset;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keySelectedMiniPreset, preset.name);
-    _notify();
-  }
-
   static Future<void> setSelectedFullscreenPreset(MusicFullscreenPreset preset) async {
     selectedFullscreenPreset.value = preset;
     final prefs = await SharedPreferences.getInstance();
@@ -337,21 +293,6 @@ abstract final class MusicSettings {
     _notify();
   }
 
-  static Future<void> reorderMiniComponents(int oldIndex, int newIndex) async {
-    var index = newIndex;
-    if (oldIndex < index) {
-      index -= 1;
-    }
-    final list = List<String>.from(componentOrderMini.value);
-    final item = list.removeAt(oldIndex);
-    list.insert(index, item);
-    componentOrderMini.value = list;
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_keyComponentOrderMini, list);
-    _notify();
-  }
-
   static Future<void> reorderFullscreenComponents(int oldIndex, int newIndex) async {
     var index = newIndex;
     if (oldIndex < index) {
@@ -377,8 +318,6 @@ abstract final class MusicSettings {
     await prefs.remove(_keyCardDensity);
     await prefs.remove(_keyShowLosslessBadge);
     await prefs.remove(_keyCardHoverGlow);
-    await prefs.remove(_keySelectedMiniPreset);
-    await prefs.remove(_keyComponentOrderMini);
     await prefs.remove(_keySelectedFullscreenPreset);
     await prefs.remove(_keyCustomSeekbarStyle);
     await prefs.remove(_keyCustomPlayButtonStyle);
@@ -395,8 +334,6 @@ abstract final class MusicSettings {
     cardDensity.value = MusicCardDensity.standard;
     showLosslessBadge.value = true;
     cardHoverGlow.value = true;
-    selectedMiniPreset.value = MusicMiniPlayerPreset.floatingGlassIsland;
-    componentOrderMini.value = ['artwork', 'trackInfo', 'mainControls', 'extraActions'];
     selectedFullscreenPreset.value = MusicFullscreenPreset.vinylStudio;
     customSeekbarStyle.value = MusicSeekbarStyle.waveformEqualizer;
     customPlayButtonStyle.value = MusicPlayButtonStyle.liquidGlassNeo;

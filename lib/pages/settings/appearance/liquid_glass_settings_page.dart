@@ -155,31 +155,13 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                 builder: (context, val, _) {
                   return _buildSliderTile(
                     title: 'Hover Scale Impact',
-                    subtitle: 'Magnification amount when hovering or touching dock items',
+                    subtitle: 'Magnification amount applied to the player glass controls on hover',
                     valueDisplay: '${val.toStringAsFixed(2)}x',
                     value: val,
                     min: 0.95,
                     max: 1.40,
                     divisions: 45,
                     onChanged: (newVal) => GlassSettings.updateCustom(newHoverScale: newVal),
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
-
-              // 2. Hover Proximity Radius
-              ValueListenableBuilder<double>(
-                valueListenable: GlassSettings.hoverProximity,
-                builder: (context, val, _) {
-                  return _buildSliderTile(
-                    title: 'Proximity Radius',
-                    subtitle: 'Distance threshold where cursor motion ripples to adjacent items',
-                    valueDisplay: '${val.toStringAsFixed(1)}x',
-                    value: val,
-                    min: 1.2,
-                    max: 4.0,
-                    divisions: 28,
-                    onChanged: (newVal) => GlassSettings.updateCustom(newHoverProximity: newVal),
                   );
                 },
               ),
@@ -412,7 +394,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Mock dock button 1
+                    // Glass preview button 1
                     MouseRegion(
                       onEnter: (_) => setState(() => _previewHovered = true),
                       onExit: (_) => setState(() => _previewHovered = false),
@@ -441,7 +423,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                     ),
                     const SizedBox(width: 16),
 
-                    // Mock dock button 2
+                    // Glass preview button 2
                     Container(
                       width: 56,
                       height: 56,
@@ -457,7 +439,7 @@ class _LiquidGlassSettingsPageState extends State<LiquidGlassSettingsPage> {
                     ),
                     const SizedBox(width: 16),
 
-                    // Mock dock button 3
+                    // Glass preview button 3
                     Container(
                       width: 56,
                       height: 56,
