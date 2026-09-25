@@ -385,6 +385,50 @@ class _SettingsPageState extends State<SettingsPage> {
     _loadOverviewState();
   }
 
+  /// One labelled section: a group of rows inside a single bordered surface,
+  /// split by hairline dividers instead of one card per row.
+  Widget _buildSection(
+    BuildContext context,
+    String label, {
+    required List<Widget> rows,
+    bool first = false,
+  }) {
+    final tokens = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!first) const SizedBox(height: ZplaySpacing.s24),
+        Text(label, style: ZplayType.overline.toStyle(color: tokens.textMuted)),
+        const SizedBox(height: ZplaySpacing.s12),
+        Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: tokens.surface,
+            borderRadius: ZplayRadius.mdAll,
+            border: Border.all(color: tokens.borderDefault),
+          ),
+          child: Column(children: _dividerSeparated(rows, tokens.borderSubtle)),
+        ),
+      ],
+    );
+  }
+
+  /// Returns [rows] with a hairline divider between each pair, for the inside of
+  /// a grouped surface.
+  static List<Widget> _dividerSeparated(
+    List<Widget> rows,
+    Color dividerColor,
+  ) {
+    final children = <Widget>[];
+    for (final row in rows) {
+      if (children.isNotEmpty) {
+        children.add(Divider(color: dividerColor, height: 1));
+      }
+      children.add(row);
+    }
+    return children;
+  }
+
   @override
   Widget build(BuildContext context) {
     final addonCount = AddonManager.instance.addons.length;
@@ -418,358 +462,291 @@ class _SettingsPageState extends State<SettingsPage> {
                 ZplaySpacing.s32 + bottomInset,
               ),
               children: [
-                // Header Intro Card
-                Container(
-                  padding: const EdgeInsets.all(ZplaySpacing.s20),
-                  decoration: BoxDecoration(
-                    color: tokens.surface,
-                    borderRadius: ZplayRadius.lgAll,
-                    border: Border.fromBorderSide(tokens.hairline),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: tokens.accentSubtle,
-                          borderRadius: ZplayRadius.mdAll,
-                        ),
-                        child: Icon(
-                          Icons.tune_rounded,
-                          color: tokens.accent,
-                          size: 26,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Preferences & Configuration',
-                              style: ZplayType.subtitle.toStyle(
-                                color: tokens.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              'Manage streaming providers, addons, UI effects, and account sync.',
-                              style: ZplayType.bodySmall.toStyle(
-                                color: tokens.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // Section Label
-                Text(
-                  'CATEGORIES',
-                  style: ZplayType.overline.toStyle(color: tokens.textMuted),
-                ),
-                const SizedBox(height: 12),
-
-                // 1. Appearance & Interface
-                ValueListenableBuilder<bool>(
-                  valueListenable: GlassSettings.enabled,
-                  builder: (context, glassEnabled, _) {
-                    return ValueListenableBuilder<AppThemePalette>(
-                      valueListenable: AppThemeService.currentPalette,
-                      builder: (context, currentPalette, _) {
-                        return _SettingsCategoryTile(
-                          icon: Icons.palette_rounded,
+                _buildSection(
+                  context,
+                  'PLAYBACK',
+                  first: true,
+                  rows: [
+                    // Video & Anime4K Upscaling
+                    ValueListenableBuilder<Anime4KPreset>(
+                      valueListenable: PlayerSettings.anime4kPreset,
+                      builder: (context, anime4kPreset, _) {
+                        return _SettingsNavRow(
+                          icon: Icons.auto_awesome_rounded,
                           iconColor: tokens.accent,
-                          title: 'Appearance & Interface',
+                          title: 'Video & Upscaling',
                           subtitle:
-                              'Liquid Glass setup, color themes, and Home Page UI',
-                          badgeText: glassEnabled
-                              ? '${currentPalette.name} · Glass ON'
-                              : currentPalette.name,
-                          badgeColor: tokens.accent,
-                          onTap: () =>
-                              _navigateTo(const AppearanceSettingsPage()),
+                              'Anime4K neural GLSL shader presets and GPU pipeline',
+                          valueText: anime4kPreset == Anime4KPreset.off
+                              ? 'Off'
+                              : anime4kPreset.label.split('(').first.trim(),
+                          onTap: () => _navigateTo(const VideoSettingsPage()),
                         );
                       },
-                    );
-                  },
+                    ),
+                    // Built-in P2P Torrent Source Toggle (ZPlay)
+                    ValueListenableBuilder<bool>(
+                      valueListenable: P2pSettingsService.isP2pEnabled,
+                      builder: (context, isP2p, _) {
+                        return _SettingsSwitchRow(
+                          icon: Icons.hub_rounded,
+                          iconColor: isP2p
+                              ? tokens.warning
+                              : tokens.textSecondary,
+                          title: 'Built-in P2P Torrent Source',
+                          subtitle: isP2p
+                              ? 'ZPlay torrent swarms (Knaben, TorrentGalaxy) active'
+                              : 'P2P disabled. Using only direct HTTP streaming (ZPlayHTTP)',
+                          valueText: isP2p ? 'P2P Active' : 'HTTP Only',
+                          value: isP2p,
+                          onChanged: (val) async {
+                            await P2pSettingsService.setP2pEnabled(val);
+                          },
+                          onInfoTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => const P2pWarningDialog(),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                // 2. Video & Anime4K Upscaling
-                ValueListenableBuilder<Anime4KPreset>(
-                  valueListenable: PlayerSettings.anime4kPreset,
-                  builder: (context, anime4kPreset, _) {
-                    return _SettingsCategoryTile(
-                      icon: Icons.auto_awesome_rounded,
+
+                _buildSection(
+                  context,
+                  'SOURCES',
+                  rows: [
+                    // Metadata & Catalogs (Addons)
+                    _SettingsNavRow(
+                      icon: Icons.extension_rounded,
                       iconColor: tokens.accent,
-                      title: 'Video & Upscaling',
-                      subtitle:
-                          'Anime4K neural GLSL shader presets and GPU pipeline',
-                      badgeText: anime4kPreset == Anime4KPreset.off
-                          ? 'Off'
-                          : anime4kPreset.label.split('(').first.trim(),
-                      badgeColor: anime4kPreset == Anime4KPreset.off
-                          ? tokens.textMuted
-                          : tokens.accent,
-                      onTap: () => _navigateTo(const VideoSettingsPage()),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                // 3. Debrid & Cloud Streaming
-                _SettingsCategoryTile(
-                  icon: Icons.cloud_download_rounded,
-                  iconColor: tokens.accent,
-                  title: 'Debrid & Cloud Streaming',
-                  subtitle:
-                      'Real-Debrid, TorBox, AllDebrid, Premiumize & Debrid-Link',
-                  badgeText: _useDebrid
-                      ? (_debridProvider != 'None' ? _debridProvider : 'Active')
-                      : 'Disabled',
-                  badgeColor: _useDebrid ? tokens.accent : tokens.textMuted,
-                  onTap: () => _navigateTo(const DebridSettingsPage()),
-                ),
-
-                const SizedBox(height: 12),
-
-                // 3. Metadata & Catalogs (Addons)
-                _SettingsCategoryTile(
-                  icon: Icons.extension_rounded,
-                  iconColor: tokens.accent,
-                  title: 'Addons',
-                  subtitle: 'Stremio catalogs and content providers',
-                  badgeText: '$addonCount Installed',
-                  badgeColor: tokens.accent,
-                  onTap: () => _navigateTo(const AddonsSettingsPage()),
-                ),
-
-                const SizedBox(height: 12),
-
-                // 4. Built-in Providers (ZPlayHTTP)
-                ListenableBuilder(
-                  listenable: BuiltinProvidersSettingsService.instance,
-                  builder: (context, _) {
-                    final isCustom =
-                        BuiltinProvidersSettingsService.instance.isCustom;
-                    return _SettingsCategoryTile(
-                      icon: Icons.dns_rounded,
-                      iconColor: isCustom ? tokens.accent : tokens.success,
-                      title: 'Built-in Providers',
-                      subtitle:
-                          'ZPlayHTTP streaming sources, priority order & toggles',
-                      badgeText: isCustom ? 'Custom' : 'Default',
-                      badgeColor: isCustom ? tokens.accent : tokens.success,
-                      onTap: () =>
-                          _navigateTo(const BuiltinProvidersSettingsPage()),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                // 4. Built-in P2P Torrent Source Toggle (ZPlay)
-                ValueListenableBuilder<bool>(
-                  valueListenable: P2pSettingsService.isP2pEnabled,
-                  builder: (context, isP2p, _) {
-                    return _SettingsSwitchTile(
-                      icon: Icons.hub_rounded,
-                      iconColor: isP2p ? tokens.warning : tokens.textSecondary,
-                      title: 'Built-in P2P Torrent Source',
-                      subtitle: isP2p
-                          ? 'ZPlay torrent swarms (Knaben, TorrentGalaxy) active'
-                          : 'P2P disabled. Using only direct HTTP streaming (ZPlayHTTP)',
-                      badgeText: isP2p ? 'P2P Active' : 'HTTP Only',
-                      badgeColor: isP2p ? tokens.warning : tokens.success,
-                      value: isP2p,
-                      onChanged: (val) async {
-                        await P2pSettingsService.setP2pEnabled(val);
-                      },
-                      onInfoTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => const P2pWarningDialog(),
+                      title: 'Addons',
+                      subtitle: 'Stremio catalogs and content providers',
+                      valueText: '$addonCount Installed',
+                      onTap: () => _navigateTo(const AddonsSettingsPage()),
+                    ),
+                    // Built-in Providers (ZPlayHTTP)
+                    ListenableBuilder(
+                      listenable: BuiltinProvidersSettingsService.instance,
+                      builder: (context, _) {
+                        final isCustom =
+                            BuiltinProvidersSettingsService.instance.isCustom;
+                        return _SettingsNavRow(
+                          icon: Icons.dns_rounded,
+                          iconColor: isCustom ? tokens.accent : tokens.success,
+                          title: 'Built-in Providers',
+                          subtitle:
+                              'ZPlayHTTP streaming sources, priority order & toggles',
+                          valueText: isCustom ? 'Custom' : 'Default',
+                          onTap: () =>
+                              _navigateTo(const BuiltinProvidersSettingsPage()),
                         );
                       },
-                    );
-                  },
+                    ),
+                    // Debrid & Cloud Streaming
+                    _SettingsNavRow(
+                      icon: Icons.cloud_download_rounded,
+                      iconColor: tokens.accent,
+                      title: 'Debrid & Cloud Streaming',
+                      subtitle:
+                          'Real-Debrid, TorBox, AllDebrid, Premiumize & Debrid-Link',
+                      valueText: _useDebrid
+                          ? (_debridProvider != 'None'
+                                ? _debridProvider
+                                : 'Active')
+                          : 'Disabled',
+                      onTap: () => _navigateTo(const DebridSettingsPage()),
+                    ),
+                  ],
                 ),
 
-                const SizedBox(height: 12),
-
-                // 5. TV Airing Calendar Toggle
-                ValueListenableBuilder<bool>(
-                  valueListenable: HomePageSettings.enableCalendar,
-                  builder: (context, isCalEnabled, _) {
-                    return _SettingsSwitchTile(
-                      icon: Icons.calendar_month_rounded,
-                      iconColor: isCalEnabled
-                          ? tokens.info
-                          : tokens.textSecondary,
-                      title: 'TV Airing Calendar',
-                      subtitle: isCalEnabled
-                          ? 'Calendar buttons active on Home top bar and section headers'
-                          : 'Calendar disabled and hidden across all pages',
-                      badgeText: isCalEnabled ? 'Enabled' : 'Disabled',
-                      badgeColor: isCalEnabled ? tokens.info : tokens.textMuted,
-                      value: isCalEnabled,
-                      onChanged: (val) async {
-                        await HomePageSettings.setEnableCalendar(val);
-                      },
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                // 6. AI Recommendation Quiz Toggle
-                ValueListenableBuilder<bool>(
-                  valueListenable: HomePageSettings.enableAiQuiz,
-                  builder: (context, isAiEnabled, _) {
-                    return _SettingsSwitchTile(
-                      icon: Icons.auto_awesome_rounded,
-                      iconColor: isAiEnabled
-                          ? tokens.accent
-                          : tokens.textSecondary,
-                      title: 'AI Recommendation Quiz',
-                      subtitle: isAiEnabled
-                          ? 'AI Taste Profile Quiz active on Home and Search bars'
-                          : 'AI quiz disabled and hidden across all pages',
-                      badgeText: isAiEnabled ? 'Enabled' : 'Disabled',
-                      badgeColor: isAiEnabled
-                          ? tokens.accent
-                          : tokens.textMuted,
-                      value: isAiEnabled,
-                      onChanged: (val) async {
-                        await HomePageSettings.setEnableAiQuiz(val);
-                      },
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                // 6. Adult Content (18+) Global Switch
-                ValueListenableBuilder<bool>(
-                  valueListenable: ContentSettings.adultEnabled,
-                  builder: (context, isAdultOn, _) {
-                    return _SettingsSwitchTile(
-                      icon: Icons.eighteen_up_rating_rounded,
-                      iconColor: isAdultOn
-                          ? tokens.danger
-                          : tokens.textSecondary,
-                      title: 'Adult Content',
-                      subtitle: isAdultOn
-                          ? '18+ catalogs, search results and sources are enabled'
-                          : 'Hidden. No 18+ catalogs, search results or sources are fetched',
-                      badgeText: isAdultOn ? 'On' : 'Off',
-                      badgeColor: isAdultOn ? tokens.danger : tokens.textMuted,
-                      value: isAdultOn,
-                      onChanged: (val) async {
-                        await ContentSettings.setAdultEnabled(val);
-                      },
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 12),
-
-                // 5. Discord Rich Presence (Desktop Only)
-                if (Platform.isWindows ||
-                    Platform.isLinux ||
-                    Platform.isMacOS) ...[
-                  ValueListenableBuilder<bool>(
-                    valueListenable: DiscordRpcService.instance.isEnabled,
-                    builder: (context, isDiscordEnabled, _) {
-                      return _SettingsSwitchTile(
-                        icon: Icons.sports_esports_rounded,
-                        iconColor: isDiscordEnabled
-                            ? _discordBrand
-                            : tokens.textSecondary,
-                        title: 'Discord Rich Presence',
-                        subtitle: isDiscordEnabled
-                            ? 'Broadcasting movies, shows, music & live activity to Discord'
-                            : 'Disabled. Activity is hidden from Discord',
-                        badgeText: isDiscordEnabled ? 'Active' : 'Disabled',
-                        badgeColor: isDiscordEnabled
-                            ? _discordBrand
-                            : tokens.textMuted,
-                        value: isDiscordEnabled,
-                        onChanged: (val) async {
-                          await DiscordRpcService.instance.setEnabled(val);
+                _buildSection(
+                  context,
+                  'INTEGRATIONS',
+                  rows: [
+                    // Trakt Sync
+                    _SettingsNavRow(
+                      icon: Icons.movie_filter_rounded,
+                      iconColor: _traktBrand,
+                      title: 'Trakt.tv Sync',
+                      subtitle:
+                          'Cross-device watchlist, history & playback synchronization',
+                      valueText: _traktConnected ? 'Connected' : 'Offline',
+                      onTap: () => _navigateTo(const TraktSettingsPage()),
+                    ),
+                    // Simkl Sync
+                    _SettingsNavRow(
+                      icon: Icons.tv_rounded,
+                      iconColor: _simklBrand,
+                      title: 'Simkl Sync',
+                      subtitle:
+                          'Cross-device Movies, TV & Anime synchronization',
+                      valueText: _simklConnected ? 'Connected' : 'Offline',
+                      onTap: () => _navigateTo(const SimklSettingsPage()),
+                    ),
+                    // Discord Rich Presence (Desktop Only)
+                    if (Platform.isWindows ||
+                        Platform.isLinux ||
+                        Platform.isMacOS)
+                      ValueListenableBuilder<bool>(
+                        valueListenable: DiscordRpcService.instance.isEnabled,
+                        builder: (context, isDiscordEnabled, _) {
+                          return _SettingsSwitchRow(
+                            icon: Icons.sports_esports_rounded,
+                            iconColor: isDiscordEnabled
+                                ? _discordBrand
+                                : tokens.textSecondary,
+                            title: 'Discord Rich Presence',
+                            subtitle: isDiscordEnabled
+                                ? 'Broadcasting movies, shows, music & live activity to Discord'
+                                : 'Disabled. Activity is hidden from Discord',
+                            valueText: isDiscordEnabled
+                                ? 'Active'
+                                : 'Disabled',
+                            value: isDiscordEnabled,
+                            onChanged: (val) async {
+                              await DiscordRpcService.instance.setEnabled(val);
+                            },
+                          );
                         },
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
-                // 6. Trakt Sync
-                _SettingsCategoryTile(
-                  icon: Icons.movie_filter_rounded,
-                  iconColor: _traktBrand,
-                  title: 'Trakt.tv Sync',
-                  subtitle:
-                      'Cross-device watchlist, history & playback synchronization',
-                  badgeText: _traktConnected ? 'Connected' : 'Offline',
-                  badgeColor: _traktConnected ? _traktBrand : tokens.textMuted,
-                  onTap: () => _navigateTo(const TraktSettingsPage()),
+                      ),
+                  ],
                 ),
 
-                const SizedBox(height: 12),
-
-                // 6. Simkl Sync
-                _SettingsCategoryTile(
-                  icon: Icons.tv_rounded,
-                  iconColor: _simklBrand,
-                  title: 'Simkl Sync',
-                  subtitle: 'Cross-device Movies, TV & Anime synchronization',
-                  badgeText: _simklConnected ? 'Connected' : 'Offline',
-                  badgeColor: _simklConnected ? _simklBrand : tokens.textMuted,
-                  onTap: () => _navigateTo(const SimklSettingsPage()),
+                _buildSection(
+                  context,
+                  'APPEARANCE',
+                  rows: [
+                    // Appearance & Interface
+                    ValueListenableBuilder<bool>(
+                      valueListenable: GlassSettings.enabled,
+                      builder: (context, glassEnabled, _) {
+                        return ValueListenableBuilder<AppThemePalette>(
+                          valueListenable: AppThemeService.currentPalette,
+                          builder: (context, currentPalette, _) {
+                            return _SettingsNavRow(
+                              icon: Icons.palette_rounded,
+                              iconColor: tokens.accent,
+                              title: 'Appearance & Interface',
+                              subtitle:
+                                  'Liquid Glass setup, color themes, and Home Page UI',
+                              valueText: glassEnabled
+                                  ? '${currentPalette.name} · Glass ON'
+                                  : currentPalette.name,
+                              onTap: () =>
+                                  _navigateTo(const AppearanceSettingsPage()),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
 
-                const SizedBox(height: 12),
-
-                // 7. Backup & Restore (JSON)
-                _SettingsCategoryTile(
-                  icon: Icons.backup_rounded,
-                  iconColor: tokens.accent,
-                  title: 'Backup & Restore',
-                  subtitle:
-                      'Export or import your settings, addons & IPTV portals (JSON)',
-                  badgeText: 'JSON',
-                  badgeColor: tokens.accent,
-                  onTap: _showBackupRestoreDialog,
+                _buildSection(
+                  context,
+                  'CONTENT',
+                  rows: [
+                    // TV Airing Calendar Toggle
+                    ValueListenableBuilder<bool>(
+                      valueListenable: HomePageSettings.enableCalendar,
+                      builder: (context, isCalEnabled, _) {
+                        return _SettingsSwitchRow(
+                          icon: Icons.calendar_month_rounded,
+                          iconColor: isCalEnabled
+                              ? tokens.info
+                              : tokens.textSecondary,
+                          title: 'TV Airing Calendar',
+                          subtitle: isCalEnabled
+                              ? 'Calendar buttons active on Home top bar and section headers'
+                              : 'Calendar disabled and hidden across all pages',
+                          valueText: isCalEnabled ? 'Enabled' : 'Disabled',
+                          value: isCalEnabled,
+                          onChanged: (val) async {
+                            await HomePageSettings.setEnableCalendar(val);
+                          },
+                        );
+                      },
+                    ),
+                    // AI Recommendation Quiz Toggle
+                    ValueListenableBuilder<bool>(
+                      valueListenable: HomePageSettings.enableAiQuiz,
+                      builder: (context, isAiEnabled, _) {
+                        return _SettingsSwitchRow(
+                          icon: Icons.auto_awesome_rounded,
+                          iconColor: isAiEnabled
+                              ? tokens.accent
+                              : tokens.textSecondary,
+                          title: 'AI Recommendation Quiz',
+                          subtitle: isAiEnabled
+                              ? 'AI Taste Profile Quiz active on Home and Search bars'
+                              : 'AI quiz disabled and hidden across all pages',
+                          valueText: isAiEnabled ? 'Enabled' : 'Disabled',
+                          value: isAiEnabled,
+                          onChanged: (val) async {
+                            await HomePageSettings.setEnableAiQuiz(val);
+                          },
+                        );
+                      },
+                    ),
+                    // Adult Content (18+) Global Switch
+                    ValueListenableBuilder<bool>(
+                      valueListenable: ContentSettings.adultEnabled,
+                      builder: (context, isAdultOn, _) {
+                        return _SettingsSwitchRow(
+                          icon: Icons.eighteen_up_rating_rounded,
+                          iconColor: isAdultOn
+                              ? tokens.danger
+                              : tokens.textSecondary,
+                          title: 'Adult Content',
+                          subtitle: isAdultOn
+                              ? '18+ catalogs, search results and sources are enabled'
+                              : 'Hidden. No 18+ catalogs, search results or sources are fetched',
+                          valueText: isAdultOn ? 'On' : 'Off',
+                          value: isAdultOn,
+                          onChanged: (val) async {
+                            await ContentSettings.setAdultEnabled(val);
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
 
-                const SizedBox(height: 12),
-
-                // 8. App Updates & System
-                _SettingsCategoryTile(
-                  icon: Icons.system_update_rounded,
-                  iconColor: tokens.accent,
-                  title: 'App Updates',
-                  subtitle: 'Check for latest software versions and patches',
-                  badgeText: _appVersion != null ? 'v$_appVersion' : 'Check',
-                  badgeColor: tokens.accent,
-                  onTap: () => _navigateTo(const UpdatesSettingsPage()),
-                ),
-
-                const SizedBox(height: 12),
-
-                // 9. About ZPlay
-                _SettingsCategoryTile(
-                  icon: Icons.info_outline_rounded,
-                  iconColor: tokens.textEmphasis,
-                  title: 'About ZPlay',
-                  subtitle: 'Architecture, video engine, and credits',
-                  onTap: () => _navigateTo(const AboutSettingsPage()),
+                _buildSection(
+                  context,
+                  'APP',
+                  rows: [
+                    // Backup & Restore (JSON)
+                    _SettingsNavRow(
+                      icon: Icons.backup_rounded,
+                      iconColor: tokens.accent,
+                      title: 'Backup & Restore',
+                      subtitle:
+                          'Export or import your settings, addons & IPTV portals (JSON)',
+                      valueText: 'JSON',
+                      onTap: _showBackupRestoreDialog,
+                    ),
+                    // App Updates & System
+                    _SettingsNavRow(
+                      icon: Icons.system_update_rounded,
+                      iconColor: tokens.accent,
+                      title: 'App Updates',
+                      subtitle: 'Check for latest software versions and patches',
+                      valueText: _appVersion != null ? 'v$_appVersion' : 'Check',
+                      onTap: () => _navigateTo(const UpdatesSettingsPage()),
+                    ),
+                    // About ZPlay
+                    _SettingsNavRow(
+                      icon: Icons.info_outline_rounded,
+                      iconColor: tokens.accent,
+                      title: 'About ZPlay',
+                      subtitle: 'Architecture, video engine, and credits',
+                      onTap: () => _navigateTo(const AboutSettingsPage()),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -781,25 +758,25 @@ class _SettingsPageState extends State<SettingsPage> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Settings Category Tile
+// Settings Row
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _SettingsCategoryTile extends StatelessWidget {
+/// A navigating settings row inside a grouped surface: bare 20 px leading icon,
+/// title and subtitle, with the row's value right-aligned ahead of the chevron.
+class _SettingsNavRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
-  final String? badgeText;
-  final Color? badgeColor;
+  final String? valueText;
   final VoidCallback onTap;
 
-  const _SettingsCategoryTile({
+  const _SettingsNavRow({
     required this.icon,
     required this.iconColor,
     required this.title,
     required this.subtitle,
-    this.badgeText,
-    this.badgeColor,
+    this.valueText,
     required this.onTap,
   });
 
@@ -810,27 +787,15 @@ class _SettingsCategoryTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: ZplayRadius.mdAll,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: tokens.surface,
-            borderRadius: ZplayRadius.mdAll,
-            border: Border.fromBorderSide(tokens.hairline),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: ZplaySpacing.s16,
+            vertical: ZplaySpacing.s12,
           ),
           child: Row(
             children: [
-              // Icon Container with subtle tinted background
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: ZplayOpacity.borderStrong),
-                  borderRadius: ZplayRadius.smAll,
-                ),
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
-              const SizedBox(width: 12),
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: ZplaySpacing.s16),
 
               // Title and Subtitle
               Expanded(
@@ -838,43 +803,15 @@ class _SettingsCategoryTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: ZplayType.subtitle.toStyle(
-                              color: tokens.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (badgeText != null) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: (badgeColor ?? iconColor).withValues(
-                                alpha: ZplayOpacity.borderStrong,
-                              ),
-                              borderRadius: ZplayRadius.xsAll,
-                            ),
-                            child: Text(
-                              badgeText!,
-                              style: ZplayType.caption.toStyle(
-                                color: badgeColor ?? iconColor,
-                              ),
-                              maxLines: 1,
-                            ),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      title,
+                      style: ZplayType.subtitle.toStyle(
+                        color: tokens.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: ZplaySpacing.s2),
                     Text(
                       subtitle,
                       style: ZplayType.bodySmall.toStyle(
@@ -887,9 +824,17 @@ class _SettingsCategoryTile extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(width: 8),
+              if (valueText != null) ...[
+                const SizedBox(width: ZplaySpacing.s12),
+                Text(
+                  valueText!,
+                  style: ZplayType.caption.toStyle(color: tokens.textMuted),
+                  maxLines: 1,
+                ),
+              ],
 
-              // Chevron right
+              const SizedBox(width: ZplaySpacing.s8),
+
               Icon(
                 Icons.arrow_forward_ios_rounded,
                 size: 14,
@@ -904,27 +849,27 @@ class _SettingsCategoryTile extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Settings Switch Tile
+// Settings Switch Row
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _SettingsSwitchTile extends StatelessWidget {
+/// A toggle settings row inside a grouped surface. Same anatomy as
+/// [_SettingsNavRow], with the switch at the trailing edge instead of a chevron.
+class _SettingsSwitchRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
   final String subtitle;
-  final String? badgeText;
-  final Color? badgeColor;
+  final String? valueText;
   final bool value;
   final ValueChanged<bool> onChanged;
   final VoidCallback? onInfoTap;
 
-  const _SettingsSwitchTile({
+  const _SettingsSwitchRow({
     required this.icon,
     required this.iconColor,
     required this.title,
     required this.subtitle,
-    this.badgeText,
-    this.badgeColor,
+    this.valueText,
     required this.value,
     required this.onChanged,
     this.onInfoTap,
@@ -933,28 +878,15 @@ class _SettingsSwitchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: tokens.surface,
-        borderRadius: ZplayRadius.mdAll,
-        border: Border.all(
-          color: value ? tokens.borderStrong : tokens.borderDefault,
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: ZplaySpacing.s16,
+        vertical: ZplaySpacing.s12,
       ),
       child: Row(
         children: [
-          // Icon Container
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: ZplayOpacity.borderStrong),
-              borderRadius: ZplayRadius.smAll,
-            ),
-            child: Icon(icon, color: iconColor, size: 22),
-          ),
-          const SizedBox(width: 12),
+          Icon(icon, size: 20, color: iconColor),
+          const SizedBox(width: ZplaySpacing.s16),
 
           // Title and Subtitle
           Expanded(
@@ -975,7 +907,7 @@ class _SettingsSwitchTile extends StatelessWidget {
                       ),
                     ),
                     if (onInfoTap != null) ...[
-                      const SizedBox(width: 4),
+                      const SizedBox(width: ZplaySpacing.s4),
                       IconButton(
                         icon: Icon(
                           Icons.info_outline_rounded,
@@ -988,31 +920,9 @@ class _SettingsSwitchTile extends StatelessWidget {
                         onPressed: onInfoTap,
                       ),
                     ],
-                    if (badgeText != null) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (badgeColor ?? iconColor).withValues(
-                            alpha: ZplayOpacity.borderStrong,
-                          ),
-                          borderRadius: ZplayRadius.xsAll,
-                        ),
-                        child: Text(
-                          badgeText!,
-                          style: ZplayType.caption.toStyle(
-                            color: badgeColor ?? iconColor,
-                          ),
-                          maxLines: 1,
-                        ),
-                      ),
-                    ],
                   ],
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: ZplaySpacing.s2),
                 Text(
                   subtitle,
                   style: ZplayType.bodySmall.toStyle(
@@ -1025,7 +935,16 @@ class _SettingsSwitchTile extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: 8),
+          if (valueText != null) ...[
+            const SizedBox(width: ZplaySpacing.s12),
+            Text(
+              valueText!,
+              style: ZplayType.caption.toStyle(color: tokens.textMuted),
+              maxLines: 1,
+            ),
+          ],
+
+          const SizedBox(width: ZplaySpacing.s8),
 
           // Switch
           Transform.scale(

@@ -2,6 +2,14 @@
 
 All notable changes to ZPlay will be documented in this file.
 
+## [1.2.1] - 2026-09-25
+
+- Settings and Appearance are recomposed rather than restyled. Both were a flat stack of identical cards, which is what still read as the old app even after every colour moved onto the token layer.
+- Rows now sit in labelled groups inside one grouped surface per section, separated by hairline dividers instead of each row carrying its own card, border, icon chip and badge.
+- The badge became right-aligned value text, so a row reads as a setting with a current value instead of a marketing tile.
+- The redundant intro card on Settings and the duplicated customization-scope tile list on Appearance are gone.
+- Every callback, navigation target, dialog, switch binding and label is unchanged: this release moves no functionality.
+
 ## [1.2.0] - 2026-09-25
 
 - Every screen now draws its colours, radii, spacing, type and opacity from the contract token layer in `lib/services/theme/design_tokens.dart`.

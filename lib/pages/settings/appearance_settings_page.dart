@@ -50,251 +50,370 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 800),
           child: ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ZplaySpacing.s16,
+              vertical: ZplaySpacing.s20,
+            ),
             children: [
               // Header description
               Padding(
-                padding: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.only(bottom: ZplaySpacing.s24),
                 child: Text(
                   'Fine-tune the visual atmosphere, custom wallpaper background, color palettes, and interface layouts.',
                   style: ZplayType.body.toStyle(color: tokens.textSecondary),
                 ),
               ),
 
-              // Button 0: Custom Wallpaper & Atmosphere Background
-              ValueListenableBuilder<CustomBackgroundData>(
-                valueListenable: CustomBackgroundService.notifier,
-                builder: (context, customBg, _) {
-                  return ValueListenableBuilder<AppThemePalette>(
+              // ── Interface & atmosphere ────────────────────────────────────
+              _buildGroup(
+                label: 'INTERFACE & ATMOSPHERE',
+                rows: [
+                  // Custom Wallpaper & Atmosphere Background
+                  ValueListenableBuilder<CustomBackgroundData>(
+                    valueListenable: CustomBackgroundService.notifier,
+                    builder: (context, customBg, _) {
+                      return ValueListenableBuilder<AppThemePalette>(
+                        valueListenable: AppThemeService.currentPalette,
+                        builder: (context, currentPalette, _) {
+                          return _buildRow(
+                            icon: Icons.wallpaper_rounded,
+                            iconColor: tokens.accent,
+                            title: 'Custom Background & Wallpaper',
+                            subtitle:
+                                'Upload custom photos, choose curated dark wallpapers, and blend theme ambient lighting',
+                            value: customBg.hasCustomBackground
+                                ? 'Custom Active'
+                                : 'Default Theme',
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const CustomBackgroundSettingsPage(),
+                                ),
+                              );
+                              setState(() {});
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+
+                  // Liquid Glass Setup
+                  ValueListenableBuilder<bool>(
+                    valueListenable: GlassSettings.enabled,
+                    builder: (context, glassEnabled, _) {
+                      return ValueListenableBuilder<GlassPreset>(
+                        valueListenable: GlassSettings.preset,
+                        builder: (context, preset, _) {
+                          return _buildRow(
+                            icon: Icons.blur_on_rounded,
+                            iconColor: glassEnabled
+                                ? tokens.accent
+                                : tokens.textDisabled,
+                            title: 'Liquid Glass Setup',
+                            subtitle:
+                                'Adjust hover impact, wobble spring physics, lens refraction, and chromatic aberration',
+                            value: glassEnabled ? preset.label : 'Disabled',
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const LiquidGlassSettingsPage(),
+                                ),
+                              );
+                              setState(() {});
+                            },
+                          );
+                        },
+                      );
+                    },
+                  ),
+
+                  // Home Page UI & Themes
+                  ValueListenableBuilder<AppThemePalette>(
                     valueListenable: AppThemeService.currentPalette,
                     builder: (context, currentPalette, _) {
-                      return _buildSectionButton(
-                        icon: Icons.wallpaper_rounded,
+                      return _buildRow(
+                        icon: Icons.palette_rounded,
                         iconColor: tokens.accent,
-                        title: 'Custom Background & Wallpaper',
-                        subtitle: 'Upload custom photos, choose curated dark wallpapers, and blend theme ambient lighting',
-                        badgeText: customBg.hasCustomBackground ? 'Custom Active' : 'Default Theme',
-                        badgeColor: customBg.hasCustomBackground ? tokens.accent : tokens.textMuted,
+                        title: 'Home Page UI & Themes',
+                        subtitle:
+                            'Color schemes, "Because you have on your list" smart slider, hero spotlight, and card density',
+                        value: currentPalette.name,
                         onTap: () async {
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const CustomBackgroundSettingsPage(),
+                              builder: (context) => const HomeUiSettingsPage(),
                             ),
                           );
                           setState(() {});
                         },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
 
-              const SizedBox(height: 14),
-
-              // Button 1: Liquid Glass Setup
-              ValueListenableBuilder<bool>(
-                valueListenable: GlassSettings.enabled,
-                builder: (context, glassEnabled, _) {
-                  return ValueListenableBuilder<GlassPreset>(
-                    valueListenable: GlassSettings.preset,
-                    builder: (context, preset, _) {
-                      return _buildSectionButton(
-                        icon: Icons.blur_on_rounded,
-                        iconColor: tokens.accent,
-                        title: 'Liquid Glass Setup',
-                        subtitle: 'Adjust hover impact, wobble spring physics, lens refraction, and chromatic aberration',
-                        badgeText: glassEnabled ? preset.label : 'Disabled',
-                        badgeColor: glassEnabled ? tokens.accent : tokens.textMuted,
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LiquidGlassSettingsPage(),
-                            ),
+                  // Live TV & Sports UI
+                  ValueListenableBuilder<bool>(
+                    valueListenable: IptvSettings.enableSpotlight,
+                    builder: (context, spotlightEnabled, _) {
+                      return ValueListenableBuilder<AppThemePalette>(
+                        valueListenable: AppThemeService.currentPalette,
+                        builder: (context, currentPalette, _) {
+                          return _buildRow(
+                            icon: Icons.live_tv_rounded,
+                            iconColor: tokens.accent,
+                            title: 'Live TV & Sports UI',
+                            subtitle:
+                                'Broadcast hero spotlight, channel card density, category ordering, and live badge styling',
+                            value: spotlightEnabled ? 'Spotlight ON' : 'Compact',
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const LiveTvSettingsPage(),
+                                ),
+                              );
+                              setState(() {});
+                            },
                           );
-                          setState(() {});
                         },
                       );
                     },
-                  );
-                },
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: ZplaySpacing.s24),
 
-              // Button 3: Home Page UI & Themes
-              ValueListenableBuilder<AppThemePalette>(
-                valueListenable: AppThemeService.currentPalette,
-                builder: (context, currentPalette, _) {
-                  return _buildSectionButton(
-                    icon: Icons.palette_rounded,
-                    iconColor: tokens.accent,
-                    title: 'Home Page UI & Themes',
-                    subtitle: 'Color schemes, "Because you have on your list" smart slider, hero spotlight, and card density',
-                    badgeText: currentPalette.name,
-                    badgeColor: tokens.accent,
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HomeUiSettingsPage(),
-                        ),
-                      );
-                      setState(() {});
-                    },
-                  );
-                },
-              ),
-
-              const SizedBox(height: 14),
-
-              // Button 3: Live TV & Sports UI
-              ValueListenableBuilder<bool>(
-                valueListenable: IptvSettings.enableSpotlight,
-                builder: (context, spotlightEnabled, _) {
-                  return ValueListenableBuilder<AppThemePalette>(
-                    valueListenable: AppThemeService.currentPalette,
-                    builder: (context, currentPalette, _) {
-                      return _buildSectionButton(
-                        icon: Icons.live_tv_rounded,
-                        iconColor: tokens.accent,
-                        title: 'Live TV & Sports UI',
-                        subtitle: 'Broadcast hero spotlight, channel card density, category ordering, and live badge styling',
-                        badgeText: spotlightEnabled ? 'Spotlight ON' : 'Compact',
-                        badgeColor: tokens.accent,
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LiveTvSettingsPage(),
-                            ),
+              // ── Content ───────────────────────────────────────────────────
+              _buildGroup(
+                label: 'CONTENT',
+                rows: [
+                  // Manga UI & Reader Atmosphere
+                  ValueListenableBuilder<MangaReadingMode>(
+                    valueListenable: MangaSettings.defaultReadingMode,
+                    builder: (context, readingMode, _) {
+                      return ValueListenableBuilder<AppThemePalette>(
+                        valueListenable: AppThemeService.currentPalette,
+                        builder: (context, currentPalette, _) {
+                          return _buildRow(
+                            icon: Icons.menu_book_rounded,
+                            iconColor: tokens.accent,
+                            title: 'Manga UI & Reader Atmosphere',
+                            subtitle:
+                                'Ambient moving lighting, card density, reading layout widths, webtoon/horizontal modes, and page deck preview',
+                            value: readingMode == MangaReadingMode.webtoon
+                                ? 'Webtoon'
+                                : 'Horizontal',
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const MangaSettingsPage(),
+                                ),
+                              );
+                              setState(() {});
+                            },
                           );
-                          setState(() {});
                         },
                       );
                     },
-                  );
-                },
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 14),
+              const SizedBox(height: ZplaySpacing.s24),
 
-              // Button 4: Manga UI & Reader Atmosphere
-              ValueListenableBuilder<MangaReadingMode>(
-                valueListenable: MangaSettings.defaultReadingMode,
-                builder: (context, readingMode, _) {
-                  return ValueListenableBuilder<AppThemePalette>(
-                    valueListenable: AppThemeService.currentPalette,
-                    builder: (context, currentPalette, _) {
-                      return _buildSectionButton(
-                        icon: Icons.menu_book_rounded,
-                        iconColor: tokens.accent,
-                        title: 'Manga UI & Reader Atmosphere',
-                        subtitle: 'Ambient moving lighting, card density, reading layout widths, webtoon/horizontal modes, and page deck preview',
-                        badgeText: readingMode == MangaReadingMode.webtoon ? 'Webtoon' : 'Horizontal',
-                        badgeColor: tokens.accent,
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MangaSettingsPage(),
-                            ),
+              // ── Playback ──────────────────────────────────────────────────
+              _buildGroup(
+                label: 'PLAYBACK',
+                rows: [
+                  // Audiobook UI & Player Studio
+                  ValueListenableBuilder<AudiobookPlayerPreset>(
+                    valueListenable: AudiobookSettings.selectedPlayerPreset,
+                    builder: (context, playerPreset, _) {
+                      return ValueListenableBuilder<AppThemePalette>(
+                        valueListenable: AppThemeService.currentPalette,
+                        builder: (context, currentPalette, _) {
+                          return _buildRow(
+                            icon: Icons.headphones_rounded,
+                            iconColor: tokens.accent,
+                            title: 'Audiobook UI & Player Studio',
+                            subtitle:
+                                'Hero spotlight, 5 distinct player designs, drag & drop modular studio, waveform canvas scrubber, and custom controls',
+                            value: playerPreset.label.split(' ').first,
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const AudiobookSettingsPage(),
+                                ),
+                              );
+                              setState(() {});
+                            },
                           );
-                          setState(() {});
                         },
                       );
                     },
-                  );
-                },
-              ),
+                  ),
 
-              const SizedBox(height: 14),
-
-              // Button 5: Audiobook UI & Player Studio
-              ValueListenableBuilder<AudiobookPlayerPreset>(
-                valueListenable: AudiobookSettings.selectedPlayerPreset,
-                builder: (context, playerPreset, _) {
-                  return ValueListenableBuilder<AppThemePalette>(
-                    valueListenable: AppThemeService.currentPalette,
-                    builder: (context, currentPalette, _) {
-                      return _buildSectionButton(
-                        icon: Icons.headphones_rounded,
-                        iconColor: tokens.accent,
-                        title: 'Audiobook UI & Player Studio',
-                        subtitle: 'Hero spotlight, 5 distinct player designs, drag & drop modular studio, waveform canvas scrubber, and custom controls',
-                        badgeText: playerPreset.label.split(' ').first,
-                        badgeColor: tokens.accent,
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AudiobookSettingsPage(),
-                            ),
+                  // Music UI & Player Studio
+                  ValueListenableBuilder<MusicFullscreenPreset>(
+                    valueListenable: MusicSettings.selectedFullscreenPreset,
+                    builder: (context, fullPreset, _) {
+                      return ValueListenableBuilder<AppThemePalette>(
+                        valueListenable: AppThemeService.currentPalette,
+                        builder: (context, currentPalette, _) {
+                          return _buildRow(
+                            icon: Icons.music_note_rounded,
+                            iconColor: tokens.accent,
+                            title: 'Music UI & Player Studio',
+                            subtitle:
+                                'Hero spotlight, lossless badges, and fullscreen player studio for layout, seekbar, physics & turntable styling',
+                            value: fullPreset.label.split(' ').first,
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MusicSettingsPage(),
+                                ),
+                              );
+                              setState(() {});
+                            },
                           );
-                          setState(() {});
                         },
                       );
                     },
-                  );
-                },
+                  ),
+                ],
               ),
 
-              const SizedBox(height: 14),
+              // ── Diagnostics (Windows graphics backend) ────────────────────
+              if (Platform.isWindows) ...[
+                const SizedBox(height: ZplaySpacing.s24),
+                _buildGroup(
+                  label: 'DIAGNOSTICS',
+                  rows: [_buildRendererBackendContent()],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-              // Button 6: Music UI & Player Studio
-              ValueListenableBuilder<MusicFullscreenPreset>(
-                valueListenable: MusicSettings.selectedFullscreenPreset,
-                builder: (context, fullPreset, _) {
-                  return ValueListenableBuilder<AppThemePalette>(
-                    valueListenable: AppThemeService.currentPalette,
-                    builder: (context, currentPalette, _) {
-                      return _buildSectionButton(
-                        icon: Icons.music_note_rounded,
-                        iconColor: tokens.accent,
-                        title: 'Music UI & Player Studio',
-                        subtitle: 'Hero spotlight, lossless badges, and fullscreen player studio for layout, seekbar, physics & turntable styling',
-                        badgeText: fullPreset.label.split(' ').first,
-                        badgeColor: tokens.accent,
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MusicSettingsPage(),
-                            ),
-                          );
-                          setState(() {});
-                        },
-                      );
-                    },
-                  );
-                },
+  /// One labelled group: an overline header over a single bordered surface.
+  ///
+  /// The surface owns the fill, the outline and the corner radius, and the rows
+  /// inside it are separated by hairline dividers — so a group reads as one
+  /// panel instead of a stack of interchangeable cards.
+  Widget _buildGroup({required String label, required List<Widget> rows}) {
+    final tokens = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(
+            left: ZplaySpacing.s4,
+            bottom: ZplaySpacing.s8,
+          ),
+          child: Text(
+            label,
+            style: ZplayType.overline.toStyle(color: tokens.textMuted),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: tokens.surface,
+            borderRadius: ZplayRadius.mdAll,
+            border: Border.all(color: tokens.borderDefault),
+          ),
+          child: ClipRRect(
+            // Clips the row ripples to the group's rounded corners.
+            borderRadius: ZplayRadius.mdAll,
+            child: Column(
+              children: [
+                for (var i = 0; i < rows.length; i++) ...[
+                  if (i > 0) Divider(color: tokens.borderSubtle, height: 1),
+                  rows[i],
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// A navigation row inside a group: leading icon, title + subtitle, the live
+  /// value on the right, and a chevron. No icon chip and no badge pill.
+  Widget _buildRow({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    final tokens = context.tokens;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: ZplaySpacing.s16,
+            vertical: ZplaySpacing.s12,
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: iconColor),
+              const SizedBox(width: ZplaySpacing.s16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: ZplayType.subtitle.toStyle(
+                        color: tokens.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: ZplaySpacing.s2),
+                    Text(
+                      subtitle,
+                      style: ZplayType.bodySmall.toStyle(
+                        color: tokens.textSecondary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
-
-              const SizedBox(height: 14),
-
-              // Windows graphics backend (Skia default, restart to apply).
-              if (Platform.isWindows) _buildRendererBackendCard(),
-
-              const SizedBox(height: 28),
-
-              // Visual Overview Notes
+              const SizedBox(width: ZplaySpacing.s12),
               Text(
-                'LIVE CUSTOMIZATION SCOPE',
-                style: ZplayType.overline.toStyle(color: tokens.textMuted),
+                value,
+                textAlign: TextAlign.right,
+                style: ZplayType.caption.toStyle(color: tokens.textMuted),
+                maxLines: 1,
               ),
-              const SizedBox(height: 12),
-
-              _buildScopeTile(
-                icon: Icons.play_circle_outline_rounded,
-                title: 'Video Player & Watch Screens',
-                description: 'Overlays, glass sheets, and media controls render with your custom optical blur, refraction index, and border shimmer.',
-              ),
-              const SizedBox(height: 10),
-              _buildScopeTile(
-                icon: Icons.home_rounded,
-                title: 'Home Page & Discovery',
-                description: 'Adapts to your chosen theme accent colors, smart BestSimilar recommendation slider, and chosen poster density.',
+              const SizedBox(width: ZplaySpacing.s8),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: tokens.textDisabled,
               ),
             ],
           ),
@@ -303,38 +422,34 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
     );
   }
 
-  Widget _buildRendererBackendCard() {
+  /// The Windows graphics-backend panel. It lives inside its own group, so it
+  /// carries no surface of its own — only the header row and the two choices.
+  Widget _buildRendererBackendContent() {
     return ValueListenableBuilder<RendererBackend>(
       valueListenable: RendererBackendSettings.current,
       builder: (context, backend, _) {
         final tokens = context.tokens;
-        final accent = tokens.accent;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: tokens.surface,
-            borderRadius: ZplayRadius.mdAll,
-            border: Border.fromBorderSide(tokens.hairline),
-          ),
+        return Padding(
+          padding: const EdgeInsets.all(ZplaySpacing.s16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: ZplayOpacity.borderStrong),
-                      borderRadius: ZplayRadius.smAll,
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: ZplaySpacing.s2),
                     child: Icon(
                       Icons.speed_rounded,
-                      color: accent,
-                      size: 22,
+                      size: 20,
+                      // The row reports a driver-compatibility state, so it
+                      // borrows the semantic warning rather than the accent.
+                      color: backend == RendererBackend.impeller
+                          ? tokens.warning
+                          : tokens.accent,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: ZplaySpacing.s16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,25 +464,17 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                                 ),
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 7,
-                                vertical: 2,
+                            const SizedBox(width: ZplaySpacing.s8),
+                            Text(
+                              backend.label,
+                              style: ZplayType.caption.toStyle(
+                                color: tokens.textMuted,
                               ),
-                              decoration: BoxDecoration(
-                                color: accent.withValues(
-                                  alpha: ZplayOpacity.borderStrong,
-                                ),
-                                borderRadius: ZplayRadius.xsAll,
-                              ),
-                              child: Text(
-                                backend.label,
-                                style: ZplayType.caption.toStyle(color: accent),
-                              ),
+                              maxLines: 1,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 3),
+                        const SizedBox(height: ZplaySpacing.s2),
                         Text(
                           'Skia is recommended on Windows here — '
                           'Impeller coincided with an NVIDIA driver crash.',
@@ -380,17 +487,17 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: ZplaySpacing.s12),
               _buildBackendOption(
                 backend: RendererBackend.skia,
                 selected: backend == RendererBackend.skia,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: ZplaySpacing.s8),
               _buildBackendOption(
                 backend: RendererBackend.impeller,
                 selected: backend == RendererBackend.impeller,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: ZplaySpacing.s12),
               Row(
                 children: [
                   Icon(
@@ -398,7 +505,7 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
                     size: 14,
                     color: tokens.textMuted,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: ZplaySpacing.s8),
                   Expanded(
                     child: Text(
                       'Restart the app to apply — the backend is fixed when the engine starts.',
@@ -473,147 +580,6 @@ class _AppearanceSettingsPageState extends State<AppearanceSettingsPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSectionButton({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required String badgeText,
-    required Color badgeColor,
-    required VoidCallback onTap,
-  }) {
-    final tokens = context.tokens;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: ZplayRadius.mdAll,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          decoration: BoxDecoration(
-            color: tokens.surface,
-            borderRadius: ZplayRadius.mdAll,
-            border: Border.fromBorderSide(tokens.hairline),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: ZplayOpacity.borderStrong),
-                  borderRadius: ZplayRadius.smAll,
-                ),
-                child: Icon(icon, color: iconColor, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: ZplayType.subtitle.toStyle(
-                              color: tokens.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: badgeColor.withValues(
-                              alpha: ZplayOpacity.overlayHover,
-                            ),
-                            borderRadius: ZplayRadius.xsAll,
-                          ),
-                          child: Text(
-                            badgeText,
-                            style: ZplayType.caption.toStyle(color: badgeColor),
-                            maxLines: 1,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      subtitle,
-                      style: ZplayType.bodySmall.toStyle(
-                        color: tokens.textSecondary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: tokens.textDisabled,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScopeTile({
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    final tokens = context.tokens;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: tokens.surface,
-        borderRadius: ZplayRadius.mdAll,
-        border: Border.all(color: tokens.borderSubtle),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 2),
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: tokens.borderSubtle,
-              borderRadius: ZplayRadius.smAll,
-            ),
-            child: Icon(icon, color: tokens.textEmphasis, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: ZplayType.label.toStyle(color: tokens.textPrimary),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: ZplayType.bodySmall.toStyle(color: tokens.textMuted),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
