@@ -47,11 +47,11 @@ All notable changes to ZPlay will be documented in this file.
 - Replaced the ad-hoc breakpoints with one form-factor classifier built on shortestSide and remote-input detection.
 - Deleted the dock widget, its settings page and its tests.
 
-## [1.1.7] — 2026-09-24
+## [1.1.7] - 2026-09-24
 
 - Refreshed the README and redesigned the GitHub Pages presentation.
 
-## [3.0.0-early] — 2026-08-11
+## [3.0.0-early] - 2026-08-11
 
 ### Added
 - Stremio-compatible addon protocol with catalog browsing, search, and metadata enrichment

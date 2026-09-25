@@ -4,7 +4,7 @@
 
 <p align="center">
   <strong>Your media, on your device.</strong><br />
-  Screen, page, sound, and live television in one local-first player — with no account required.
+  Screen, page, sound, and live television in one local-first player, with no account required.
 </p>
 
 <p align="center">
@@ -50,7 +50,7 @@ Every tagged release is built by CI for five platforms. Download the files you n
 | **Android** | `app-arm64-v8a-release.apk` · `app-armeabi-v7a-release.apk` · Android TV support |
 | **Linux** | `ZPlay-Linux-x86_64.AppImage` · `ZPlay-Linux-x86_64.tar.gz` |
 | **macOS** | Apple Silicon and Intel `.dmg` / `.zip` builds |
-| **iOS** | `ZPlay-iOS.ipa` — unsigned; sideloading required |
+| **iOS** | `ZPlay-iOS.ipa` (unsigned; sideloading required) |
 
 For release notes and downloads, visit **[github.com/tzero86/ZPlay/releases](https://github.com/tzero86/ZPlay/releases)**. The public project site is **[tzero86.github.io/ZPlay](https://tzero86.github.io/ZPlay/)**.
 
@@ -78,7 +78,7 @@ flutter build apk --release --split-per-abi --target-platform android-arm,androi
 
 ## Addons, sources, and architecture
 
-ZPlay combines Stremio-compatible addons — Cinemeta is installed by default — with built-in scrapers. Open a title and enabled providers are queried concurrently; streams appear as each provider responds. The provider list can be reordered, and individual providers can be enabled or disabled.
+ZPlay combines Stremio-compatible addons (Cinemeta is installed by default) with built-in scrapers. Open a title and enabled providers are queried concurrently; streams appear as each provider responds. The provider list can be reordered, and individual providers can be enabled or disabled.
 
 Scrapers are isolated plugins. To add one, extend `StreamScraper`, implement `scrape()`, then register it in `stream_service.dart`; the manager supplies concurrency, timeouts, deduplication, and error isolation.
 
