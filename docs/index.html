@@ -56,13 +56,20 @@
     .proof { border-left:1px solid rgba(8,33,31,.3); padding-left:1.2rem; }
     .proof strong { display:block; margin-bottom:.4rem; font-size:.85rem; text-transform:uppercase; letter-spacing:.08em; }
     .proof p { margin:0; font-size:.9rem; }
-    .release-layout { display:grid; grid-template-columns:1fr 2fr; gap:2rem; }
-    .release-layout > p { color:var(--muted); }
-    .platforms { border-top:1px solid var(--line); }
-    .platform { display:flex; align-items:baseline; justify-content:space-between; gap:1rem; padding:1.05rem 0; border-bottom:1px solid var(--line); }
-    .platform strong { font-size:1.18rem; letter-spacing:-.03em; }
-    .platform span { color:var(--muted); font-size:.85rem; text-align:right; }
-    .platform a { color:var(--teal); font-size:.82rem; font-weight:800; white-space:nowrap; }
+    .sprite { position:absolute; width:0; height:0; overflow:hidden; }
+    .downloads { display:grid; grid-template-columns:repeat(auto-fit,minmax(19rem,1fr)); gap:1.1rem; margin:0; padding:0; list-style:none; }
+    .card { display:flex; flex-direction:column; gap:.9rem; padding:1.4rem; background:var(--surface); border:1px solid var(--line); }
+    .card[data-detected] { background:var(--surface-raised); border-color:var(--teal); }
+    .card-head { display:flex; align-items:center; gap:.7rem; }
+    .card-icon { flex:none; width:26px; height:26px; fill:currentColor; color:var(--muted); }
+    .card[data-detected] .card-icon { color:var(--teal); }
+    .card h3 { margin:0; font-size:1.2rem; letter-spacing:-.03em; }
+    .card-note { margin:0; color:var(--muted); font-size:.85rem; }
+    .chip { display:none; margin-left:auto; padding:.2rem .45rem; border:1px solid var(--teal); color:var(--teal); font-size:.6rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+    .card[data-detected] .chip { display:inline-block; }
+    .card .button { width:100%; justify-content:center; text-align:center; line-height:1.25; }
+    .card-alt { margin-top:auto; color:var(--muted); font-size:.78rem; font-weight:700; text-align:center; }
+    .card-alt:hover { color:var(--paper); }
     .closure { display:grid; grid-template-columns:1fr 1fr; gap:4rem; }
     .closure p { color:var(--muted); }
     .closure strong { color:var(--paper); }
@@ -70,15 +77,22 @@
     .footer-row { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
     .footer-row p { margin:0; max-width:65ch; }
     .footer-row a { color:var(--paper); }
-    @media (max-width:700px) { .shell { width:min(100% - 2rem,var(--max)); } .nav a:not(.download) { display:none; } .hero { min-height:auto; } .section-head,.release-layout,.closure { grid-template-columns:1fr; gap:1.25rem; } .section-head { margin-bottom:2.5rem; } .mode { grid-template-columns:2.5rem 1fr; gap:.7rem; } .mode p { grid-column:2; } .trust-grid { grid-template-columns:1fr; gap:1.45rem; } .proof { border-left:0; border-top:1px solid rgba(8,33,31,.3); padding:1rem 0 0; } }
+    @media (max-width:700px) { .shell { width:min(100% - 2rem,var(--max)); } .nav a:not(.download) { display:none; } .hero { min-height:auto; } .section-head,.closure { grid-template-columns:1fr; gap:1.25rem; } .section-head { margin-bottom:2.5rem; } .mode { grid-template-columns:2.5rem 1fr; gap:.7rem; } .mode p { grid-column:2; } .trust-grid { grid-template-columns:1fr; gap:1.45rem; } .proof { border-left:0; border-top:1px solid rgba(8,33,31,.3); padding:1rem 0 0; } }
     @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
   </style>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
+
+  <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="i-apple" viewBox="0 0 24 24"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></symbol>
+    <symbol id="i-linux" viewBox="0 0 24 24"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.132 1.884 1.071.771-.06 1.592-.536 2.257-1.306.631-.765 1.683-1.084 2.378-1.503.348-.199.629-.469.649-.853.023-.4-.2-.811-.714-1.376v-.097l-.003-.003c-.17-.2-.25-.535-.338-.926-.085-.401-.182-.786-.492-1.046h-.003c-.059-.054-.123-.067-.188-.135a.357.357 0 00-.19-.064c.431-1.278.264-2.55-.173-3.694-.533-1.41-1.465-2.638-2.175-3.483-.796-1.005-1.576-1.957-1.56-3.368.026-2.152.236-6.133-3.544-6.139zm.529 3.405h.013c.213 0 .396.062.584.198.19.135.33.332.438.533.105.259.158.459.166.724 0-.02.006-.04.006-.06v.105a.086.086 0 01-.004-.021l-.004-.024a1.807 1.807 0 01-.15.706.953.953 0 01-.213.335.71.71 0 00-.088-.042c-.104-.045-.198-.064-.284-.133a1.312 1.312 0 00-.22-.066c.05-.06.146-.133.183-.198.053-.128.082-.264.088-.402v-.02a1.21 1.21 0 00-.061-.4c-.045-.134-.101-.2-.183-.333-.084-.066-.167-.132-.267-.132h-.016c-.093 0-.176.03-.262.132a.8.8 0 00-.205.334 1.18 1.18 0 00-.09.4v.019c.002.089.008.179.02.267-.193-.067-.438-.135-.607-.202a1.635 1.635 0 01-.018-.2v-.02a1.772 1.772 0 01.15-.768c.082-.22.232-.406.43-.533a.985.985 0 01.594-.2zm-2.962.059h.036c.142 0 .27.048.399.135.146.129.264.288.344.465.09.199.14.4.153.667v.004c.007.134.006.2-.002.266v.08c-.03.007-.056.018-.083.024-.152.055-.274.135-.393.2.012-.09.013-.18.003-.267v-.015c-.012-.133-.04-.2-.082-.333a.613.613 0 00-.166-.267.248.248 0 00-.183-.064h-.021c-.071.006-.13.04-.186.132a.552.552 0 00-.12.27.944.944 0 00-.023.33v.015c.012.135.037.2.08.334.046.134.098.2.166.268.01.009.02.018.034.024-.07.057-.117.07-.176.136a.304.304 0 01-.131.068 2.62 2.62 0 01-.275-.402 1.772 1.772 0 01-.155-.667 1.759 1.759 0 01.08-.668 1.43 1.43 0 01.283-.535c.128-.133.26-.2.418-.2zm1.37 1.706c.332 0 .733.065 1.216.399.293.2.523.269 1.052.468h.003c.255.136.405.266.478.399v-.131a.571.571 0 01.016.47c-.123.31-.516.643-1.063.842v.002c-.268.135-.501.333-.775.465-.276.135-.588.292-1.012.267a1.139 1.139 0 01-.448-.067 3.566 3.566 0 01-.322-.198c-.195-.135-.363-.332-.612-.465v-.005h-.005c-.4-.246-.616-.512-.686-.71-.07-.268-.005-.47.193-.6.224-.135.38-.271.483-.336.104-.074.143-.102.176-.131h.002v-.003c.169-.202.436-.47.839-.601.139-.036.294-.065.466-.065zm2.8 2.142c.358 1.417 1.196 3.475 1.735 4.473.286.534.855 1.659 1.102 3.024.156-.005.33.018.513.064.646-1.671-.546-3.467-1.089-3.966-.22-.2-.232-.335-.123-.335.59.534 1.365 1.572 1.646 2.757.13.535.16 1.104.021 1.67.067.028.135.06.205.067 1.032.534 1.413.938 1.23 1.537v-.043c-.06-.003-.12 0-.18 0h-.016c.151-.467-.182-.825-1.065-1.224-.915-.4-1.646-.336-1.77.465-.008.043-.013.066-.018.135-.068.023-.139.053-.209.064-.43.268-.662.669-.793 1.187-.13.533-.17 1.156-.205 1.869v.003c-.02.334-.17.838-.319 1.35-1.5 1.072-3.58 1.538-5.348.334a2.645 2.645 0 00-.402-.533 1.45 1.45 0 00-.275-.333c.182 0 .338-.03.465-.067a.615.615 0 00.314-.334c.108-.267 0-.697-.345-1.163-.345-.467-.931-.995-1.788-1.521-.63-.4-.986-.87-1.15-1.396-.165-.534-.143-1.085-.015-1.645.245-1.07.873-2.11 1.274-2.763.107-.065.037.135-.408.974-.396.751-1.14 2.497-.122 3.854a8.123 8.123 0 01.647-2.876c.564-1.278 1.743-3.504 1.836-5.268.048.036.217.135.289.202.218.133.38.333.59.465.21.201.477.335.876.335.039.003.075.006.11.006.412 0 .73-.134.997-.268.29-.134.52-.334.74-.4h.005c.467-.135.835-.402 1.044-.7zm2.185 8.958c.037.6.343 1.245.882 1.377.588.134 1.434-.333 1.791-.765l.211-.01c.315-.007.577.01.847.268l.003.003c.208.199.305.53.391.876.085.4.154.78.409 1.066.486.527.645.906.636 1.14l.003-.007v.018l-.003-.012c-.015.262-.185.396-.498.595-.63.401-1.746.712-2.457 1.57-.618.737-1.37 1.14-2.036 1.191-.664.053-1.237-.2-1.574-.898l-.005-.003c-.21-.4-.12-1.025.056-1.69.176-.668.428-1.344.463-1.897.037-.714.076-1.335.195-1.814.12-.465.308-.797.641-.984l.045-.022zm-10.814.049h.01c.053 0 .105.005.157.014.376.055.706.333 1.023.752l.91 1.664.003.003c.243.533.754 1.064 1.189 1.637.434.598.77 1.131.729 1.57v.006c-.057.744-.48 1.148-1.125 1.294-.645.135-1.52.002-2.395-.464-.968-.536-2.118-.469-2.857-.602-.369-.066-.61-.2-.723-.4-.11-.2-.113-.602.123-1.23v-.004l.002-.003c.117-.334.03-.752-.027-1.118-.055-.401-.083-.71.043-.94.16-.334.396-.4.69-.533.294-.135.64-.202.915-.47h.002v-.002c.256-.268.445-.601.668-.838.19-.201.38-.336.663-.336zm7.159-9.074c-.435.201-.945.535-1.488.535-.542 0-.97-.267-1.28-.466-.154-.134-.28-.268-.373-.335-.164-.134-.144-.333-.074-.333.109.016.129.134.199.2.096.066.215.2.36.333.292.2.68.467 1.167.467.485 0 1.053-.267 1.398-.466.195-.135.445-.334.648-.467.156-.136.149-.267.279-.267.128.016.034.134-.147.332a8.097 8.097 0 01-.69.468zm-1.082-1.583V5.64c-.006-.02.013-.042.029-.05.074-.043.18-.027.26.004.063 0 .16.067.15.135-.006.049-.085.066-.135.066-.055 0-.092-.043-.141-.068-.052-.018-.146-.008-.163-.065zm-.551 0c-.02.058-.113.049-.166.066-.047.025-.086.068-.14.068-.05 0-.13-.02-.136-.068-.01-.066.088-.133.15-.133.08-.031.184-.047.259-.005.019.009.036.03.03.05v.02h.003z"/></symbol>
+    <symbol id="i-android" viewBox="0 0 24 24"><path d="M18.4395 5.5586c-.675 1.1664-1.352 2.3318-2.0274 3.498-.0366-.0155-.0742-.0286-.1113-.043-1.8249-.6957-3.484-.8-4.42-.787-1.8551.0185-3.3544.4643-4.2597.8203-.084-.1494-1.7526-3.021-2.0215-3.4864a1.1451 1.1451 0 0 0-.1406-.1914c-.3312-.364-.9054-.4859-1.379-.203-.475.282-.7136.9361-.3886 1.5019 1.9466 3.3696-.0966-.2158 1.9473 3.3593.0172.031-.4946.2642-1.3926 1.0177C2.8987 12.176.452 14.772 0 18.9902h24c-.119-1.1108-.3686-2.099-.7461-3.0683-.7438-1.9118-1.8435-3.2928-2.7402-4.1836a12.1048 12.1048 0 0 0-2.1309-1.6875c.6594-1.122 1.312-2.2559 1.9649-3.3848.2077-.3615.1886-.7956-.0079-1.1191a1.1001 1.1001 0 0 0-.8515-.5332c-.5225-.0536-.9392.3128-1.0488.5449zm-.0391 8.461c.3944.5926.324 1.3306-.1563 1.6503-.4799.3197-1.188.0985-1.582-.4941-.3944-.5927-.324-1.3307.1563-1.6504.4727-.315 1.1812-.1086 1.582.4941zM7.207 13.5273c.4803.3197.5506 1.0577.1563 1.6504-.394.5926-1.1038.8138-1.584.4941-.48-.3197-.5503-1.0577-.1563-1.6504.4008-.6021 1.1087-.8106 1.584-.4941z"/></symbol>
+    <symbol id="i-windows" viewBox="0 0 24 24"><path d="M2 2h9.25v9.25H2zM12.75 2H22v9.25h-9.25zM2 12.75h9.25V22H2zM12.75 12.75H22V22h-9.25z"/></symbol>
+  </svg>
   <header class="shell masthead">
     <a class="brand" href="https://tzero86.github.io/ZPlay/" aria-label="ZPlay home"><img class="brand-mark" src="icon.png" alt=""> ZPLAY</a>
-    <nav class="nav" aria-label="Primary navigation"><a href="#ways">Ways to play</a><a href="#principles">Principles</a><a href="https://github.com/tzero86/ZPlay">Source</a><a class="download" href="https://github.com/tzero86/ZPlay/releases">Get ZPlay</a></nav>
+    <nav class="nav" aria-label="Primary navigation"><a href="#ways">Ways to play</a><a href="#principles">Principles</a><a href="https://github.com/tzero86/ZPlay">Source</a><a class="download" href="#download">Get ZPlay</a></nav>
   </header>
   <main id="main">
     <section class="hero shell" aria-labelledby="hero-title">
@@ -86,7 +100,7 @@
         <p class="eyebrow">One private place for media</p>
         <h1 id="hero-title">Press <em>play.</em><br>Nothing follows.</h1>
         <p class="hero-copy">ZPlay brings movies, TV, anime, manga, audiobooks, music and live TV into one free, open-source app—without a required account, a paywall, or telemetry.</p>
-        <div class="actions"><a class="button primary" href="https://github.com/tzero86/ZPlay/releases">Download releases <span aria-hidden="true">&nbsp;↗</span></a><a class="button secondary" href="https://github.com/tzero86/ZPlay#build-from-source">Build from source</a></div>
+        <div class="actions"><a class="button primary" href="#download">Download releases</a><a class="button secondary" href="https://github.com/tzero86/ZPlay#build-from-source">Build from source</a></div>
         <p class="hero-note">GPL-3.0 licensed · Windows · macOS · Linux · Android / Android TV · iOS</p>
       </div>
     </section>
@@ -108,15 +122,45 @@
       <div class="proof"><strong>Progress stays local</strong><p>Watch progress, reading position and listening position are saved locally from the first title.</p></div>
     </div></section>
 
-    <section id="releases"><div class="shell">
-      <div class="release-layout"><div><p class="eyebrow">Available where you watch</p><h2>Take the remote with you.</h2></div><p>Release packages and current installation guidance live with every published release. Choose your platform, then get the build from the project’s release archive.</p></div>
-      <div class="platforms" aria-label="Supported platforms">
-        <div class="platform"><strong>Windows</strong><span>Desktop</span><a href="https://github.com/tzero86/ZPlay/releases">View releases ↗</a></div>
-        <div class="platform"><strong>macOS</strong><span>Desktop</span><a href="https://github.com/tzero86/ZPlay/releases">View releases ↗</a></div>
-        <div class="platform"><strong>Linux</strong><span>Desktop</span><a href="https://github.com/tzero86/ZPlay/releases">View releases ↗</a></div>
-        <div class="platform"><strong>Android / Android TV</strong><span>Mobile &amp; television</span><a href="https://github.com/tzero86/ZPlay/releases">View releases ↗</a></div>
-        <div class="platform"><strong>iOS</strong><span>Unsigned / sideload</span><a href="https://github.com/tzero86/ZPlay/releases">View releases ↗</a></div>
-      </div>
+    <section id="download"><div class="shell">
+      <div class="section-head"><div><p class="eyebrow">Available where you watch</p><h2>Take the remote with you.</h2></div><p class="intro">Every button below downloads the newest published build straight from the release archive, so one click gets you a file. Android and iOS packages are sideloaded, the iOS build is unsigned, and these are the only assets the project publishes. On iPhone or iPad, sideload the IPA with a signing tool you trust.</p></div>
+      <ul class="downloads" role="list">
+        <li class="card" data-platform="windows">
+          <div class="card-head"><svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-windows"></use></svg><h3>Windows</h3><span class="chip">Your device</span></div>
+          <p class="card-note">Installer for 64-bit Windows</p>
+          <a class="button primary" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-Windows-Setup.exe">Download Windows installer (.exe)</a>
+          <a class="card-alt" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-Windows-x64-Portable.zip">Portable ZIP (.zip)</a>
+        </li>
+        <li class="card" data-platform="macos">
+          <div class="card-head"><svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-apple"></use></svg><h3>macOS</h3><span class="chip">Your device</span></div>
+          <p class="card-note">Apple Silicon</p>
+          <a class="button primary" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-macOS-arm64.dmg">Download macOS Apple Silicon (.dmg)</a>
+          <a class="card-alt" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-macOS-arm64.zip">Apple Silicon ZIP (.zip)</a>
+        </li>
+        <li class="card" data-platform="macos">
+          <div class="card-head"><svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-apple"></use></svg><h3>macOS</h3><span class="chip">Your device</span></div>
+          <p class="card-note">Intel</p>
+          <a class="button primary" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-macOS-intel.dmg">Download macOS Intel (.dmg)</a>
+          <a class="card-alt" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-macOS-intel.zip">Intel ZIP (.zip)</a>
+        </li>
+        <li class="card" data-platform="linux">
+          <div class="card-head"><svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-linux"></use></svg><h3>Linux</h3><span class="chip">Your device</span></div>
+          <p class="card-note">AppImage runs anywhere, no install</p>
+          <a class="button primary" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-Linux-x86_64.AppImage">Download Linux AppImage (.AppImage)</a>
+          <a class="card-alt" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-Linux-x86_64.tar.gz">Portable tar.gz (.tar.gz)</a>
+        </li>
+        <li class="card" data-platform="android">
+          <div class="card-head"><svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-android"></use></svg><h3>Android / Android TV</h3><span class="chip">Your device</span></div>
+          <p class="card-note">Runs on Android TV too</p>
+          <a class="button primary" href="https://github.com/tzero86/ZPlay/releases/latest/download/app-arm64-v8a-release.apk">Download Android APK (arm64)</a>
+          <a class="card-alt" href="https://github.com/tzero86/ZPlay/releases/latest/download/app-armeabi-v7a-release.apk">armv7 APK for older devices (.apk)</a>
+        </li>
+        <li class="card" data-platform="ios">
+          <div class="card-head"><svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-apple"></use></svg><h3>iOS</h3><span class="chip">Your device</span></div>
+          <p class="card-note">Unsigned: sideload only</p>
+          <a class="button primary" href="https://github.com/tzero86/ZPlay/releases/latest/download/ZPlay-iOS.ipa">Download iOS app (.ipa)</a>
+        </li>
+      </ul>
     </div></section>
 
     <section><div class="shell closure">
@@ -125,5 +169,14 @@
     </div></section>
   </main>
   <footer><div class="shell footer-row"><p>© ZPlay contributors · GPL-3.0 · Media access depends on the sources and accounts you choose to use.</p><p><a href="https://github.com/tzero86/ZPlay">GitHub</a> · <a href="https://github.com/tzero86/ZPlay/releases">Releases</a> · <a href="https://github.com/tzero86/ZPlay#build-from-source">Build guide</a></p></div></footer>
+  <script>
+    (function () {
+      var ua = ((navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || navigator.userAgent || "").toLowerCase();
+      var key = /android/.test(ua) ? "android" : /iphone|ipad|ipod/.test(ua) ? "ios" : /win/.test(ua) ? "windows" : /mac/.test(ua) ? "macos" : /linux|x11/.test(ua) ? "linux" : "";
+      if (!key) return;
+      var cards = document.querySelectorAll('[data-platform="' + key + '"]');
+      for (var i = 0; i < cards.length; i += 1) { cards[i].setAttribute("data-detected", key); }
+    })();
+  </script>
 </body>
 </html>
