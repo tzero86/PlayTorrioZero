@@ -496,6 +496,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      # The job needs the repository itself now, not just the build artifacts:
+      # the release body is composed from CHANGELOG.md below.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
@@ -512,11 +517,17 @@ jobs:
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
-          awk -v v="$version" '
-            index($0, "## [" v "]") == 1 { inside = 1; next }
-            inside && index($0, "## [") == 1 { exit }
-            inside { print }
-          ' CHANGELOG.md | cat -s > changelog-entry.md
+          # A missing or unreadable changelog must not block the binaries from
+          # being published, so the extraction is best-effort and an empty entry
+          # falls through to the note printed below.
+          : > changelog-entry.md
+          if [ -f CHANGELOG.md ]; then
+            awk -v v="$version" '
+              index($0, "## [" v "]") == 1 { inside = 1; next }
+              inside && index($0, "## [") == 1 { exit }
+              inside { print }
+            ' CHANGELOG.md | cat -s > changelog-entry.md
+          fi
 
           {
             printf '## What changed in %s\n' "${GITHUB_REF_NAME}"
