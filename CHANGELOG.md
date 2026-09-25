@@ -2,6 +2,13 @@
 
 All notable changes to ZPlay will be documented in this file.
 
+## [1.1.9] - 2026-09-24
+
+- Android release builds are now signed with a fixed keystore stored as a repository secret, instead of a debug key regenerated on each CI runner.
+- That per-runner key is what made sideloaded updates fail to install over an existing install.
+- The signing key itself is unchanged from the one existing installs already trust, so updates now install in place.
+- No app behaviour changed.
+
 ## [1.1.8] - 2026-09-24
 
 - Replaced the per-page floating dock with one adaptive shell, mounted once at the app root, so every destination always has navigation.

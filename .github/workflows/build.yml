@@ -153,16 +153,24 @@ jobs:
             touch .env
           fi
 
+      # Every CI runner generates a fresh Android debug keystore, so debug-signed releases
+      # each carry a different certificate and Android refuses to install them over an
+      # existing install ("App not installed as package conflicts with an existing package").
+      # Releases must therefore use the shared release keystore; only non-tag triggers
+      # (workflow_dispatch, PRs) fall back to debug signing.
       - name: Configure release signing
         shell: bash
         run: |
           if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/upload-keystore.jks
-            printf 'storeFile=../upload-keystore.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/upload-keystore.p12
+            printf 'storeFile=../upload-keystore.p12\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
               "${{ secrets.ANDROID_STORE_PASSWORD }}" \
               "${{ secrets.ANDROID_KEY_ALIAS }}" \
               "${{ secrets.ANDROID_KEY_PASSWORD }}" > android/key.properties
-            echo "Release APKs will be signed with the provided keystore."
+            echo "Release APKs will be signed with the provided PKCS12 keystore."
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set — tagged releases must be signed with the release keystore."
+            exit 1
           else
             echo "ANDROID_KEYSTORE_BASE64 not set — release APKs will be debug-signed."
           fi
