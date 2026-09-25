@@ -29,10 +29,16 @@ ZPlay keeps your progress, preferences, and library on your device. There are no
 
 | Mode | What it is for | What sets it apart |
 |:--|:--|:--|
-| **Screen** | Movies, television, anime, and live TV | Built-in HTTP and torrent providers, Stremio-compatible addons, optional Real-Debrid / TorBox, IPTV portals, and a `media_kit` / libmpv player with hardware decoding, HDR handling, Anime4K upscaling, PiP, and subtitle controls. |
+| **Screen** | Movies, television, anime, and live TV | Built-in HTTP and torrent providers, Stremio-compatible addons, optional Real-Debrid / TorBox, IPTV portals, curated film collections, and a `media_kit` / libmpv player with hardware decoding, HDR handling, Anime4K upscaling, PiP, and subtitle controls. |
 | **Page** | Manga | Horizontal or vertical reading, pinch zoom, and exact chapter-and-page resume. |
 | **Sound** | Audiobooks and music | Multi-source audiobook playback with speed, sleep timer, chapters, and saved position; music search, artists, playlists, likes, quality switching, and a persistent mini-player. |
 | **Live** | Television you bring with you | Xtream-style IPTV portals, channel search, favourites, and viewing history. |
+
+### Curated collections
+
+Browse carries a Collections vertical, and Home keeps a Memory Lane zone, both built from hand-picked packs whose every IMDb id was verified against Cinemeta before shipping: twelve franchise packs (The Godfather, Rocky and Creed, Back to the Future, Alien, Die Hard, Lethal Weapon, The Terminator, Predator, Jurassic Park, Rambo, Indiana Jones, and The Marx Brothers) plus six 1990s rails covering Action, Comedy, Horror, Sci-Fi, Animation, and Thriller. Tapping a pack opens a grid; tapping a film opens the normal details screen. Because posters come from the same image CDN the rest of the library uses, the packs paint instantly and need no catalog lookup.
+
+Add a free TMDb API key in Settings, stored only on your device, and those 1990s rails are replaced by lists ranked by real vote counts, refreshed at most once a day. No key ships with the app, and your key is never sent anywhere except TMDb.
 
 ### A player that respects your place
 
@@ -157,6 +163,8 @@ ZPlay is licensed under the [GNU General Public License v3.0](LICENSE).
 ZPlay is a modified version of **[PlayTorrio V3](https://github.com/ayman708-UX/PlayTorrioV3)**, © 2026 Ayman ([@ayman708-UX](https://github.com/ayman708-UX)), and is distributed under the same license. The original project and its full corresponding source remain available at [github.com/ayman708-UX/PlayTorrioV3](https://github.com/ayman708-UX/PlayTorrioV3).
 
 Poppins and Playfair Display are bundled under the SIL Open Font License 1.1.
+
+Film metadata and images can be sourced from [The Movie Database (TMDb)](https://www.themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB.
 
 <p align="center">
   Maintained by <a href="https://github.com/tzero86">tzero86</a>

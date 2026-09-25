@@ -166,6 +166,9 @@ flutter:
     - assets/shaders/anime4k/Anime4K_Upscale_CNN_x2_M.glsl
     - assets/shaders/anime4k/Anime4K_Upscale_CNN_x2_VL.glsl
     - assets/shaders/anime4k/Anime4K_Upscale_Denoise_CNN_x2_M.glsl
+    # TMDb attribution mark, required by the TMDb terms for the About credits.
+    # The rest of assets/branding holds source SVGs that are not shipped.
+    - assets/branding/tmdb-logo.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -171,6 +171,8 @@ class AboutSettingsPage extends StatelessWidget {
                 url: 'https://github.com/ayman708-UX/PlayTorrioV3',
               ),
               const SizedBox(height: 10),
+              _buildTmdbAttributionTile(context),
+              const SizedBox(height: 10),
               _buildLicenseTile(context),
 
               const SizedBox(height: 16),
@@ -255,6 +257,58 @@ class AboutSettingsPage extends StatelessWidget {
         color: tokens.textMuted,
       ),
       onTap: () => _openUrl(url),
+    );
+  }
+
+  /// TMDb attribution, required by the TMDb terms: their logo, the notice
+  /// verbatim, and a link back to themoviedb.org.
+  Widget _buildTmdbAttributionTile(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.fromBorderSide(tokens.hairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Image.asset(
+            'assets/branding/tmdb-logo.png',
+            height: 20,
+            fit: BoxFit.contain,
+            alignment: Alignment.centerLeft,
+            errorBuilder: (context, error, stackTrace) => Text(
+              'TMDB',
+              style: ZplayType.label.toStyle(color: tokens.textPrimary),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'This product uses the TMDB API but is not endorsed or certified by TMDB.',
+            style: ZplayType.bodySmall
+                .toStyle(color: tokens.textSecondary)
+                .copyWith(height: 1.35),
+          ),
+          const SizedBox(height: 6),
+          InkWell(
+            onTap: () => _openUrl('https://www.themoviedb.org'),
+            borderRadius: ZplayRadius.xsAll,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Text(
+                'themoviedb.org',
+                style: ZplayType.label.toStyle(
+                  color: tokens.accent,
+                  decoration: TextDecoration.underline,
+                  decorationColor: tokens.accent,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

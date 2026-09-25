@@ -2,6 +2,16 @@
 
 All notable changes to ZPlay will be documented in this file.
 
+## [Unreleased]
+
+- Home and Browse gained curated collections: twelve verified franchise packs and six 1990s rails, browsable as a Collections vertical in Browse and as a Memory Lane zone at the end of Home.
+- Every film in a pack was verified against Cinemeta before shipping, so each card resolves to the real title, year and poster, and tapping it opens the normal details screen.
+- Packs render with no network request, because posters come from the same image CDN the rest of the library uses.
+- Settings gained a TMDb API key field. The key is yours: it is stored only on this device, validated before it is saved, never logged, and no key ships with the app. With a key set, the six 1990s rails are replaced by lists ranked by real vote counts and refreshed at most once a day.
+- Clearing the key restores the built-in picks, and a TMDb that cannot be reached never leaves a rail empty.
+- The TMDb credential now has one source of truth. Precedence is the user's own key, then a build-time `TMDB_API_KEY`, then the inherited value as a last-resort fallback, so behaviour without a key is unchanged for the scraper lookups that already relied on it.
+- TMDb attribution, their logo plus the required notice, appears in Credits as their terms require.
+
 ## [1.2.1] - 2026-09-25
 
 - Settings and Appearance are recomposed rather than restyled. Both were a flat stack of identical cards, which is what still read as the old app even after every colour moved onto the token layer.

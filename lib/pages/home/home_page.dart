@@ -282,6 +282,7 @@ class _HomePageState extends State<HomePage> {
     ContinueWatchingService.activeItems.addListener(_onSettingsChanged);
     ContentSettings.adultEnabled.addListener(_onAdultContentChanged);
     CollectionsService.showOnHome.addListener(_onCollectionsChanged);
+    CollectionsService.collections.addListener(_onCollectionsChanged);
 
     if (_showIntro) {
       _playIntro();
@@ -379,6 +380,7 @@ class _HomePageState extends State<HomePage> {
     ContinueWatchingService.activeItems.removeListener(_onSettingsChanged);
     ContentSettings.adultEnabled.removeListener(_onAdultContentChanged);
     CollectionsService.showOnHome.removeListener(_onCollectionsChanged);
+    CollectionsService.collections.removeListener(_onCollectionsChanged);
     _shellController?.current.removeListener(_onSlotChanged);
     _scrollController.dispose();
     super.dispose();
@@ -443,12 +445,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  /// Appends the bundled curated collections after every addon rail.
+  /// Appends the curated rails after every addon rail.
   ///
   /// Pinned to the tail on purpose: [_pickFeatured] builds the hero from the
   /// leading sections, so a curated rail at the head would change which titles
-  /// the page spotlights. The removeWhere guard keeps a reload or a toggle
-  /// from stacking duplicate copies.
+  /// the page spotlights. The removeWhere guard keeps a reload, a toggle, or a
+  /// ranked-lists swap from stacking duplicate copies. With a TMDb key
+  /// configured these rails carry ranked lists instead of the bundled picks.
   void _injectCuratedSections() {
     if (!mounted) return;
     setState(() {

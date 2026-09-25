@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../metadata/tmdb_service.dart';
 
 class TmdbHelper {
-  static const _apiKey = 'b3556f3b206e16f82df4d1f6fd4545e6';
   static const _tmdbDirect = 'https://api.themoviedb.org/3';
   static const _tmdbProxy = 'https://db.speedracelight.com/3';
 
@@ -47,7 +47,7 @@ class TmdbHelper {
       // 2. Query TMDB Find API for tt IMDB IDs
       if (cleanId.startsWith('tt')) {
         try {
-          final uri = Uri.parse('$_tmdbDirect/find/$cleanId?api_key=$_apiKey&external_source=imdb_id');
+          final uri = Uri.parse('$_tmdbDirect/find/$cleanId?api_key=${TmdbService.scraperKey}&external_source=imdb_id');
           final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 7));
           if (res.statusCode == 200) {
             final data = jsonDecode(res.body);
@@ -87,7 +87,7 @@ class TmdbHelper {
 
       // Search via official TMDB API with user's key
       try {
-        final uri = Uri.parse('$_tmdbDirect/search/$endpoint?api_key=$_apiKey&query=${Uri.encodeComponent(title)}');
+        final uri = Uri.parse('$_tmdbDirect/search/$endpoint?api_key=${TmdbService.scraperKey}&query=${Uri.encodeComponent(title)}');
         final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 7));
         if (res.statusCode == 200) {
           final data = jsonDecode(res.body);

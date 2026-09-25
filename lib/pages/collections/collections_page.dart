@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../models/movie/movie.dart';
 import '../../services/collections/collections_service.dart';
 import '../../services/collections/curated_collection.dart';
-import '../../services/collections/curated_collections.dart';
 import '../../services/storage/app_image_cache.dart';
 import '../../services/theme/design_tokens.dart';
 import '../../utils/navigation/route_transitions.dart';
@@ -16,42 +15,50 @@ import 'collection_grid_page.dart';
 
 /// Browse vertical listing every curated film pack, grouped by kind.
 ///
-/// Nothing on this screen is fetched: the collections are compiled in and every
-/// poster is a metahub URL, so the hub paints in full without a request.
+/// Nothing on this screen is fetched in its own right: every collection comes
+/// from [CollectionsService], whose cards carry a metahub poster URL, so the hub
+/// paints in full without a request. That list is the bundled set until a TMDb
+/// key is configured, when the 1990s era tiles show their ranked films.
 class CollectionsPage extends StatelessWidget {
   const CollectionsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final sagas = [
-      for (final collection in curatedCollections)
-        if (collection.kind == CuratedKind.saga) collection,
-    ];
-    final eras = [
-      for (final collection in curatedCollections)
-        if (collection.kind == CuratedKind.era) collection,
-    ];
-
     return Scaffold(
       backgroundColor: context.tokens.bg,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          const SliverToBoxAdapter(child: _PageHeader()),
-          if (sagas.isNotEmpty)
-            SliverToBoxAdapter(
-              child: _Group(label: 'Franchises', collections: sagas),
-            ),
-          if (eras.isNotEmpty)
-            SliverToBoxAdapter(
-              child: _Group(label: 'Memory Lane', collections: eras),
-            ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom,
-            ),
-          ),
-        ],
+      body: ValueListenableBuilder<List<CuratedCollection>>(
+        valueListenable: CollectionsService.collections,
+        builder: (context, collections, _) {
+          final sagas = [
+            for (final collection in collections)
+              if (collection.kind == CuratedKind.saga) collection,
+          ];
+          final eras = [
+            for (final collection in collections)
+              if (collection.kind == CuratedKind.era) collection,
+          ];
+
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              const SliverToBoxAdapter(child: _PageHeader()),
+              if (sagas.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: _Group(label: 'Franchises', collections: sagas),
+                ),
+              if (eras.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: _Group(label: 'Memory Lane', collections: eras),
+                ),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height:
+                      ZplaySpacing.s24 + MediaQuery.paddingOf(context).bottom,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

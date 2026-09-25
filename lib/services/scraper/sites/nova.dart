@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
+import '../../metadata/tmdb_service.dart';
 import 'tmdb_helper.dart';
 
 /// Pure-Dart Nova Stream Scraper for ZPlayHTTP.
@@ -44,8 +45,8 @@ class NovaScraper extends StreamScraper {
           try {
             final uri = Uri.parse(
               isTv
-                  ? 'https://api.themoviedb.org/3/tv/$tmdbId/external_ids?api_key=b3556f3b206e16f82df4d1f6fd4545e6'
-                  : 'https://api.themoviedb.org/3/movie/$tmdbId?api_key=b3556f3b206e16f82df4d1f6fd4545e6',
+                  ? 'https://api.themoviedb.org/3/tv/$tmdbId/external_ids?api_key=${TmdbService.scraperKey}'
+                  : 'https://api.themoviedb.org/3/movie/$tmdbId?api_key=${TmdbService.scraperKey}',
             );
             final res = await http.get(uri).timeout(const Duration(seconds: 4));
             if (res.statusCode == 200) {

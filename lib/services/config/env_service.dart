@@ -103,4 +103,11 @@ class EnvService {
     if (compileVal.isNotEmpty) return compileVal;
     return get('DISCORD_APP_ID');
   }
+
+  // TMDb API key (checks compile-time dart-define first, then runtime .env)
+  static String get tmdbApiKey {
+    const compileVal = String.fromEnvironment('TMDB_API_KEY');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('TMDB_API_KEY');
+  }
 }

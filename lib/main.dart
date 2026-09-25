@@ -25,6 +25,7 @@ import './services/manga/manga_settings.dart';
 import './services/music/music_download_service.dart';
 import './services/music/music_settings.dart';
 import './services/music/qobuz_music_service.dart';
+import './services/metadata/tmdb_service.dart';
 import './services/my_list/my_list_service.dart';
 import './services/stream/torrent_stream_service.dart';
 import './services/player/player_settings.dart';
@@ -119,6 +120,7 @@ Future<void> _initializeDeferredServices() async {
     guard('MusicDownloadService', MusicDownloadService.instance.init),
     guard('QobuzMusicService', QobuzMusicService.instance.initialize),
     guard('P2pSettingsService', P2pSettingsService.initialize),
+    guard('TmdbService', TmdbService.initialize),
     guard('DownloadService', DownloadService.instance.initialize),
     guard('TorrentStreamService', TorrentStreamService().start),
     guard('DiscordRpcService', DiscordRpcService.instance.initialize),

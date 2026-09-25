@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
+import '../../metadata/tmdb_service.dart';
 import 'tmdb_helper.dart';
 
 /// Videasy VOD Extractor ported 1:1 from Flyx (videasy.ts).
@@ -10,7 +11,6 @@ class VideasyScraper extends StreamScraper {
   @override
   String get name => 'ZPlayHTTP';
 
-  static const _apiKey = 'b3556f3b206e16f82df4d1f6fd4545e6';
   static const _apiBase = 'https://api.speedracelight.com';
   static const _tmdbDirect = 'https://api.themoviedb.org/3';
   static const _ua =
@@ -197,7 +197,9 @@ class VideasyScraper extends StreamScraper {
       String targetImdb = imdbId ?? '';
 
       try {
-        final metaPath = isTv ? '/tv/$tmdbId?api_key=$_apiKey' : '/movie/$tmdbId?api_key=$_apiKey';
+        final metaPath = isTv
+            ? '/tv/$tmdbId?api_key=${TmdbService.scraperKey}'
+            : '/movie/$tmdbId?api_key=${TmdbService.scraperKey}';
         final metaRes = await http.get(Uri.parse('$_tmdbDirect$metaPath'), headers: _defaultHeaders).timeout(const Duration(seconds: 6));
         if (metaRes.statusCode == 200) {
           final meta = jsonDecode(metaRes.body);

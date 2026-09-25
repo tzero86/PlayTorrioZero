@@ -10,6 +10,7 @@ import '../../services/debrid/debrid_service.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/trakt/trakt_service.dart';
 import '../../services/simkl/simkl_service.dart';
+import '../../services/metadata/tmdb_service.dart';
 
 import 'appearance_settings_page.dart';
 import 'video_settings_page.dart';
@@ -18,6 +19,7 @@ import 'addons_settings_page.dart';
 import 'builtin_providers_settings_page.dart';
 import 'trakt_settings_page.dart';
 import 'simkl_settings_page.dart';
+import 'tmdb_settings_page.dart';
 import 'updates_settings_page.dart';
 import 'about_settings_page.dart';
 import '../../services/player/player_settings.dart';
@@ -585,6 +587,21 @@ class _SettingsPageState extends State<SettingsPage> {
                           'Cross-device Movies, TV & Anime synchronization',
                       valueText: _simklConnected ? 'Connected' : 'Offline',
                       onTap: () => _navigateTo(const SimklSettingsPage()),
+                    ),
+                    // TMDb API Key (bring your own)
+                    ListenableBuilder(
+                      listenable: TmdbService.apiKey,
+                      builder: (context, _) => _SettingsNavRow(
+                        icon: Icons.theaters_rounded,
+                        iconColor: tokens.accent,
+                        title: 'TMDb API Key',
+                        subtitle:
+                            'Your own key for the ranked 1990s rails and scraper metadata',
+                        valueText: TmdbService.isConfigured
+                            ? 'Your key'
+                            : 'Not set',
+                        onTap: () => _navigateTo(const TmdbSettingsPage()),
+                      ),
                     ),
                     // Discord Rich Presence (Desktop Only)
                     if (Platform.isWindows ||

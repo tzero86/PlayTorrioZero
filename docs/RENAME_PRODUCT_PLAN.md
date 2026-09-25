@@ -234,13 +234,14 @@ Implement in the Dart bootstrap (`lib/main.dart`) **before** the first `path_pro
 ### P6 — External services & release
 
 - Register our own Discord application (upload the `logo` asset) and set `DISCORD_APP_ID`; update the presence strings (`discord_rpc_service.dart:23,149-483`).
-- Own TMDB / Google / Wyzie keys; replace or self-host `*.speedracelight.com` (`tmdb_helper.dart:5,7`, `videasy.dart:13,14`, `audiobook_scraper_service.dart:277`, `wyzie_provider.dart:14`).
+- Own Google / Wyzie keys; replace or self-host `*.speedracelight.com` (`tmdb_helper.dart:7`, `videasy.dart:14`, `audiobook_scraper_service.dart:277`, `wyzie_provider.dart:14`).
+- TMDB is now BYOK-first: the user's own key in Settings > TMDB, then a build-time `TMDB_API_KEY`, then the inherited value as a documented last-resort fallback in `tmdb_service.dart`. Rotate the inherited key if the upstream account is reachable and pass the replacement with `--dart-define`; never commit it.
 - Set `agent=<our-slug>` for AllDebrid (`alldebrid_service.dart:39`); register our Simkl app (`simkl_constants.dart:11`).
 - Fix Android release signing (§5) before producing any public APK.
 - Verify the release body carries the Corresponding-Source link (§6d).
 - Sanity-pass on the TV: launcher row label, D-pad navigation unaffected, playback unaffected.
 
-**Acceptance:** no inherited credentials remain (`git grep -n "AIzaSy\|b3556f3b206e16f82df4d1f6fd4545e6\|wyzie-" lib` empty); updater fetches *our* releases; release body links source; APK is release-signed.
+**Acceptance:** `git grep -n "AIzaSy\|wyzie-" lib` is empty; the inherited TMDB key appears in exactly one file (`git grep -c "b3556f3b" lib`) and only behind the BYOK and build-time overrides; updater fetches *our* releases; release body links source; APK is release-signed.
 
 ---
 

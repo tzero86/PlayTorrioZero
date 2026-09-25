@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
+import '../../metadata/tmdb_service.dart';
 import 'tmdb_helper.dart';
 
 /// Pure-Dart FshareTV Stream Scraper for ZPlayHTTP.
@@ -50,7 +51,7 @@ class FshareTvScraper extends StreamScraper {
         if (tmdbId != null) {
           try {
             final uri = Uri.parse(
-              'https://api.themoviedb.org/3/movie/$tmdbId?api_key=b3556f3b206e16f82df4d1f6fd4545e6',
+              'https://api.themoviedb.org/3/movie/$tmdbId?api_key=${TmdbService.scraperKey}',
             );
             final res = await http.get(uri).timeout(const Duration(seconds: 4));
             if (res.statusCode == 200) {
