@@ -29,6 +29,7 @@ import './services/my_list/my_list_service.dart';
 import './services/stream/torrent_stream_service.dart';
 import './services/player/player_settings.dart';
 import './services/playback/music_now_playing_bridge.dart';
+import './services/collections/collections_service.dart';
 import './services/content/content_settings.dart';
 import './services/download/download_service.dart';
 import './services/config/env_service.dart';
@@ -73,6 +74,8 @@ void main() async {
     CustomBackgroundService.initialize(),
     GlassSettings.initialize(),
     ContentSettings.initialize(),
+    // The Home rails' visibility switch is read on the first frame.
+    CollectionsService.initialize(),
     RendererBackendSettings.initialize(),
   ]);
   runApp(const ZPlayApp());

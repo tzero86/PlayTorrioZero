@@ -6,15 +6,17 @@ import '../../widgets/common/tab_strip.dart';
 import '../anime/anime_page.dart';
 import '../audiobooks/audiobooks_page.dart';
 import '../books/books_page.dart';
+import '../collections/collections_page.dart';
 import '../discover/discover_page.dart';
 import '../iptv/iptv_page.dart';
 import '../manga/manga_page.dart';
 import '../music/music_page.dart';
 
-/// The seven content verticals Browse switches between. Declaration order is
+/// The eight content verticals Browse switches between. Declaration order is
 /// the switcher order and the stack index at once, so one list drives both.
 enum BrowseVertical {
   moviesAndTv,
+  collections,
   liveTv,
   anime,
   manga,
@@ -28,6 +30,8 @@ extension BrowseVerticalX on BrowseVertical {
     switch (this) {
       case BrowseVertical.moviesAndTv:
         return 'Movies & TV';
+      case BrowseVertical.collections:
+        return 'Collections';
       case BrowseVertical.liveTv:
         return 'Live TV';
       case BrowseVertical.anime:
@@ -47,6 +51,8 @@ extension BrowseVerticalX on BrowseVertical {
     switch (this) {
       case BrowseVertical.moviesAndTv:
         return Icons.movie_rounded;
+      case BrowseVertical.collections:
+        return Icons.collections_rounded;
       case BrowseVertical.liveTv:
         return Icons.live_tv_rounded;
       case BrowseVertical.anime:
@@ -68,6 +74,8 @@ extension BrowseVerticalX on BrowseVertical {
     switch (this) {
       case BrowseVertical.moviesAndTv:
         return const DiscoverPage();
+      case BrowseVertical.collections:
+        return const CollectionsPage();
       case BrowseVertical.liveTv:
         return const IptvPage();
       case BrowseVertical.anime:
@@ -85,7 +93,7 @@ extension BrowseVerticalX on BrowseVertical {
 }
 
 /// Built once: the labels and icons are constants, and rebuilding them on every
-/// switch would churn seven widgets for nothing.
+/// switch would churn eight widgets for nothing.
 final List<TabStripOption<BrowseVertical>> _options = [
   for (final vertical in BrowseVertical.values)
     TabStripOption<BrowseVertical>(
@@ -101,11 +109,11 @@ final List<Widget> _verticals = [
   for (final vertical in BrowseVertical.values) vertical.page,
 ];
 
-/// Browse: one vertical switcher above the seven vertical pages.
+/// Browse: one vertical switcher above the eight vertical pages.
 ///
 /// The verticals are stacked rather than swapped because each of them owns
 /// scroll controllers, catalog filters and load state; an [IndexedStack] keeps
-/// the off-screen six mounted, so switching away and back returns to the same
+/// the off-screen seven mounted, so switching away and back returns to the same
 /// scroll offset and the same filtered catalog instead of a refetch from the
 /// top. The shell owns navigation, so Browse adds only the switcher band and
 /// nothing else.

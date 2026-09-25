@@ -15,10 +15,16 @@ class MovieSliderSection extends StatefulWidget {
   final MovieSection section;
   final bool showCalendarButton;
 
+  /// See All opens the section's own catalog page, which only exists for addon
+  /// catalogs. Curated rails carry a synthetic `curated_*` catalog id, so they
+  /// hide the control instead of pushing a catalog that would 404.
+  final bool showSeeAll;
+
   const MovieSliderSection({
     super.key,
     required this.section,
     this.showCalendarButton = false,
+    this.showSeeAll = true,
   });
 
   @override
@@ -202,15 +208,17 @@ class _MovieSliderSectionState extends State<MovieSliderSection>
                       ),
                     )
                   : null,
-              onSeeAll: () {
-                Navigator.push(
-                  context,
-                  LiquidRevealRoute(
-                    page: CatalogPage(section: widget.section),
-                    tapPosition: _tapPosition,
-                  ),
-                );
-              },
+              onSeeAll: widget.showSeeAll
+                  ? () {
+                      Navigator.push(
+                        context,
+                        LiquidRevealRoute(
+                          page: CatalogPage(section: widget.section),
+                          tapPosition: _tapPosition,
+                        ),
+                      );
+                    }
+                  : null,
             ),
           ),
           const SizedBox(height: ZplaySpacing.s12),

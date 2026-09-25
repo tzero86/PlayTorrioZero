@@ -4,6 +4,7 @@ import '../../../services/theme/app_theme_service.dart';
 import '../../../services/theme/custom_background_service.dart';
 import '../../../services/theme/design_tokens.dart';
 import '../../../services/home/home_page_settings.dart';
+import '../../../services/collections/collections_service.dart';
 import '../../../services/my_list/my_list_service.dart';
 import '../../../services/simkl/simkl_service.dart';
 import '../../../services/trakt/trakt_service.dart';
@@ -151,6 +152,16 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
               ),
               const SizedBox(height: 12),
               _buildSimilarRecommendationsCard(myListCount),
+
+              const SizedBox(height: 28),
+
+              // ── 3b. Curated Collections ──
+              Text(
+                'CURATED COLLECTIONS',
+                style: ZplayType.overline.toStyle(color: tokens.textMuted),
+              ),
+              const SizedBox(height: 12),
+              _buildCollectionsCard(),
 
               const SizedBox(height: 28),
 
@@ -775,6 +786,27 @@ class _HomeUiSettingsPageState extends State<HomeUiSettingsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCollectionsCard() {
+    final tokens = context.tokens;
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: ZplayRadius.mdAll,
+        border: Border.all(color: tokens.borderDefault),
+      ),
+      child: _buildRecommendationToggleRow(
+        title: 'Collections',
+        subtitle: 'Show curated collection rails on the Home page',
+        listenable: CollectionsService.showOnHome,
+        onChanged: (val) {
+          CollectionsService.showOnHome.value = val;
+          setState(() {});
+        },
+      ),
     );
   }
 

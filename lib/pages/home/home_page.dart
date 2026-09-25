@@ -19,6 +19,7 @@ import '../../services/addon/addon_manager.dart';
 import '../../services/metadata/metadata_service.dart';
 import '../../services/theme/glass_settings.dart';
 import '../../services/home/home_page_settings.dart';
+import '../../services/collections/collections_service.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/continue_watching/continue_watching_service.dart';
 import '../../services/my_list/my_list_service.dart';
@@ -259,6 +260,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Curated rails are local, so a toggle takes effect without a reload: the
+  /// switch only adds or drops them from the rail list.
+  void _onCollectionsChanged() {
+    if (!mounted) return;
+    _injectCuratedSections();
+  }
+
   static bool _hasShownIntro = false;
   late bool _showIntro;
 
@@ -273,6 +281,7 @@ class _HomePageState extends State<HomePage> {
     MyListService.items.addListener(_onSettingsChanged);
     ContinueWatchingService.activeItems.addListener(_onSettingsChanged);
     ContentSettings.adultEnabled.addListener(_onAdultContentChanged);
+    CollectionsService.showOnHome.addListener(_onCollectionsChanged);
 
     if (_showIntro) {
       _playIntro();
@@ -369,6 +378,7 @@ class _HomePageState extends State<HomePage> {
     MyListService.items.removeListener(_onSettingsChanged);
     ContinueWatchingService.activeItems.removeListener(_onSettingsChanged);
     ContentSettings.adultEnabled.removeListener(_onAdultContentChanged);
+    CollectionsService.showOnHome.removeListener(_onCollectionsChanged);
     _shellController?.current.removeListener(_onSlotChanged);
     _scrollController.dispose();
     super.dispose();
@@ -430,6 +440,21 @@ class _HomePageState extends State<HomePage> {
           _sections.addAll(toInsert);
           break;
       }
+    });
+  }
+
+  /// Appends the bundled curated collections after every addon rail.
+  ///
+  /// Pinned to the tail on purpose: [_pickFeatured] builds the hero from the
+  /// leading sections, so a curated rail at the head would change which titles
+  /// the page spotlights. The removeWhere guard keeps a reload or a toggle
+  /// from stacking duplicate copies.
+  void _injectCuratedSections() {
+    if (!mounted) return;
+    setState(() {
+      _sections.removeWhere((s) => s.catalog.id.startsWith('curated_'));
+      if (!CollectionsService.showOnHome.value) return;
+      _sections.addAll(CollectionsService.homeSections());
     });
   }
 
@@ -532,6 +557,9 @@ class _HomePageState extends State<HomePage> {
           simklSection: results[3],
         );
       }
+
+      // Curated collections trail the addon rails; appended, never prepended.
+      _injectCuratedSections();
 
       // If we got through the whole stream and still loading (e.g., no addons worked)
       if (mounted && _loading) {
@@ -719,6 +747,7 @@ class _HomePageState extends State<HomePage> {
               section: visibleSections[i],
               showCalendarButton:
                   calEnabled && i >= (visibleSections.length - 2),
+              showSeeAll: !visibleSections[i].catalog.id.startsWith('curated_'),
             );
           },
         ),
