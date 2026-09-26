@@ -121,6 +121,16 @@ one sources response (`<base>/cdn/sources-with-title`, `/neon2/...`, `/m4uhd/...
 - Set to your own deployment of that API: it is used instead. Replacing this one
   means reimplementing a multi-CDN extractor, so the realistic choices are your
   own deployment or leaving it off.
+- Measured, so nobody re-litigates it: the client already owns the whole
+  decryption cipher and every request parameter (`videasy.dart`), and only two
+  facts live behind the proxy, how a `seed` is issued and the real hosts behind
+  the five routes it exposes. The player at `player.videasy.to` serves its HTML
+  shell but refuses an automated client (`chrome-error` in a real Chromium while
+  two control sites loaded normally in the same session), so those two facts are
+  behind bot protection. A self-hosted replacement would meet the same wall from
+  a single IP, which is presumably why the proxy exists. The app itself needs no
+  hosting for any other source: it is a native client, so the other providers
+  fetch their sites directly.
 
 ## Identities the app presents to third parties
 
