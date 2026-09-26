@@ -10,6 +10,7 @@ import '../../models/stream/stream_model.dart';
 import '../../services/addon/addon_manager.dart';
 import '../../services/cloudstream/cloudstream_manager.dart';
 import '../../services/home/home_page_settings.dart';
+import '../../services/metadata/metadata_service.dart';
 import '../../services/theme/app_theme_service.dart';
 import '../../services/theme/design_tokens.dart';
 import '../../widgets/common/focusable_card.dart';
@@ -33,6 +34,10 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
   List<MovieSection> _results = [];
   String _lastQuery = '';
+
+  /// Synthetic catalog id for the keyless title rail. There is no addon
+  /// catalog behind it, so its slider hides See All.
+  static const String _titleRailCatalogId = 'imdb_titles';
 
   bool _isMagnetMode = false;
   String _magnetQuery = '';
@@ -331,7 +336,28 @@ class _SearchPageState extends State<SearchPage> {
         return <String, List<Map<String, dynamic>>>{};
       });
 
-      await Future.wait([addonSearch, csSearch]);
+      // 3. Keyless title lookup. An install whose only installed addon is
+      // Cinemeta has no search catalog left, so without this the page would
+      // report no results for every query.
+      final titleSearch = MetadataService.suggestionSearch(query: currentQuery)
+          .then((movies) {
+        addSection(
+          MovieSection(
+            title: 'Titles',
+            subtitle: 'IMDb suggestions',
+            contentType: 'movie',
+            addonBaseUrl: 'https://v3-cinemeta.strem.io',
+            catalog: AddonCatalog(
+              type: 'movie',
+              id: _titleRailCatalogId,
+              name: 'Titles',
+            ),
+            movies: movies,
+          ),
+        );
+      });
+
+      await Future.wait([addonSearch, csSearch, titleSearch]);
     } catch (_) {}
 
     if (mounted && _lastQuery == currentQuery) {
@@ -538,6 +564,12 @@ class _SearchPageState extends State<SearchPage> {
                   return MovieSliderSection(
                     key: ValueKey('${sec.addonBaseUrl}_${sec.catalog.id}_${sec.subtitle}'),
                     section: sec,
+                    // Only rails backed by a real addon catalog can expand.
+                    // The titles rail is synthetic, and the CloudStream rails
+                    // carry a cs_* id no addon serves, so See All would open a
+                    // CatalogPage that fetches nothing.
+                    showSeeAll: sec.catalog.id != _titleRailCatalogId &&
+                        !sec.catalog.id.startsWith('cs_'),
                   );
                 }
                 return Padding(

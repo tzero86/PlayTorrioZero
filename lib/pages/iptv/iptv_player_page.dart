@@ -494,11 +494,15 @@ class _IptvPlayerPageState extends State<IptvPlayerPage>
         body: Listener(
           onPointerSignal: (pointerSignal) {
             if (pointerSignal is PointerScrollEvent) {
-              if (pointerSignal.scrollDelta.dy < 0) {
-                _adjustVolume(0.05); // Scroll up -> Volume up
-              } else if (pointerSignal.scrollDelta.dy > 0) {
-                _adjustVolume(-0.05); // Scroll down -> Volume down
-              }
+              // Register on the resolver instead of acting here: a Scrollable under the pointer
+              // claims the event first and scrolling it must not also change the volume.
+              GestureBinding.instance.pointerSignalResolver.register(pointerSignal, (_) {
+                if (pointerSignal.scrollDelta.dy < 0) {
+                  _adjustVolume(0.05); // Scroll up -> Volume up
+                } else if (pointerSignal.scrollDelta.dy > 0) {
+                  _adjustVolume(-0.05); // Scroll down -> Volume down
+                }
+              });
             }
           },
           child: GestureDetector(

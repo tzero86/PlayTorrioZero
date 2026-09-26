@@ -25,6 +25,7 @@ import '../../services/continue_watching/continue_watching_service.dart';
 import '../../services/my_list/my_list_service.dart';
 import '../../utils/navigation/route_transitions.dart';
 import '../../widgets/common/animated_ambient_background.dart';
+import '../../widgets/common/custom_scroll_track.dart';
 import '../../widgets/common/error_view.dart';
 import '../../widgets/common/focusable_card.dart';
 import '../../widgets/common/rail_skeleton.dart';
@@ -809,13 +810,10 @@ class _HomePageState extends State<HomePage> {
                 return KeyEventResult.ignored;
               }
             }
-            if (event.logicalKey == LogicalKeyboardKey.keyF ||
-                event.logicalKey == LogicalKeyboardKey.f11) {
-              if (WindowService.instance.isDesktop) {
-                WindowService.instance.toggleFullscreen();
-                return KeyEventResult.handled;
-              }
-            } else if (event.logicalKey == LogicalKeyboardKey.escape) {
+            // Toggling lives in the shell now (F11 and the rail row), so it
+            // works from every slot rather than only from this page. Escape
+            // stays here: leaving fullscreen is a per-screen reflex.
+            if (event.logicalKey == LogicalKeyboardKey.escape) {
               if (WindowService.instance.isDesktop &&
                   WindowService.instance.isFullscreen) {
                 WindowService.instance.exitFullscreen();
@@ -854,7 +852,7 @@ class _HomePageState extends State<HomePage> {
         Positioned(
           right: 24,
           bottom: 40,
-          child: _CustomScrollTrack(controller: _scrollController),
+          child: CustomScrollTrack(controller: _scrollController),
         ),
 
       // ── Intro Splash Screen ──
@@ -1122,26 +1120,6 @@ class _GlassAppBar extends StatelessWidget {
                 );
               },
             ),
-            // Fullscreen Toggle (Desktops only)
-            if (WindowService.instance.isDesktop)
-              ValueListenableBuilder<bool>(
-                valueListenable: WindowService.instance.isFullscreenNotifier,
-                builder: (context, isFullscreen, _) {
-                  return IconButton(
-                    icon: Icon(
-                      isFullscreen
-                          ? Icons.fullscreen_exit_rounded
-                          : Icons.fullscreen_rounded,
-                      color: isFullscreen ? tokens.warning : tokens.textEmphasis,
-                      size: 24,
-                    ),
-                    tooltip: isFullscreen
-                        ? 'Exit Fullscreen (F)'
-                        : 'Fullscreen (F)',
-                    onPressed: () => WindowService.instance.toggleFullscreen(),
-                  );
-                },
-              ),
           ],
         ),
       ),
@@ -2009,195 +1987,6 @@ class _HeroTitle extends StatelessWidget {
           fadeInDuration: const Duration(milliseconds: 250),
           placeholder: (_, __) => titleText,
           errorWidget: (_, __, ___) => titleText),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Custom Scroll Track
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _CustomScrollTrack extends StatefulWidget {
-  final ScrollController controller;
-
-  const _CustomScrollTrack({required this.controller});
-
-  @override
-  State<_CustomScrollTrack> createState() => _CustomScrollTrackState();
-}
-
-class _CustomScrollTrackState extends State<_CustomScrollTrack> {
-  double _thumbFraction = 0.0;
-  bool _isHovering = false;
-  bool _isDragging = false;
-  final double _trackHeight = 300.0;
-  final double _thumbHeight = 60.0;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_updateThumbFromScroll);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_updateThumbFromScroll);
-    super.dispose();
-  }
-
-  void _updateThumbFromScroll() {
-    if (!widget.controller.hasClients || _isDragging) return;
-    final max = widget.controller.position.maxScrollExtent;
-    if (max <= 0) return;
-
-    setState(() {
-      _thumbFraction = (widget.controller.position.pixels / max).clamp(
-        0.0,
-        1.0,
-      );
-    });
-  }
-
-  void _onDragUpdate(DragUpdateDetails details) {
-    if (!widget.controller.hasClients) return;
-    final max = widget.controller.position.maxScrollExtent;
-    if (max <= 0) return;
-
-    final usableTrack = _trackHeight - _thumbHeight;
-    setState(() {
-      _thumbFraction += details.delta.dy / usableTrack;
-      _thumbFraction = _thumbFraction.clamp(0.0, 1.0);
-    });
-
-    widget.controller.jumpTo(_thumbFraction * max);
-  }
-
-  void _scroll(double direction) {
-    if (!widget.controller.hasClients) return;
-    final target = widget.controller.position.pixels + (direction * 400);
-    widget.controller.animateTo(
-      target.clamp(0.0, widget.controller.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 500),
-      curve: ZplayMotion.standard,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final thumbPosition = _thumbFraction * (_trackHeight - _thumbHeight);
-
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovering = true),
-      onExit: (_) => setState(() => _isHovering = false),
-      child: AnimatedOpacity(
-        opacity: _isHovering || _isDragging ? 1.0 : ZplayOpacity.textMuted,
-        duration: ZplayMotion.base,
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: ZplaySpacing.s16,
-            horizontal: ZplaySpacing.s8,
-          ),
-          decoration: BoxDecoration(
-            color: tokens.surfaceOverlay,
-            borderRadius: ZplayRadius.lgAll,
-            border: Border.all(color: tokens.borderStrong, width: 1.5),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _HoverArrow(
-                icon: Icons.keyboard_arrow_up_rounded,
-                onTap: () => _scroll(-1),
-              ),
-              const SizedBox(height: ZplaySpacing.s16),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onVerticalDragStart: (_) => setState(() => _isDragging = true),
-                onVerticalDragUpdate: _onDragUpdate,
-                onVerticalDragEnd: (_) => setState(() => _isDragging = false),
-                onVerticalDragCancel: () => setState(() => _isDragging = false),
-                child: Container(
-                  height: _trackHeight,
-                  width: 24, // Wider hit area for easy grabbing
-                  alignment: Alignment.center,
-                  child: Container(
-                    height: _trackHeight,
-                    width: 6, // Visual track
-                    decoration: BoxDecoration(
-                      color: tokens.borderStrong,
-                      borderRadius: ZplayRadius.smAll,
-                    ),
-                    child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Positioned(
-                          top: thumbPosition,
-                          left:
-                              -2, // To make the thumb slightly wider than the track
-                          right: -2,
-                          child: Container(
-                            height: _thumbHeight,
-                            decoration: BoxDecoration(
-                              color: tokens.accent,
-                              borderRadius: ZplayRadius.smAll,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: tokens.accent.withValues(alpha: 0.6),
-                                  blurRadius: 12,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: ZplaySpacing.s16),
-              _HoverArrow(
-                icon: Icons.keyboard_arrow_down_rounded,
-                onTap: () => _scroll(1),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HoverArrow extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _HoverArrow({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-
-    return FocusableCard(
-      onTap: onTap,
-      builder: (_, state) => AnimatedContainer(
-        duration: ZplayMotion.base,
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: state.highlighted ? tokens.surfaceRaised : tokens.surface,
-          border: Border.all(
-            color: state.highlighted ? tokens.accent : tokens.borderStrong,
-          ),
-        ),
-        child: Icon(
-          icon,
-          color: state.highlighted ? tokens.textPrimary : tokens.textEmphasis,
-          size: 22,
-        ),
       ),
     );
   }

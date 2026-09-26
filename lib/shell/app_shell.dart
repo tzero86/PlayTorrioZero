@@ -30,6 +30,7 @@ import '../pages/search/search_page.dart';
 import '../pages/settings/settings_page.dart';
 import '../services/layout/form_factor.dart';
 import '../services/theme/design_tokens.dart';
+import '../services/window/window_service.dart';
 import 'app_shell_scope.dart';
 import 'now_playing_bar.dart';
 import 'shell_rail.dart';
@@ -67,6 +68,15 @@ class _GoToSlotIntent extends Intent {
   const _GoToSlotIntent(this.slot);
 
   final ShellSlot slot;
+}
+
+/// A fullscreen toggle requested by the keyboard map.
+///
+/// The window state it flips is not a slot, so there is nothing to carry: the
+/// intent exists only so the key can be echoed by the rail foot row rather than
+/// being an unlabelled one-off in the shortcut table.
+class _ToggleFullscreenIntent extends Intent {
+  const _ToggleFullscreenIntent();
 }
 
 /// The shell. Mount it once, above every destination and below anything pushed
@@ -115,14 +125,15 @@ class _AppShellState extends State<AppShell> {
     formFactor: () => _formFactor,
   );
 
-  /// The desktop keyboard map: the two conventional desktop chords, no more.
+  /// The desktop keyboard map: the conventional desktop chords plus fullscreen.
   ///
   /// Plain letters are deliberately absent. The player and the music surface
   /// bind their own keys (`Space`, `M`, arrows), and a shell binding on the same
   /// key would fire both, once here and once there. Ctrl+K and Ctrl+comma are
   /// chords nothing else claims, and they are what a keyboard user reaches for
   /// before the rail: the rail keeps its own rows, so the shortcut is a faster
-  /// path to the same slot rather than the only one.
+  /// path to the same slot rather than the only one. F11 joins them because a
+  /// window state outlives the slot you are on, so it cannot belong to a page.
   ///
   /// Both modifiers are bound for each shortcut: `Meta` is Command on macOS and
   /// Super or Windows elsewhere, so binding both pairs costs one extra activator
@@ -140,6 +151,12 @@ class _AppShellState extends State<AppShell> {
             _GoToSlotIntent(ShellSlot.settings),
         SingleActivator(LogicalKeyboardKey.comma, meta: true):
             _GoToSlotIntent(ShellSlot.settings),
+        // Fullscreen, on the key every desktop reserves for it. Global rather
+        // than per page: the rail foot row is the pointer path to the same
+        // state, and a user who is fullscreen on any slot needs a way out that
+        // is not a trip back to Home. F11 is a function key, so unlike a letter
+        // it cannot be swallowed by a text field mid-word.
+        SingleActivator(LogicalKeyboardKey.f11): _ToggleFullscreenIntent(),
       };
 
   /// True where the shell binds the keyboard map. Positive on purpose: a future
@@ -340,6 +357,12 @@ class _AppShellState extends State<AppShell> {
             _GoToSlotIntent: CallbackAction<_GoToSlotIntent>(
               onInvoke: (_GoToSlotIntent intent) {
                 _select(intent.slot);
+                return null;
+              },
+            ),
+            _ToggleFullscreenIntent: CallbackAction<_ToggleFullscreenIntent>(
+              onInvoke: (_ToggleFullscreenIntent intent) {
+                WindowService.instance.toggleFullscreen();
                 return null;
               },
             ),

@@ -11,6 +11,11 @@ All notable changes to ZPlay will be documented in this file.
 - Clearing the key restores the built-in picks, and a TMDb that cannot be reached never leaves a rail empty.
 - The TMDb credential now has one source of truth. Precedence is the user's own key, then a build-time `TMDB_API_KEY`, then the inherited value as a last-resort fallback, so behaviour without a key is unchanged for the scraper lookups that already relied on it.
 - TMDb attribution, their logo plus the required notice, appears in Credits as their terms require.
+- Mouse wheel scrolling no longer changes the volume anywhere it is not the intended control. The player and the IPTV player now let a list under the pointer claim the scroll, so the subtitle panel, the episode list and the text sync view scroll without touching the volume.
+- Search works on an install whose only catalog addon is Cinemeta. The dead Cinemeta search, which answered every query with the recency list, stays removed, but each search now also asks a keyless title source and shows the matches in a Titles rail, so `No results` appears only when there is genuinely nothing to show.
+- Rails with no catalogue behind them no longer offer See All. On the titles rail and the CloudStream rails it opened a screen that could only come back empty.
+- The scroll track on Home and the other long lists no longer reads as a volume slider. It fades in while you scroll or hover it and is hidden while the page is idle, and Home's private copy of the widget is gone.
+- Fullscreen is no longer a one-way door. F11 toggles it from every screen, and the rail carries a fullscreen row above Settings, so exiting fullscreen no longer means navigating back to Home first.
 
 ## [1.2.1] - 2026-09-25
 

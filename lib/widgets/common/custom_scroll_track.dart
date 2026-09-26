@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
@@ -24,24 +25,57 @@ class CustomScrollTrack extends StatefulWidget {
 }
 
 class _CustomScrollTrackState extends State<CustomScrollTrack> {
+  static const Duration _idleHideDelay = Duration(milliseconds: 1200);
+
   // Drives the thumb through a listenable so scrolling does not `setState` the
   // whole track: rebuilding it re-ran the full-length BackdropFilter below.
   final ValueNotifier<double> _thumbFraction = ValueNotifier<double>(0.0);
+  final Stopwatch _sinceScrollActivity = Stopwatch();
+  Timer? _idleTimer;
   bool _isHovering = false;
   bool _isDragging = false;
+  bool _isScrolling = false;
   final double _thumbSize = 60.0;
+
+  bool get _isVisible => _isHovering || _isDragging || _isScrolling;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_updateThumbFromScroll);
+    widget.controller.addListener(_handleScroll);
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_updateThumbFromScroll);
+    widget.controller.removeListener(_handleScroll);
+    _idleTimer?.cancel();
+    _sinceScrollActivity.stop();
     _thumbFraction.dispose();
     super.dispose();
+  }
+
+  // The controller notifies only as the offset moves, so this doubles as the
+  // scroll-activity signal: reveal the track and hide it again once the list
+  // has been still for [_idleHideDelay].
+  void _handleScroll() {
+    _sinceScrollActivity
+      ..reset()
+      ..start();
+    if (!_isScrolling) setState(() => _isScrolling = true);
+    _idleTimer ??= Timer(_idleHideDelay, _hideIfIdle);
+    _updateThumbFromScroll();
+  }
+
+  void _hideIfIdle() {
+    _idleTimer = null;
+    if (!mounted) return;
+    final elapsed = _sinceScrollActivity.elapsed;
+    if (elapsed < _idleHideDelay) {
+      _idleTimer = Timer(_idleHideDelay - elapsed, _hideIfIdle);
+      return;
+    }
+    _sinceScrollActivity.stop();
+    setState(() => _isScrolling = false);
   }
 
   void _updateThumbFromScroll() {
@@ -88,33 +122,40 @@ class _CustomScrollTrackState extends State<CustomScrollTrack> {
     final tokens = ZplayTokens.of(context);
 
     return MouseRegion(
+      // Idle: transparent to the pointer so the content behind stays usable,
+      // yet still tracked for hover so the track can fade back in.
+      opaque: _isVisible,
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
-      child: AnimatedOpacity(
-        opacity: _isHovering || _isDragging ? 1.0 : 0.35,
-        duration: ZplayMotion.base,
-        child: ClipRRect(
-          borderRadius: ZplayRadius.lgAll,
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                vertical: isVert ? ZplaySpacing.s16 : ZplaySpacing.s8,
-                horizontal: isVert ? ZplaySpacing.s8 : ZplaySpacing.s16,
-              ),
-              decoration: BoxDecoration(
-                color: tokens.borderSubtle,
-                borderRadius: ZplayRadius.lgAll,
-                border: Border.all(color: tokens.borderStrong, width: 1.5),
-              ),
-              child: ValueListenableBuilder<double>(
-                valueListenable: _thumbFraction,
-                builder: (context, fraction, _) {
-                  final thumbPosition = fraction * (widget.length - _thumbSize);
-                  return isVert
-                      ? _buildVerticalLayout(thumbPosition)
-                      : _buildHorizontalLayout(thumbPosition);
-                },
+      child: IgnorePointer(
+        ignoring: !_isVisible,
+        child: AnimatedOpacity(
+          opacity: _isVisible ? 1.0 : 0.0,
+          duration: ZplayMotion.base,
+          child: ClipRRect(
+            borderRadius: ZplayRadius.lgAll,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  vertical: isVert ? ZplaySpacing.s16 : ZplaySpacing.s8,
+                  horizontal: isVert ? ZplaySpacing.s8 : ZplaySpacing.s16,
+                ),
+                decoration: BoxDecoration(
+                  color: tokens.borderSubtle,
+                  borderRadius: ZplayRadius.lgAll,
+                  border: Border.all(color: tokens.borderStrong, width: 1.5),
+                ),
+                child: ValueListenableBuilder<double>(
+                  valueListenable: _thumbFraction,
+                  builder: (context, fraction, _) {
+                    final thumbPosition =
+                        fraction * (widget.length - _thumbSize);
+                    return isVert
+                        ? _buildVerticalLayout(thumbPosition)
+                        : _buildHorizontalLayout(thumbPosition);
+                  },
+                ),
               ),
             ),
           ),

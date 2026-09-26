@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/layout/form_factor.dart';
 import '../services/theme/design_tokens.dart';
+import '../services/window/window_service.dart';
 import '../widgets/common/focusable_card.dart';
 import 'app_shell.dart';
 
@@ -140,6 +141,8 @@ class ShellRail extends StatelessWidget {
               ],
               ...leading,
               const Spacer(),
+              _fullscreenRow(television: television, height: rowHeight),
+              SizedBox(height: rowGap),
               _row(ShellSlot.settings, television: television, height: rowHeight),
             ],
           ),
@@ -167,36 +170,83 @@ class ShellRail extends StatelessWidget {
     ShellSlot slot, {
     required bool television,
     required double height,
-  }) =>
-      _RailRow(
-        slot: slot,
-        selected: slot == current,
+  }) {
+    final chrome = _slotChrome(slot);
+    return _RailRow(
+      label: chrome.label,
+      icon: chrome.icon,
+      selected: slot == current,
+      television: television,
+      height: height,
+      onTap: () => onSelect(slot),
+    );
+  }
+
+  /// The fullscreen toggle, pinned to the rail foot above Settings.
+  ///
+  /// Fullscreen is window state, not a destination: no page is mounted for it
+  /// and it never owns the content area, which is why it is not a [ShellSlot].
+  /// It rides in the rail because the rail is the one piece of chrome every
+  /// slot paints, so both the way in and the way out of fullscreen follow the
+  /// user instead of being reachable only from Home. The keyboard path is the
+  /// shell's F11 binding, so the tooltip names the key.
+  ///
+  /// Every rail that has room for it, which is the side rail at all three
+  /// widths, gets it. The compact bottom bar does not: it is a phone, its five
+  /// slot rows already fill the width, and the platform there owns the window
+  /// insets rather than a key.
+  Widget _fullscreenRow({required bool television, required double height}) {
+    final window = WindowService.instance;
+    return ValueListenableBuilder<bool>(
+      valueListenable: window.isFullscreenNotifier,
+      builder: (context, isFullscreen, _) => _RailRow(
+        label: isFullscreen ? 'Exit Fullscreen' : 'Fullscreen',
+        tooltip: isFullscreen ? 'Exit Fullscreen (F11)' : 'Fullscreen (F11)',
+        icon: isFullscreen
+            ? Icons.fullscreen_exit_rounded
+            : Icons.fullscreen_rounded,
+        // Taking the accent while the window is fullscreen is the state the row
+        // has to report: the glyph alone is easy to miss at a glance.
+        selected: isFullscreen,
         television: television,
         height: height,
-        onSelect: onSelect,
-      );
+        onTap: window.toggleFullscreen,
+      ),
+    );
+  }
 }
 
 /// One row: the whole hit target, including its label.
+///
+/// Label and icon arrive already resolved rather than as a [ShellSlot], so the
+/// rail's two kinds of row, a slot and the fullscreen toggle, share one look
+/// instead of drifting apart as two near-identical styles.
 class _RailRow extends StatelessWidget {
   const _RailRow({
-    required this.slot,
+    required this.label,
+    required this.icon,
     required this.selected,
     required this.television,
     required this.height,
-    required this.onSelect,
+    required this.onTap,
+    this.tooltip,
   });
 
-  final ShellSlot slot;
+  final String label;
+  final IconData icon;
+
+  /// The pointer path to the name. Defaults to [label]; the fullscreen row
+  /// overrides it to name its key.
+  final String? tooltip;
   final bool selected;
   final bool television;
   final double height;
-  final ValueChanged<ShellSlot> onSelect;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final chrome = _slotChrome(slot);
+    final tooltipMessage = tooltip ?? label;
     // Collapsed when the platform asks for reduced motion, per the guidance on
     // [ZplayMotion]: the curve stays, the duration does not.
     final duration =
@@ -205,14 +255,14 @@ class _RailRow extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: chrome.label,
+      label: label,
       // Own the whole row: without excluding the descendants the icon and the
       // label are announced as separate items with no button or selected state
       // on either, and the tap action would be dropped along with them.
       excludeSemantics: true,
-      onTap: () => onSelect(slot),
+      onTap: onTap,
       child: FocusableCard(
-        onTap: () => onSelect(slot),
+        onTap: onTap,
         builder: (context, state) => CardFocusRing(
           focused: state.focused,
           radius: ZplayRadius.smAll,
@@ -246,14 +296,14 @@ class _RailRow extends StatelessWidget {
             child: television
                 ? Row(
                     children: [
-                      _icon(chrome.icon, tokens, state),
+                      _icon(icon, tokens, state),
                       const SizedBox(width: ZplaySpacing.s12),
-                      Expanded(child: _label(chrome.label, tokens, state)),
+                      Expanded(child: _label(label, tokens, state)),
                     ],
                   )
                 : Tooltip(
-                    message: chrome.label,
-                    child: _icon(chrome.icon, tokens, state),
+                    message: tooltipMessage,
+                    child: _icon(icon, tokens, state),
                   ),
           ),
         ),
@@ -280,7 +330,9 @@ class _RailRow extends StatelessWidget {
       );
 
   /// Hover and focus raise the row to primary text rather than filling it: the
-  /// accent fill goes on meaning exactly one thing, the slot you are on.
+  /// accent fill goes on meaning one thing, a state that is currently on, which
+  /// is the slot you are on or the fullscreen row while the window is
+  /// fullscreen.
   Color _foreground(ZplayTokens tokens, CardInteraction state) => selected
       ? tokens.accent
       : state.highlighted

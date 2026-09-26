@@ -2015,9 +2015,13 @@ class _PlayerScreenState extends State<PlayerScreen>
           child: Listener(
             onPointerSignal: (pointerSignal) {
               if (pointerSignal is PointerScrollEvent) {
-                final delta = pointerSignal.scrollDelta.dy < 0 ? 0.05 : -0.05;
-                final next = (_volume + delta).clamp(0.0, PlayerVolumeControl.maxVolume);
-                _applyVolume((next * 100).round() / 100.0, showHud: true);
+                // Register on the resolver instead of acting here: a Scrollable under the pointer
+                // claims the event first and scrolling it must not also change the volume.
+                GestureBinding.instance.pointerSignalResolver.register(pointerSignal, (_) {
+                  final delta = pointerSignal.scrollDelta.dy < 0 ? 0.05 : -0.05;
+                  final next = (_volume + delta).clamp(0.0, PlayerVolumeControl.maxVolume);
+                  _applyVolume((next * 100).round() / 100.0, showHud: true);
+                });
               }
             },
             child: MouseRegion(
