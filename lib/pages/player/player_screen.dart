@@ -167,6 +167,11 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// changed, not a running commentary per attempt.
   bool _resumeAdvanceNoticeShown = false;
 
+  /// Set once the user takes source choice back, so the search screen stops
+  /// speaking for the chain even if an attempt is still settling. Presentation
+  /// only: no chain decision reads it, and [_abandonResumeChain] owns it.
+  bool _resumeChainAbandoned = false;
+
   /// True once the current attempt's `open()` has settled, meaning it returned
   /// or threw. The chain waits for it: a hung open is [_startOpenWatchdog]'s
   /// case (30s), and advancing in the middle of one would cancel that watchdog
@@ -410,6 +415,10 @@ class _PlayerScreenState extends State<PlayerScreen>
           _hasReceivedFirstVideoFrame = true;
           debugPrint('[PlayerWatchdog] Video parameters received (${width}px wide).');
           _clearStallOverlay();
+          // The automatic search screen is gated on this flag, and nothing else
+          // repaints once the player has left its loading state: without this
+          // the screen would stay up over playing video.
+          setState(() {});
         }
       }),
       _player.stream.tracks.listen((tracks) {
@@ -799,7 +808,40 @@ class _PlayerScreenState extends State<PlayerScreen>
     _resumeAdvanceTimer?.cancel();
     _resumeAdvanceTimer = null;
     _resumeQueue = const [];
+    _resumeChainAbandoned = true;
   }
+
+  /// True while the automatic search has not delivered a picture yet, which is
+  /// the window its own screen, not the player's chrome, is the message for.
+  ///
+  /// Unreachable for a normal play: `widget.resumeCandidates` is only passed by
+  /// the resume path, and [_resumeAttempts] stays at 0 when that path was handed
+  /// nothing to walk, so a resume with a single source never claims to be
+  /// testing others.
+  bool get _searchOwnsMessage =>
+      widget.resumeCandidates != null &&
+      _resumeAttempts > 0 &&
+      !_resumeChainAbandoned &&
+      !_hasReceivedFirstVideoFrame &&
+      (_player.state.width ?? 0) == 0 &&
+      !_streamStalled;
+
+  /// Whether the dedicated search screen is up, which is the chain either armed
+  /// for another attempt or waiting on the open of the attempt it just started.
+  ///
+  /// Armed is the timer rather than a non-empty queue: the queue survives a
+  /// source that played, so a later reopen of the same session (a refused-seek
+  /// recovery, for one) would resurrect the screen over a stream the chain had
+  /// already finished with. Once neither holds the chain is exhausted and the
+  /// existing stall overlay and its source panel take over.
+  ///
+  /// The source panel stands the screen down while it is open: it is the
+  /// message then, and its scrim is only 45% opaque, so the screen would show
+  /// through it as clutter.
+  bool get _isResumeSearchActive =>
+      _searchOwnsMessage &&
+      !_showSourcesPanel &&
+      (_resumeAdvanceTimer != null || !_openSettled);
 
   /// Fires when an auto-advanced resume attempt has delivered nothing for
   /// [_resumeAdvanceTimeout], and opens the next ranked candidate at the
@@ -863,7 +905,15 @@ class _PlayerScreenState extends State<PlayerScreen>
     // After _switchStream, which clears the notice slot during its teardown.
     if (!_resumeAdvanceNoticeShown) {
       _resumeAdvanceNoticeShown = true;
-      _showNotice('This source is not responding • Trying another source');
+      // The search screen speaks for the whole chain: it already names the
+      // source being tried and the attempt count, so the toast would only repeat
+      // it. Checked with _searchOwnsMessage rather than with the screen test,
+      // because at this point _switchStream has not yet reset _openSettled for
+      // the attempt it just started and the screen test would read that as the
+      // chain being over.
+      if (!_searchOwnsMessage) {
+        _showNotice('This source is not responding • Trying another source');
+      }
     }
   }
 
@@ -2366,7 +2416,7 @@ class _PlayerScreenState extends State<PlayerScreen>
               }
             },
             child: MouseRegion(
-              cursor: (_showControls || _isLoading || _activeMenu != null)
+              cursor: (_showControls || _isLoading || _activeMenu != null || _isResumeSearchActive)
                   ? SystemMouseCursors.basic
                   : SystemMouseCursors.none,
               onHover: (_) => _handlePointerActivity(),
@@ -2410,6 +2460,21 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
         ),
 
+        // Automatic source search screen. A full window state over the video and
+        // under the controls layer, faded in with the shared motion constants.
+        // The switcher keeps one child while the chain walks, so the status line
+        // updates in place instead of the screen being rebuilt per attempt.
+        Positioned.fill(
+          child: AnimatedSwitcher(
+            duration: ZplayMotion.slow,
+            switchInCurve: ZplayMotion.decelerate,
+            switchOutCurve: ZplayMotion.accelerate,
+            child: _isResumeSearchActive
+                ? _buildResumeSearchScreen()
+                : const SizedBox.shrink(),
+          ),
+        ),
+
         // Visual Brightness Overlay:
         // Down to 0 makes the screen completely pitch black.
         // Above 1.0 up to 1.5 boosts highlights and brightness.
@@ -2435,7 +2500,12 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
 
         // 2. Loading / Buffering Overlay (rendered over the video during loading)
-        if (_isLoading) ...[
+        //
+        // Held back while the search screen is up, which covers the same window
+        // with its own status line: rebuilding this overlay per attempt is what
+        // made a walking chain read as the poster flashing. The stalled branch
+        // below still renders, since a stalled stream ends the search.
+        if (_isLoading && !_isResumeSearchActive) ...[
           if (widget.backdropUrl != null)
             Positioned.fill(
               child: Opacity(
@@ -2517,6 +2587,172 @@ class _PlayerScreenState extends State<PlayerScreen>
           ),
         ],
       ],
+    );
+  }
+
+  /// The single screen the automatic source search shows, from the moment the
+  /// resume chain starts until a source delivers a picture or the chain gives
+  /// up.
+  ///
+  /// One steady state for the whole walk is the point: the per attempt loading
+  /// overlay underneath built the poster again on every source change, which is
+  /// what read as the player flashing the artwork.
+  Widget _buildResumeSearchScreen() {
+    final tokens = context.tokens;
+    final String? logoUrl = widget.logoUrl ?? widget.detail?.logo;
+    final String? backdropUrl = widget.backdropUrl;
+    // Artwork ladder, best first: the player's own logo, the metadata's logo,
+    // then the backdrop dimmed to texture with the title standing in for it. A
+    // resume can arrive with a bare detail, so the last rung is what keeps a
+    // title without logo art from looking empty.
+    final bool showBackdrop = (logoUrl == null || logoUrl.isEmpty) &&
+        backdropUrl != null &&
+        backdropUrl.isNotEmpty;
+    final String sourceName = _currentSource.displayTitle;
+
+    return TweenAnimationBuilder<double>(
+      // AnimatedSwitcher does not animate its first child, and this screen is
+      // usually the first thing a resume paints, so the entrance fade of the
+      // whole screen is explicit: the backdrop and the artwork arrive together
+      // instead of popping over the black the player starts on.
+      key: const ValueKey<String>('resumeSourceSearch'),
+      tween: Tween<double>(begin: 0.0, end: 1.0),
+      duration: ZplayMotion.slow,
+      curve: ZplayMotion.decelerate,
+      builder: (context, opacity, child) =>
+          Opacity(opacity: opacity, child: child),
+      child: Container(
+        color: tokens.bg,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (showBackdrop)
+              Opacity(
+                opacity: 0.22,
+                child: Image.network(
+                  backdropUrl,
+                  cacheWidth: 1280,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: ZplaySpacing.s32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // One announcement for the whole state, with the visuals it
+                    // describes excluded so a screen reader is not read the same
+                    // sentence twice. The action below keeps its own semantics.
+                    Semantics(
+                      container: true,
+                      label: 'Testing other sources for you. '
+                          'Trying $sourceName. '
+                          'Attempt $_resumeAttempts of $_resumeAdvanceMaxAttempts.',
+                      child: ExcludeSemantics(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Same art and the same size as the loading overlay's,
+                            // so swapping between the two does not jump.
+                            if (logoUrl != null && logoUrl.isNotEmpty)
+                              Image.network(
+                                logoUrl,
+                                cacheHeight: 300,
+                                height: 100,
+                                fit: BoxFit.contain,
+                              )
+                            else
+                              Text(
+                                widget.title,
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: ZplayType.display
+                                    .toStyle(color: tokens.textPrimary),
+                              ),
+                            const SizedBox(height: ZplaySpacing.s32),
+                            Text(
+                              'Testing other sources for you',
+                              textAlign: TextAlign.center,
+                              style: ZplayType.title
+                                  .toStyle(color: tokens.textPrimary),
+                            ),
+                            const SizedBox(height: ZplaySpacing.s8),
+                            Text(
+                              '$sourceName • Attempt $_resumeAttempts of $_resumeAdvanceMaxAttempts',
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: ZplayType.body
+                                  .toStyle(color: tokens.textSecondary),
+                            ),
+                            const SizedBox(height: ZplaySpacing.s24),
+                            // A hairline of accent over a 12% track: the player's
+                            // own vocabulary instead of the Material progress
+                            // defaults, gliding with the attempt count rather than
+                            // restarting on every attempt.
+                            Container(
+                              width: 220,
+                              height: 3,
+                              alignment: Alignment.centerLeft,
+                              decoration: BoxDecoration(
+                                color: tokens.textPrimary
+                                    .withValues(alpha: ZplayOpacity.borderStrong),
+                                borderRadius: ZplayRadius.fullAll,
+                              ),
+                              child: AnimatedContainer(
+                                duration: ZplayMotion.slow,
+                                curve: ZplayMotion.standard,
+                                width: 220 *
+                                    (_resumeAttempts / _resumeAdvanceMaxAttempts),
+                                height: 3,
+                                decoration: BoxDecoration(
+                                  color: PlayerTheme.accent,
+                                  borderRadius: ZplayRadius.fullAll,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: ZplaySpacing.s32),
+                    TextButton.icon(
+                      // The escape the stall overlay already offers, so a user who
+                      // does not want to wait the chain out keeps it. Nothing to
+                      // open when the resume handed over neither a detail nor an
+                      // episode, which is also when the stall overlay cannot.
+                      onPressed: (_sourcesTarget == null && widget.detail == null)
+                          ? null
+                          : _openSourcePicker,
+                      icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                      label: Text(
+                        'Choose a source myself',
+                        style: ZplayType.label
+                            .copyWith(weight: FontWeight.w600)
+                            .toStyle(),
+                      ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: tokens.textEmphasis,
+                        disabledForegroundColor: tokens.textDisabled,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: ZplaySpacing.s16,
+                          vertical: ZplaySpacing.s12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: ZplayRadius.smAll,
+                          side: BorderSide(color: tokens.borderDefault),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -2708,9 +2944,9 @@ class _PlayerScreenState extends State<PlayerScreen>
           left: 0,
           right: 0,
           child: IgnorePointer(
-            ignoring: (!_showControls && !_isLoading) || _showSubSyncBar || _showTextSyncOverlay || _isLocked,
+            ignoring: (!_showControls && !_isLoading) || _showSubSyncBar || _showTextSyncOverlay || _isLocked || _isResumeSearchActive,
             child: AnimatedOpacity(
-              opacity: (_showControls || _isLoading) && !_showSubSyncBar && !_showTextSyncOverlay && !_isLocked
+              opacity: (_showControls || _isLoading) && !_showSubSyncBar && !_showTextSyncOverlay && !_isLocked && !_isResumeSearchActive
                   ? 1.0
                   : 0.0,
               duration: const Duration(milliseconds: 200),
@@ -2763,7 +2999,7 @@ class _PlayerScreenState extends State<PlayerScreen>
         ),
 
           // Bottom Transport Bar
-          if (!_isLoading)
+          if (!_isLoading && !_isResumeSearchActive)
             Positioned(
               bottom: 0,
               left: 0,
@@ -3108,7 +3344,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             ),
 
           // Floating Skip Button (Skip Intro, Skip Recap, Skip Credits, Skip Preview)
-          if (_showSkipButton && _activeSkipSegment != null && !_isLoading && !_showTextSyncOverlay && !_showEpisodesPanel && !_showSourcesPanel && !_isLocked)
+          if (_showSkipButton && _activeSkipSegment != null && !_isLoading && !_showTextSyncOverlay && !_showEpisodesPanel && !_showSourcesPanel && !_isLocked && !_isResumeSearchActive)
             Positioned(
               bottom: (_showControls || _activeMenu != null)
                   ? (MediaQuery.paddingOf(context).bottom +
@@ -3148,7 +3384,7 @@ class _PlayerScreenState extends State<PlayerScreen>
             _buildFastForwardHud(),
 
           // Left Mobile Lock Button
-          if (_isMobile && !_isLocked && _showControls && !_isLoading)
+          if (_isMobile && !_isLocked && _showControls && !_isLoading && !_isResumeSearchActive)
             _buildMobileLeftLockButton(),
 
           // Mobile Unlock Button

@@ -22,6 +22,7 @@ import '../addon/addon_manager.dart';
 import '../anime/anime_library_service.dart';
 import '../stream/stream_health_checker.dart';
 import '../diagnostics/crash_breadcrumbs.dart';
+import '../metadata/metadata_service.dart';
 import '../trakt/trakt_service.dart';
 import '../trakt/trakt_continue_watching_service.dart';
 import '../simkl/simkl_service.dart';
@@ -41,6 +42,12 @@ class ContinueWatchingService {
   /// or offered. A source that strongly matches the saved session ends the wait
   /// immediately, so this only extends the slow, otherwise-empty case.
   static const Duration _resumeScrapeWindow = Duration(seconds: 12);
+
+  /// How long the resume metadata fetch gets before the session's own detail is
+  /// used instead. Shorter than the rescrape window above, so the fetch has
+  /// always answered by the time that window closes, and the same give-up the
+  /// scrapers use: an answer later than this is worth nothing to the resume.
+  static const Duration _resumeMetaWindow = Duration(seconds: 8);
 
 
   static final ValueNotifier<List<ContinueWatchingItem>> activeItems =
@@ -550,6 +557,14 @@ class ContinueWatchingService {
       year: item.year,
     );
 
+    // A session only stores the id, title and art it was saved with, so the
+    // player would otherwise get no logo and the rescrape behind it no genres.
+    // Started here, before any branch waits on a scraped source, so the request
+    // overlaps that wait instead of sitting in front of it. Null means the
+    // fetch failed or the id is not one Cinemeta indexes (anime sessions carry
+    // anilist: ids), and then the session's own detail above is what ships.
+    final metaFuture = _fetchResumeMeta(item);
+
     Video? video;
     if (item.season != null && item.episode != null) {
       video = Video(
@@ -673,6 +688,7 @@ class ContinueWatchingService {
                 source: targetSource,
                 title: '${details.title} - الحلقة $episodeNum',
                 backdropUrl: details.displayBanner,
+                logoUrl: movieDetail.logo,
                 detail: movieDetail,
                 episode: video,
                 initialPosition: Duration(seconds: item.positionSeconds),
@@ -830,6 +846,7 @@ class ContinueWatchingService {
               source: finalSource,
               title: finalSource.displayTitle,
               backdropUrl: item.backdropUrl,
+              logoUrl: detail.logo,
               detail: detail,
               episode: video,
               initialPosition: Duration(seconds: item.positionSeconds),
@@ -868,6 +885,9 @@ class ContinueWatchingService {
             source: source,
             title: item.streamTitle ?? item.title,
             backdropUrl: item.backdropUrl,
+            // This path launches from the saved magnet without waiting on
+            // anything, so the only detail in scope is the session's own.
+            logoUrl: movieDetail.logo,
             detail: movieDetail,
             episode: video,
             initialPosition: Duration(seconds: item.positionSeconds),
@@ -931,6 +951,9 @@ class ContinueWatchingService {
         year: int.tryParse(item.year ?? ''),
         season: item.season,
         episode: item.episode,
+        // The fetch runs alongside this rescrape rather than in front of it, so
+        // the fetched genres are not in hand yet and this first pass starts on
+        // the session's; they reach the detail the player opens with below.
         genres: movieDetail.genres,
       );
 
@@ -951,7 +974,14 @@ class ContinueWatchingService {
         },
       );
 
-      await completer.future.timeout(_resumeScrapeWindow, onTimeout: () {});
+      // The metadata fetch started with this resume, so it works against the
+      // same window as the rescrape: waiting for both here keeps the request
+      // from adding a round trip in front of the sources, and the fetch's own
+      // cap below this window means a slow answer cannot stretch the wait past
+      // what this path already allows itself.
+      await Future.wait<Object?>(
+        [completer.future, metaFuture],
+      ).timeout(_resumeScrapeWindow, onTimeout: () => const <Object?>[]);
     } catch (_) {} finally {
       sub?.cancel();
     }
@@ -960,6 +990,10 @@ class ContinueWatchingService {
     if (context.mounted && Navigator.canPop(context)) {
       Navigator.pop(context);
     }
+
+    // The fetch above has had the whole rescrape window to answer, so this read
+    // is a microtask; a null answer keeps the session's own detail.
+    final detail = _mergeResumeDetail(await metaFuture, movieDetail, item);
 
     if (!context.mounted) return;
 
@@ -1022,7 +1056,8 @@ class ContinueWatchingService {
             source: finalSource,
             title: finalSource.displayTitle,
             backdropUrl: item.backdropUrl,
-            detail: movieDetail,
+            logoUrl: detail.logo,
+            detail: detail,
             episode: video,
             initialPosition: Duration(seconds: item.positionSeconds),
             // The whole ranking, not just the pick: the liveness probe above is
@@ -1038,7 +1073,7 @@ class ContinueWatchingService {
         context,
         MaterialPageRoute(
           builder: (_) => WatchScreen(
-            detail: movieDetail,
+            detail: detail,
             selectedEpisode: video,
             type: item.type,
             initialPosition: Duration(seconds: item.positionSeconds),
@@ -1046,6 +1081,44 @@ class ContinueWatchingService {
         ),
       );
     }
+  }
+
+  /// Full metadata for a resumed session, so the player gets the title's logo
+  /// and the rescrape behind it the genres a bare session detail cannot carry.
+  ///
+  /// Cinemeta indexes imdb ids only, so anime sessions (anilist: ids) and
+  /// Arabic anime (a slug) skip the request entirely. Nothing here is allowed to
+  /// fail the resume: a rejected request, a timeout or a body Cinemeta does not
+  /// have all return null, and the caller keeps the session's own detail.
+  static Future<MovieDetail?> _fetchResumeMeta(ContinueWatchingItem item) async {
+    final imdbId = item.id.split(':').first;
+    if (!imdbId.startsWith('tt')) return null;
+
+    try {
+      return await MetadataService.fetchMeta(
+        // An empty base url resolves to Cinemeta inside fetchMeta.
+        baseUrl: '',
+        type: item.type == 'series' ? 'series' : 'movie',
+        imdbId: imdbId,
+      ).timeout(_resumeMetaWindow, onTimeout: () => null);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// The fetched metadata with the session's own artwork filled in wherever
+  /// Cinemeta had none, so a resume still looks like the card the user tapped.
+  static MovieDetail _mergeResumeDetail(
+    MovieDetail? fetched,
+    MovieDetail session,
+    ContinueWatchingItem item,
+  ) {
+    if (fetched == null) return session;
+    return fetched.copyWith(
+      poster: fetched.poster ?? item.posterUrl,
+      background: fetched.background ?? item.backdropUrl,
+      year: fetched.year ?? item.year,
+    );
   }
 
   /// Calculates a comprehensive relevance/match score between a rescraped [candidate] stream

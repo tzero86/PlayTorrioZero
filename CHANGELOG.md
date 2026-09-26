@@ -19,6 +19,8 @@ All notable changes to ZPlay will be documented in this file.
 - Resuming from the Continue Watching tile now plays instead of dropping you into the source chooser. Provider streams that refuse the seek at open no longer count as a fatal playback error: the player tells the engine the stream is seekable, and if a source still refuses, it plays from the beginning with a one line notice rather than failing.
 - A resumed source that delivers nothing is now replaced by the next ranked candidate automatically, four attempts at most, before the chooser appears. The rescrape also waits past the scrapers' own deadline instead of cutting the candidate list short at five seconds, which used to throw away every provider that answered slowly.
 - Switching source by hand during a resumed movie continues from where you were instead of restarting the film, the same way switching source during an episode already behaved.
+- When a resume has to try more than one source, the search has its own screen instead of the player flickering between attempts: the title's logo art, `Testing other sources for you`, the source being tried with its attempt number, and a quiet `Choose a source myself` escape.
+- A resumed title now carries its real metadata, so that screen has the title's logo to show and the rescrape behind it receives the title's genres instead of an empty list.
 
 ## [1.2.1] - 2026-09-25
 
