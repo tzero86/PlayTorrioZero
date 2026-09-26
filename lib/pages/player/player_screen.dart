@@ -59,6 +59,14 @@ class PlayerScreen extends StatefulWidget {
   final Duration? initialPosition;
   final List<SubtitleVariant>? initialSubtitles;
 
+  /// Ranked, already-probed alternatives handed over by the continue-watching
+  /// resume path, for automatic recovery only.
+  ///
+  /// Null for a normal play (details screen, watch_screen.dart): with no list
+  /// there is no chain, no extra timer and no notice. See
+  /// [_PlayerScreenState._armResumeAdvanceWatchdog].
+  final List<StreamSource>? resumeCandidates;
+
   const PlayerScreen({
     super.key,
     required this.source,
@@ -69,6 +77,7 @@ class PlayerScreen extends StatefulWidget {
     this.episode,
     this.initialPosition,
     this.initialSubtitles,
+    this.resumeCandidates,
   });
 
   @override
@@ -126,6 +135,49 @@ class _PlayerScreenState extends State<PlayerScreen>
   static const Duration _bufferingStallTimeout = Duration(seconds: 25);
   bool _hasFallenBackToSoftware = false;
   bool _hasReceivedFirstVideoFrame = false;
+
+  /// Automatic recovery for a resume whose chosen source is dead.
+  ///
+  /// The resume path probes candidates before picking one, but the probe is
+  /// only a heuristic: a provider that refuses range requests but streams fine
+  /// over HLS is wrongly rejected, and one that passed minutes ago can be dead
+  /// now. Instead of dead-ending on the source picker, a resume that was handed
+  /// ranked alternatives walks them.
+  Timer? _resumeAdvanceTimer;
+
+  /// How long an auto-advanced attempt may deliver nothing before the chain
+  /// moves on. Deliberately short: the resume already waited through a scrape
+  /// and a probe, and [_bufferingStallTimeout] is tuned for a source the user
+  /// picked themselves.
+  static const Duration _resumeAdvanceTimeout = Duration(seconds: 9);
+
+  /// Sources the chain may still open, ranked, the source the player started on
+  /// excluded. Empty for every normal play, which is what keeps the chain off
+  /// that path entirely.
+  List<StreamSource> _resumeQueue = const [];
+
+  /// Attempts made so far, the source the player was opened with included.
+  int _resumeAttempts = 0;
+
+  /// Attempts the chain allows, the first one included. Past this the existing
+  /// stall overlay and its source panel remain the escape.
+  static const int _resumeAdvanceMaxAttempts = 4;
+
+  /// One notice for the whole chain: the user needs to know why the source
+  /// changed, not a running commentary per attempt.
+  bool _resumeAdvanceNoticeShown = false;
+
+  /// True once the current attempt's `open()` has settled, meaning it returned
+  /// or threw. The chain waits for it: a hung open is [_startOpenWatchdog]'s
+  /// case (30s), and advancing in the middle of one would cancel that watchdog
+  /// while the second open queued behind the same non-reentrant lock the hung
+  /// one still holds.
+  bool _openSettled = false;
+
+  /// Paused by the user, tracked separately from [_isPlaying] because a stream
+  /// that delivers nothing also reports "not playing", and that one must be
+  /// advanced past.
+  bool _pausedByUser = false;
 
   /// Wall-clock instant playback first reported as playing for the current
   /// stream. Used to detect a stream that stalls before its first frame.
@@ -228,6 +280,20 @@ class _PlayerScreenState extends State<PlayerScreen>
   /// deliver a first frame.
   Duration _positionAtStreamOpen = Duration.zero;
 
+  /// Where the next open() should start. Seeded from the resume offset the
+  /// caller passed in, then moved to the live position when the user switches
+  /// source, so the new source continues from where the user actually was
+  /// instead of re-issuing the original offset (the source that was just
+  /// refused may refuse it again, and a mid-playback switch must not rewind).
+  /// Null or zero means "open without a start position".
+  Duration? _seekTarget;
+
+  /// One-shot latch for the reopen-without-seek recovery in
+  /// [_recoverFromRefusedSeek], reset on every stream open. A source that
+  /// refuses the start seek is retried exactly once, so the recovery can never
+  /// loop and the user gets playback from the beginning at worst.
+  bool _hasRetriedWithoutSeek = false;
+
   bool _wasFullscreenBeforeEntering = false;
 
   @override
@@ -238,8 +304,21 @@ class _PlayerScreenState extends State<PlayerScreen>
     _currentSource = widget.source;
     _currentEpisode = widget.episode;
     _currentTitle = widget.title;
+    _seekTarget = widget.initialPosition;
     _volume = PlayerSettings.savedVolume.value;
     _isMuted = _volume == 0;
+
+    // Only the resume path passes alternatives, and only a resume has an offset
+    // worth carrying into the next attempt: a normal play leaves _resumeQueue
+    // empty, so it can never see a chain timer or its notice.
+    final resumeCandidates = widget.resumeCandidates;
+    if (resumeCandidates != null &&
+        resumeCandidates.length > 1 &&
+        widget.initialPosition != null &&
+        widget.initialPosition! > Duration.zero) {
+      _resumeQueue = _resumeAlternativesAfter(_currentSource, resumeCandidates);
+      _resumeAttempts = 1;
+    }
 
     if (widget.initialSubtitles != null && widget.initialSubtitles!.isNotEmpty) {
       _loadSourceSubtitles(widget.initialSubtitles!);
@@ -365,8 +444,12 @@ class _PlayerScreenState extends State<PlayerScreen>
   Future<void> _initStream() async {
     _hasFallenBackToSoftware = false;
     _hasReceivedFirstVideoFrame = false;
+    _hasRetriedWithoutSeek = false;
+    _openSettled = false;
+    _pausedByUser = false;
     _playbackStartedAt = null;
     _startOpenWatchdog();
+    _armResumeAdvanceWatchdog();
     _bufferingStallTimer?.cancel();
     _bufferingStallTimer = null;
     String? streamUrl;
@@ -520,7 +603,11 @@ class _PlayerScreenState extends State<PlayerScreen>
       }
 
       _activeHttpHeaders = isTorrentStream ? null : Map<String, String>.from(playerHeaders);
-      _positionAtStreamOpen = widget.initialPosition ?? Duration.zero;
+      // A zero target opens without a `start` property at all, so a normal play
+      // (no resume offset) is unaffected by any of this.
+      final Duration? seekTarget =
+          (_seekTarget != null && _seekTarget! > Duration.zero) ? _seekTarget : null;
+      _positionAtStreamOpen = seekTarget ?? Duration.zero;
 
       // Breadcrumbs around open(): there was previously no stream event recorded
       // between "about to open" and playback, so an incident inside the player
@@ -531,12 +618,18 @@ class _PlayerScreenState extends State<PlayerScreen>
         Media(
           cleanUri.toString(),
           httpHeaders: isTorrentStream ? null : playerHeaders,
-          start: widget.initialPosition,
+          start: seekTarget,
         ),
         play: true,
       );
       CrashBreadcrumbs.stream('open.ok', title: _currentTitle);
       _cancelOpenWatchdog();
+      _openSettled = true;
+      // The chain's window now starts from the moment the stream is actually
+      // open, which is the baseline the playhead is compared against, so a slow
+      // open does not spend the whole window on the scrape and the resolution.
+      // _initStream arms it as well, for an open that throws instead.
+      _armResumeAdvanceWatchdog();
 
       await PlayerSettings.applyPostOpenProperties(_player);
 
@@ -571,7 +664,7 @@ class _PlayerScreenState extends State<PlayerScreen>
           if (targetId.isNotEmpty) {
             final s = isColl ? null : _currentEpisode?.season;
             final e = isColl ? null : _currentEpisode?.episode;
-            final initPos = widget.initialPosition?.inSeconds ?? 0;
+            final initPos = _positionAtStreamOpen.inSeconds;
             final dur = _player.state.duration.inSeconds;
             final progress = (dur > 0 ? (initPos / dur) * 100.0 : 0.0).clamp(0.0, 100.0);
 
@@ -595,6 +688,9 @@ class _PlayerScreenState extends State<PlayerScreen>
       });
     } catch (e, stackTrace) {
       _cancelOpenWatchdog();
+      // The open is no longer in flight, so the auto-advance chain may judge
+      // this attempt rather than leaving the user on its error.
+      _openSettled = true;
       CrashBreadcrumbs.error(e, context: 'PlayerScreen.initStream $_currentTitle');
       print('[PlayerScreen ERROR] Failed to initialize stream URL: "$streamUrl"');
       print('[PlayerScreen ERROR] Exception: $e');
@@ -654,6 +750,121 @@ class _PlayerScreenState extends State<PlayerScreen>
   void _cancelOpenWatchdog() {
     _openWatchdogTimer?.cancel();
     _openWatchdogTimer = null;
+  }
+
+  /// Arms the auto-advance window for the current resume attempt.
+  ///
+  /// A no-op for a normal play: [_resumeQueue] is only ever filled by the
+  /// resume path, and the chain is over once the queue is drained or
+  /// [_resumeAdvanceMaxAttempts] sources have been tried. Called when an attempt
+  /// starts and again when its open settles, so each attempt gets its own window
+  /// and that window measures the open stream rather than the scrape before it.
+  void _armResumeAdvanceWatchdog() {
+    _resumeAdvanceTimer?.cancel();
+    _resumeAdvanceTimer = null;
+    if (_resumeQueue.isEmpty || _resumeAttempts >= _resumeAdvanceMaxAttempts) {
+      return;
+    }
+    _resumeAdvanceTimer = Timer(_resumeAdvanceTimeout, _onResumeAdvanceElapsed);
+  }
+
+  /// The ranked candidates that have not been tried yet.
+  ///
+  /// The source the player was opened with is the attempt already in flight, so
+  /// only the ranking behind it is usable. Matching is by identity first (the
+  /// resume path passes the very objects it chose from) and by URL second, so a
+  /// list that was rebuilt before the push still resolves to a position instead
+  /// of replaying sources that were already rejected.
+  static List<StreamSource> _resumeAlternativesAfter(
+    StreamSource current,
+    List<StreamSource> ranked,
+  ) {
+    var index = ranked.indexWhere((source) => identical(source, current));
+    if (index < 0) {
+      index = ranked.indexWhere(
+        (source) => source.url != null && source.url == current.url,
+      );
+    }
+    if (index < 0) {
+      return ranked
+          .where((source) => source.url == null || source.url != current.url)
+          .toList();
+    }
+    return ranked.sublist(index + 1);
+  }
+
+  /// Drops the chain. Used when the user takes over source selection: a source
+  /// change of ours after that would be an interruption, not a recovery.
+  void _abandonResumeChain() {
+    _resumeAdvanceTimer?.cancel();
+    _resumeAdvanceTimer = null;
+    _resumeQueue = const [];
+  }
+
+  /// Fires when an auto-advanced resume attempt has delivered nothing for
+  /// [_resumeAdvanceTimeout], and opens the next ranked candidate at the
+  /// user's resume offset.
+  ///
+  /// "Delivered nothing" is narrow on purpose: the open has settled, no frame
+  /// has rendered, the video width is still unknown, the playhead has not moved
+  /// past the offset this attempt was opened at, and the user has not paused.
+  /// Playback that is progressing in any way, a user pause, an exhausted chain
+  /// and a user who took the source panel are all left alone.
+  void _onResumeAdvanceElapsed() {
+    _resumeAdvanceTimer = null;
+    if (!mounted || _resumeQueue.isEmpty || _pausedByUser) return;
+    if (!_openSettled || _hasReceivedFirstVideoFrame) return;
+    if ((_player.state.width ?? 0) > 0) return;
+    if (_position > _positionAtStreamOpen) return;
+
+    final Video? target = _sourcesTarget;
+    if (target == null) {
+      // No Video to open a candidate with (no detail and no episode).
+      _abandonResumeChain();
+      return;
+    }
+
+    // A candidate whose URL is the one that just failed has been tried already,
+    // so it would only burn one of the four attempts.
+    final String? failedUrl = _activeStreamUrl;
+    while (_resumeQueue.isNotEmpty &&
+        failedUrl != null &&
+        _resumeQueue.first.url == failedUrl) {
+      _resumeQueue = _resumeQueue.sublist(1);
+    }
+    if (_resumeQueue.isEmpty) return;
+
+    final StreamSource nextSource = _resumeQueue.first;
+    _resumeQueue = _resumeQueue.sublist(1);
+    _resumeAttempts++;
+    CrashBreadcrumbs.stream(
+      'resume.advance',
+      title: nextSource.displayTitle,
+      addon: '${nextSource.addonName} ($_resumeAttempts/$_resumeAdvanceMaxAttempts)',
+    );
+
+    // Everything the abandoned attempt left running is dropped, the same way
+    // the refused-seek recovery does it. The frame watchdog would otherwise run
+    // the software-decode fallback against a stream that never delivered a
+    // frame, and the buffering stall timer would raise the not-responding
+    // overlay over the replacement.
+    _frameWatchdogTimer?.cancel();
+    _cancelOpenWatchdog();
+    _bufferingStallTimer?.cancel();
+    _bufferingStallTimer = null;
+    if (_streamStalled) setState(() => _streamStalled = false);
+
+    // The resume offset goes with every attempt, so a chain of dead sources
+    // cannot move the user backwards: [_switchStream]'s own rule would read a
+    // playhead that never moved, and for a movie a stand-in Video whose id never
+    // matches [_currentEpisode].
+    _switchStream(nextSource, target, resumeAt: widget.initialPosition);
+
+    // After _switchStream, which clears the notice slot during its teardown.
+    if (!_resumeAdvanceNoticeShown) {
+      _resumeAdvanceNoticeShown = true;
+      _showNotice('This source is not responding • Trying another source');
+    }
   }
 
   void _startFrameWatchdog() {
@@ -733,23 +944,34 @@ class _PlayerScreenState extends State<PlayerScreen>
     });
   }
 
+  /// Shows a brief, non-blocking notice in the recovery HUD. Used for playback
+  /// fallbacks the user should know about but which are not errors, so playback
+  /// is never interrupted to say them.
+  void _showNotice(String text) {
+    if (!mounted) return;
+    setState(() => _fallbackNoticeText = text);
+    _fallbackNoticeTimer?.cancel();
+    _fallbackNoticeTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _fallbackNoticeText = null);
+    });
+  }
+
   Future<void> _triggerSoftwareFallback({required String reason}) async {
     if (_hasFallenBackToSoftware) return;
     _hasFallenBackToSoftware = true;
 
+    // The stream this recovery belongs to. An auto-advance can replace it while
+    // the decoder switch and the verdict below are in flight (several seconds),
+    // and reopening or reporting the abandoned URL would then race the
+    // replacement's own open and describe a source that is no longer playing.
+    final String? fallbackUrl = _activeStreamUrl;
+
     debugPrint('[PlayerWatchdog] TRIGGERING AUTOMATIC FALLBACK TO SOFTWARE DECODING: $reason');
 
-    if (mounted) {
-      setState(() {
-        _fallbackNoticeText = '⚠️ Black screen detected • Switched to Software Mode';
-      });
-      _fallbackNoticeTimer?.cancel();
-      _fallbackNoticeTimer = Timer(const Duration(seconds: 4), () {
-        if (mounted) setState(() => _fallbackNoticeText = null);
-      });
-    }
+    _showNotice('⚠️ Black screen detected • Switched to Software Mode');
 
     final success = await PlayerSettings.fallbackToSoftware(_player);
+    if (_activeStreamUrl != fallbackUrl) return;
     if (!success || (_player.state.width == null || _player.state.width == 0)) {
       debugPrint('[PlayerWatchdog] Re-syncing stream with software decoding...');
       if (_activeStreamUrl != null && mounted) {
@@ -777,7 +999,9 @@ class _PlayerScreenState extends State<PlayerScreen>
     // Never leave the user staring at a black screen with no explanation, and
     // never tell them to pick another source without giving them the means to.
     await Future<void>.delayed(const Duration(seconds: 8));
-    if (mounted && (_player.state.width == null || _player.state.width == 0)) {
+    if (mounted &&
+        _activeStreamUrl == fallbackUrl &&
+        (_player.state.width == null || _player.state.width == 0)) {
       setState(() {
         // _statusMessage is only drawn inside the `if (_isLoading)` overlay, and
         // _isLoading was cleared when the (valid but dataless) playlist opened.
@@ -804,6 +1028,9 @@ class _PlayerScreenState extends State<PlayerScreen>
   void _openSourcePicker() {
     final detail = widget.detail;
     final target = _sourcesTarget;
+    // Reachable from the stall overlay, which is the user saying the automatic
+    // recovery did not work: do not race them with another source change.
+    _abandonResumeChain();
     if (target != null) {
       setState(() {
         _isLoading = false;
@@ -1276,7 +1503,22 @@ class _PlayerScreenState extends State<PlayerScreen>
       return;
     }
 
-    // 4. Critical error on dead stream
+    // 4. A refused start time seek is not a dead stream: mpv opened the media
+    // and only the position could not be honoured (provider VOD URLs do not
+    // advertise seekability). Recover once by reopening without the seek so the
+    // user still gets playback, and never let it reach the fatal branch below,
+    // which is what made a resume against a non-seekable source feel permanent.
+    // Deliberately placed after the active playback guard: when the stream has
+    // already progressed that guard returns first, and a refusal that late needs
+    // no recovery at all.
+    if (PlayerSettings.isSeekRefusedError(err)) {
+      debugPrint('[PlayerScreen] Start position seek refused by the stream: $errorMsg');
+      CrashBreadcrumbs.stream('seek.refused', title: _currentTitle);
+      unawaited(_recoverFromRefusedSeek());
+      return;
+    }
+
+    // 5. Critical error on dead stream
     CrashBreadcrumbs.error(errorMsg, context: 'PlayerScreen.playback $_currentTitle');
     print('[PlayerScreen ERROR] Critical player error on dead stream: $errorMsg');
 
@@ -1294,6 +1536,74 @@ class _PlayerScreenState extends State<PlayerScreen>
       _isLoading = false;
       _statusMessage = 'Playback error: $errorMsg';
     });
+  }
+
+  /// Reopens the current stream without a start position after mpv refused the
+  /// seek that a resume asked for.
+  ///
+  /// A source that cannot seek must still play, so the fallback is "from the
+  /// beginning, with a one line notice", never the choose-another-source state
+  /// the refusal used to reach. Runs at most once per stream
+  /// ([_hasRetriedWithoutSeek], reset by [_initStream]) and only when a resume
+  /// offset was actually requested, so it cannot loop.
+  ///
+  /// Every watchdog is re-armed for this new open on purpose. The abandoned open
+  /// left [_positionAtStreamOpen] at the resume offset while the playhead is
+  /// back at zero, and the frame watchdog measures elapsed playback against that
+  /// baseline: with the stale value its grace window can never be reached, so
+  /// the stream would get no black-screen or startup-stall recovery at all. The
+  /// buffering stall timer is dropped because a buffer latch raised by the
+  /// abandoned load would otherwise fire the "not responding" overlay over the
+  /// new one, and the open watchdog is restarted because this is a real open()
+  /// that can hang like any other.
+  Future<void> _recoverFromRefusedSeek() async {
+    if (_hasRetriedWithoutSeek) return;
+    final Duration? requested = _seekTarget;
+    final String? url = _activeStreamUrl;
+    if (url == null || requested == null || requested <= Duration.zero) return;
+    _hasRetriedWithoutSeek = true;
+    // Never ask this stream for a position again, so the refusal cannot repeat.
+    _seekTarget = Duration.zero;
+
+    debugPrint('[PlayerScreen] Reopening $_currentTitle without a start position so playback can begin');
+    CrashBreadcrumbs.stream('seek.refused.reopen', title: _currentTitle);
+    _showNotice('This source cannot seek • Starting from the beginning');
+
+    _frameWatchdogTimer?.cancel();
+    _cancelOpenWatchdog();
+    _bufferingStallTimer?.cancel();
+    _bufferingStallTimer = null;
+    _startOpenWatchdog();
+    _hasFallenBackToSoftware = false;
+    _hasReceivedFirstVideoFrame = false;
+    _playbackStartedAt = null;
+    _positionAtStreamOpen = Duration.zero;
+
+    try {
+      await _player.open(
+        Media(url, httpHeaders: _activeHttpHeaders),
+        play: true,
+      );
+      _cancelOpenWatchdog();
+      // The attempt's stream is open again, so the auto-advance chain may judge
+      // it: this reopen resets _positionAtStreamOpen to zero, which is exactly
+      // the baseline the chain compares the playhead against.
+      _openSettled = true;
+      await PlayerSettings.applyPostOpenProperties(_player);
+      _setSubtitleScale(_subtitleScale);
+      _applyVolume(_isMuted ? 0.0 : _volume);
+      _player.play();
+      _startFrameWatchdog();
+      _clearStallOverlay();
+    } catch (e) {
+      // A failed reopen means the source itself is gone. Leave the stall
+      // detection armed (open watchdog plus frame watchdog) so the user gets the
+      // recovery overlay with its escape actions instead of a silent spinner,
+      // and never report this as a seek problem.
+      debugPrint('[PlayerScreen] Reopen without a start position failed: $e');
+      CrashBreadcrumbs.error(e, context: 'PlayerScreen.recoverFromRefusedSeek $_currentTitle');
+      _startFrameWatchdog();
+    }
   }
 
   void _applyVolume(double vol, {bool showHud = false}) {
@@ -1367,6 +1677,9 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _togglePlayPause() {
+    // The auto-advance chain reads this: a stream the user paused is not a
+    // stream that failed to deliver.
+    _pausedByUser = _isPlaying;
     _player.playOrPause();
     _startHideControlsTimer();
   }
@@ -1394,6 +1707,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   void _openSourcesPanel() {
     final target = _sourcesTarget;
     if (target == null) return;
+    // The user is choosing a source by hand: stop taking sources away from them.
+    _abandonResumeChain();
     setState(() {
       _showSourcesPanel = true;
       _sourcesEpisode = target;
@@ -1418,6 +1733,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _onEpisodeChosen(Video episode) {
+    // Opens the sources panel for another episode: hand source choice back.
+    _abandonResumeChain();
     setState(() {
       _showEpisodesPanel = false;
       _showSourcesPanel = true;
@@ -1437,6 +1754,8 @@ class _PlayerScreenState extends State<PlayerScreen>
   }
 
   void _playNewSource(StreamSource newSource, Video episode) {
+    // The user picked a source: the recovery chain is over.
+    _abandonResumeChain();
     setState(() {
       _showSourcesPanel = false;
       _showEpisodesPanel = false;
@@ -1445,12 +1764,33 @@ class _PlayerScreenState extends State<PlayerScreen>
     _switchStream(newSource, episode);
   }
 
-  void _switchStream(StreamSource newSource, Video newEpisode) async {
+  /// [resumeAt] forces the open offset instead of deriving it from the live
+  /// playhead. Only the auto-advance chain passes it: a movie resume carries a
+  /// stand-in [Video] whose id never matches [_currentEpisode], and a dead
+  /// attempt leaves no playhead to fall back on, so both would otherwise open
+  /// at zero and lose the user's place.
+  void _switchStream(
+    StreamSource newSource,
+    Video newEpisode, {
+    Duration? resumeAt,
+  }) async {
     CrashBreadcrumbs.stream('switch', title: newEpisode.title);
+    // Continue from where the user actually is. Re-sending the original resume
+    // offset would jump backwards, and it is the offset the rejected source may
+    // have refused to seek to in the first place. A different episode starts
+    // from the beginning instead: the previous episode's position means nothing
+    // there. A movie has no episode of its own, so its identity comes from the
+    // detail, which is also the stand-in the sources panel switches with.
+    final String? currentId = _currentEpisode?.id ?? widget.detail?.id;
+    _seekTarget = resumeAt ??
+        (newEpisode.id == currentId
+            ? (_position > Duration.zero ? _position : _player.state.position)
+            : null);
     _progressSaveTimer?.cancel();
     _frameWatchdogTimer?.cancel();
     _cancelOpenWatchdog();
     _bufferingStallTimer?.cancel();
+    _resumeAdvanceTimer?.cancel();
     _fallbackNoticeTimer?.cancel();
     _fallbackNoticeText = null;
     _savePlaybackProgress();
@@ -1710,6 +2050,7 @@ class _PlayerScreenState extends State<PlayerScreen>
     _frameWatchdogTimer?.cancel();
     _cancelOpenWatchdog();
     _bufferingStallTimer?.cancel();
+    _resumeAdvanceTimer?.cancel();
     _fallbackNoticeTimer?.cancel();
     _volumeHudTimer?.cancel();
     _brightnessHudTimer?.cancel();
@@ -2314,7 +2655,8 @@ class _PlayerScreenState extends State<PlayerScreen>
             ),
           ),
 
-        // Automatic Fallback / Black Screen Recovery Notice HUD
+        // Transient player notice HUD: automatic fallback / black screen
+        // recovery, and the resume fallback when a source cannot seek.
         if (_fallbackNoticeText != null)
           Positioned(
             top: 70,

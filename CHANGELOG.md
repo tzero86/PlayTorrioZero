@@ -16,6 +16,9 @@ All notable changes to ZPlay will be documented in this file.
 - Rails with no catalogue behind them no longer offer See All. On the titles rail and the CloudStream rails it opened a screen that could only come back empty.
 - The scroll track on Home and the other long lists no longer reads as a volume slider. It fades in while you scroll or hover it and is hidden while the page is idle, and Home's private copy of the widget is gone.
 - Fullscreen is no longer a one-way door. F11 toggles it from every screen, and the rail carries a fullscreen row above Settings, so exiting fullscreen no longer means navigating back to Home first.
+- Resuming from the Continue Watching tile now plays instead of dropping you into the source chooser. Provider streams that refuse the seek at open no longer count as a fatal playback error: the player tells the engine the stream is seekable, and if a source still refuses, it plays from the beginning with a one line notice rather than failing.
+- A resumed source that delivers nothing is now replaced by the next ranked candidate automatically, four attempts at most, before the chooser appears. The rescrape also waits past the scrapers' own deadline instead of cutting the candidate list short at five seconds, which used to throw away every provider that answered slowly.
+- Switching source by hand during a resumed movie continues from where you were instead of restarting the film, the same way switching source during an episode already behaved.
 
 ## [1.2.1] - 2026-09-25
 

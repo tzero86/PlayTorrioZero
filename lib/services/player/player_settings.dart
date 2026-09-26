@@ -497,6 +497,17 @@ abstract final class PlayerSettings {
         await platform.setProperty('glsl-shaders', '');
       }
 
+      // 6. Seekability for VOD and torrent playback (never for Live IPTV).
+      // Provider VOD URLs (plain MP4 or HLS behind unsigned CDN links) do not
+      // advertise byte-range support, so mpv refuses the start time seek that a
+      // resume passes to open() and answers "Cannot seek in this stream", which
+      // the player then treats as a dead source. Pretending seekability makes
+      // mpv honour the saved position instead. Live IPTV is excluded on purpose:
+      // its window is not seekable and the live UI has no seek bar.
+      if (!isLive) {
+        await platform.setProperty('force-seekable', 'yes');
+      }
+
       // ──────────────────────────────────────────────────────────────────────
       // TORRENT STREAMS: TorrServer is a local HTTP server that may have data
       // gaps while downloading pieces. MPV needs generous cache, timeouts, and
@@ -626,6 +637,24 @@ abstract final class PlayerSettings {
     }
 
     return false;
+  }
+
+  /// Checks if an error emitted by MPV is the refusal of a start time seek:
+  /// "Cannot seek in this stream." followed by the hint "You can force it with
+  /// '--force-seekable=yes'.". MPV prints both lines, so both are matched.
+  ///
+  /// This is NOT a dead stream. MPV has opened the media and only the requested
+  /// position could not be honoured, which is exactly what a resume hits when
+  /// the provider URL does not advertise seekability. Callers must recover by
+  /// reopening without a start position (see PlayerScreen._recoverFromRefusedSeek)
+  /// and must never route it to the "Playback error" / source picker state.
+  static bool isSeekRefusedError(dynamic err) {
+    if (err == null) return false;
+    final lower = err.toString().toLowerCase();
+    // "force-seekable" is advice mpv prints only for this refusal.
+    return lower.contains('cannot seek') ||
+        lower.contains('could not seek') ||
+        lower.contains('force-seekable');
   }
 
   /// Checks if an error emitted by MPV indicates a hardware decoding or video pipeline failure.

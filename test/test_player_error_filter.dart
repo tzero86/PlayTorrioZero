@@ -46,4 +46,35 @@ void main() {
       expect(PlayerSettings.isNonFatalError('Connection refused'), isFalse);
     });
   });
+
+  group('PlayerSettings.isSeekRefusedError', () {
+    test('detects both lines mpv prints when it refuses a start time seek', () {
+      expect(PlayerSettings.isSeekRefusedError('Cannot seek in this stream.'), isTrue);
+      expect(PlayerSettings.isSeekRefusedError('cannot seek in this stream'), isTrue);
+      expect(
+        PlayerSettings.isSeekRefusedError("You can force it with '--force-seekable=yes'."),
+        isTrue,
+      );
+      expect(
+        PlayerSettings.isSeekRefusedError(
+          "Cannot seek in this stream.\nYou can force it with '--force-seekable=yes'.",
+        ),
+        isTrue,
+      );
+    });
+
+    test('does not swallow the refusal as a non-fatal warning', () {
+      // It must reach the seek specific handler, not the routine warning filter.
+      expect(PlayerSettings.isNonFatalError('Cannot seek in this stream.'), isFalse);
+      expect(PlayerSettings.isNonFatalError("You can force it with '--force-seekable=yes'."), isFalse);
+    });
+
+    test('does not classify dead stream errors or routine warnings as a refused seek', () {
+      expect(PlayerSettings.isSeekRefusedError(null), isFalse);
+      expect(PlayerSettings.isSeekRefusedError(''), isFalse);
+      expect(PlayerSettings.isSeekRefusedError('Failed to open https://example.com/a.m3u8'), isFalse);
+      expect(PlayerSettings.isSeekRefusedError('tcp: ffurl_read returned 0xffffff99'), isFalse);
+      expect(PlayerSettings.isSeekRefusedError('Server returned 403 Forbidden'), isFalse);
+    });
+  });
 }

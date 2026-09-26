@@ -21,6 +21,7 @@ import '../../utils/navigation/route_transitions.dart';
 import '../addon/addon_manager.dart';
 import '../anime/anime_library_service.dart';
 import '../stream/stream_health_checker.dart';
+import '../diagnostics/crash_breadcrumbs.dart';
 import '../trakt/trakt_service.dart';
 import '../trakt/trakt_continue_watching_service.dart';
 import '../simkl/simkl_service.dart';
@@ -32,6 +33,14 @@ class ContinueWatchingService {
   /// Maximum number of top-scoring rescraped candidates probed for liveness when
   /// resuming. Probes run concurrently, so added latency stays bounded by a single probe.
   static const int _resumeProbeLimit = 8;
+
+  /// How long the resume rescrape waits for sources before it gives up on the
+  /// rest of them. The scrapers themselves give up at 8 seconds, so a shorter
+  /// window here truncates the candidate pool to whichever providers happened to
+  /// answer first, and the sources that were still being fetched never get probed
+  /// or offered. A source that strongly matches the saved session ends the wait
+  /// immediately, so this only extends the slow, otherwise-empty case.
+  static const Duration _resumeScrapeWindow = Duration(seconds: 12);
 
 
   static final ValueNotifier<List<ContinueWatchingItem>> activeItems =
@@ -667,6 +676,10 @@ class ContinueWatchingService {
                 detail: movieDetail,
                 episode: video,
                 initialPosition: Duration(seconds: item.positionSeconds),
+                // The extractor's own ranking, so a source that dies on open is
+                // replaced automatically instead of dropping the user into the
+                // picker after a resume.
+                resumeCandidates: sources,
               ),
             ),
           );
@@ -784,7 +797,7 @@ class ContinueWatchingService {
           },
         );
 
-        await completer.future.timeout(const Duration(seconds: 5), onTimeout: () {});
+        await completer.future.timeout(_resumeScrapeWindow, onTimeout: () {});
       } catch (_) {} finally {
         sub?.cancel();
       }
@@ -820,6 +833,9 @@ class ContinueWatchingService {
               detail: detail,
               episode: video,
               initialPosition: Duration(seconds: item.positionSeconds),
+              // Ranked scraped candidates, so the player can walk them if the
+              // selected one delivers nothing.
+              resumeCandidates: animeSources,
             ),
           ),
         );
@@ -935,7 +951,7 @@ class ContinueWatchingService {
         },
       );
 
-      await completer.future.timeout(const Duration(seconds: 5), onTimeout: () {});
+      await completer.future.timeout(_resumeScrapeWindow, onTimeout: () {});
     } catch (_) {} finally {
       sub?.cancel();
     }
@@ -986,6 +1002,15 @@ class ContinueWatchingService {
 
       final bestScore = calculateSourceMatchScore(chosen, item);
       debugPrint('[ContinueWatchingService] Probed ${probeCandidates.length} source(s), $aliveCount alive; selected source match: "${chosen.addonName} - ${chosen.displayTitle}" (Match Score: $bestScore)');
+
+      // The probe verdict decides whether the player is handed a source that is
+      // already known to be dead. Without this trail a resume that lands on a
+      // stalled stream looks identical to a source that died after verification.
+      CrashBreadcrumbs.stream(
+        aliveCount > 0 ? 'resume.selected.verified' : 'resume.selected.unverified',
+        title: item.title,
+        addon: '${chosen.addonName} $aliveCount/${probeCandidates.length} alive of ${candidateSources.length}',
+      );
     }
 
     if (selectedSource != null) {
@@ -1000,6 +1025,10 @@ class ContinueWatchingService {
             detail: movieDetail,
             episode: video,
             initialPosition: Duration(seconds: item.positionSeconds),
+            // The whole ranking, not just the pick: the liveness probe above is
+            // only a heuristic, so the player needs the alternatives to fall
+            // back on when the chosen source turns out to be dead anyway.
+            resumeCandidates: candidateSources,
           ),
         ),
       );
