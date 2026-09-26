@@ -4,7 +4,7 @@ import 'package:zplay/models/my_list/my_list_item.dart';
 void main() {
   group('MyListItem', () {
     group('uniqueKey', () {
-      test('uses traktId when available', () {
+      test('prefers imdbId over traktId and tmdbId', () {
         final item = MyListItem(
           traktId: 123,
           imdbId: 'tt456',
@@ -13,10 +13,31 @@ void main() {
           type: 'movie',
           addedAt: DateTime(2026),
         );
+        expect(item.uniqueKey, 'imdb:tt456');
+      });
+
+      test('prefers tmdbId over traktId when imdbId is absent', () {
+        final item = MyListItem(
+          traktId: 123,
+          tmdbId: 789,
+          title: 'Test Movie',
+          type: 'movie',
+          addedAt: DateTime(2026),
+        );
+        expect(item.uniqueKey, 'tmdb:movie:789');
+      });
+
+      test('uses traktId when it is the only id', () {
+        final item = MyListItem(
+          traktId: 123,
+          title: 'Test Movie',
+          type: 'movie',
+          addedAt: DateTime(2026),
+        );
         expect(item.uniqueKey, 'trakt:123');
       });
 
-      test('falls back to imdbId when no traktId', () {
+      test('prefers imdbId over tmdbId', () {
         final item = MyListItem(
           imdbId: 'tt456',
           tmdbId: 789,
@@ -27,14 +48,30 @@ void main() {
         expect(item.uniqueKey, 'imdb:tt456');
       });
 
-      test('falls back to tmdbId when no traktId or imdbId', () {
+      test('uses tmdbId when no imdbId is present', () {
         final item = MyListItem(
           tmdbId: 789,
           title: 'Test Movie',
           type: 'movie',
           addedAt: DateTime(2026),
         );
-        expect(item.uniqueKey, 'tmdb:789');
+        expect(item.uniqueKey, 'tmdb:movie:789');
+      });
+
+      test('tmdbId keys are namespaced by media type', () {
+        final movie = MyListItem(
+          tmdbId: 789,
+          title: 'Shared Id',
+          type: 'movie',
+          addedAt: DateTime(2026),
+        );
+        final series = MyListItem(
+          tmdbId: 789,
+          title: 'Shared Id',
+          type: 'series',
+          addedAt: DateTime(2026),
+        );
+        expect(movie.uniqueKey, isNot(series.uniqueKey));
       });
 
       test('falls back to title+year when no IDs', () {
@@ -44,7 +81,7 @@ void main() {
           type: 'movie',
           addedAt: DateTime(2026),
         );
-        expect(item.uniqueKey, 'title:test movie:2024');
+        expect(item.uniqueKey, 'title:movie:test movie:2024');
       });
 
       test('title is lowercased and trimmed in fallback key', () {
@@ -54,7 +91,17 @@ void main() {
           type: 'movie',
           addedAt: DateTime(2026),
         );
-        expect(item.uniqueKey, 'title:the matrix:1999');
+        expect(item.uniqueKey, 'title:movie:the matrix:1999');
+      });
+
+      test('punctuation is stripped from the fallback key', () {
+        final item = MyListItem(
+          title: 'The Matrix: Reloaded!',
+          year: 2003,
+          type: 'movie',
+          addedAt: DateTime(2026),
+        );
+        expect(item.uniqueKey, 'title:movie:the matrix reloaded:2003');
       });
 
       test('year defaults to 0 when null in fallback key', () {
@@ -63,7 +110,7 @@ void main() {
           type: 'movie',
           addedAt: DateTime(2026),
         );
-        expect(item.uniqueKey, 'title:unknown:0');
+        expect(item.uniqueKey, 'title:movie:unknown:0');
       });
     });
 

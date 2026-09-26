@@ -19,6 +19,8 @@ class YoutubeAudioExtractor {
 
   static const String _tag = 'YoutubeAudioExtractor';
 
+  // Public YouTube Innertube web-client key: it ships in yt-dlp and every other
+  // client, so it is public by design and must keep working with no user setup.
   static const String _fallbackApiKey =
       'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8';
 

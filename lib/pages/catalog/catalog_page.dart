@@ -344,7 +344,10 @@ class _CatalogPageState extends State<CatalogPage> {
                                 ),
                               ),
                             ),
-                          if (!_isSearching && widget.section.catalog.supportsSearch)
+                          if (!_isSearching &&
+                              widget.section.catalog.supportsSearch &&
+                              MetadataService.catalogSearchIsTrustworthy(
+                                  widget.section.addonBaseUrl))
                             IconButton(
                               icon: const Icon(Icons.search_rounded),
                               color: tokens.textEmphasis,

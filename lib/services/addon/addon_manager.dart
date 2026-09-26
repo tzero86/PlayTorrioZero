@@ -496,6 +496,9 @@ class AddonManager {
     final futures = <Future<MovieSection?>>[];
 
     for (final addon in active) {
+      // Skip addons whose search extra is known to be ignored (Cinemeta).
+      if (!MetadataService.catalogSearchIsTrustworthy(addon.baseUrl)) continue;
+
       final searchCatalogs = addon.manifest.catalogs
           .where((c) => c.supportsSearch)
           .toList();

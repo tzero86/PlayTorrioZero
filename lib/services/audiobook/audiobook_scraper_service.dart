@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/audiobook/audiobook_model.dart';
 import '../../utils/search/relevance_scorer.dart';
+import '../config/service_credentials.dart';
 import 'audiobookbay_scraper.dart';
 
 class AudiobookScraperService {
@@ -274,7 +275,7 @@ class AudiobookScraperService {
   static DateTime? _audionestIdTokenExpiry;
 
   static Future<String?> _audionestEnsureToken({bool force = false}) async {
-    const apiKey = 'AIzaSyAG-z_yl0_55NEYTEKGoVJyixtHG-FhnfA';
+    final apiKey = ServiceCredentials.value(ServiceCredential.audiobookSearch);
     if (!force &&
         _audionestIdToken != null &&
         _audionestIdTokenExpiry != null &&
@@ -310,7 +311,8 @@ class AudiobookScraperService {
       final res = await http.post(
         Uri.parse('https://search.audionestapp.com/indexes/trackfiles/search'),
         headers: {
-          'Authorization': 'Bearer MWJiNWM0MjA2N2ZkM2RiMDNhNWFmNGNk',
+          'Authorization':
+              'Bearer ${ServiceCredentials.value(ServiceCredential.audiobookService)}',
           'Content-Type': 'application/json',
         },
         body: json.encode({'q': query, 'limit': 30}),

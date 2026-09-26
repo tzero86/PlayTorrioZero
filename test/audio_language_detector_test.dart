@@ -146,7 +146,7 @@ void main() {
       expect(langs, contains('multi'));
       expect(langs, contains('hindi'));
       expect(langs, contains('english'));
-      expect(s.getAudioBadge(), '🌐 MULTI');
+      expect(s.getAudioBadge(), '🇮🇳 HINDI');
     });
 
     test('ZERO JUNK: MultiEmbed does NOT trigger multi-audio', () {

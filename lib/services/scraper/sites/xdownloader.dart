@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
+import '../../config/service_credentials.dart';
 
 /// Scraper for All Movies Downloader (Films365) producing direct MP4 stream sources.
 class XDownloaderScraper extends StreamScraper {
@@ -9,8 +10,9 @@ class XDownloaderScraper extends StreamScraper {
   String get name => 'ZPlayHTTP';
 
   static const String _baseUrl = 'https://www.films365.org';
-  static const Map<String, String> _headers = {
-    'Authorization': 'Bearer 79a02956be35835728a044b11e2ae793149d45fb2c89cb6d029ec01aac19bfdb',
+  static Map<String, String> get _headers => {
+    'Authorization':
+        'Bearer ${ServiceCredentials.value(ServiceCredential.xdownloader)}',
     'Content-Type': 'application/json',
     'User-Agent': 'MovieDownloader/1.0',
   };

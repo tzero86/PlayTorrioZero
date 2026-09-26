@@ -22,7 +22,6 @@ class BackupRestoreService {
       'platform': defaultTargetPlatform.name,
       'settings': {},
       'theme': {},
-      'debrid': {},
       'iptv': {},
       'addons': {},
     };
@@ -36,6 +35,8 @@ class BackupRestoreService {
         settingsMap[key] = val;
       }
     }
+    // Debrid provider keys are plain string preferences, so they ride along in
+    // this map. There is deliberately no separate debrid object to read.
     exportData['settings'] = settingsMap;
 
     // 2. Current Theme & Background
@@ -56,18 +57,7 @@ class BackupRestoreService {
       'ambientSpeed': HomePageSettings.ambientLightSpeed.value,
     };
 
-    // 3. Debrid configuration
-    final debridService = DebridService();
-    exportData['debrid'] = {
-      'selectedService': await debridService.getSelectedService(),
-      'rdKey': prefs.getString('debrid_key_Real-Debrid') ?? '',
-      'torboxKey': prefs.getString('debrid_key_TorBox') ?? '',
-      'alldebridKey': prefs.getString('debrid_key_AllDebrid') ?? '',
-      'premiumizeKey': prefs.getString('debrid_key_Premiumize') ?? '',
-      'debridlinkKey': prefs.getString('debrid_key_Debrid-Link') ?? '',
-    };
-
-    // 4. IPTV Custom Portals & Playlists
+    // 3. IPTV Custom Portals & Playlists
     try {
       final customPortals = prefs.getStringList('iptv_custom_portals') ?? [];
       final m3uPlaylists = prefs.getString('iptv_m3u_playlists') ?? '[]';
@@ -80,7 +70,7 @@ class BackupRestoreService {
       };
     } catch (_) {}
 
-    // 5. Installed Addons
+    // 4. Installed Addons
     try {
       final installedAddons = AddonManager.instance.addons
           .map((a) => {
@@ -165,24 +155,13 @@ class BackupRestoreService {
       }
     }
 
-    // 3. Restore Debrid Keys
+    // 3. Older backups also carry a debrid object. Its provider keys are string
+    // preferences restored by the settings map above, so only the selected
+    // service is applied here.
     if (decoded.containsKey('debrid') && decoded['debrid'] is Map) {
-      final debrid = decoded['debrid'] as Map;
-      final sel = debrid['selectedService']?.toString();
+      final sel = (decoded['debrid'] as Map)['selectedService']?.toString();
       if (sel != null && sel.isNotEmpty) {
         await DebridService().saveSelectedService(sel);
-      }
-
-      for (final entry in debrid.entries) {
-        final k = entry.key.toString();
-        final v = entry.value?.toString() ?? '';
-        if (v.isNotEmpty) {
-          if (k == 'rdKey') await DebridService().realDebrid.saveToken(v);
-          if (k == 'torboxKey') await DebridService().torBox.saveKey(v);
-          if (k == 'alldebridKey') await DebridService().allDebrid.saveKey(v);
-          if (k == 'premiumizeKey') await DebridService().premiumize.saveKey(v);
-          if (k == 'debridlinkKey') await DebridService().debridLink.saveKey(v);
-        }
       }
     }
 

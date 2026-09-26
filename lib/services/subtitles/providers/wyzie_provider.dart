@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../models/subtitle/subtitle_model.dart';
+import '../../config/service_credentials.dart';
 import '../subtitle_provider.dart';
 
 class WyzieProvider extends SubtitleProvider {
@@ -11,14 +12,18 @@ class WyzieProvider extends SubtitleProvider {
   String get name => 'Wyzie';
 
   static const String _endpoint = 'https://sub.wyzie.io/search';
-  static const String _apiKey = 'wyzie-2q1gc0ypd8mkisqcw0ijt1b9zjytj7ex';
-  static const Map<String, String> _headers = {
-    'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'application/json',
-    'x-api-key': _apiKey,
-    'Authorization': 'Bearer $_apiKey',
-  };
+  static const String _userAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+
+  static Map<String, String> get _headers {
+    final key = ServiceCredentials.value(ServiceCredential.wyzie);
+    return {
+      'User-Agent': _userAgent,
+      'Accept': 'application/json',
+      'x-api-key': key,
+      'Authorization': 'Bearer $key',
+    };
+  }
 
   static const Map<String, String> _iso3ToLangName = {
     'ara': 'Arabic',
@@ -99,7 +104,7 @@ class WyzieProvider extends SubtitleProvider {
     try {
       final queryParams = <String, String>{
         'source': 'all',
-        'key': _apiKey,
+        'key': ServiceCredentials.value(ServiceCredential.wyzie),
       };
 
       if (imdbId != null && imdbId.isNotEmpty) {

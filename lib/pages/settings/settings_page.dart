@@ -11,6 +11,7 @@ import '../../services/theme/glass_settings.dart';
 import '../../services/trakt/trakt_service.dart';
 import '../../services/simkl/simkl_service.dart';
 import '../../services/metadata/tmdb_service.dart';
+import '../../services/config/service_credentials.dart';
 
 import 'appearance_settings_page.dart';
 import 'video_settings_page.dart';
@@ -20,6 +21,7 @@ import 'builtin_providers_settings_page.dart';
 import 'trakt_settings_page.dart';
 import 'simkl_settings_page.dart';
 import 'tmdb_settings_page.dart';
+import 'service_keys_settings_page.dart';
 import 'updates_settings_page.dart';
 import 'about_settings_page.dart';
 import '../../services/player/player_settings.dart';
@@ -47,6 +49,13 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  /// One subscription for the hub row's set count; the notifiers are static
+  /// finals, so the merge is built once instead of on every rebuild.
+  static final Listenable _serviceCredentials = Listenable.merge([
+    for (final credential in ServiceCredential.values)
+      ServiceCredentials.notifier(credential),
+  ]);
+
   final _debrid = DebridService();
   bool _useDebrid = false;
   String _debridProvider = 'None';
@@ -602,6 +611,26 @@ class _SettingsPageState extends State<SettingsPage> {
                             : 'Not set',
                         onTap: () => _navigateTo(const TmdbSettingsPage()),
                       ),
+                    ),
+                    // Service API Keys (bring your own)
+                    ListenableBuilder(
+                      listenable: _serviceCredentials,
+                      builder: (context, _) {
+                        final provided = ServiceCredential.values
+                            .where(ServiceCredentials.isUserProvided)
+                            .length;
+                        return _SettingsNavRow(
+                          icon: Icons.key_rounded,
+                          iconColor: tokens.accent,
+                          title: 'Service API Keys',
+                          subtitle:
+                              'Subtitles, audiobooks and scraper keys you supply yourself',
+                          valueText:
+                              '$provided of ${ServiceCredential.values.length} set',
+                          onTap: () =>
+                              _navigateTo(const ServiceKeysSettingsPage()),
+                        );
+                      },
                     ),
                     // Discord Rich Presence (Desktop Only)
                     if (Platform.isWindows ||

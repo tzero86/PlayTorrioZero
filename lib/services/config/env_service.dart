@@ -110,4 +110,74 @@ class EnvService {
     if (compileVal.isNotEmpty) return compileVal;
     return get('TMDB_API_KEY');
   }
+
+  // Simkl app name sent to the Simkl API (checks compile-time dart-define first, then runtime .env)
+  static String get simklAppName {
+    const compileVal = String.fromEnvironment('SIMKL_APP_NAME');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('SIMKL_APP_NAME', defaultValue: 'ZPlay');
+  }
+
+  // AllDebrid agent identifier (checks compile-time dart-define first, then runtime .env)
+  static String get alldebridAgent {
+    const compileVal = String.fromEnvironment('ALLDEBRID_AGENT');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('ALLDEBRID_AGENT', defaultValue: 'ZPlay');
+  }
+
+  // Upstream scraper hosts (checks compile-time dart-define first, then runtime .env).
+  // Empty means "not configured": the caller keeps its built-in default host.
+  static String get tmdbProxyBase {
+    const compileVal = String.fromEnvironment('TMDB_PROXY_BASE');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('TMDB_PROXY_BASE');
+  }
+
+  static String get videasyApiBase {
+    const compileVal = String.fromEnvironment('VIDEASY_API_BASE');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('VIDEASY_API_BASE');
+  }
+
+  // Wyzie subtitle key (checks compile-time dart-define first, then runtime .env)
+  static String get wyzieApiKey {
+    const compileVal = String.fromEnvironment('WYZIE_API_KEY');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('WYZIE_API_KEY');
+  }
+
+  // Audionest search key (checks compile-time dart-define first, then runtime .env)
+  static String get audiobookSearchKey {
+    const compileVal = String.fromEnvironment('AUDIOBOOK_SEARCH_KEY');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('AUDIOBOOK_SEARCH_KEY');
+  }
+
+  // Audionest service bearer (checks compile-time dart-define first, then runtime .env)
+  static String get audiobookServiceKey {
+    const compileVal = String.fromEnvironment('AUDIOBOOK_SERVICE_KEY');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('AUDIOBOOK_SERVICE_KEY');
+  }
+
+  // Paper2Audio key (checks compile-time dart-define first, then runtime .env)
+  static String get paper2audioKey {
+    const compileVal = String.fromEnvironment('PAPER2AUDIO_KEY');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('PAPER2AUDIO_KEY');
+  }
+
+  // VidGod cache bearer (checks compile-time dart-define first, then runtime .env)
+  static String get vidgodToken {
+    const compileVal = String.fromEnvironment('VIDGOD_TOKEN');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('VIDGOD_TOKEN');
+  }
+
+  // Films365 downloader bearer (checks compile-time dart-define first, then runtime .env)
+  static String get xdownloaderToken {
+    const compileVal = String.fromEnvironment('XDOWNLOADER_TOKEN');
+    if (compileVal.isNotEmpty) return compileVal;
+    return get('XDOWNLOADER_TOKEN');
+  }
 }

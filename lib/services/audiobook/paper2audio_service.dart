@@ -6,6 +6,8 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/service_credentials.dart';
+
 /// Voice option exposed in the picker. IDs match paper2audio.com (kokoro voices).
 class Paper2AudioVoice {
   final String id;
@@ -104,7 +106,8 @@ class Paper2AudioService {
   Paper2AudioService._();
   static final Paper2AudioService instance = Paper2AudioService._();
 
-  static const String _firebaseKey = 'AIzaSyAq9_a8hU7sNkwUBJFmSlbmhepbu8bRgqw';
+  static String get _firebaseKey =>
+      ServiceCredentials.value(ServiceCredential.paper2audio);
   static const String _baseUrl = 'https://www.paper2audio.com';
   static const String _prefsKey = 'p2a_jobs_v1';
 

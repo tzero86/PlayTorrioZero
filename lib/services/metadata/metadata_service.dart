@@ -15,10 +15,15 @@ class MetadataService {
   static final Map<String, List<Movie>> _catalogCache = {};
   static final Map<String, MovieDetail> _metaCache = {};
 
+  /// Raw IMDb suggestion bodies, keyed by request URL. Type and limit filters
+  /// are applied when mapping, so one fetch serves every variant of a query.
+  static final Map<String, String> _suggestionCache = {};
+
   /// Clear the memory cache (e.g. when addons change)
   static void clearCache() {
     _catalogCache.clear();
     _metaCache.clear();
+    _suggestionCache.clear();
   }
 
   /// Clear catalog/search entries only (e.g. when the adult switch changes
@@ -255,6 +260,12 @@ class MetadataService {
     }
   }
 
+  /// Whether an addon actually honours the `search` catalog extra. Cinemeta
+  /// advertises the extra but ignores it: measured queries all return the same
+  /// recency list, so its search catalogs are skipped instead of shown.
+  static bool catalogSearchIsTrustworthy(String baseUrl) =>
+      !baseUrl.toLowerCase().contains('cinemeta');
+
   // ── Meta (full details) ───────────────────────────────────────────────
 
   /// Fetch detailed metadata (background, description, rating, genres, etc.)
@@ -348,7 +359,115 @@ class MetadataService {
     }
   }
 
-  /// Searches active addons (or Cinemeta fallback) to resolve a title into a real Movie
+  // ── Title suggestions (keyless) ───────────────────────────────────────
+
+  static const String _suggestionBaseUrl = 'https://v3-cinemeta.strem.io';
+  static const String _browserUserAgent =
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+      '(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36';
+
+  /// Keyless title lookup against IMDb's suggestion endpoint. Returns real
+  /// imdb ids, so a result is immediately tappable through the normal details
+  /// path. Results are filtered to titles (tt-prefixed) and mapped to [Movie]
+  /// with baseUrl https://v3-cinemeta.strem.io.
+  static Future<List<Movie>> suggestionSearch({
+    required String query,
+    String? type,
+    int limit = 10,
+  }) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return [];
+
+    final encoded = Uri.encodeComponent(trimmed);
+    final url = 'https://v3.sg.media-imdb.com/suggestion/x/$encoded'
+        '.json?includeVideos=0';
+
+    final cached = _suggestionCache[url];
+    if (cached != null) {
+      return parseSuggestions(cached, type: type, limit: limit);
+    }
+
+    String body;
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': _browserUserAgent,
+        },
+      ).timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return [];
+      body = response.body;
+    } catch (_) {
+      return [];
+    }
+
+    _suggestionCache[url] = body;
+    return parseSuggestions(body, type: type, limit: limit);
+  }
+
+  /// Maps an IMDb suggestion response body to [Movie]s. Kept separate from
+  /// [suggestionSearch] so the mapping is testable without the network.
+  static List<Movie> parseSuggestions(
+    String body, {
+    String? type,
+    int limit = 10,
+  }) {
+    final trimmed = body.trim();
+    if (trimmed.isEmpty) return [];
+
+    List<dynamic> entries;
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is! Map<String, dynamic>) return [];
+      entries = decoded['d'] as List<dynamic>? ?? [];
+    } catch (_) {
+      return [];
+    }
+
+    final result = <Movie>[];
+    for (final entry in entries) {
+      if (entry is! Map<String, dynamic>) continue;
+
+      // Suggestion rows also cover people (`nm`) and companies (`in`).
+      final id = entry['id']?.toString() ?? '';
+      if (!id.startsWith('tt')) continue;
+
+      final name = entry['l']?.toString().trim() ?? '';
+      if (name.isEmpty) continue;
+
+      // Unrecognised kinds are only kept when the caller accepts either type.
+      final resolvedType = _suggestionType(entry['q']);
+      if (type != null && resolvedType != type) continue;
+
+      final year = entry['y']?.toString().trim();
+      result.add(Movie(
+        id: id,
+        name: name,
+        year: (year == null || year.isEmpty) ? null : year,
+        type: resolvedType ?? 'movie',
+        addonBaseUrl: _suggestionBaseUrl,
+      ));
+
+      if (result.length >= limit) break;
+    }
+
+    return result;
+  }
+
+  /// Suggestion rows carry a free-form kind in `q`: `feature`/`movie` are
+  /// films, anything containing `series` is a show, the rest is neither
+  /// (e.g. `video`).
+  static String? _suggestionType(dynamic q) {
+    final kind = q?.toString().toLowerCase() ?? '';
+    if (kind == 'feature' || kind == 'movie') return 'movie';
+    if (kind.contains('series')) return 'series';
+    return null;
+  }
+
+  /// Resolves a title into a real imdb-backed [Movie] via the keyless IMDb
+  /// suggestion endpoint, which is used instead of addon search because
+  /// Cinemeta ignores the `search` extra and only ever returned junk.
   static Future<Movie?> findMovieByTitle({
     required String title,
     String? type,
@@ -358,22 +477,22 @@ class MetadataService {
     final query = title.trim();
     if (query.isEmpty) return null;
 
+    // The resolved title is served from the addon the caller came from, except
+    // for the bestsimilar scraper, which serves no meta.
     final targetBaseUrl = (preferredBaseUrl != null &&
             preferredBaseUrl.startsWith('http') &&
             !preferredBaseUrl.contains('bestsimilar'))
         ? preferredBaseUrl
-        : 'https://v3-cinemeta.strem.io';
+        : _suggestionBaseUrl;
 
     final isPreferredTv = (type == 'series' || type == 'tv' || type == 'anime');
     final firstType = isPreferredTv ? 'series' : 'movie';
     final secondType = isPreferredTv ? 'movie' : 'series';
 
-    // Search both types to compare candidates across series and movie catalogs
+    // Query both types to compare candidates across series and movie suggestions
     final results = await Future.wait([
-      search(baseUrl: targetBaseUrl, type: firstType, catalogId: 'top', query: query)
-          .catchError((_) => <Movie>[]),
-      search(baseUrl: targetBaseUrl, type: secondType, catalogId: 'top', query: query)
-          .catchError((_) => <Movie>[]),
+      suggestionSearch(query: query, type: firstType),
+      suggestionSearch(query: query, type: secondType),
     ]);
 
     final allCandidates = <Movie>[...results[0], ...results[1]];
@@ -419,6 +538,17 @@ class MetadataService {
       }
     }
 
-    return bestMatch ?? allCandidates.first;
+    final best = bestMatch ?? allCandidates.first;
+    if (best.addonBaseUrl == targetBaseUrl) return best;
+
+    return Movie(
+      id: best.id,
+      name: best.name,
+      poster: best.poster,
+      year: best.year,
+      type: best.type,
+      addonBaseUrl: targetBaseUrl,
+      imdbRating: best.imdbRating,
+    );
   }
 }

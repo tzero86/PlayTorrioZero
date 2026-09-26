@@ -896,7 +896,10 @@ class _DiscoverPageState extends State<DiscoverPage> {
                   const Spacer(),
 
                 // Search toggle button
-                if (!_isSearching && (_selectedCatalogEntry?.catalog.supportsSearch ?? false))
+                if (!_isSearching &&
+                    (_selectedCatalogEntry?.catalog.supportsSearch ?? false) &&
+                    MetadataService.catalogSearchIsTrustworthy(
+                        _selectedCatalogEntry?.addon.baseUrl ?? ''))
                   IconButton(
                     icon: Icon(
                       Icons.search_rounded,

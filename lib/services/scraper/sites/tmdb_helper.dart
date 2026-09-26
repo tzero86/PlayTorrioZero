@@ -1,10 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../config/env_service.dart';
 import '../../metadata/tmdb_service.dart';
 
 class TmdbHelper {
   static const _tmdbDirect = 'https://api.themoviedb.org/3';
-  static const _tmdbProxy = 'https://db.speedracelight.com/3';
+
+  /// Optional keyless TMDb fallback host. There is no default: the upstream
+  /// developer's proxy stays off unless `TMDB_PROXY_BASE` names a host, so a
+  /// keyless install resolves metadata through a TMDb key or not at all.
+  static String? get _tmdbProxy {
+    final value = EnvService.tmdbProxyBase;
+    return value.isEmpty ? null : value;
+  }
 
   static const _headers = {
     'User-Agent':
@@ -62,22 +70,25 @@ class TmdbHelper {
           }
         } catch (_) {}
 
-        // Backup find query via Speedrace proxy
-        try {
-          final uri = Uri.parse('$_tmdbProxy/find/$cleanId?external_source=imdb_id');
-          final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 6));
-          if (res.statusCode == 200) {
-            final data = jsonDecode(res.body);
-            final results = isTv ? (data['tv_results'] as List?) : (data['movie_results'] as List?);
-            if (results != null && results.isNotEmpty) {
-              final id = results.first['id'] as int?;
-              if (id != null) {
-                _cache[cacheKey] = id;
-                return id;
+        // Backup find query via the keyless proxy, when one is configured
+        final proxy = _tmdbProxy;
+        if (proxy != null) {
+          try {
+            final uri = Uri.parse('$proxy/find/$cleanId?external_source=imdb_id');
+            final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 6));
+            if (res.statusCode == 200) {
+              final data = jsonDecode(res.body);
+              final results = isTv ? (data['tv_results'] as List?) : (data['movie_results'] as List?);
+              if (results != null && results.isNotEmpty) {
+                final id = results.first['id'] as int?;
+                if (id != null) {
+                  _cache[cacheKey] = id;
+                  return id;
+                }
               }
             }
-          }
-        } catch (_) {}
+          } catch (_) {}
+        }
       }
     }
 
@@ -135,39 +146,42 @@ class TmdbHelper {
         }
       } catch (_) {}
 
-      // Backup search via Speedrace Proxy
-      try {
-        final uri = Uri.parse('$_tmdbProxy/search/$endpoint?query=${Uri.encodeComponent(title)}');
-        final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 6));
-        if (res.statusCode == 200) {
-          final data = jsonDecode(res.body);
-          final results = data['results'] as List?;
-          if (results != null && results.isNotEmpty) {
-            for (final item in results) {
-              final itemTitle = (item['title'] ?? item['name'] ?? item['original_title'] ?? item['original_name'] ?? '').toString();
-              final itemCleanTitle = _cleanString(itemTitle);
-              final dateStr = (item['release_date'] ?? item['first_air_date'] ?? '').toString();
-              final itemYear = dateStr.length >= 4 ? int.tryParse(dateStr.substring(0, 4)) : null;
+      // Backup search via the keyless proxy, when one is configured
+      final proxy = _tmdbProxy;
+      if (proxy != null) {
+        try {
+          final uri = Uri.parse('$proxy/search/$endpoint?query=${Uri.encodeComponent(title)}');
+          final res = await http.get(uri, headers: _headers).timeout(const Duration(seconds: 6));
+          if (res.statusCode == 200) {
+            final data = jsonDecode(res.body);
+            final results = data['results'] as List?;
+            if (results != null && results.isNotEmpty) {
+              for (final item in results) {
+                final itemTitle = (item['title'] ?? item['name'] ?? item['original_title'] ?? item['original_name'] ?? '').toString();
+                final itemCleanTitle = _cleanString(itemTitle);
+                final dateStr = (item['release_date'] ?? item['first_air_date'] ?? '').toString();
+                final itemYear = dateStr.length >= 4 ? int.tryParse(dateStr.substring(0, 4)) : null;
 
-              if (itemCleanTitle == targetCleanTitle || itemCleanTitle.contains(targetCleanTitle)) {
-                if (year == null || itemYear == null || itemYear == year || (itemYear - year).abs() <= 1) {
-                  final id = item['id'] as int?;
-                  if (id != null) {
-                    _cache[cacheKey] = id;
-                    return id;
+                if (itemCleanTitle == targetCleanTitle || itemCleanTitle.contains(targetCleanTitle)) {
+                  if (year == null || itemYear == null || itemYear == year || (itemYear - year).abs() <= 1) {
+                    final id = item['id'] as int?;
+                    if (id != null) {
+                      _cache[cacheKey] = id;
+                      return id;
+                    }
                   }
                 }
               }
-            }
 
-            final fallbackId = results.first['id'] as int?;
-            if (fallbackId != null) {
-              _cache[cacheKey] = fallbackId;
-              return fallbackId;
+              final fallbackId = results.first['id'] as int?;
+              if (fallbackId != null) {
+                _cache[cacheKey] = fallbackId;
+                return fallbackId;
+              }
             }
           }
-        }
-      } catch (_) {}
+        } catch (_) {}
+      }
     }
 
     return null;

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../stream_scraper.dart';
 import '../../../models/stream/stream_model.dart';
+import '../../config/env_service.dart';
 import '../../metadata/tmdb_service.dart';
 import 'tmdb_helper.dart';
 
@@ -11,8 +12,13 @@ class VideasyScraper extends StreamScraper {
   @override
   String get name => 'ZPlayHTTP';
 
-  static const _apiBase = 'https://api.speedracelight.com';
   static const _tmdbDirect = 'https://api.themoviedb.org/3';
+
+  /// Scraper API host. There is no default: the upstream developer's host stays
+  /// off unless `VIDEASY_API_BASE` names a deployment, and an empty value keeps
+  /// the scraper off entirely.
+  static String get _apiBase => EnvService.videasyApiBase;
+
   static const _ua =
       'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
 
@@ -181,6 +187,7 @@ class VideasyScraper extends StreamScraper {
     String? imdbId,
   }) async {
     final sources = <StreamSource>[];
+    if (_apiBase.isEmpty) return sources;
     final mediaType = (type == 'series' || type == 'tv') ? 'tv' : 'movie';
     final tmdbId = await TmdbHelper.resolveTmdbId(imdbId: imdbId, title: title, type: mediaType, year: year);
     print('[VideasyScraper] Resolved tmdbId: $tmdbId for "$title" (year: $year, imdbId: $imdbId)');

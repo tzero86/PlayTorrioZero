@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/debrid_file.dart';
 import '../utils/debrid_media_matcher.dart';
+import '../../config/env_service.dart';
 
 class AllDebridService {
   static const String _key = 'alldebrid_api_key';
@@ -36,7 +37,9 @@ class AllDebridService {
     if (trimmed.isEmpty) return null;
     try {
       final res = await http.get(
-        Uri.parse('https://api.alldebrid.com/v4/user?agent=ZPlay&apikey=$trimmed'),
+        Uri.parse(
+          'https://api.alldebrid.com/v4/user?agent=${EnvService.alldebridAgent}&apikey=$trimmed',
+        ),
       );
       if (res.statusCode == 200) {
         final data = json.decode(res.body);

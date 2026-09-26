@@ -1,0 +1,6 @@
+# Live-network smoke tests are skipped in the default `flutter test` run because
+# they depend on third-party sites and cannot be deterministic. Run them on
+# demand with: flutter test --run-skipped --tags network
+tags:
+  network:
+    skip: 'Requires live network access; run with flutter test --run-skipped --tags network'

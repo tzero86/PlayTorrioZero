@@ -519,7 +519,7 @@ class SimklService {
     );
     return _getOrNull(
       uri,
-      headers: {'User-Agent': 'Debrify'},
+      headers: {'User-Agent': kSimklAppName},
       label: 'public fetch $url',
     );
   }

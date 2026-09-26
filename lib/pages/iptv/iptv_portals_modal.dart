@@ -42,6 +42,7 @@ class _IptvPortalsModalState extends State<IptvPortalsModal>
 
   bool _showAddForm = false;
   bool _showM3uForm = false;
+  bool _obscurePassword = true;
 
   bool _isPortalsEditMode = false;
   final Set<String> _selectedPortalKeys = {};
@@ -915,11 +916,29 @@ class _IptvPortalsModalState extends State<IptvPortalsModal>
                       Expanded(
                         child: TextField(
                           controller: _passCtrl,
+                          obscureText: _obscurePassword,
                           style: ZplayType.label.toStyle(color: tokens.textPrimary),
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Password',
                             isDense: true,
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_off_rounded
+                                    : Icons.visibility_rounded,
+                                color: tokens.textMuted,
+                                size: 16,
+                              ),
+                              padding: const EdgeInsets.all(4),
+                              constraints: const BoxConstraints(),
+                              tooltip: _obscurePassword ? 'Show Password' : 'Hide Password',
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
                           ),
                         ),
                       ),

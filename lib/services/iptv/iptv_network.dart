@@ -539,7 +539,8 @@ class IptvScraper {
   static bool _isLoadingCloudPortals = false;
 
   static const _catalogSubs = ['IPTV_ZONENEW', 'FreeIPTV', 'iptvguru', 'IPTVfree'];
-  static const _oauthUa = 'PlayTorrio/1.3.6 (by /u/PlayTorrioApp)';
+  static const _oauthUa =
+      'android:io.github.tzero86.zplay:v1.2.1 (+https://github.com/tzero86/ZPlay)';
   static const _oauthClientIds = [
     'ohXpoqrZYub1kg', // Slide for Reddit
     'NOe2iKrPPzwscA', // RedReader
