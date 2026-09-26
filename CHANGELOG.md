@@ -2,7 +2,7 @@
 
 All notable changes to ZPlay will be documented in this file.
 
-## [Unreleased]
+## [1.3.0] - 2026-09-25
 
 - Home and Browse gained curated collections: twelve verified franchise packs and six 1990s rails, browsable as a Collections vertical in Browse and as a Memory Lane zone at the end of Home.
 - Every film in a pack was verified against Cinemeta before shipping, so each card resolves to the real title, year and poster, and tapping it opens the normal details screen.
@@ -21,6 +21,7 @@ All notable changes to ZPlay will be documented in this file.
 - Switching source by hand during a resumed movie continues from where you were instead of restarting the film, the same way switching source during an episode already behaved.
 - When a resume has to try more than one source, the search has its own screen instead of the player flickering between attempts: the title's logo art, `Testing other sources for you`, the source being tried with its attempt number, and a quiet `Choose a source myself` escape.
 - A resumed title now carries its real metadata, so that screen has the title's logo to show and the rescrape behind it receives the title's genres instead of an empty list.
+- Sources that look healthy but cannot play are no longer treated as good. The check behind the source search now follows an HLS stream from its playlist through to the first real media segment, so a playlist whose segments are dead, expired or refused is rejected instead of being counted as alive, and the automatic search spends its attempts on the sources that passed that test before it falls back to the rest.
 
 ## [1.2.1] - 2026-09-25
 

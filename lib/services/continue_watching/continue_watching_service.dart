@@ -1005,6 +1005,12 @@ class ContinueWatchingService {
     });
 
     StreamSource? selectedSource;
+    // What the player walks when the chosen source delivers nothing. The probe
+    // verdict leads that order, so the automatic source search spends its
+    // attempts on sources known to serve media rather than on ones already
+    // known to be dead. Stays the plain ranking unless the probe below reorders
+    // it, which keeps a resume without candidates on its old path.
+    var handoverCandidates = candidateSources;
     if (candidateSources.isNotEmpty) {
       // Probe the highest-scoring candidates for liveness, concurrently, so the
       // selection prefers a source that actually serves media. Probes are wrapped
@@ -1034,6 +1040,24 @@ class ContinueWatchingService {
           : candidateSources.first;
       selectedSource = chosen;
 
+      // Attempt order for the player: the candidates the probe accepted, in
+      // rank order, then the ones it rejected, also in rank order. Only the
+      // first _resumeProbeLimit candidates were probed at all, so the unchecked
+      // tail rides behind the verified ones instead of claiming a verification
+      // it never got. Nothing leaves the list: a rejected probe is a false
+      // negative often enough that reach must not depend on it, and the player
+      // opening this source genuinely needs the alternatives behind it.
+      final verified = <StreamSource>[];
+      final unverified = <StreamSource>[];
+      for (var i = 0; i < candidateSources.length; i++) {
+        if (i < liveness.length && liveness[i]) {
+          verified.add(candidateSources[i]);
+        } else {
+          unverified.add(candidateSources[i]);
+        }
+      }
+      handoverCandidates = <StreamSource>[...verified, ...unverified];
+
       final bestScore = calculateSourceMatchScore(chosen, item);
       debugPrint('[ContinueWatchingService] Probed ${probeCandidates.length} source(s), $aliveCount alive; selected source match: "${chosen.addonName} - ${chosen.displayTitle}" (Match Score: $bestScore)');
 
@@ -1060,10 +1084,11 @@ class ContinueWatchingService {
             detail: detail,
             episode: video,
             initialPosition: Duration(seconds: item.positionSeconds),
-            // The whole ranking, not just the pick: the liveness probe above is
-            // only a heuristic, so the player needs the alternatives to fall
-            // back on when the chosen source turns out to be dead anyway.
-            resumeCandidates: candidateSources,
+            // The whole ranking, probe verdict first: the player walks this in
+            // order, and the liveness probe above is only a heuristic, so it
+            // needs the alternatives to fall back on when the chosen source
+            // turns out to be dead anyway.
+            resumeCandidates: handoverCandidates,
           ),
         ),
       );

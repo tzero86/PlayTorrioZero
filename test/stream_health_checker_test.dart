@@ -3,10 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:zplay/models/stream/stream_model.dart';
 import 'package:zplay/services/stream/stream_health_checker.dart';
 
+/// A 188-byte aligned MPEG-TS payload, the shape a real HLS media segment has.
+List<int> _tsSegment({int packets = 50}) {
+  final bytes = List<int>.filled(packets * 188, 0);
+  for (var i = 0; i < packets; i++) {
+    bytes[i * 188] = 0x47; // Sync byte
+    bytes[i * 188 + 1] = 0x40;
+    bytes[i * 188 + 2] = 0x11;
+    bytes[i * 188 + 3] = 0x10;
+  }
+  return bytes;
+}
+
 void main() {
   group('StreamHealthChecker Tests', () {
     late HttpServer testServer;
     late int serverPort;
+    final tsSegment = _tsSegment();
 
     setUpAll(() async {
       testServer = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
@@ -29,7 +42,34 @@ void main() {
             request.response
               ..statusCode = HttpStatus.ok
               ..headers.set(HttpHeaders.contentTypeHeader, 'application/vnd.apple.mpegurl')
-              ..write('#EXTM3U\n#EXT-X-VERSION:3\n#EXTINF:10.0,\nsegment1.ts\n');
+              ..write('#EXTM3U\n#EXT-X-VERSION:3\n#EXTINF:10.0,\nsegment_referer.ts\n');
+          } else {
+            request.response
+              ..statusCode = HttpStatus.forbidden
+              ..write('Forbidden - Missing Referer');
+          }
+          await request.response.close();
+        } else if (path == '/segment1.ts') {
+          // The media behind /alive.m3u8, so the liveness check reaches media
+          // rather than stopping at the manifest.
+          request.response
+            ..statusCode = HttpStatus.partialContent
+            ..headers.set(HttpHeaders.contentTypeHeader, 'video/mp2t')
+            ..headers.set(HttpHeaders.contentRangeHeader, 'bytes 0-9399/9400')
+            ..headers.contentLength = tsSegment.length
+            ..add(tsSegment);
+          await request.response.close();
+        } else if (path == '/segment_referer.ts') {
+          // Carries the same Referer gate as its manifest: the walk only passes
+          // when it forwards the resolved headers onto the segment request.
+          final referer = request.headers.value(HttpHeaders.refererHeader);
+          if (referer == 'https://vuflix.co/') {
+            request.response
+              ..statusCode = HttpStatus.partialContent
+              ..headers.set(HttpHeaders.contentTypeHeader, 'video/mp2t')
+              ..headers.set(HttpHeaders.contentRangeHeader, 'bytes 0-9399/9400')
+              ..headers.contentLength = tsSegment.length
+              ..add(tsSegment);
           } else {
             request.response
               ..statusCode = HttpStatus.forbidden
